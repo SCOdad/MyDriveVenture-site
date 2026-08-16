@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /sms-consent/
+
+Sitemap: https://mydriveventure.com/sitemap.xml
