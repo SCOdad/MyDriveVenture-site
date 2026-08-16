@@ -124,6 +124,9 @@ h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading
 .learning-cards article { position: relative; padding: 1.5rem; border: 3px solid var(--true-black); background: #fffaf0; box-shadow: .4rem .4rem 0 #b9aa8e; }
 .learning-cards article > span { color: #8b6508; font: 800 .75rem/1 var(--heading-font); }.learning-cards h3 { margin: .8rem 0; }.learning-cards p { color: #46515a; }
 .research-note { margin: 2.2rem 0 0; padding: 1rem 1.2rem; border-left: .42rem solid #a58e49; background: #ded4c1; color: #303a42; }
+.research-note p { margin: 0 0 .55rem; }
+.research-brief-link { color: #604604; font-weight: 800; }
+.research-brief-link:hover { color: var(--true-black); }
 
 .content { max-width: var(--max); margin: auto; padding: 3rem 1.25rem 4rem; }
 .content.narrow { max-width: 54rem; }
