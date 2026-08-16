@@ -92,26 +92,26 @@ def main() -> None:
         if abbr not in VALID: continue
         row = data[abbr]
         category = "supported" if row["CurrentSupport"].lower()=="true" else "exact50" if row["Exactly50Hours"].lower()=="true" else "other"
-        documented = row["DocumentationCategory"] == "Detailed Log Required"
         hours = row["TotalHours"] or "no verified statewide minimum"
         night = f"; {row['NightHours']} night" if row["NightHours"] not in ("","0") else ""
         title = f"{row['State']} — {hours} supervised hours{night}; {row['DocumentationCategory']}."
         d = path_data(abbr, parts)
-        outline = ' style="stroke:#2f7d4a;stroke-width:6"' if documented else ''
-        paths.append(f'<g id="{abbr}" class="state {category}{" documented" if documented else ""}" role="img" aria-label="{html.escape(title)}"><title>{html.escape(title)}</title><path class="state-shape"{outline} d="{d}"/></g>')
+        fill = "#f4b820" if category == "supported" else "#dfcc7a" if category == "exact50" else "url(#otherHatch)"
+        paths.append(f'<g id="{abbr}" class="state {category}" role="img" aria-label="{html.escape(title)}"><title>{html.escape(title)}</title><path class="state-shape" style="fill:{fill}" d="{d}"/></g>')
     # D.C. is geographically tiny; keep the true boundary and add a visible callout marker.
     dcx,dcy = project("DC",-77.02,38.91)
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="mapTitle mapDesc">
 <title id="mapTitle">Drive Venture supervised-driving requirements political map</title>
-<desc id="mapDesc">A geographic United States political map using Census Bureau state boundaries. Michigan is bright yellow as currently supported. Other exact-50-hour states are muted yellow. Other hour requirements are gray. A green inner stroke identifies states requiring a detailed driving log. Alaska and Hawaii appear as insets.</desc>
-<style>.state-shape{{stroke:#080b0e;stroke-width:2.4;vector-effect:non-scaling-stroke;stroke-linejoin:round}}.supported .state-shape{{fill:#f4b820}}.exact50 .state-shape{{fill:#a58e49}}.other .state-shape{{fill:#626b73}}.documented .state-shape{{stroke:#2f7d4a;stroke-width:6}}.state:hover .state-shape{{stroke:#f7f3e8;stroke-width:5}}.inset{{fill:none;stroke:#aeb8c2;stroke-width:1.5;stroke-dasharray:7 6}}.label{{fill:#aeb8c2;font:700 15px Inter,Arial,sans-serif;letter-spacing:.08em}}.dc-marker{{fill:#626b73;stroke:#080b0e;stroke-width:2}}.dc-line{{stroke:#f7f3e8;stroke-width:1.5}}</style>
+<desc id="mapDesc">A geographic United States political map using Census Bureau state boundaries. Michigan is bright yellow as currently supported. Other exact-50-hour states are light yellow. States with other requirements use transparent light-yellow hatching over the dark map background. Detailed documentation requirements remain available in the accompanying table. Alaska and Hawaii appear as insets.</desc>
+<defs><pattern id="otherHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#2b343d"/><rect width="3" height="10" fill="#dfcc7a" opacity=".48"/></pattern></defs>
+<style>.state-shape{{stroke:#080b0e;stroke-width:2.4;vector-effect:non-scaling-stroke;stroke-linejoin:round}}.state:hover .state-shape{{stroke:#f7f3e8;stroke-width:5}}.inset{{fill:none;stroke:#aeb8c2;stroke-width:1.5;stroke-dasharray:7 6}}.label{{fill:#aeb8c2;font:700 15px Inter,Arial,sans-serif;letter-spacing:.08em}}.dc-marker{{fill:url(#otherHatch);stroke:#080b0e;stroke-width:2}}.dc-line{{stroke:#f7f3e8;stroke-width:1.5}}</style>
 <rect width="1200" height="720" rx="18" fill="#111820"/>
 <text x="40" y="35" fill="#f7f3e8" font-family="Orbitron,Arial,sans-serif" font-size="19" font-weight="800">U.S. SUPERVISED-DRIVING REQUIREMENTS • VERIFIED 2026-08-16</text>
 <g>{''.join(paths)}</g>
 <rect class="inset" x="28" y="545" width="292" height="155" rx="8"/><text class="label" x="42" y="687">ALASKA</text>
 <rect class="inset" x="330" y="585" width="225" height="115" rx="8"/><text class="label" x="344" y="687">HAWAII</text>
 <circle class="dc-marker" cx="{dcx:.1f}" cy="{dcy:.1f}" r="5"/><path class="dc-line" d="M{dcx+5:.1f},{dcy:.1f} l30,18"/><text class="label" x="{dcx+39:.1f}" y="{dcy+24:.1f}">DC</text>
-<text x="875" y="680" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Base color = supervised-hour category • Green border = detailed-log requirement</text>
+<text x="875" y="680" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Bright yellow = current scope • Light yellow = exact 50 hours • Hatch = other requirements</text>
 <text x="875" y="699" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Rules and pathways vary. Confirm current requirements with the state licensing agency.</text>
 </svg>'''
     sys.stdout.write(svg)
