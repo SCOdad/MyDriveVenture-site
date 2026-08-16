@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Join the Drive Venture pilot and set up a supervised driver.">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Join Drive Venture</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/join.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
+  <header><div class="nav"><a class="brand" href="/"><span class="brand-mark">=DV=</span> Drive Venture</a><nav aria-label="Primary"><ul><li><a href="/text-parker/">Text Parker</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li></ul></nav></div></header>
+  <main id="main" class="content narrow onboarding-shell">
+    <p class="eyebrow">Pilot onboarding</p>
+    <h1>Start your Drive Venture</h1>
+    <p class="lede">Set up one supervised driver and their grown-up. No Google account is required.</p>
+    <div class="notice"><strong>Pilot experience:</strong> Drive Venture helps organize supervised-practice activity and encouragement. It does not assess driving skill or replace licensing requirements or adult supervision.</div>
+
+    <form id="dv-onboarding-form" class="onboarding-form" novalidate>
+      <section class="form-card" aria-labelledby="grownup-heading">
+        <p class="step-label">1 of 4</p><h2 id="grownup-heading">Grown-up</h2>
+        <div class="field-grid two-col">
+          <label>First name<input name="guardianGivenName" autocomplete="given-name" required maxlength="80"></label>
+          <label>Last name<input name="guardianFamilyName" autocomplete="family-name" maxlength="80"></label>
+        </div>
+        <label>Email<input name="guardianEmail" type="email" autocomplete="email" required maxlength="254"></label>
+        <label>Mobile number<input name="guardianMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-1234"></label>
+        <label class="checkbox-row real-checkbox"><input name="guardianSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker</strong><br>I agree to receive transactional text messages from Drive Venture through Text Parker at the mobile number provided. Messages may include enrollment assistance, supervised-drive start and finish confirmations, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
+      </section>
+
+      <section class="form-card" aria-labelledby="driver-heading">
+        <p class="step-label">2 of 4</p><h2 id="driver-heading">Driver</h2>
+        <div class="field-grid two-col">
+          <label>First name<input name="driverGivenName" autocomplete="given-name" required maxlength="80"></label>
+          <label>Last name<input name="driverFamilyName" autocomplete="family-name" maxlength="80"></label>
+        </div>
+        <div class="field-grid two-col">
+          <label>Birthday<input name="driverBirthDate" type="date" required></label>
+          <label>Home ZIP code<input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348"></label>
+        </div>
+        <label>Driver email <span class="meta">(optional)</span><input name="driverEmail" type="email" autocomplete="email" maxlength="254"></label>
+        <label>Driver mobile number<input name="driverMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-5678"><span class="field-help">This is collected separately even if it is the same number as the grown-up's. The driver can activate Text Parker later by texting JOIN from this phone.</span></label>
+      </section>
+
+      <section class="form-card" aria-labelledby="license-heading">
+        <p class="step-label">3 of 4</p><h2 id="license-heading">Driving setup</h2>
+        <label>Current license stage<select name="licenseStage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option><option value="OTHER">Other / not sure</option></select></label>
+        <label>Date current supervised-practice stage began <span class="meta">(if known)</span><input name="licenseStageStartDate" type="date"></label>
+        <label>Favorite color <span class="meta">(optional)</span><input name="favoriteColor" maxlength="40"></label>
+        <label class="checkbox-row real-checkbox"><input name="customAvatarRequested" type="checkbox"><span><strong>I'd like a custom Drive Venture avatar.</strong><br>We'll ask for a photo after onboarding. You do not need to upload one here.</span></label>
+      </section>
+
+      <section class="form-card" aria-labelledby="vehicle-heading">
+        <p class="step-label">4 of 4</p><h2 id="vehicle-heading">Starting vehicle</h2>
+        <label>Vehicle name<input name="vehicleName" required maxlength="80" placeholder="Blue Pacifica"></label>
+        <label>Vehicle class<select name="vehicleClass" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Sports Car</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option><option>Other</option></select></label>
+        <label>Vehicle color <span class="meta">(optional)</span><input name="vehicleColor" maxlength="40"></label>
+      </section>
+
+      <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
+      <button id="submit-button" class="button primary onboarding-submit" type="submit">Join the pilot</button>
+      <p class="meta">By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional.</p>
+    </form>
+
+    <section id="onboarding-success" class="form-card success-card" hidden tabindex="-1">
+      <p class="eyebrow">You're in</p><h2>Welcome to Drive Venture.</h2>
+      <p>Your onboarding information was received. We'll continue setting up the driver's pilot experience.</p>
+      <p>If the driver wants Text Parker, they will activate it from their own phone by texting <strong>JOIN</strong> once the service is available.</p>
+      <a class="button" href="/">Back to Drive Venture</a>
+    </section>
+  </main>
+  <footer><div class="footer-inner"><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li><li><a href="/text-parker/">Text Parker</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
+  <script src="/join/config.js"></script>
+  <script src="/assets/js/join.js"></script>
+</body>
+</html>
