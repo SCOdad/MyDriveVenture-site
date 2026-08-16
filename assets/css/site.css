@@ -1,12 +1,16 @@
 :root {
-  --black: #111111;
-  --ink: #242424;
-  --yellow: #f4c430;
-  --yellow-soft: #fff4bf;
-  --paper: #fffdf7;
+  --black: #101820;
+  --navy: #0b234a;
+  --navy-soft: #17365f;
+  --ink: #202a36;
+  --yellow: #f3b81a;
+  --yellow-soft: #fff1bd;
+  --paper: #f7f4eb;
   --white: #ffffff;
-  --muted: #666158;
-  --line: #ded8ca;
+  --muted: #5d6470;
+  --line: #d7d5cc;
+  --heading-font: "Arial Narrow", "Aptos Display", "Roboto Condensed", sans-serif;
+  --body-font: Inter, Aptos, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --max: 72rem;
 }
 
@@ -18,10 +22,10 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--paper);
-  font: 1rem/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 1rem/1.65 var(--body-font);
 }
 
-a { color: #695000; text-underline-offset: .18em; }
+a { color: #765900; text-underline-offset: .18em; }
 a:hover { color: var(--black); }
 
 .skip-link {
@@ -38,12 +42,12 @@ a:hover { color: var(--black); }
 
 .racing-stripe {
   height: .7rem;
-  background: repeating-linear-gradient(135deg, var(--yellow) 0 1.5rem, var(--black) 1.5rem 3rem);
+  background: repeating-linear-gradient(135deg, var(--yellow) 0 1.5rem, var(--navy) 1.5rem 3rem);
 }
 
 header {
   color: var(--white);
-  background: var(--black);
+  background: var(--navy);
 }
 
 .nav {
@@ -58,8 +62,9 @@ header {
 
 .brand {
   color: var(--white);
+  font-family: var(--heading-font);
   font-weight: 900;
-  letter-spacing: .06em;
+  letter-spacing: .075em;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -84,8 +89,8 @@ main { min-height: 65vh; }
   padding: clamp(4rem, 10vw, 8rem) 1.25rem;
   color: var(--white);
   background:
-    linear-gradient(115deg, rgba(17,17,17,.98), rgba(17,17,17,.82)),
-    repeating-linear-gradient(0deg, transparent 0 15px, rgba(244,196,48,.08) 15px 16px);
+    linear-gradient(115deg, rgba(7,24,52,.99), rgba(16,49,82,.9)),
+    repeating-linear-gradient(0deg, transparent 0 15px, rgba(243,184,26,.1) 15px 16px);
 }
 
 .hero-inner, .content, .cards { max-width: var(--max); margin: auto; }
@@ -98,7 +103,13 @@ main { min-height: 65vh; }
   text-transform: uppercase;
 }
 
-h1, h2, h3 { line-height: 1.15; color: var(--black); }
+h1, h2, h3 {
+  color: var(--navy);
+  font-family: var(--heading-font);
+  font-weight: 800;
+  letter-spacing: .015em;
+  line-height: 1.08;
+}
 .hero h1 { max-width: 13ch; margin: 0; color: var(--white); font-size: clamp(2.5rem, 8vw, 5.5rem); }
 .hero p { max-width: 42rem; font-size: clamp(1.1rem, 2.5vw, 1.35rem); }
 
@@ -107,9 +118,11 @@ h1, h2, h3 { line-height: 1.15; color: var(--black); }
   margin-top: .75rem;
   padding: .8rem 1.1rem;
   border: 2px solid var(--yellow);
-  color: var(--black);
+  color: var(--navy);
   background: var(--yellow);
+  font-family: var(--heading-font);
   font-weight: 800;
+  letter-spacing: .025em;
   text-decoration: none;
   box-shadow: .3rem .3rem 0 var(--white);
 }
@@ -122,7 +135,7 @@ h1, h2, h3 { line-height: 1.15; color: var(--black); }
 .content h2 { margin-top: 2.5rem; padding-top: .4rem; border-top: .25rem solid var(--yellow); }
 .content li + li { margin-top: .45rem; }
 
-.lede { max-width: 45rem; color: #45413b; font-size: 1.2rem; }
+.lede { max-width: 45rem; color: #3d4651; font-size: 1.2rem; }
 .meta { color: var(--muted); font-size: .95rem; }
 
 .notice {
@@ -133,8 +146,8 @@ h1, h2, h3 { line-height: 1.15; color: var(--black); }
 }
 
 .safety {
-  border-left-color: var(--black);
-  background: #eeeeea;
+  border-left-color: var(--navy);
+  background: #e9eef1;
 }
 
 .cards {
@@ -154,14 +167,14 @@ h1, h2, h3 { line-height: 1.15; color: var(--black); }
 .consent-example {
   margin: 1.5rem 0;
   padding: 1.25rem;
-  border: 2px solid var(--black);
+  border: 2px solid var(--navy);
   background: var(--white);
 }
 
 .checkbox-row { display: flex; align-items: flex-start; gap: .75rem; }
 .fake-checkbox { flex: 0 0 1.25rem; height: 1.25rem; margin-top: .2rem; border: 2px solid var(--black); background: var(--white); }
 
-footer { padding: 2.5rem 1.25rem; color: #d9d9d9; background: var(--black); }
+footer { padding: 2.5rem 1.25rem; color: #dbe2ea; background: var(--navy); }
 .footer-inner { max-width: var(--max); margin: auto; }
 .footer-links { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; padding: 0; list-style: none; }
 footer a { color: var(--yellow); }
