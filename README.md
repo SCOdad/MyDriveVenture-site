@@ -7,6 +7,7 @@ The current visual treatment is being evaluated for the pilot. It draws from the
 ## Scope
 
 - Homepage
+- Evidence-based supervised-practice research guide
 - Text Parker information and SMS disclosures
 - Privacy Policy
 - Terms & Conditions
