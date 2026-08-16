@@ -2,6 +2,8 @@
 
 Minimal public and compliance website for the Drive Venture pilot.
 
+The current visual treatment is being evaluated for the pilot. It draws from the existing Drive Venture pixel-art style guide but does not establish or replace canonical brand or website design standards.
+
 ## Scope
 
 - Homepage
