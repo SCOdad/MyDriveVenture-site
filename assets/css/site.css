@@ -84,6 +84,16 @@ h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading
 .consent-example { margin: 1.5rem 0; padding: 1.25rem; border: 2px solid var(--dv-yellow); background: var(--panel); }
 .checkbox-row { display: flex; align-items: flex-start; gap: .75rem; }
 .fake-checkbox { flex: 0 0 1.25rem; height: 1.25rem; margin-top: .2rem; border: 2px solid var(--warm-white); background: var(--asphalt); }
+.text-parker-link { padding-left: .1rem; }
+.sms-optin { margin: 2.2rem 0 3rem; padding: clamp(1.25rem, 4vw, 2.2rem); display: grid; grid-template-columns: 6.5rem 1fr; gap: 1.6rem; align-items: start; border: 4px solid var(--true-black); border-top-color: var(--dv-yellow); background: var(--panel); box-shadow: .55rem .55rem 0 var(--true-black); }
+.sms-optin .parker-mark { width: 5.5rem; }
+.sms-optin h2 { margin-bottom: .55rem; padding: 0; border: 0; font-size: clamp(1.65rem, 4vw, 2.55rem); }
+.sms-optin h2 a { color: var(--warm-white); text-decoration-color: var(--dv-yellow); }
+.vanity-number { margin: 0 0 1.35rem; color: var(--silver); }
+.sms-button { margin-bottom: 1.35rem; }
+.sms-disclosure { margin: 0; padding: 1rem; border-left: .35rem solid var(--dv-yellow); color: var(--warm-white); background: var(--asphalt); font-size: .95rem; line-height: 1.55; }
+.policy-links { margin: 1rem 0 0; font-weight: 700; }
+.policy-links span { padding-inline: .4rem; color: var(--silver); }
 footer { padding: 3rem 1.25rem; color: var(--silver); background: var(--true-black); }
 .footer-inner { max-width: var(--max); margin: auto; }
 .footer-brand { margin-bottom: 1.2rem; }
@@ -106,6 +116,8 @@ footer a { color: var(--dv-yellow); }
   .parker-inner { grid-template-columns: 5rem 1fr; }
   .parker-mark { width: 4.5rem; }
   .parker-inner .button { grid-column: 1 / -1; justify-self: start; }
+  .sms-optin { grid-template-columns: 4.5rem 1fr; gap: 1rem; }
+  .sms-optin .parker-mark { width: 4rem; }
 }
 
 @media (max-width: 500px) {
@@ -118,6 +130,9 @@ footer a { color: var(--dv-yellow); }
   .hero-copy { padding: 1.2rem; }
   .hero h1 { font-size: clamp(2.35rem, 12vw, 3.25rem); }
   .hero-actions { align-items: flex-start; flex-direction: column; }
+  .sms-optin { grid-template-columns: 1fr; }
+  .sms-optin .parker-mark { width: 3.75rem; }
+  .sms-button { width: 100%; text-align: center; }
   .command-list li { grid-template-columns: 5rem 1fr; }
 }
 
