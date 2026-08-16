@@ -4,6 +4,8 @@
   const message = document.getElementById('form-message');
   const button = document.getElementById('submit-button');
   const success = document.getElementById('onboarding-success');
+  const submissionStorageKey = 'dv:onboarding:submission-id';
+  let memorySubmissionId = '';
 
   function setMessage(text, isError = false) {
     message.textContent = text || '';
@@ -14,10 +16,42 @@
     return String(data.get(name) || '').trim();
   }
 
+  function getStableSubmissionId() {
+    if (memorySubmissionId) return memorySubmissionId;
+
+    try {
+      const stored = sessionStorage.getItem(submissionStorageKey);
+      if (stored) {
+        memorySubmissionId = stored;
+        return stored;
+      }
+    } catch (_) {
+      // Continue with in-memory idempotency if browser storage is unavailable.
+    }
+
+    memorySubmissionId = `web-${crypto.randomUUID()}`;
+    try {
+      sessionStorage.setItem(submissionStorageKey, memorySubmissionId);
+    } catch (_) {
+      // In-memory value still protects repeated clicks in this page lifetime.
+    }
+    return memorySubmissionId;
+  }
+
+  function clearSubmissionId() {
+    memorySubmissionId = '';
+    try {
+      sessionStorage.removeItem(submissionStorageKey);
+    } catch (_) {
+      // Nothing else to do.
+    }
+  }
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     setMessage('');
     if (!form.reportValidity()) return;
+    if (button.disabled) return;
 
     const endpoint = String(window.DV_ONBOARDING_ENDPOINT || '').trim();
     if (!endpoint) {
@@ -27,7 +61,10 @@
 
     const data = new FormData(form);
     const payload = {
-      source_response_id: `web-${crypto.randomUUID()}`,
+      // Reuse the same ID after a timeout/network retry so the backend's
+      // unique (source, source_response_id) constraint can return the original
+      // onboarding result rather than creating a second family/driver.
+      source_response_id: getStableSubmissionId(),
       website: value(data, 'website'),
       guardian: {
         given_name: value(data, 'guardianGivenName'),
@@ -67,6 +104,7 @@
       if (!response.ok || result.ok !== true) {
         throw new Error(result.error || 'We could not submit onboarding right now.');
       }
+      clearSubmissionId();
       form.hidden = true;
       success.hidden = false;
       success.focus();
