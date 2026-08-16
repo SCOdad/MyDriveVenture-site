@@ -111,7 +111,7 @@ def main() -> None:
 <rect class="inset" x="28" y="545" width="292" height="155" rx="8"/><text class="label" x="42" y="687">ALASKA</text>
 <rect class="inset" x="330" y="585" width="225" height="115" rx="8"/><text class="label" x="344" y="687">HAWAII</text>
 <circle class="dc-marker" cx="{dcx:.1f}" cy="{dcy:.1f}" r="5"/><path class="dc-line" d="M{dcx+5:.1f},{dcy:.1f} l30,18"/><text class="label" x="{dcx+39:.1f}" y="{dcy+24:.1f}">DC</text>
-<text x="875" y="680" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Bright yellow = current scope • Light yellow = exact 50 hours • Hatch = other requirements</text>
+<text x="875" y="680" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Research verified 2026-08-16 • 50 states + D.C. • See the state table for details</text>
 <text x="875" y="699" text-anchor="middle" fill="#aeb8c2" font-family="Inter,Arial,sans-serif" font-size="13">Rules and pathways vary. Confirm current requirements with the state licensing agency.</text>
 </svg>'''
     sys.stdout.write(svg)
