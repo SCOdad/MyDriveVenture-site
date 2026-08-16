@@ -38,6 +38,8 @@ main { min-height: 65vh; }
 h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading-font); line-height: 1.12; }
 .hero h1 { max-width: 12ch; margin-bottom: 1.15rem; font-size: clamp(2.55rem, 6.5vw, 5.35rem); letter-spacing: -.035em; }
 .hero-lede { max-width: 37rem; color: #e0e5e9; font-size: clamp(1.05rem, 2vw, 1.25rem); }
+.hero-lede strong { color: var(--warm-white); font-weight: 700; }
+.hero-support { max-width: 35rem; margin: .75rem 0 0; color: var(--silver); }
 .hero-actions { margin-top: 1.6rem; display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; }
 .button { display: inline-block; padding: .85rem 1.15rem; border: 2px solid var(--dv-yellow); color: var(--true-black); background: var(--dv-yellow); font-family: var(--heading-font); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-decoration: none; box-shadow: .3rem .3rem 0 var(--warm-white); transition: transform .15s ease, box-shadow .15s ease; }
 .button:hover { color: var(--true-black); transform: translate(.1rem,.1rem); box-shadow: .2rem .2rem 0 var(--warm-white); }
@@ -74,6 +76,32 @@ h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading
 .button-muted { padding: .72rem .85rem; border-color: #6f7880; color: var(--warm-white); background: #303942; box-shadow: none; font-size: .68rem; }
 .button-muted:hover { color: var(--warm-white); background: #3b4650; box-shadow: none; }
 .button-primary { margin-left: auto; }
+.game-intro, .when-band, .final-cta { padding: clamp(4rem, 8vw, 7rem) 1.25rem; }
+.game-intro { border-block: 1px solid rgba(174,184,194,.16); background: var(--night-road); }
+.game-intro-inner { max-width: var(--max); margin: auto; display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 6vw, 6rem); align-items: center; }
+.game-copy h2, .when-inner h2, .final-cta h2 { margin-bottom: 1.25rem; font-size: clamp(2rem, 4vw, 3.45rem); }
+.game-copy > p:last-child { max-width: 46rem; color: #dce2e6; font-size: 1.08rem; }
+.game-panel { display: grid; gap: .8rem; padding: 1rem; border: 4px solid var(--true-black); border-top-color: var(--dv-yellow); background: var(--asphalt); box-shadow: .65rem .65rem 0 var(--true-black); }
+.game-stat { display: grid; grid-template-columns: 4rem 1fr; column-gap: 1rem; align-items: center; padding: 1rem; border: 2px solid rgba(174,184,194,.24); background: var(--panel); }
+.game-stat > span { grid-row: 1 / 3; display: grid; width: 3.5rem; aspect-ratio: 1; place-items: center; border: 3px solid var(--true-black); color: var(--true-black); background: var(--dv-yellow); font: 800 .78rem/1 var(--heading-font); box-shadow: .2rem .2rem 0 var(--true-black); }
+.game-stat strong { color: var(--warm-white); font-family: var(--heading-font); font-size: .88rem; }
+.game-stat small { color: var(--silver); }
+.safety-rule { max-width: var(--max); margin: 2.5rem auto 0; padding: 1rem 1.2rem; border-left: .42rem solid var(--highway-green); color: #dfe9e2; background: #193328; }
+.safety-rule strong { color: var(--warm-white); }
+.when-band { background-color: #121b23; background-image: linear-gradient(90deg,transparent 49.75%,rgba(244,184,32,.08) 50%,transparent 50.25%); }
+.when-inner { max-width: var(--max); margin: auto; display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(2rem, 7vw, 7rem); align-items: center; }
+.when-inner > div > p:not(.eyebrow,.michigan-note) { max-width: 50rem; color: var(--silver); font-size: 1.08rem; }
+.route-timeline { margin: 0; padding: 1rem; list-style: none; border: 4px solid var(--true-black); border-top-color: var(--dv-yellow); background: var(--panel); box-shadow: .55rem .55rem 0 var(--true-black); }
+.route-timeline li { position: relative; display: grid; grid-template-columns: 3.2rem 1fr; gap: 1rem; align-items: center; min-height: 4.5rem; padding: .65rem; color: var(--warm-white); }
+.route-timeline li + li { border-top: 1px solid rgba(174,184,194,.2); }
+.route-timeline span { display: grid; width: 2.7rem; aspect-ratio: 1; place-items: center; border: 2px solid var(--true-black); color: var(--true-black); background: var(--dv-yellow); font: 800 .7rem/1 var(--heading-font); }
+.route-timeline strong { font-family: var(--heading-font); font-size: .82rem; }
+.final-cta { border-top: .55rem solid var(--dv-yellow); background-color: var(--asphalt); background-image: radial-gradient(circle at 1px 1px,rgba(244,184,32,.15) 1px,transparent 0); background-size: 24px 24px; }
+.final-cta-inner { max-width: var(--max); margin: auto; display: grid; grid-template-columns: 1.25fr auto; gap: 3rem; align-items: center; }
+.final-cta h2 { max-width: 19ch; margin-bottom: .8rem; }
+.final-cta p:not(.eyebrow) { color: var(--silver); }
+.final-actions { display: flex; flex-direction: column; gap: 1.2rem; align-items: flex-start; }
+.final-actions .button-primary { margin-left: 0; }
 .mission-band, .requirements, .why-practice { padding: clamp(4rem, 8vw, 7rem) 1.25rem; }
 .mission-band { border-block: 1px solid rgba(174,184,194,.16); background: var(--night-road); }
 .mission-inner, .requirements-inner, .why-inner { max-width: var(--max); margin: auto; }
@@ -166,7 +194,9 @@ footer a { color: var(--dv-yellow); }
   .parker-mark { width: 4.5rem; }
   .parker-inner .button { grid-column: 1 / -1; justify-self: start; }
   .button-primary { margin-left: 0; }
-  .mission-inner, .map-card { grid-template-columns: 1fr; }
+  .mission-inner, .map-card, .game-intro-inner, .when-inner, .final-cta-inner { grid-template-columns: 1fr; }
+  .game-panel { max-width: 42rem; }
+  .final-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .map-placeholder { min-height: 22rem; border-right: 0; border-bottom: 1px solid rgba(174,184,194,.2); }
   .learning-cards { grid-template-columns: 1fr; }
   .requirements .map-legend { grid-template-columns: repeat(2, 1fr); }
@@ -186,6 +216,9 @@ footer a { color: var(--dv-yellow); }
   .map-badge { top: 1rem; left: 1rem; width: 5.5rem; }
   .map-placeholder { min-height: 19rem; }
   .requirements .map-legend { grid-template-columns: 1fr; }
+  .game-stat { grid-template-columns: 3.4rem 1fr; padding: .8rem; }
+  .game-stat > span { width: 3rem; }
+  .final-actions { align-items: flex-start; flex-direction: column; }
   .command-list li { grid-template-columns: 5rem 1fr; }
 }
 
