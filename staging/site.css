@@ -30,9 +30,9 @@ nav a { color: var(--warm-white); font-size: .88rem; font-weight: 600; text-deco
 nav a:hover, nav a[aria-current="page"] { color: var(--dv-yellow); }
 main { min-height: 65vh; }
 .hero { position: relative; min-height: clamp(39rem, 73vw, 51rem); display: grid; align-items: center; overflow: hidden; background: var(--asphalt); }
-.hero-art { position: absolute; inset: 0; background: url('./road-ahead-hero.png') center / cover no-repeat; image-rendering: pixelated; }
-.hero-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,11,14,.26), transparent 58%); }
-.hero-inner { width: 100%; max-width: var(--max); margin: auto; padding: 5rem 1.25rem 6rem; }
+.hero-art { position: absolute; inset: 0; display: block; margin: 0; }
+.hero-art img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; image-rendering: pixelated; }
+.hero-inner { position: relative; z-index: 1; width: 100%; max-width: var(--max); margin: auto; padding: 5rem 1.25rem 6rem; }
 .hero-copy { position: relative; max-width: 39rem; padding: clamp(1.4rem, 3vw, 2.4rem); border: 4px solid var(--true-black); background: rgba(8,11,14,.88); box-shadow: .65rem .65rem 0 var(--dv-yellow); }
 .eyebrow { margin: 0 0 .8rem; color: var(--dv-yellow); font-family: var(--heading-font); font-size: .76rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading-font); line-height: 1.12; }
@@ -94,9 +94,9 @@ footer a { color: var(--dv-yellow); }
   .nav { align-items: center; flex-direction: column; }
   nav ul { justify-content: center; }
   .hero { min-height: 0; display: block; overflow: visible; }
-  .hero-art { position: relative; inset: auto; width: 100%; aspect-ratio: 4 / 3; background-position: 69% center; }
-  .hero-art::after { background: linear-gradient(0deg, var(--asphalt), transparent 28%); }
-  .hero-inner { margin-top: -2.5rem; padding: 0 .8rem 4.5rem; }
+  .hero-art { position: relative; inset: auto; width: 100%; }
+  .hero-art img { width: 100%; height: auto; object-fit: contain; object-position: center; }
+  .hero-inner { margin-top: -1rem; padding: 0 .8rem 4.5rem; }
   .hero-copy { max-width: 100%; box-shadow: .45rem .45rem 0 var(--dv-yellow); }
   .section-heading, .pilot-inner { grid-template-columns: 1fr; gap: 1rem; }
   .cards { grid-template-columns: 1fr; }
@@ -114,7 +114,7 @@ footer a { color: var(--dv-yellow); }
   .brand img { width: 13rem; height: 3.2rem; }
   nav ul { gap: .35rem 1rem; }
   nav a { font-size: .78rem; }
-  .hero-art { aspect-ratio: 1 / 1; background-position: 74% center; }
+  .hero-art img { width: 100%; height: auto; }
   .hero-copy { padding: 1.2rem; }
   .hero h1 { font-size: clamp(2.35rem, 12vw, 3.25rem); }
   .hero-actions { align-items: flex-start; flex-direction: column; }
