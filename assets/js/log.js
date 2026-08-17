@@ -66,10 +66,22 @@
     const { data, error } = await client.functions.invoke(name, { body });
     if (error) {
       let detail = error.message || 'Request failed';
-      try { const j = await error.context.json(); if (j?.error) detail = j.error; } catch (_) {}
-      throw new Error(detail);
+      const statusCode = error.context?.status;
+      try {
+        const clone = error.context?.clone ? error.context.clone() : null;
+        const j = clone ? await clone.json() : await error.context?.json();
+        if (j?.error) detail = j.error;
+        else if (j?.message) detail = j.message;
+      } catch (_) {
+        try {
+          const clone = error.context?.clone ? error.context.clone() : null;
+          const text = clone ? await clone.text() : '';
+          if (text && text.length < 300) detail = text;
+        } catch (_) {}
+      }
+      throw new Error(`${name}${statusCode ? ` [HTTP ${statusCode}]` : ''}: ${detail}`);
     }
-    if (!data || data.ok !== true) throw new Error(data?.error || 'Request failed');
+    if (!data || data.ok !== true) throw new Error(`${name}: ${data?.error || 'Request failed'}`);
     return data;
   }
 
@@ -116,22 +128,21 @@
   }
 
   async function loadDashboard() {
+    status(loginStatus, 'Access linked. Loading dashboard…');
     const data = await invoke('driver-api', { action: 'dashboard' });
     model = data;
     if (!currentDriverId || !model.drivers.some(d => d.id === currentDriverId)) currentDriverId = model.drivers[0]?.id || '';
-    if (!currentDriverId) throw new Error('No active driver is linked to this account yet.');
+    if (!currentDriverId) throw new Error('Dashboard: no active driver is linked to this account yet.');
     driverSelect.innerHTML = model.drivers.map(d => `<option value="${esc(d.id)}">${esc(d.display_name || 'Driver')}</option>`).join('');
     driverSelect.value = currentDriverId;
     render();
   }
 
   async function establishAccess() {
-    // Claim access with the authenticated browser client so PostgreSQL receives
-    // the user's JWT and auth.uid(). Do not proxy this RPC through a service-role
-    // Edge Function: that would replace the caller identity and make auth.uid() null.
+    status(loginStatus, 'Resolving Drive Venture access…');
     const { data, error } = await client.rpc('claim_authenticated_access_v1');
-    if (error) throw new Error(error.message || 'Unable to resolve access');
-    if (!data || data.ok !== true) throw new Error(data?.error || 'Unable to resolve access');
+    if (error) throw new Error(`Access claim: ${error.message || 'Unable to resolve access'}`);
+    if (!data || data.ok !== true) throw new Error(`Access claim: ${data?.error || 'Unable to resolve access'}`);
     await loadDashboard();
     loginCard.classList.add('app-hidden');
     appMain.classList.remove('app-hidden');
