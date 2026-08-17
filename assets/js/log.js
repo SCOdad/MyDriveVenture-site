@@ -84,8 +84,7 @@
     document.getElementById('license-hours').textContent = `${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     document.getElementById('license-night-hours').textContent = `${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
     const dash = document.querySelector('.dashboard-console');
-    if (dash) { const p=Math.min(100, Number(progress.total_minutes||0)/(practiceTarget*60)*100); const n=Math.min(100, Number(progress.night_minutes||0)/(nightTarget*60)*100); dash.style.setProperty('--practice-pct', \`${Math.max(2,p/2)}%\`); dash.style.setProperty('--night-pct', \`${Math.max(2,n/2)}%\`); dash.style.setProperty('--practice-turn', \`${p*.9}deg\`); dash.style.setProperty('--night-turn', \`${n*.9}deg\`); dash.dataset.hours = \`\\A ${Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)} HOURS TO GO\\A TO YOUR NEXT LICENSE MILESTONE\`; }
-
+    if (dash) { const p=Math.min(100, Number(progress.total_minutes||0)/(practiceTarget*60)*100); const n=Math.min(100, Number(progress.night_minutes||0)/(nightTarget*60)*100); dash.style.setProperty('--practice-pct', String(Math.max(2,p/2))+'%'); dash.style.setProperty('--night-pct', String(Math.max(2,n/2))+'%'); dash.style.setProperty('--practice-turn', String(p*.9)+'deg'); dash.style.setProperty('--night-turn', String(n*.9)+'deg'); dash.dataset.hours = Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)+' HOURS TO GO — NEXT LICENSE MILESTONE'; }
 
     const vehicles = currentVehicles();
     document.getElementById('vehicle-list').innerHTML = vehicles.length ? vehicles.map(v => `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color ? ` · ${esc(v.color)}` : ''}${v.is_primary ? ' · Primary' : ''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`).join('') : '<li class="empty-state">No vehicles yet.</li>';
