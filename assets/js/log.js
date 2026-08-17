@@ -79,13 +79,13 @@
     document.getElementById('kpi-hours').textContent = `${hours(progress.total_minutes)} h`;
     document.getElementById('kpi-night').textContent = `${hours(progress.night_minutes)} h`;
     document.getElementById('kpi-drives').textContent = String(progress.total_drives || 0);
-    document.getElementById('kpi-xp').textContent = String(progress.xp || 0);
+    const xpEl=document.getElementById('kpi-xp'); if(xpEl) xpEl.textContent = String(progress.xp || 0);
     document.getElementById('license-stage').textContent = driver.license_stage || '—';
     document.getElementById('license-date').textContent = driver.level1_license_date || '—';
-    document.getElementById('license-hours').textContent = `${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
+    const hoursEl=document.getElementById('license-hours'); if(hoursEl) hoursEl.textContent = `${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     document.getElementById('license-night-hours').textContent = `${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
     const dash = document.querySelector('.dashboard-console');
-    if (dash) { const p=Math.min(100, Number(progress.total_minutes||0)/(practiceTarget*60)*100); const n=Math.min(100, Number(progress.night_minutes||0)/(nightTarget*60)*100); dash.style.setProperty('--practice-pct', String(Math.max(2,p/2))+'%'); dash.style.setProperty('--night-pct', String(Math.max(2,n/2))+'%'); dash.style.setProperty('--practice-turn', String(p*.9)+'deg'); dash.style.setProperty('--night-turn', String(n*.9)+'deg'); dash.dataset.hours = Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)+' HOURS TO GO — NEXT LICENSE MILESTONE'; }
+    if (dash) { const p=Math.min(100, Number(progress.total_minutes||0)/(practiceTarget*60)*100); const n=Math.min(100, Number(progress.night_minutes||0)/(nightTarget*60)*100); dash.style.setProperty('--practice-p', String(Math.max(2,p))); dash.style.setProperty('--night-p', String(Math.max(2,n))); }
 
     const vehicles = currentVehicles();
     document.getElementById('vehicle-list').innerHTML = vehicles.length ? vehicles.map(v => `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color ? ` · ${esc(v.color)}` : ''}${v.is_primary ? ' · Primary' : ''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`).join('') : '<li class="empty-state">No vehicles yet.</li>';
@@ -98,7 +98,7 @@
     const awards = currentAwards();
     document.getElementById('quest-list').innerHTML = awards.length ? awards.map(q => `<li class="quest-item"><div><strong>${esc(q.quest?.name || q.quest_key)}</strong><br><small>${esc(q.awarded_at).slice(0,10)}</small></div><span class="pill">+${Number(q.xp_awarded || 0)} XP</span></li>`).join('') : '<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
     const dashConsole = document.querySelector('.dashboard-console');
-    if (dashConsole) { const sign=document.getElementById('hours-sign'); if(sign) sign.textContent=`${Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)} HOURS TO GO TO YOUR NEXT LICENSE MILESTONE`; const stack=dashConsole.querySelector('.digital-stack'); if(stack && !document.getElementById('radio-quest-list')) stack.innerHTML='<div class="radio"><div class="radio-head"><span>DV RADIO</span><span>QUEST SIGNAL</span></div><div class="radio-screen"><span>FEATURED QUESTS</span><ol id="radio-quest-list"></ol></div><div class="radio-controls"><i></i><i></i><i></i></div></div>'; const list=document.getElementById('radio-quest-list'); if(list) list.innerHTML=(awards.slice(0,8).map(q=>'<li>'+esc(q.quest?.name||q.quest_key)+'</li>').join('') || '<li>Log a drive to begin your quest feed.</li>'); }
+    if (dashConsole) { const sign=document.getElementById('hours-sign'); if(sign) sign.textContent=`${Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)} HOURS TO GO`; const duplicateNight=document.getElementById('license-night-hours-duplicate'); if(duplicateNight) duplicateNight.textContent=`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`; const list=document.getElementById('radio-quest-list'); if(list) list.innerHTML=(awards.slice(0,8).map(q=>'<li>'+esc(q.quest?.name||q.quest_key)+'</li>').join('') || '<li>Log a drive to begin your quest feed.</li>'); }
   }
 
   async function loadDashboard() {
