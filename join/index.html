@@ -19,14 +19,8 @@
   <header><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li><a href="/text-parker/">Text Parker</a></li></ul></nav></div></header>
   <main id="main" class="content narrow onboarding-shell">
     <section class="join-intro" aria-labelledby="join-heading">
-      <div class="join-intro-copy">
-        <p class="eyebrow">Michigan pilot onboarding</p>
-        <h1 id="join-heading">Start your Drive Venture</h1>
-        <p class="lede">Set up one supervised driver and their grown-up. No Google account is required.</p>
-      </div>
-      <figure class="join-art">
-        <img src="/assets/images/dv-char-parker-phone.webp" width="768" height="1152" alt="Parker holding a phone displaying the Drive Venture mark.">
-      </figure>
+      <div class="join-intro-copy"><p class="eyebrow">Michigan pilot onboarding</p><h1 id="join-heading">Start your Drive Venture</h1><p class="lede">Set up one supervised driver and their grown-up. No Google account is required.</p></div>
+      <figure class="join-art"><img src="/assets/images/dv-char-parker-phone.webp" width="768" height="1152" alt="Parker holding a phone displaying the Drive Venture mark."></figure>
     </section>
     <div class="notice"><strong>Pilot experience:</strong> Drive Venture helps organize supervised-practice activity and encouragement. It does not assess driving skill or replace licensing requirements or adult supervision.</div>
 
@@ -42,13 +36,10 @@
       <section class="form-card" aria-labelledby="driver-heading">
         <p class="step-label">2 of 4</p><h2 id="driver-heading">Driver</h2>
         <label><span class="field-label">Driver name or nickname <span class="tip" tabindex="0" data-tip="This is the name Drive Venture will use throughout the driver experience. A nickname is encouraged if that is what the driver normally uses." aria-label="Why we ask for driver name">?</span></span><input name="driverName" autocomplete="name" required maxlength="100" placeholder="What should Drive Venture call the driver?"></label>
-        <div class="field-grid two-col">
-          <label><span class="field-label">Birthday <span class="tip" tabindex="0" data-tip="Birthday is used for age-based licensing progress and birthday quests." aria-label="Why we ask for birthday">?</span></span><input name="driverBirthDate" type="date" required></label>
-          <label><span class="field-label">Home ZIP code <span class="tip" tabindex="0" data-tip="ZIP code lets Drive Venture determine the driver's state requirements, local time zone, and location-dependent features without asking for a street address." aria-label="Why we ask for ZIP code">?</span></span><input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348"></label>
-        </div>
+        <div class="field-grid two-col"><label><span class="field-label">Birthday <span class="tip" tabindex="0" data-tip="Birthday is used for age-based licensing progress and birthday quests." aria-label="Why we ask for birthday">?</span></span><input name="driverBirthDate" type="date" required></label><label><span class="field-label">Home ZIP code <span class="tip" tabindex="0" data-tip="ZIP code lets Drive Venture determine the driver's state requirements, local time zone, and location-dependent features without asking for a street address." aria-label="Why we ask for ZIP code">?</span></span><input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348"></label></div>
         <label><span class="field-label">Driver email <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="Used for driver-facing welcome and service messages when available. It is not used as the driver's identity key." aria-label="Why we ask for driver email">?</span></span><input name="driverEmail" type="email" autocomplete="email" maxlength="254"></label>
         <label><span class="field-label">Driver mobile number <span class="tip" tabindex="0" data-tip="Text Parker needs the driver's own number to associate messages and driving sessions with the correct driver. This may be the same number as the grown-up's." aria-label="Why we ask for driver mobile number">?</span></span><input name="driverMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-5678"></label>
-        <label class="checkbox-row real-checkbox"><input name="driverSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the driver</strong><br>Check this only if the driver has agreed to receive transactional Drive Venture text messages at the driver mobile number above. Messages may include enrollment, drive start/finish interactions, progress messages, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
+        <label class="checkbox-row real-checkbox"><input name="driverSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the driver</strong><br><strong>Driver:</strong> I agree to receive transactional text messages from Drive Venture through Text Parker at the driver mobile number provided above. Messages may include enrollment assistance, supervised-drive start and finish interactions, progress messages, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
       </section>
 
       <section class="form-card" aria-labelledby="license-heading">
@@ -57,9 +48,7 @@
         <label><span class="field-label">Permit / current-stage issue date <span class="tip" tabindex="0" data-tip="This date anchors time-based licensing requirements. On a phone, your device's native date picker should appear." aria-label="Why we ask for permit date">?</span></span><input name="licenseStageStartDate" type="date" required></label>
         <label><span class="field-label">Favorite color <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="Used for personalization, artwork, and parts of the Drive Venture visual experience." aria-label="Why we ask for favorite color">?</span></span><input name="favoriteColor" maxlength="40"></label>
         <label class="checkbox-row real-checkbox"><input id="custom-avatar-requested" name="customAvatarRequested" type="checkbox"><span><strong>I'd like a custom Drive Venture avatar.</strong><br>You can upload a source photo here. Avatar selection is independent from SMS consent.</span></label>
-        <div id="avatar-upload-wrap" class="conditional-field" hidden>
-          <label><span class="field-label">Driver photo <span class="tip" tabindex="0" data-tip="A clear photo of the driver's face helps us create a recognizable Drive Venture avatar. The source photo is stored privately and is not published as the avatar." aria-label="Why we ask for a driver photo">?</span></span><input id="avatar-photo" name="avatarPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="field-help">JPEG, PNG, WebP, HEIC, or HEIF. Maximum 4 MB.</span></label>
-        </div>
+        <div id="avatar-upload-wrap" class="conditional-field" hidden><label><span class="field-label">Driver photo <span class="tip" tabindex="0" data-tip="A clear photo of the driver's face helps us create a recognizable Drive Venture avatar. The source photo is stored privately and is not published as the avatar." aria-label="Why we ask for a driver photo">?</span></span><input id="avatar-photo" name="avatarPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="field-help">JPEG, PNG, WebP, HEIC, or HEIF. Maximum 4 MB.</span></label></div>
       </section>
 
       <section class="form-card" aria-labelledby="vehicle-heading">
@@ -72,18 +61,17 @@
       <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
       <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
       <button id="submit-button" class="button primary onboarding-submit" type="submit">Join the pilot</button>
-      <p class="meta">By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional for each person.</p>
+      <p class="meta">By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional for each person. Each SMS checkbox is separate and unchecked by default.</p>
     </form>
 
     <section id="onboarding-success" class="form-card success-card" hidden tabindex="-1">
       <p class="eyebrow">You're in</p><h2>Welcome to Drive Venture.</h2>
-      <p>Your onboarding information was received. We'll continue setting up the driver's pilot experience.</p>
-      <p>If either person opted into Text Parker, that consent is recorded separately for that mobile number.</p>
+      <p>Your pilot onboarding information is stored in Drive Venture's secure backend.</p>
+      <p>If either person opted into Text Parker, that consent is recorded separately for that person's mobile number with the consent version and time of submission.</p>
       <a class="button" href="/">Back to Drive Venture</a>
     </section>
   </main>
   <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li><li><a href="/text-parker/">Text Parker</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
-  <script src="/join/config.js"></script>
-  <script src="/assets/js/join.js"></script>
+  <script src="/join/config.js"></script><script src="/assets/js/join.js"></script>
 </body>
 </html>
