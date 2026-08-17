@@ -33,7 +33,7 @@
   let currentDriverId = '';
 
   function hours(minutes) { return (Number(minutes || 0) / 60).toFixed(1); }
-  function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  function esc(value) { return String(value ?? '').replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c])); }
   function currentDriver() { return model.drivers.find(d => d.id === currentDriverId) || model.drivers[0] || null; }
   function currentProgress() { return model.progress.find(p => p.driver_id === currentDriverId) || {}; }
   function currentVehicles() { return model.vehicles.filter(v => v.driver_id === currentDriverId && v.status !== 'ARCHIVED'); }
@@ -126,7 +126,12 @@
   }
 
   async function establishAccess() {
-    await invoke('claim-access', {});
+    // Claim access with the authenticated browser client so PostgreSQL receives
+    // the user's JWT and auth.uid(). Do not proxy this RPC through a service-role
+    // Edge Function: that would replace the caller identity and make auth.uid() null.
+    const { data, error } = await client.rpc('claim_authenticated_access_v1');
+    if (error) throw new Error(error.message || 'Unable to resolve access');
+    if (!data || data.ok !== true) throw new Error(data?.error || 'Unable to resolve access');
     await loadDashboard();
     loginCard.classList.add('app-hidden');
     appMain.classList.remove('app-hidden');
@@ -152,7 +157,6 @@
   driverSelect.addEventListener('change', () => { currentDriverId = driverSelect.value; render(); });
 
   driveForm.addEventListener('input', () => {
-    // Once the user edits the form after a successful submission, the next drive needs a new event identity.
     if (!driveStatus.classList.contains('error') && driveStatus.classList.contains('success')) clearDriveSubmissionId();
   });
 
@@ -162,9 +166,7 @@
     status(driveStatus, 'Logging drive…');
     try {
       const result = await invoke('driver-api', {
-        action: 'log_drive',
-        driver_id: currentDriverId,
-        source_event_id: stableDriveSubmissionId(),
+        action: 'log_drive', driver_id: currentDriverId, source_event_id: stableDriveSubmissionId(),
         drive_date: document.getElementById('drive-date').value,
         start_time: document.getElementById('drive-start').value,
         end_time: document.getElementById('drive-end').value,
@@ -180,7 +182,6 @@
       document.getElementById('drive-notes').value = '';
       await loadDashboard();
     } catch (err) {
-      // Keep the same source ID so a retry heals a lost/partial response rather than creating a duplicate drive.
       status(driveStatus, `${err.message || 'Unable to log drive.'} You can retry safely.`, 'error');
     }
   });
