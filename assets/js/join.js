@@ -92,10 +92,7 @@
 
     try {
       const photoFile = avatarPhoto && avatarPhoto.files ? avatarPhoto.files[0] : null;
-      const photo = avatarRequested && avatarRequested.checked
-        ? await fileToPayload(photoFile)
-        : null;
-
+      const photo = avatarRequested && avatarRequested.checked ? await fileToPayload(photoFile) : null;
       const guardianName = value(data, 'guardianName');
       const driverName = value(data, 'driverName');
       const payload = {
@@ -118,6 +115,7 @@
           mobile: value(data, 'driverMobile'),
           sms_opt_in: data.get('driverSmsOptIn') === 'on',
           home_zip: value(data, 'homeZip'),
+          home_state: 'MI',
           license_stage: value(data, 'licenseStage'),
           level1_license_date: value(data, 'licenseStageStartDate'),
           favorite_color: value(data, 'favoriteColor'),
@@ -137,9 +135,7 @@
         body: JSON.stringify(payload)
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.ok !== true) {
-        throw new Error(result.error || 'We could not submit onboarding right now.');
-      }
+      if (!response.ok || result.ok !== true) throw new Error(result.error || 'We could not submit onboarding right now.');
       clearSubmissionId();
       form.hidden = true;
       success.hidden = false;
