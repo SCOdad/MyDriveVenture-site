@@ -61,9 +61,10 @@
       let detail = error.message || 'Request failed';
       const statusCode = error.context?.status;
       try {
-        const clone = error.context?.clone ? error.context.clone() : null;
-        const j = clone ? await clone.json() : await error.context?.json();
-        if (j?.error) detail = j.error; else if (j?.message) detail = j.message;
+        const response = error.context?.clone ? error.context.clone() : error.context;
+        const raw = response ? await response.text() : '';
+        const j = raw ? JSON.parse(raw) : null;
+        if (j?.error) detail = j.error; else if (j?.message) detail = j.message; else if (raw) detail = raw;
       } catch (_) {}
       throw new Error(`${name}${statusCode ? ` [HTTP ${statusCode}]` : ''}: ${detail}`);
     }
@@ -96,6 +97,8 @@
     document.getElementById('drive-list').innerHTML = drives.length ? drives.map(d => { const v = vehicles.find(x => x.id === d.vehicle_id); return `<li class="drive-item"><div><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name || 'Vehicle')} · ${Math.round(Number(d.duration_minutes || 0))} min${d.destination ? ` · ${esc(d.destination)}` : ''}</small></div><span class="pill">${esc(d.source)}</span></li>`; }).join('') : '<li class="empty-state">No drives logged yet.</li>';
     const awards = currentAwards();
     document.getElementById('quest-list').innerHTML = awards.length ? awards.map(q => `<li class="quest-item"><div><strong>${esc(q.quest?.name || q.quest_key)}</strong><br><small>${esc(q.awarded_at).slice(0,10)}</small></div><span class="pill">+${Number(q.xp_awarded || 0)} XP</span></li>`).join('') : '<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
+    const dashConsole = document.querySelector('.dashboard-console');
+    if (dashConsole) { const sign=document.getElementById('hours-sign'); if(sign) sign.textContent=`${Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)} HOURS TO GO TO YOUR NEXT LICENSE MILESTONE`; const stack=dashConsole.querySelector('.digital-stack'); if(stack && !document.getElementById('radio-quest-list')) stack.innerHTML='<div class="radio"><div class="radio-head"><span>DV RADIO</span><span>QUEST SIGNAL</span></div><div class="radio-screen"><span>FEATURED QUESTS</span><ol id="radio-quest-list"></ol></div><div class="radio-controls"><i></i><i></i><i></i></div></div>'; const list=document.getElementById('radio-quest-list'); if(list) list.innerHTML=(awards.slice(0,8).map(q=>'<li>'+esc(q.quest?.name||q.quest_key)+'</li>').join('') || '<li>Log a drive to begin your quest feed.</li>'); }
   }
 
   async function loadDashboard() {
