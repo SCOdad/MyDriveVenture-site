@@ -137,7 +137,7 @@
     status(loginStatus, 'Sending sign-in link…');
     const email = loginEmail.value.trim();
     if (!email) return;
-    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/app/` } });
+    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/log/` } });
     if (error) status(loginStatus, error.message, 'error');
     else status(loginStatus, 'Check your email for a secure sign-in link.', 'success');
   });
