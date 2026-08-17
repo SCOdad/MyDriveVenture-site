@@ -21,54 +21,52 @@
     <form id="dv-onboarding-form" class="onboarding-form" novalidate>
       <section class="form-card" aria-labelledby="grownup-heading">
         <p class="step-label">1 of 4</p><h2 id="grownup-heading">Grown-up</h2>
-        <div class="field-grid two-col">
-          <label>First name<input name="guardianGivenName" autocomplete="given-name" required maxlength="80"></label>
-          <label>Last name<input name="guardianFamilyName" autocomplete="family-name" maxlength="80"></label>
-        </div>
-        <label>Email<input name="guardianEmail" type="email" autocomplete="email" required maxlength="254"></label>
-        <label>Mobile number<input name="guardianMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-1234"></label>
-        <label class="checkbox-row real-checkbox"><input name="guardianSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker</strong><br>I agree to receive transactional text messages from Drive Venture through Text Parker at the mobile number provided. Messages may include enrollment assistance, supervised-drive start and finish confirmations, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
+        <label>Name <span class="tip" tabindex="0" title="Use the name you want Drive Venture to use when communicating with you. A first name or nickname is fine." aria-label="Why we ask for grown-up name">?</span><input name="guardianName" autocomplete="name" required maxlength="100" placeholder="What should we call you?"></label>
+        <label>Email <span class="tip" tabindex="0" title="We use this for important account and onboarding messages and as a fallback when text messaging is not available." aria-label="Why we ask for grown-up email">?</span><input name="guardianEmail" type="email" autocomplete="email" required maxlength="254"></label>
+        <label>Mobile number <span class="tip" tabindex="0" title="We keep the grown-up and driver phone numbers separately so Text Parker can identify the right person and preserve consent correctly." aria-label="Why we ask for grown-up mobile number">?</span><input name="guardianMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-1234"></label>
+        <label class="checkbox-row real-checkbox"><input name="guardianSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the grown-up</strong><br>I agree to receive transactional text messages from Drive Venture through Text Parker at the mobile number provided. Messages may include enrollment assistance, supervised-drive start and finish confirmations, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
       </section>
 
       <section class="form-card" aria-labelledby="driver-heading">
         <p class="step-label">2 of 4</p><h2 id="driver-heading">Driver</h2>
+        <label>Driver name or nickname <span class="tip" tabindex="0" title="This is the name Drive Venture will use throughout the driver experience. A nickname is encouraged if that is what the driver normally uses." aria-label="Why we ask for driver name">?</span><input name="driverName" autocomplete="name" required maxlength="100" placeholder="What should Drive Venture call the driver?"></label>
         <div class="field-grid two-col">
-          <label>First name<input name="driverGivenName" autocomplete="given-name" required maxlength="80"></label>
-          <label>Last name<input name="driverFamilyName" autocomplete="family-name" maxlength="80"></label>
+          <label>Birthday <span class="tip" tabindex="0" title="Birthday is used for age-based licensing progress and birthday quests." aria-label="Why we ask for birthday">?</span><input name="driverBirthDate" type="date" required></label>
+          <label>Home ZIP code <span class="tip" tabindex="0" title="ZIP code lets Drive Venture determine the driver's state requirements, local time zone, and location-dependent features without asking for a street address." aria-label="Why we ask for ZIP code">?</span><input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348"></label>
         </div>
-        <div class="field-grid two-col">
-          <label>Birthday<input name="driverBirthDate" type="date" required></label>
-          <label>Home ZIP code<input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348"></label>
-        </div>
-        <label>Driver email <span class="meta">(optional)</span><input name="driverEmail" type="email" autocomplete="email" maxlength="254"></label>
-        <label>Driver mobile number<input name="driverMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-5678"><span class="field-help">This is collected separately even if it is the same number as the grown-up's. The driver can activate Text Parker later by texting JOIN from this phone.</span></label>
+        <label>Driver email <span class="meta">(optional)</span> <span class="tip" tabindex="0" title="Used for driver-facing welcome and service messages when available. It is not used as the driver's identity key." aria-label="Why we ask for driver email">?</span><input name="driverEmail" type="email" autocomplete="email" maxlength="254"></label>
+        <label>Driver mobile number <span class="tip" tabindex="0" title="Text Parker needs the driver's own number to associate messages and driving sessions with the correct driver. This may be the same number as the grown-up's." aria-label="Why we ask for driver mobile number">?</span><input name="driverMobile" type="tel" autocomplete="tel" inputmode="tel" required placeholder="(248) 555-5678"></label>
+        <label class="checkbox-row real-checkbox"><input name="driverSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the driver</strong><br>The driver agrees to receive transactional Drive Venture text messages at the driver mobile number above. Messages may include enrollment, drive start/finish interactions, progress messages, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture.</span></label>
       </section>
 
       <section class="form-card" aria-labelledby="license-heading">
         <p class="step-label">3 of 4</p><h2 id="license-heading">Driving setup</h2>
-        <label>Current license stage<select name="licenseStage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option></select></label>
-        <label>Level 1 permit issue date <span class="meta">(if known)</span><input name="licenseStageStartDate" type="date"></label>
-        <label>Favorite color <span class="meta">(optional)</span><input name="favoriteColor" maxlength="40"></label>
-        <label class="checkbox-row real-checkbox"><input name="customAvatarRequested" type="checkbox"><span><strong>I'd like a custom Drive Venture avatar.</strong><br>We'll ask for a photo after onboarding. You do not need to upload one here.</span></label>
+        <label>Current license stage <span class="tip" tabindex="0" title="Drive Venture uses the current stage to show the right licensing milestones and progress requirements." aria-label="Why we ask for license stage">?</span><select name="licenseStage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option></select></label>
+        <label>Permit / current-stage issue date <span class="tip" tabindex="0" title="This date anchors time-based licensing requirements. On a phone, your device's native date picker should appear." aria-label="Why we ask for permit date">?</span><input name="licenseStageStartDate" type="date" required></label>
+        <label>Favorite color <span class="meta">(optional)</span> <span class="tip" tabindex="0" title="Used for personalization, artwork, and parts of the Drive Venture visual experience." aria-label="Why we ask for favorite color">?</span><input name="favoriteColor" maxlength="40"></label>
+        <label class="checkbox-row real-checkbox"><input id="custom-avatar-requested" name="customAvatarRequested" type="checkbox"><span><strong>I'd like a custom Drive Venture avatar.</strong><br>You can upload a source photo here. Avatar selection is independent from SMS consent.</span></label>
+        <div id="avatar-upload-wrap" class="conditional-field" hidden>
+          <label>Driver photo <span class="tip" tabindex="0" title="A clear photo of the driver's face helps us create a recognizable Drive Venture avatar. The source photo is stored privately and is not published as the avatar." aria-label="Why we ask for a driver photo">?</span><input id="avatar-photo" name="avatarPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="field-help">JPEG, PNG, WebP, HEIC, or HEIF. Maximum 4 MB.</span></label>
+        </div>
       </section>
 
       <section class="form-card" aria-labelledby="vehicle-heading">
         <p class="step-label">4 of 4</p><h2 id="vehicle-heading">Starting vehicle</h2>
-        <label>Vehicle name<input name="vehicleName" required maxlength="80" placeholder="Blue Pacifica"></label>
-        <label>Vehicle class<select name="vehicleClass" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Sports Car</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label>
-        <label>Vehicle color <span class="meta">(optional)</span><input name="vehicleColor" maxlength="40"></label>
+        <label>Vehicle name <span class="tip" tabindex="0" title="Give the vehicle a friendly name the driver will recognize in the Garage and driving log." aria-label="Why we ask for vehicle name">?</span><input name="vehicleName" required maxlength="80" placeholder="Blue Pacifica"></label>
+        <label>Vehicle class <span class="tip" tabindex="0" title="Vehicle class supports Garage organization and class-based quests. Choose the closest match." aria-label="Why we ask for vehicle class">?</span><select name="vehicleClass" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label>
+        <label>Vehicle color <span class="meta">(optional)</span> <span class="tip" tabindex="0" title="Helps distinguish vehicles in the Garage and supports personalized artwork." aria-label="Why we ask for vehicle color">?</span><input name="vehicleColor" maxlength="40"></label>
       </section>
 
       <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
       <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
       <button id="submit-button" class="button primary onboarding-submit" type="submit">Join the pilot</button>
-      <p class="meta">By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional.</p>
+      <p class="meta">By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional for each person.</p>
     </form>
 
     <section id="onboarding-success" class="form-card success-card" hidden tabindex="-1">
       <p class="eyebrow">You're in</p><h2>Welcome to Drive Venture.</h2>
       <p>Your onboarding information was received. We'll continue setting up the driver's pilot experience.</p>
-      <p>If the driver wants Text Parker, they will activate it from their own phone by texting <strong>JOIN</strong> once the service is available.</p>
+      <p>If either person opted into Text Parker, that consent is recorded separately for that mobile number.</p>
       <a class="button" href="/">Back to Drive Venture</a>
     </section>
   </main>
