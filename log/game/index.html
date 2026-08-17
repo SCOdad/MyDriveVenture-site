@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-experience="game">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Drive Venture 16-bit pilot dashboard and drive logging experience.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#080b0e">
+  <title>Drive Venture — Game Dashboard</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/log.css">
+  <link rel="stylesheet" href="/assets/css/log-game.css">
+</head>
+<body class="game-body">
+  <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
+  <header><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/">Home</a></li><li><a href="/log/">Classic view</a></li><li><a href="/text-parker/">Text Parker</a></li></ul></nav></div></header>
+  <main id="main" class="app-shell game-shell">
+    <div class="game-marquee" aria-label="New 16-bit experience"><span>DRIVE VENTURE</span><strong>PLAYER DASHBOARD</strong><a href="/log/">Switch to classic view</a></div>
+
+    <section id="app-login" class="app-card app-login game-login">
+      <div class="pixel-road" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p class="eyebrow">Player access</p>
+      <h1>Press start</h1>
+      <p>Use an email address from your Drive Venture pilot onboarding. We’ll send a secure sign-in link—no password required.</p>
+      <form id="login-form" class="app-form">
+        <label><span>Player email</span><input id="login-email" type="email" autocomplete="email" required></label>
+        <button class="button primary game-button" type="submit">Send sign-in link</button>
+        <div id="login-status" class="app-status" role="status" aria-live="polite"></div>
+      </form>
+      <p class="insert-coin" aria-hidden="true">◆ PILOT MODE ◆</p>
+    </section>
+
+    <section id="app-main" class="app-hidden" aria-live="polite">
+      <div class="app-topline game-topline">
+        <div><p class="eyebrow">Player one</p><h1 id="driver-heading">Drive Venture</h1></div>
+        <div class="app-user"><select id="driver-select" class="driver-select" aria-label="Choose driver"></select><button id="sign-out" class="button subtle-button button-small" type="button">Sign out</button></div>
+      </div>
+
+      <section class="app-card full hud-card" aria-label="Player status">
+        <div class="app-kpis">
+          <div class="kpi"><span>Practice</span><strong id="kpi-hours">0.0 h</strong><i aria-hidden="true">▰▰▰▱▱</i></div>
+          <div class="kpi"><span>Night</span><strong id="kpi-night">0.0 h</strong><i aria-hidden="true">☾ ★</i></div>
+          <div class="kpi"><span>Drives</span><strong id="kpi-drives">0</strong><i aria-hidden="true">◆ ◆</i></div>
+          <div class="kpi"><span>XP</span><strong id="kpi-xp">0</strong><i aria-hidden="true">✦</i></div>
+        </div>
+      </section>
+
+      <div class="app-grid game-grid">
+        <section class="app-card mission-card">
+          <div class="game-panel-heading"><span>QUEST 01</span><h2>Log the time</h2></div>
+          <p class="panel-intro">Record this drive. Drive Venture calculates the time and adds it to your journey.</p>
+          <form id="drive-form" class="app-form">
+            <div class="form-row three">
+              <label><span>Date</span><input id="drive-date" name="driveDate" type="date" required></label>
+              <label><span>Start</span><input id="drive-start" name="driveStart" type="time" required></label>
+              <label><span>Finish</span><input id="drive-end" name="driveEnd" type="time" required></label>
+            </div>
+            <label><span>Vehicle</span><select id="drive-vehicle" name="driveVehicle"><option value="">Choose a vehicle</option></select></label>
+            <label><span>Destination <small>(optional)</small></span><input id="drive-destination" maxlength="120" placeholder="School, Grandma's, downtown…"></label>
+            <label><span>Road notes <small>(optional)</small></span><textarea id="drive-notes" maxlength="500" placeholder="What happened on this drive?"></textarea></label>
+            <button class="button primary game-button" type="submit">Save drive + XP</button>
+            <div id="drive-status" class="app-status" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <div class="game-side-stack">
+          <section class="app-card progress-card">
+            <div class="game-panel-heading"><span>LEVEL MAP</span><h2>License progress</h2></div>
+            <div class="license-line"><strong>Current stage</strong><span id="license-stage">—</span></div>
+            <div class="license-line"><strong>Stage since</strong><span id="license-date">—</span></div>
+            <div class="license-line"><strong>Practice hours</strong><span id="license-hours">0.0</span></div>
+            <div class="license-line"><strong>Night hours</strong><span id="license-night-hours">0.0</span></div>
+            <p class="fine-print">Canonical logged practice is shown here. State-specific readiness rules will layer onto these totals.</p>
+          </section>
+
+          <section class="app-card quest-card">
+            <div class="game-panel-heading"><span>ACHIEVEMENTS</span><h2>Recent quests</h2></div>
+            <ul id="quest-list" class="quest-list"></ul>
+          </section>
+        </div>
+
+        <section class="app-card garage-card">
+          <div class="game-panel-heading"><span>LOADOUT</span><h2>Garage</h2></div>
+          <ul id="vehicle-list" class="vehicle-list"></ul>
+          <h3>Unlock a vehicle</h3>
+          <form id="vehicle-form" class="app-form">
+            <label><span>Name</span><input id="vehicle-name" required maxlength="80" placeholder="Blue Pacifica"></label>
+            <div class="form-row">
+              <label><span>Class</span><select id="vehicle-class" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label>
+              <label><span>Color <small>(optional)</small></span><input id="vehicle-color" maxlength="40"></label>
+            </div>
+            <button class="button primary button-small game-button" type="submit">Add to garage</button>
+            <div id="vehicle-status" class="app-status" role="status" aria-live="polite"></div>
+          </form>
+        </section>
+
+        <section class="app-card drive-history-card">
+          <div class="game-panel-heading"><span>SAVE FILE</span><h2>Recent drives</h2></div>
+          <ul id="drive-list" class="drive-list"></ul>
+        </section>
+      </div>
+    </section>
+  </main>
+  <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/log/">Classic view</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/log/config.js"></script>
+  <script src="/assets/js/log.js"></script>
+</body>
+</html>

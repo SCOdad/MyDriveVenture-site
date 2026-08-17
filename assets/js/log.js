@@ -116,7 +116,7 @@
     await loadDashboard(); loginCard.classList.add('app-hidden'); appMain.classList.remove('app-hidden');
   }
 
-  loginForm.addEventListener('submit', async e => { e.preventDefault(); status(loginStatus, 'Sending sign-in link…'); const email = loginEmail.value.trim(); if (!email) return; const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/log/` } }); if (error) status(loginStatus, error.message, 'error'); else status(loginStatus, 'Check your email for a secure sign-in link.', 'success'); });
+  loginForm.addEventListener('submit', async e => { e.preventDefault(); status(loginStatus, 'Sending sign-in link…'); const email = loginEmail.value.trim(); if (!email) return; const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${document.documentElement.dataset.experience === 'game' ? '/log/game/' : '/log/'}` } }); if (error) status(loginStatus, error.message, 'error'); else status(loginStatus, 'Check your email for a secure sign-in link.', 'success'); });
   signOut.addEventListener('click', async () => { await client.auth.signOut(); appMain.classList.add('app-hidden'); loginCard.classList.remove('app-hidden'); status(loginStatus, 'Signed out.'); });
   driverSelect.addEventListener('change', () => { currentDriverId = driverSelect.value; render(); });
   driveForm.addEventListener('input', () => { if (!driveStatus.classList.contains('error') && driveStatus.classList.contains('success')) clearDriveSubmissionId(); });
