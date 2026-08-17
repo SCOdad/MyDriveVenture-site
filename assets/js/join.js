@@ -4,6 +4,9 @@
   const message = document.getElementById('form-message');
   const button = document.getElementById('submit-button');
   const success = document.getElementById('onboarding-success');
+  const avatarRequested = document.getElementById('custom-avatar-requested');
+  const avatarWrap = document.getElementById('avatar-upload-wrap');
+  const avatarPhoto = document.getElementById('avatar-photo');
   const submissionStorageKey = 'dv:onboarding:submission-id';
   let memorySubmissionId = '';
 
@@ -16,40 +19,64 @@
     return String(data.get(name) || '').trim();
   }
 
+  function syncAvatarUpload() {
+    const requested = Boolean(avatarRequested && avatarRequested.checked);
+    if (avatarWrap) avatarWrap.hidden = !requested;
+    if (avatarPhoto) {
+      avatarPhoto.required = requested;
+      if (!requested) avatarPhoto.value = '';
+    }
+  }
+
+  async function fileToPayload(file) {
+    if (!file) return null;
+    const maxBytes = 4 * 1024 * 1024;
+    if (file.size > maxBytes) throw new Error('Driver photo must be 4 MB or smaller.');
+    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
+    if (file.type && !allowed.has(file.type)) throw new Error('Driver photo must be JPEG, PNG, WebP, HEIC, or HEIF.');
+
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Unable to read the selected driver photo.'));
+      reader.readAsDataURL(file);
+    });
+
+    const comma = dataUrl.indexOf(',');
+    if (comma < 0) throw new Error('Unable to encode the selected driver photo.');
+    return {
+      filename: file.name || 'driver-photo',
+      content_type: file.type || 'application/octet-stream',
+      base64: dataUrl.slice(comma + 1)
+    };
+  }
+
   function getStableSubmissionId() {
     if (memorySubmissionId) return memorySubmissionId;
-
     try {
       const stored = sessionStorage.getItem(submissionStorageKey);
       if (stored) {
         memorySubmissionId = stored;
         return stored;
       }
-    } catch (_) {
-      // Continue with in-memory idempotency if browser storage is unavailable.
-    }
-
+    } catch (_) {}
     memorySubmissionId = `web-${crypto.randomUUID()}`;
-    try {
-      sessionStorage.setItem(submissionStorageKey, memorySubmissionId);
-    } catch (_) {
-      // In-memory value still protects repeated clicks in this page lifetime.
-    }
+    try { sessionStorage.setItem(submissionStorageKey, memorySubmissionId); } catch (_) {}
     return memorySubmissionId;
   }
 
   function clearSubmissionId() {
     memorySubmissionId = '';
-    try {
-      sessionStorage.removeItem(submissionStorageKey);
-    } catch (_) {
-      // Nothing else to do.
-    }
+    try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {}
   }
+
+  if (avatarRequested) avatarRequested.addEventListener('change', syncAvatarUpload);
+  syncAvatarUpload();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     setMessage('');
+    syncAvatarUpload();
     if (!form.reportValidity()) return;
     if (button.disabled) return;
 
@@ -60,41 +87,50 @@
     }
 
     const data = new FormData(form);
-    const payload = {
-      // Reuse the same ID after a timeout/network retry so the backend's
-      // unique (source, source_response_id) constraint can return the original
-      // onboarding result rather than creating a second family/driver.
-      source_response_id: getStableSubmissionId(),
-      website: value(data, 'website'),
-      guardian: {
-        given_name: value(data, 'guardianGivenName'),
-        family_name: value(data, 'guardianFamilyName'),
-        email: value(data, 'guardianEmail'),
-        mobile: value(data, 'guardianMobile'),
-        sms_opt_in: data.get('guardianSmsOptIn') === 'on'
-      },
-      driver: {
-        given_name: value(data, 'driverGivenName'),
-        family_name: value(data, 'driverFamilyName'),
-        birth_date: value(data, 'driverBirthDate'),
-        email: value(data, 'driverEmail'),
-        mobile: value(data, 'driverMobile'),
-        home_zip: value(data, 'homeZip'),
-        license_stage: value(data, 'licenseStage'),
-        level1_license_date: value(data, 'licenseStageStartDate'),
-        favorite_color: value(data, 'favoriteColor'),
-        custom_avatar_requested: data.get('customAvatarRequested') === 'on'
-      },
-      vehicle: {
-        name: value(data, 'vehicleName'),
-        class: value(data, 'vehicleClass'),
-        color: value(data, 'vehicleColor')
-      }
-    };
-
     button.disabled = true;
     button.textContent = 'Submitting…';
+
     try {
+      const photoFile = avatarPhoto && avatarPhoto.files ? avatarPhoto.files[0] : null;
+      const photo = avatarRequested && avatarRequested.checked
+        ? await fileToPayload(photoFile)
+        : null;
+
+      const guardianName = value(data, 'guardianName');
+      const driverName = value(data, 'driverName');
+      const payload = {
+        source_response_id: getStableSubmissionId(),
+        website: value(data, 'website'),
+        guardian: {
+          given_name: guardianName,
+          family_name: '',
+          display_name: guardianName,
+          email: value(data, 'guardianEmail'),
+          mobile: value(data, 'guardianMobile'),
+          sms_opt_in: data.get('guardianSmsOptIn') === 'on'
+        },
+        driver: {
+          given_name: driverName,
+          family_name: '',
+          display_name: driverName,
+          birth_date: value(data, 'driverBirthDate'),
+          email: value(data, 'driverEmail'),
+          mobile: value(data, 'driverMobile'),
+          sms_opt_in: data.get('driverSmsOptIn') === 'on',
+          home_zip: value(data, 'homeZip'),
+          license_stage: value(data, 'licenseStage'),
+          level1_license_date: value(data, 'licenseStageStartDate'),
+          favorite_color: value(data, 'favoriteColor'),
+          custom_avatar_requested: data.get('customAvatarRequested') === 'on'
+        },
+        avatar_photo: photo,
+        vehicle: {
+          name: value(data, 'vehicleName'),
+          class: value(data, 'vehicleClass'),
+          color: value(data, 'vehicleColor')
+        }
+      };
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
