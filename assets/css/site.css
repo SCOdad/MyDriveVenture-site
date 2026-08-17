@@ -27,7 +27,7 @@ header { position: relative; z-index: 5; border-bottom: 1px solid rgba(174,184,1
 .footer-brand img { width: 11rem; height: 3.2rem; object-fit: cover; object-position: center; }
 nav ul, .footer-links { margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.3rem; list-style: none; }
 nav a { color: var(--warm-white); font-size: .88rem; font-weight: 600; text-decoration: none; }
-nav a:hover, nav a[aria-current="page"] { color: var(--dv-yellow); }
+nav a:hover, nav a[aria-current="page"] { color: var(--dv-yellow); }\nnav .nav-cta { display: inline-block; padding: .45rem .7rem; border: 1px solid var(--dv-yellow); color: var(--true-black); background: var(--dv-yellow); font-family: var(--heading-font); font-size: .68rem; font-weight: 800; letter-spacing: .04em; }\nnav .nav-cta:hover { color: var(--true-black); background: var(--warm-white); }
 main { min-height: 65vh; }
 .hero { position: relative; min-height: clamp(39rem, 73vw, 51rem); display: grid; align-items: center; overflow: hidden; background: var(--asphalt); }
 .hero-art { position: absolute; inset: 0; display: block; margin: 0; }
@@ -237,3 +237,4 @@ footer a { color: var(--dv-yellow); }
 .preview-grid figcaption{padding:.75rem 1rem;color:var(--silver);font-size:.85rem;border-top:1px solid rgba(174,184,194,.2)}
 @media(max-width:900px){.mission-story{grid-template-columns:1fr}.mission-story .mission-art{max-width:42rem;margin:0}.mission-story .mission-art img{aspect-ratio:auto;object-fit:contain}.hero-actions{grid-template-columns:1fr}.pilot-actions{justify-content:flex-start}.preview-grid{grid-template-columns:1fr}.preview-detail{display:none}.access-grid{grid-template-columns:1fr}.access-card{min-height:0}.parker-inner{grid-template-columns:minmax(9rem,13rem) 1fr}}
 @media(max-width:679px){.mission-story .mission-art{max-width:none}.education-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.pilot-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.education-actions .button,.pilot-actions .button{width:100%;padding-inline:.65rem;text-align:center;font-size:.67rem}.mission-art{margin-top:2rem}.parker-inner{grid-template-columns:1fr;align-items:start}.parker-portrait img{width:min(62vw,14rem);max-height:22rem}.access-grid{grid-template-columns:1fr}.route-timeline li{grid-template-columns:4.2rem 1fr}.route-timeline span{width:3.8rem;font-size:1.8rem}}
+\n.feedback-intro{max-width:48rem;margin-bottom:2rem}.feedback-form textarea{width:100%;resize:vertical;min-height:10rem}\n

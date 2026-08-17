@@ -33,7 +33,8 @@
       email: value(data, 'email'),
       home_state: value(data, 'homeState'),
       driver_age_range: value(data, 'driverAgeRange'),
-      updates_opt_in: data.get('updatesOptIn') === 'on'
+      updates_opt_in: data.get('updatesOptIn') === 'on',
+      submission_context: window.DVSubmissionContext?.collect('WAITLIST') ?? { schema_version: 1, form_source: 'WAITLIST' }
     };
 
     button.disabled = true;

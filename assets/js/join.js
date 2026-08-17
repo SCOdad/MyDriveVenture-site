@@ -98,6 +98,7 @@
       const payload = {
         source_response_id: getStableSubmissionId(),
         website: value(data, 'website'),
+        submission_context: window.DVSubmissionContext?.collect('ONBOARDING') ?? { schema_version: 1, form_source: 'ONBOARDING' },
         guardian: {
           given_name: guardianName,
           family_name: '',
