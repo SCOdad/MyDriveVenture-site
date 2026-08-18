@@ -1,0 +1,22 @@
+/* Shared behavior affordances across all /log skins. */
+.quest-help-target{cursor:help;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:.18em}
+.quest-item[data-quest-help],#radio-quest-list li[data-quest-help]{position:relative}
+.quest-item[data-quest-help]:hover::after,.quest-item[data-quest-help]:focus-within::after,#radio-quest-list li[data-quest-help]:hover::after,#radio-quest-list li[data-quest-help]:focus-within::after{content:attr(data-quest-help);position:absolute;z-index:30;left:.5rem;right:.5rem;bottom:calc(100% + .45rem);padding:.6rem .7rem;background:#080d0f;color:#f8f4e9;border:2px solid #f8ba20;box-shadow:3px 3px 0 #050707;font:600 .78rem/1.35 Inter,Arial,sans-serif;pointer-events:none}
+
+@media(max-width:760px){
+  html,body{max-width:100%;overflow-x:hidden}
+  .app-shell,.dash-shell,.app-grid,.dashboard-workbench,.app-card,.app-form,.app-form label,.form-row,.form-row.three{min-width:0;max-width:100%;box-sizing:border-box}
+  .app-form input,.app-form select,.app-form textarea,.app-form input[type=date],.app-form input[type=time]{box-sizing:border-box;display:block;width:100%!important;max-width:100%!important;min-width:0!important;font-size:16px}
+  .form-row,.form-row.three{grid-template-columns:minmax(0,1fr)!important}
+  .quest-item[data-quest-help]::after,#radio-quest-list li[data-quest-help]::after{max-width:calc(100vw - 3rem)}
+}
+
+/* DV-01 game-skin-only presentation adjustment. The milestone number still
+   comes from the same shared dashboard data as every other skin. */
+html[data-experience="game"] .hours-sign{top:10%;width:min(350px,64%);padding:7px 12px;box-shadow:none;border-width:2px}
+html[data-experience="game"] .hours-sign span{font-size:8px}
+html[data-experience="game"] .hours-sign strong{font-size:clamp(11px,1.55vw,15px)}
+/* Cover the remnant of the baked-in roadside sign immediately behind the live
+   milestone overlay without modifying the shared windshield artwork. */
+html[data-experience="game"] .hours-sign:after{content:"";position:absolute;z-index:-1;left:8%;right:8%;top:92%;height:24px;background:linear-gradient(#73bddd,#7bc7e4);border:0}
+@media(max-width:760px){html[data-experience="game"] .hours-sign{width:min(285px,62%);top:9%;padding:5px 8px}html[data-experience="game"] .hours-sign:after{height:16px}}
