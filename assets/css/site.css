@@ -40,7 +40,7 @@ h1, h2, h3 { margin-top: 0; color: var(--warm-white); font-family: var(--heading
 .hero-lede { max-width: 37rem; color: #e0e5e9; font-size: clamp(1.05rem, 2vw, 1.25rem); }
 .hero-lede strong { color: var(--warm-white); font-weight: 700; }
 .hero-support { max-width: 35rem; margin: .75rem 0 0; color: var(--silver); }
-.hero-actions { margin-top: 1.6rem; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 1rem 1.5rem; }.education-actions,.pilot-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .8rem; }.pilot-actions { flex-wrap: nowrap; justify-content: flex-end; }
+.hero-actions { margin-top: 1.6rem; display: grid; gap: .8rem; }.education-actions,.pilot-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .8rem; }.pilot-actions { justify-content: flex-end; }
 .button { display: inline-block; padding: .85rem 1.15rem; border: 2px solid var(--dv-yellow); color: var(--true-black); background: var(--dv-yellow); font-family: var(--heading-font); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-decoration: none; box-shadow: .3rem .3rem 0 var(--warm-white); transition: transform .15s ease, box-shadow .15s ease; }
 .button:hover { color: var(--true-black); transform: translate(.1rem,.1rem); box-shadow: .2rem .2rem 0 var(--warm-white); }
 .text-link { font-weight: 700; text-decoration: none; }
@@ -238,3 +238,17 @@ footer a { color: var(--dv-yellow); }
 @media(max-width:900px){.mission-story{grid-template-columns:1fr}.mission-story .mission-art{max-width:42rem;margin:0}.mission-story .mission-art img{aspect-ratio:auto;object-fit:contain}.hero-actions{grid-template-columns:1fr}.pilot-actions{justify-content:flex-start}.preview-grid{grid-template-columns:1fr}.preview-detail{display:none}.access-grid{grid-template-columns:1fr}.access-card{min-height:0}.parker-inner{grid-template-columns:minmax(9rem,13rem) 1fr}}
 @media(max-width:679px){.mission-story .mission-art{max-width:none}.education-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.pilot-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}.education-actions .button,.pilot-actions .button{width:100%;padding-inline:.65rem;text-align:center;font-size:.67rem}.mission-art{margin-top:2rem}.parker-inner{grid-template-columns:1fr;align-items:start}.parker-portrait img{width:min(62vw,14rem);max-height:22rem}.access-grid{grid-template-columns:1fr}.route-timeline li{grid-template-columns:4.2rem 1fr}.route-timeline span{width:3.8rem;font-size:1.8rem}}
 \n.feedback-intro{max-width:48rem;margin-bottom:2rem}.feedback-form textarea{width:100%;resize:vertical;min-height:10rem}\n
+
+/* Shared navigation and feedback identity */
+.nav-dropdown { position: relative; }
+.nav-dropdown > a::after { content: "▾"; margin-left: .32rem; font-size: .7em; }
+.nav-submenu { position: absolute; z-index: 10; top: calc(100% + .55rem); left: -.75rem; min-width: 8rem; display: none; margin: 0; padding: .45rem; list-style: none; border: 2px solid var(--dv-yellow); background: var(--panel); box-shadow: .3rem .3rem 0 var(--true-black); }
+.nav-dropdown:hover .nav-submenu, .nav-dropdown:focus-within .nav-submenu { display: block; }
+.nav-submenu a { display: block; padding: .55rem .65rem; white-space: nowrap; }
+.hero-actions .education-actions { order: 1; }
+.hero-actions .pilot-actions { order: 2; }
+.access-link { display: inline-block; margin-top: .65rem; color: var(--dv-yellow); font-family: var(--heading-font); font-size: .74rem; font-weight: 800; letter-spacing: .04em; text-decoration: none; }
+.feedback-identity { margin: 0 0 1.25rem; padding: 1rem 1.1rem; border-left: .35rem solid var(--dv-yellow); background: rgba(244,184,32,.1); }
+.feedback-identity strong,.feedback-identity span { display: block; }
+.feedback-identity span { margin-top: .25rem; color: var(--silver); }
+@media (max-width: 760px) { .nav-dropdown > a::after { display: none; } .nav-submenu { position: static; display: block; min-width: 0; margin: .25rem 0 0; padding: 0; border: 0; background: transparent; box-shadow: none; } .nav-submenu a { padding: .25rem 0 .25rem 1rem; } .hero-actions .pilot-actions { justify-content: flex-start; } }
