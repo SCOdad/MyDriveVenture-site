@@ -20,88 +20,25 @@
   <main id="main" class="app-shell">
     <div class="concept-switch"><strong>Want the game dashboard?</strong> <a href="/log/game/">Try the new 16-bit experience →</a></div>
     <section id="app-login" class="app-card app-login">
-      <p class="eyebrow">Pilot access</p>
-      <h1>Open Drive Venture</h1>
-      <p>Use an email address from your Drive Venture pilot onboarding. We’ll send a secure sign-in link—no password required.</p>
-      <form id="login-form" class="app-form">
-        <label><span>Email</span><input id="login-email" type="email" autocomplete="email" required></label>
-        <button class="button primary" type="submit">Email me a sign-in link</button>
-        <div id="login-status" class="app-status" role="status" aria-live="polite"></div>
-      </form>
+      <p class="eyebrow">Pilot access</p><h1>Open Drive Venture</h1><p>Use an email address from your Drive Venture pilot onboarding. We’ll send a secure sign-in link—no password required.</p>
+      <form id="login-form" class="app-form"><label><span>Email</span><input id="login-email" type="email" autocomplete="email" required></label><button class="button primary" type="submit">Email me a sign-in link</button><div id="login-status" class="app-status" role="status" aria-live="polite"></div></form>
     </section>
-
     <section id="app-main" class="app-hidden" aria-live="polite">
-      <div class="app-topline">
-        <div><p class="eyebrow">Driver dashboard</p><h1 id="driver-heading">Drive Venture</h1></div>
-        <div class="app-user"><select id="driver-select" class="driver-select" aria-label="Choose driver"></select><button id="sign-out" class="button subtle-button button-small" type="button">Sign out</button></div>
-      </div>
-
+      <div class="app-topline"><div><p class="eyebrow">Driver dashboard</p><h1 id="driver-heading">Drive Venture</h1></div><div class="app-user"><select id="driver-select" class="driver-select" aria-label="Choose driver"></select><button id="sign-out" class="button subtle-button button-small" type="button">Sign out</button></div></div>
       <div class="app-grid">
-        <section class="app-card full">
-          <div class="app-kpis">
-            <div class="kpi"><span>Practice</span><strong id="kpi-hours">0.0 h</strong></div>
-            <div class="kpi"><span>Night</span><strong id="kpi-night">0.0 h</strong></div>
-            <div class="kpi"><span>Drives</span><strong id="kpi-drives">0</strong></div>
-            <div class="kpi"><span>XP</span><strong id="kpi-xp">0</strong></div>
-          </div>
-        </section>
-
-        <section class="app-card">
-          <h2>Log a drive</h2>
-          <form id="drive-form" class="app-form">
-            <div class="form-row three">
-              <label><span>Date</span><input id="drive-date" name="driveDate" type="date" required></label>
-              <label><span>Start</span><input id="drive-start" name="driveStart" type="time" required></label>
-              <label><span>Finish</span><input id="drive-end" name="driveEnd" type="time" required></label>
-            </div>
-            <label><span>Vehicle</span><select id="drive-vehicle" name="driveVehicle"><option value="">Choose a vehicle</option></select></label>
-            <label><span>Where did you go? <small>(optional)</small></span><input id="drive-destination" maxlength="120" placeholder="School, Grandma's, downtown…"></label>
-            <label><span>Notes <small>(optional)</small></span><textarea id="drive-notes" maxlength="500" placeholder="Anything worth remembering about this drive?"></textarea></label>
-            <button class="button primary" type="submit">Log drive</button>
-            <div id="drive-status" class="app-status" role="status" aria-live="polite"></div>
-          </form>
-        </section>
-
-        <section class="app-card">
-          <h2>License progress</h2>
-          <div class="license-line"><strong>Current stage</strong><span id="license-stage">—</span></div>
-          <div class="license-line"><strong>Stage since</strong><span id="license-date">—</span></div>
-          <div class="license-line"><strong>Practice hours</strong><span id="license-hours">0.0</span></div>
-          <div class="license-line"><strong>Night hours</strong><span id="license-night-hours">0.0</span></div>
-          <p class="fine-print">The web MVP reports canonical logged practice. State-specific readiness rules will be layered on top of these totals.</p>
-        </section>
-
-        <section class="app-card">
-          <h2>Garage</h2>
-          <ul id="vehicle-list" class="vehicle-list"></ul>
-          <h3>Add a vehicle</h3>
-          <form id="vehicle-form" class="app-form">
-            <label><span>Name</span><input id="vehicle-name" required maxlength="80" placeholder="Blue Pacifica"></label>
-            <div class="form-row">
-              <label><span>Class</span><select id="vehicle-class" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label>
-              <label><span>Color <small>(optional)</small></span><input id="vehicle-color" maxlength="40"></label>
-            </div>
-            <button class="button primary button-small" type="submit">Add to Garage</button>
-            <div id="vehicle-status" class="app-status" role="status" aria-live="polite"></div>
-          </form>
-        </section>
-
-        <section class="app-card">
-          <h2>Recent quests</h2>
-          <ul id="quest-list" class="quest-list"></ul>
-        </section>
-
-        <section class="app-card full">
-          <h2>Recent drives</h2>
-          <ul id="drive-list" class="drive-list"></ul>
-        </section>
+        <section class="app-card full"><div class="app-kpis"><div class="kpi"><span>Practice</span><strong id="kpi-hours">0.0 h</strong></div><div class="kpi"><span>Night</span><strong id="kpi-night">0.0 h</strong></div><div class="kpi"><span>Drives</span><strong id="kpi-drives">0</strong></div><div class="kpi"><span>XP</span><strong id="kpi-xp">0</strong></div></div></section>
+        <section class="app-card"><h2>Log a drive</h2><form id="drive-form" class="app-form"><div class="form-row three"><label><span>Date</span><input id="drive-date" name="driveDate" type="date" required></label><label><span>Start</span><input id="drive-start" name="driveStart" type="time" required></label><label><span>Finish</span><input id="drive-end" name="driveEnd" type="time" required></label></div><label><span>Vehicle</span><select id="drive-vehicle" name="driveVehicle"><option value="">Choose a vehicle</option></select></label><label><span>Where did you go? <small>(optional)</small></span><input id="drive-destination" maxlength="120" placeholder="School, Grandma's, downtown…"></label><label><span>Notes <small>(optional)</small></span><textarea id="drive-notes" maxlength="500" placeholder="Anything worth remembering about this drive?"></textarea></label><button class="button primary" type="submit">Log drive</button><div id="drive-status" class="app-status" role="status" aria-live="polite"></div></form></section>
+        <section class="app-card"><h2>License progress</h2><div class="license-line"><strong>Current stage</strong><span id="license-stage">—</span></div><div class="license-line"><strong>Stage since</strong><span id="license-date">—</span></div><div class="license-line"><strong>Practice hours</strong><span id="license-hours">0.0</span></div><div class="license-line"><strong>Night hours</strong><span id="license-night-hours">0.0</span></div><p class="fine-print">The web MVP reports canonical logged practice. State-specific readiness rules will be layered on top of these totals.</p></section>
+        <section class="app-card"><h2>Garage</h2><ul id="vehicle-list" class="vehicle-list"></ul><h3>Add a vehicle</h3><form id="vehicle-form" class="app-form"><label><span>Name</span><input id="vehicle-name" required maxlength="80" placeholder="Blue Pacifica"></label><div class="form-row"><label><span>Class</span><select id="vehicle-class" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label><label><span>Color <small>(optional)</small></span><input id="vehicle-color" maxlength="40"></label></div><button class="button primary button-small" type="submit">Add to Garage</button><div id="vehicle-status" class="app-status" role="status" aria-live="polite"></div></form></section>
+        <section class="app-card"><h2>Recent quests</h2><ul id="quest-list" class="quest-list"></ul></section>
+        <section class="app-card full"><h2>Recent drives</h2><ul id="drive-list" class="drive-list"></ul></section>
       </div>
     </section>
   </main>
   <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li><li><a href="/text-parker/">Text Parker</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/log/config.js"></script>
-  <script src="/assets/js/log.js?v=20260817-2025"></script>
-  <script src="/assets/js/log-drive-rpc.js?v=20260817-2025"></script>
+  <script src="/assets/js/log.js?v=20260818-0755"></script>
+  <script src="/assets/js/log-drive-rpc.js?v=20260818-0755"></script>
 </body>
 </html>
