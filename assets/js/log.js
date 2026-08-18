@@ -144,7 +144,13 @@
     e.preventDefault();
     status(loginStatus, 'Sending sign-in link…');
     const email = loginEmail.value.trim(); if (!email) return;
-    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${document.documentElement.dataset.experience === 'game' ? '/log/game/' : '/log/'}` } });
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}${document.documentElement.dataset.experience === 'game' ? '/log/game/' : '/log/'}`,
+        shouldCreateUser: false
+      }
+    });
     if (error) status(loginStatus, error.message, 'error'); else status(loginStatus, 'Check your email for a secure sign-in link.', 'success');
   });
   signOut.addEventListener('click', async () => {
