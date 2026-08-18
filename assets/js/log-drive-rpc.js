@@ -3,7 +3,6 @@
   const app = window.DV_LOG_APP;
   if (!originalForm || !app?.client) return;
 
-  // Replace the node so no legacy submit handlers survive in any skin.
   const form = originalForm.cloneNode(true);
   originalForm.replaceWith(form);
   const client = app.client;
@@ -38,9 +37,14 @@
     setStatus(`Drive logged. Night credit is pending classification.${earned}`,'success');
     document.getElementById('drive-destination').value='';
     document.getElementById('drive-notes').value='';
-
-    // Refresh data in place; preserve the success receipt instead of reloading the page.
-    try { await app.refreshDashboard(); }
-    catch (_) { /* canonical write succeeded; receipt remains truthful */ }
+    try { await app.refreshDashboard(); } catch (_) {}
   });
+
+  // One common behavior module serves every visual skin.
+  if(!document.querySelector('script[data-dv-shared-actions]')){
+    const shared=document.createElement('script');
+    shared.src='/assets/js/log-shared-actions.js?v=20260818-1215';
+    shared.dataset.dvSharedActions='true';
+    document.body.appendChild(shared);
+  }
 })();
