@@ -40,11 +40,10 @@
     try { await app.refreshDashboard(); } catch (_) {}
   });
 
-  // One common behavior module serves every visual skin.
-  if(!document.querySelector('script[data-dv-shared-actions]')){
-    const shared=document.createElement('script');
-    shared.src='/assets/js/log-shared-actions.js?v=20260818-1215';
-    shared.dataset.dvSharedActions='true';
-    document.body.appendChild(shared);
+  function loadOnce(src,attr){
+    if(document.querySelector(`script[${attr}]`))return;
+    const s=document.createElement('script');s.src=src;s.setAttribute(attr,'true');document.body.appendChild(s);
   }
+  loadOnce('/assets/js/log-skin-presenter.js?v=20260818-1215','data-dv-skin-presenter');
+  loadOnce('/assets/js/log-shared-actions.js?v=20260818-1215','data-dv-shared-actions');
 })();
