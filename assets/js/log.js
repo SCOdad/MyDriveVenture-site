@@ -7,18 +7,15 @@
   const loginStatus = document.getElementById('login-status');
   const signOut = document.getElementById('sign-out');
   const driverSelect = document.getElementById('driver-select');
-  const driveForm = document.getElementById('drive-form');
-  const vehicleForm = document.getElementById('vehicle-form');
-  const driveStatus = document.getElementById('drive-status');
-  const vehicleStatus = document.getElementById('vehicle-status');
-  const driveSubmissionKey = 'dv:web-drive:submission-id';
-  let memoryDriveSubmissionId = '';
 
-  function status(el, text, kind = '') { el.textContent = text || ''; el.className = `app-status${kind ? ` ${kind}` : ''}`; }
-
+  function status(el, text, kind = '') {
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = `app-status${kind ? ` ${kind}` : ''}`;
+  }
   if (!window.supabase || !cfg.supabaseUrl || !cfg.publishableKey) {
     status(loginStatus, 'The web pilot login is not activated yet.', 'error');
-    if (loginForm) loginForm.querySelector('button').disabled = true;
+    loginForm?.querySelector('button')?.setAttribute('disabled','disabled');
     return;
   }
 
@@ -29,59 +26,82 @@
 
   let model = { drivers: [], vehicles: [], progress: [], recent_drives: [], quest_awards: [], license_requirements: [] };
   let currentDriverId = '';
+  let accessInFlight = null;
 
-  function hours(minutes) { return (Number(minutes || 0) / 60).toFixed(1); }
-  function esc(value) { return String(value ?? '').replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt',"'":'&#39;','\"':'&quot;'}[c])); }
-  function currentDriver() { return model.drivers.find(d => d.id === currentDriverId) || model.drivers[0] || null; }
-  function currentProgress() { return model.progress.find(p => p.driver_id === currentDriverId) || {}; }
-  function currentVehicles() { return model.vehicles.filter(v => v.driver_id === currentDriverId && v.status !== 'ARCHIVED'); }
-  function currentDrives() { return model.recent_drives.filter(d => d.driver_id === currentDriverId); }
-  function currentAwards() { return model.quest_awards.filter(q => q.driver_id === currentDriverId); }
+  const esc = value => String(value ?? '').replace(/[&<>'\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt',"'":'&#39;','\"':'&quot;'}[c]));
+  const hours = minutes => (Number(minutes || 0) / 60).toFixed(1);
+  const currentDriver = () => model.drivers.find(d => d.id === currentDriverId) || model.drivers[0] || null;
+  const currentProgress = () => model.progress.find(p => p.driver_id === currentDriverId) || {};
+  const activeVehicles = () => model.vehicles.filter(v => v.driver_id === currentDriverId && v.status !== 'ARCHIVED');
+  const archivedVehicles = () => model.vehicles.filter(v => v.driver_id === currentDriverId && v.status === 'ARCHIVED');
+  const currentDrives = () => model.recent_drives.filter(d => d.driver_id === currentDriverId);
+  const currentAwards = () => model.quest_awards.filter(q => q.driver_id === currentDriverId);
 
   function requirement(type, fallback) {
     const row = (model.license_requirements || []).find(r => r.license_stage === 'LEVEL_2' && r.requirement_type === type);
-    const n = Number(row?.value_text); return Number.isFinite(n) ? n : fallback;
+    const n = Number(row?.value_text);
+    return Number.isFinite(n) ? n : fallback;
   }
 
-  function stableDriveSubmissionId() {
-    if (memoryDriveSubmissionId) return memoryDriveSubmissionId;
-    try { const stored = sessionStorage.getItem(driveSubmissionKey); if (stored) return (memoryDriveSubmissionId = stored); } catch (_) {}
-    memoryDriveSubmissionId = `web-drive-${crypto.randomUUID()}`;
-    try { sessionStorage.setItem(driveSubmissionKey, memoryDriveSubmissionId); } catch (_) {}
-    return memoryDriveSubmissionId;
-  }
-  function clearDriveSubmissionId() { memoryDriveSubmissionId = ''; try { sessionStorage.removeItem(driveSubmissionKey); } catch (_) {} }
-
-  async function invoke(name, body) {
-    const { data, error } = await client.functions.invoke(name, { body });
-    if (error) throw new Error(`${name}${error.context?.status ? ` [HTTP ${error.context.status}]` : ''}: ${error.message || 'Request failed'}`);
-    if (!data || data.ok !== true) throw new Error(`${name}: ${data?.error || 'Request failed'}`);
-    return data;
+  function vehicleMarkup(v, archived = false) {
+    return `<li class="vehicle-item${archived ? ' archived-vehicle' : ''}"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color ? ` · ${esc(v.color)}` : ''}${v.is_primary ? ' · Primary' : ''}${archived ? ' · Archived' : ''}</small></div>${archived ? '' : `<button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button>`}</li>`;
   }
 
   function render() {
-    const driver = currentDriver(); if (!driver) return; currentDriverId = driver.id;
-    const progress = currentProgress(); const practiceTarget = requirement('MinimumPracticeHours', 50); const nightTarget = requirement('MinimumNightHours', 10);
+    const driver = currentDriver();
+    if (!driver) return;
+    currentDriverId = driver.id;
+    const progress = currentProgress();
+    const practiceTarget = requirement('MinimumPracticeHours', 50);
+    const nightTarget = requirement('MinimumNightHours', 10);
+
     document.getElementById('driver-heading').textContent = driver.display_name || 'Drive Venture';
     document.getElementById('kpi-hours').textContent = `${hours(progress.total_minutes)} h`;
     document.getElementById('kpi-night').textContent = `${hours(progress.night_minutes)} h`;
     document.getElementById('kpi-drives').textContent = String(progress.total_drives || 0);
-    const xpEl=document.getElementById('kpi-xp'); if(xpEl) xpEl.textContent = String(progress.xp || 0);
+    const xpEl = document.getElementById('kpi-xp'); if (xpEl) xpEl.textContent = String(progress.xp || 0);
     document.getElementById('license-stage').textContent = driver.license_stage || '—';
     document.getElementById('license-date').textContent = driver.level1_license_date || '—';
-    const hoursEl=document.getElementById('license-hours'); if(hoursEl) hoursEl.textContent = `${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
+    const hoursEl = document.getElementById('license-hours'); if (hoursEl) hoursEl.textContent = `${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     document.getElementById('license-night-hours').textContent = `${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
-    const dash = document.querySelector('.dashboard-console'); if (dash) { const p=Math.min(100,Number(progress.total_minutes||0)/(practiceTarget*60)*100); const n=Math.min(100,Number(progress.night_minutes||0)/(nightTarget*60)*100); dash.style.setProperty('--practice-p',String(Math.max(2,p))); dash.style.setProperty('--night-p',String(Math.max(2,n))); }
-    const vehicles = currentVehicles();
-    document.getElementById('vehicle-list').innerHTML = vehicles.length ? vehicles.map(v => `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color ? ` · ${esc(v.color)}` : ''}${v.is_primary ? ' · Primary' : ''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`).join('') : '<li class="empty-state">No vehicles yet.</li>';
-    const driveVehicle=document.getElementById('drive-vehicle'); const prior=driveVehicle.value; driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join(''); if(vehicles.some(v=>v.id===prior)) driveVehicle.value=prior; else { const primary=vehicles.find(v=>v.is_primary)||vehicles[0]; if(primary)driveVehicle.value=primary.id; }
-    const drives=currentDrives(); document.getElementById('drive-list').innerHTML=drives.length?drives.map(d=>{const v=vehicles.find(x=>x.id===d.vehicle_id);return `<li class="drive-item"><div><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name||'Vehicle')} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small></div><span class="pill">${esc(d.source)}</span></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
-    const awards=currentAwards(); document.getElementById('quest-list').innerHTML=awards.length?awards.map(q=>`<li class="quest-item"><div><strong>${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
-    if(dash){const sign=document.getElementById('hours-sign');if(sign)sign.textContent=`${Math.max(0,practiceTarget-hours(progress.total_minutes)).toFixed(1)} HOURS TO GO`;const duplicateNight=document.getElementById('license-night-hours-duplicate');if(duplicateNight)duplicateNight.textContent=`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;const list=document.getElementById('radio-quest-list');if(list)list.innerHTML=(awards.slice(0,8).map(q=>'<li>'+esc(q.quest?.name||q.quest_key)+'</li>').join('')||'<li>Log a drive to begin your quest feed.</li>');}
+
+    const dash = document.querySelector('.dashboard-console');
+    if (dash) {
+      const p = Math.min(100, Number(progress.total_minutes || 0) / (practiceTarget * 60) * 100);
+      const n = Math.min(100, Number(progress.night_minutes || 0) / (nightTarget * 60) * 100);
+      dash.style.setProperty('--practice-p', String(Math.max(2,p)));
+      dash.style.setProperty('--night-p', String(Math.max(2,n)));
+      const sign = document.getElementById('hours-sign'); if (sign) sign.textContent = `${Math.max(0, practiceTarget - Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO GO`;
+      const duplicateNight = document.getElementById('license-night-hours-duplicate'); if (duplicateNight) duplicateNight.textContent = `${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
+    }
+
+    const vehicles = activeVehicles();
+    const archived = archivedVehicles();
+    const vehicleList = document.getElementById('vehicle-list');
+    vehicleList.innerHTML = (vehicles.length ? vehicles.map(v => vehicleMarkup(v)).join('') : '<li class="empty-state">No active vehicles yet.</li>') +
+      (archived.length ? `<li class="archived-vehicles-wrap"><details class="archived-vehicles"><summary>Show Archived (${archived.length})</summary><ul>${archived.map(v => vehicleMarkup(v,true)).join('')}</ul></details></li>` : '');
+
+    const driveVehicle = document.getElementById('drive-vehicle');
+    const prior = driveVehicle.value;
+    driveVehicle.innerHTML = '<option value="">Choose a vehicle</option>' + vehicles.map(v => `<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');
+    if (vehicles.some(v => v.id === prior)) driveVehicle.value = prior;
+    else { const primary = vehicles.find(v => v.is_primary) || vehicles[0]; if (primary) driveVehicle.value = primary.id; }
+
+    const drives = currentDrives();
+    document.getElementById('drive-list').innerHTML = drives.length ? drives.map(d => {
+      const v = model.vehicles.find(x => x.id === d.vehicle_id);
+      return `<li class="drive-item"><div><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name || 'Vehicle')} · ${Math.round(Number(d.duration_minutes || 0))} min${d.destination ? ` · ${esc(d.destination)}` : ''}</small></div><span class="pill">${esc(d.source)}</span></li>`;
+    }).join('') : '<li class="empty-state">No drives logged yet.</li>';
+
+    const awards = currentAwards();
+    const questList = document.getElementById('quest-list');
+    questList.innerHTML = awards.length ? awards.map(q => `<li class="quest-item" data-quest-help="${esc(q.quest?.description || '')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name || q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded || 0)} XP</span></li>`).join('') : '<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
+
+    window.dispatchEvent(new CustomEvent('dv:dashboard-rendered', { detail: { model, driverId: currentDriverId, driver, progress } }));
   }
 
-  async function loadDashboard() {
-    status(loginStatus, 'Access linked. Loading dashboard…');
+  async function loadDashboard({quiet = false} = {}) {
+    if (!quiet) status(loginStatus, 'Access linked. Loading dashboard…');
     const result = await Promise.race([
       client.rpc('get_authenticated_dashboard_v1'),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Dashboard request timed out after 15 seconds.')), 15000))
@@ -89,31 +109,53 @@
     const { data, error } = result;
     if (error) throw new Error(`Dashboard: ${error.message || 'Unable to load dashboard'}`);
     if (!data || data.ok !== true) throw new Error(`Dashboard: ${data?.error || 'Unable to load dashboard'}`);
-    model=data; if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId))currentDriverId=model.drivers[0]?.id||''; if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
-    driverSelect.innerHTML=model.drivers.map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}</option>`).join(''); driverSelect.value=currentDriverId; render();
+    model = data;
+    if (!currentDriverId || !model.drivers.some(d => d.id === currentDriverId)) currentDriverId = model.drivers[0]?.id || '';
+    if (!currentDriverId) throw new Error('Dashboard: no active driver is linked to this account yet.');
+    driverSelect.innerHTML = model.drivers.map(d => `<option value="${esc(d.id)}">${esc(d.display_name || 'Driver')}</option>`).join('');
+    driverSelect.value = currentDriverId;
+    render();
+    return model;
   }
 
-  let accessInFlight = null;
   async function establishAccess() {
     if (accessInFlight) return accessInFlight;
     accessInFlight = (async () => {
       status(loginStatus, 'Resolving Drive Venture access…');
-      const {data,error}=await client.rpc('claim_authenticated_access_v1');
-      if(error)throw new Error(`Access claim: ${error.message||'Unable to resolve access'}`);
-      if(!data||data.ok!==true)throw new Error(`Access claim: ${data?.error||'Unable to resolve access'}`);
-      await loadDashboard(); loginCard.classList.add('app-hidden'); appMain.classList.remove('app-hidden');
+      const { data, error } = await client.rpc('claim_authenticated_access_v1');
+      if (error) throw new Error(`Access claim: ${error.message || 'Unable to resolve access'}`);
+      if (!data || data.ok !== true) throw new Error(`Access claim: ${data?.error || 'Unable to resolve access'}`);
+      await loadDashboard();
+      loginCard.classList.add('app-hidden');
+      appMain.classList.remove('app-hidden');
     })();
     try { await accessInFlight; } finally { accessInFlight = null; }
   }
 
-  loginForm.addEventListener('submit',async e=>{e.preventDefault();status(loginStatus,'Sending sign-in link…');const email=loginEmail.value.trim();if(!email)return;const{error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}${document.documentElement.dataset.experience==='game'?'/log/game/':'/log/'}`}});if(error)status(loginStatus,error.message,'error');else status(loginStatus,'Check your email for a secure sign-in link.','success')});
-  signOut.addEventListener('click',async()=>{await client.auth.signOut();appMain.classList.add('app-hidden');loginCard.classList.remove('app-hidden');status(loginStatus,'Signed out.')});
-  driverSelect.addEventListener('change',()=>{currentDriverId=driverSelect.value;render()});
-  driveForm.addEventListener('input',()=>{if(!driveStatus.classList.contains('error')&&driveStatus.classList.contains('success'))clearDriveSubmissionId()});
-  driveForm.addEventListener('submit',async e=>{e.preventDefault();if(!driveForm.reportValidity())return;status(driveStatus,'Logging drive…');try{const result=await invoke('driver-api',{action:'log_drive',driver_id:currentDriverId,source_event_id:stableDriveSubmissionId(),drive_date:document.getElementById('drive-date').value,start_time:document.getElementById('drive-start').value,end_time:document.getElementById('drive-end').value,vehicle_id:document.getElementById('drive-vehicle').value||null,destination:document.getElementById('drive-destination').value.trim(),notes:document.getElementById('drive-notes').value.trim()});const awards=result.quests?.awarded||[];status(driveStatus,`Drive logged.${awards.length?` Earned: ${awards.map(q=>q.name).join(', ')}.`:''}`,'success');clearDriveSubmissionId()}catch(err){status(driveStatus,`${err.message||'Unable to log drive.'} You can retry safely.`,'error')}});
-  vehicleForm.addEventListener('submit',async e=>{e.preventDefault();});
-  document.getElementById('vehicle-list').addEventListener('click',async e=>{e.preventDefault();});
-  const today=new Date();document.getElementById('drive-date').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-  client.auth.onAuthStateChange((_event,session)=>{if(session)setTimeout(()=>establishAccess().catch(err=>status(loginStatus,err.message,'error')),0)});
-  client.auth.getSession().then(({data})=>{if(data.session)establishAccess().catch(err=>status(loginStatus,err.message,'error'))});
+  window.DV_LOG_APP = {
+    client,
+    refreshDashboard: () => loadDashboard({quiet:true}),
+    getModel: () => model,
+    getDriverId: () => currentDriverId,
+    getActiveVehicles: activeVehicles
+  };
+
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    status(loginStatus, 'Sending sign-in link…');
+    const email = loginEmail.value.trim(); if (!email) return;
+    const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}${document.documentElement.dataset.experience === 'game' ? '/log/game/' : '/log/'}` } });
+    if (error) status(loginStatus, error.message, 'error'); else status(loginStatus, 'Check your email for a secure sign-in link.', 'success');
+  });
+  signOut.addEventListener('click', async () => {
+    await client.auth.signOut(); appMain.classList.add('app-hidden'); loginCard.classList.remove('app-hidden'); status(loginStatus, 'Signed out.');
+  });
+  driverSelect.addEventListener('change', () => { currentDriverId = driverSelect.value; render(); });
+
+  const today = new Date();
+  const dateEl = document.getElementById('drive-date');
+  if (dateEl) dateEl.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  client.auth.onAuthStateChange((_event, session) => { if (session) setTimeout(() => establishAccess().catch(err => status(loginStatus, err.message, 'error')), 0); });
+  client.auth.getSession().then(({data}) => { if (data.session) establishAccess().catch(err => status(loginStatus, err.message, 'error')); });
 })();
