@@ -1,4 +1,12 @@
 (() => {
+  if (!document.querySelector('link[data-dv-shared-log-fixes]')) {
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='/assets/css/log-shared-fixes.css?v=20260817-2125';
+    link.dataset.dvSharedLogFixes='true';
+    document.head.appendChild(link);
+  }
+
   if (!window.supabase) return;
   const cfg = window.DV_APP_CONFIG || {};
   if (!cfg.supabaseUrl || !cfg.publishableKey) return;
