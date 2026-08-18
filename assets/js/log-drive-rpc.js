@@ -1,9 +1,15 @@
 (() => {
-  const form = document.getElementById('drive-form');
-  if (!form || !window.supabase) return;
+  const legacyForm = document.getElementById('drive-form');
+  if (!legacyForm || !window.supabase) return;
 
   const cfg = window.DV_APP_CONFIG || {};
   if (!cfg.supabaseUrl || !cfg.publishableKey) return;
+
+  // log.js historically attaches a driver-api submit listener directly to the form.
+  // Clone/replace the node so those legacy listeners are discarded completely.
+  // This makes the authenticated PostgreSQL RPC the sole Log Drive write path.
+  const form = legacyForm.cloneNode(true);
+  legacyForm.replaceWith(form);
 
   const client = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -33,14 +39,8 @@
     try { sessionStorage.removeItem(submissionKey); } catch (_) {}
   }
 
-  document.addEventListener('submit', async (event) => {
-    if (event.target !== form) return;
-
-    // Capture the submit before the legacy log.js handler so this request cannot
-    // fall through to driver-api.
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    event.stopImmediatePropagation();
-
     if (!form.reportValidity()) return;
 
     const driverId = document.getElementById('driver-select')?.value || '';
@@ -80,7 +80,6 @@
     document.getElementById('drive-destination').value = '';
     document.getElementById('drive-notes').value = '';
 
-    // Reload once so the canonical dashboard RPC immediately reflects the new drive.
     window.setTimeout(() => window.location.reload(), 900);
-  }, true);
+  });
 })();
