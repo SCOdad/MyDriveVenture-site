@@ -1,28 +1,23 @@
 (() => {
   const originalForm = document.getElementById('drive-form');
-  if (!originalForm || !window.supabase) return;
-  const cfg = window.DV_APP_CONFIG || {};
-  if (!cfg.supabaseUrl || !cfg.publishableKey) return;
+  const app = window.DV_LOG_APP;
+  if (!originalForm || !app?.client) return;
 
+  // Replace the node so no legacy submit handlers survive in any skin.
   const form = originalForm.cloneNode(true);
   originalForm.replaceWith(form);
-
-  const client = window.DV_SUPABASE_CLIENT || window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-  });
-  window.DV_SUPABASE_CLIENT = client;
-
+  const client = app.client;
   const statusEl = document.getElementById('drive-status');
   const submissionKey = 'dv:web-drive:submission-id';
-  function setStatus(text, kind = '') { statusEl.textContent = text || ''; statusEl.className = `app-status${kind ? ` ${kind}` : ''}`; }
+  const setStatus = (text, kind='') => { statusEl.textContent=text||''; statusEl.className=`app-status${kind?` ${kind}`:''}`; };
   function stableSubmissionId(){try{const existing=sessionStorage.getItem(submissionKey);if(existing)return existing;const id=`web-drive-${crypto.randomUUID()}`;sessionStorage.setItem(submissionKey,id);return id}catch(_){return `web-drive-${crypto.randomUUID()}`}}
   function clearSubmissionId(){try{sessionStorage.removeItem(submissionKey)}catch(_){}}
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!form.reportValidity()) return;
-    const driverId=document.getElementById('driver-select')?.value||'';
-    if(!driverId)return setStatus('No active driver is selected.','error');
+    const driverId = app.getDriverId();
+    if (!driverId) return setStatus('No active driver is selected.','error');
     setStatus('Logging drive…');
     const {data,error}=await client.rpc('log_authenticated_drive_v1',{
       p_driver_id:driverId,
@@ -36,18 +31,16 @@
     });
     if(error)return setStatus(`Drive RPC: ${error.message||'Request failed'}. You can retry safely.`,'error');
     if(!data?.ok)return setStatus(`Drive RPC: ${data?.error||'Request failed'}. You can retry safely.`,'error');
+
     clearSubmissionId();
     const awards=data.quests?.awarded||[];
     const earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'';
     setStatus(`Drive logged. Night credit is pending classification.${earned}`,'success');
     document.getElementById('drive-destination').value='';
     document.getElementById('drive-notes').value='';
-  });
 
-  if(!document.querySelector('script[data-dv-shared-actions]')){
-    const shared=document.createElement('script');
-    shared.src='/assets/js/log-shared-actions.js?v=20260818-0755';
-    shared.dataset.dvSharedActions='true';
-    document.body.appendChild(shared);
-  }
+    // Refresh data in place; preserve the success receipt instead of reloading the page.
+    try { await app.refreshDashboard(); }
+    catch (_) { /* canonical write succeeded; receipt remains truthful */ }
+  });
 })();
