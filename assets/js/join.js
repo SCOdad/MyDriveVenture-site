@@ -12,7 +12,7 @@
   const guardianSmsOptIn = form.elements.guardianSmsOptIn;
   const driverSmsOptIn = form.elements.driverSmsOptIn;
   const submissionStorageKey = 'dv:onboarding:submission-id';
-  let memorySubmissionId = '';
+  let memorySubmission = null;
 
   function setMessage(text, isError = false) {
     message.textContent = text || '';
@@ -45,7 +45,6 @@
       avatarPhoto.required = requested;
       if (!requested) avatarPhoto.value = '';
     }
-
     if (guardianMobile) {
       guardianMobile.setCustomValidity(
         guardianSmsOptIn && guardianSmsOptIn.checked && !guardianMobile.value.trim()
@@ -75,7 +74,6 @@
     syncConditionalRequirements();
     const invalid = Array.from(form.querySelectorAll('input, select')).filter((field) => !field.checkValidity());
     if (!invalid.length) return true;
-
     invalid.forEach((field) => addFieldError(field, validationText(field)));
     setMessage('Please correct the highlighted fields below.', true);
     invalid[0].focus();
@@ -89,14 +87,12 @@
     if (file.size > maxBytes) throw new Error('Driver photo must be 4 MB or smaller.');
     const allowed = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
     if (file.type && !allowed.has(file.type)) throw new Error('Driver photo must be JPEG, PNG, WebP, HEIC, or HEIF.');
-
     const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result || ''));
       reader.onerror = () => reject(new Error('Unable to read the selected driver photo.'));
       reader.readAsDataURL(file);
     });
-
     const comma = dataUrl.indexOf(',');
     if (comma < 0) throw new Error('Unable to encode the selected driver photo.');
     return {
@@ -106,35 +102,53 @@
     };
   }
 
-  function getStableSubmissionId() {
-    if (memorySubmissionId) return memorySubmissionId;
+  async function sha256Hex(text) {
+    const bytes = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function submissionFingerprint(data, photoFile) {
+    const stable = {
+      guardian: {
+        name: value(data, 'guardianName'), email: value(data, 'guardianEmail'), mobile: value(data, 'guardianMobile'),
+        sms: data.get('guardianSmsOptIn') === 'on'
+      },
+      driver: {
+        name: value(data, 'driverName'), birth: value(data, 'driverBirthDate'), email: value(data, 'driverEmail'),
+        mobile: value(data, 'driverMobile'), sms: data.get('driverSmsOptIn') === 'on', zip: value(data, 'homeZip'),
+        stage: value(data, 'licenseStage'), stageDate: value(data, 'licenseStageStartDate'), favorite: value(data, 'favoriteColor'),
+        avatar: data.get('customAvatarRequested') === 'on'
+      },
+      vehicle: { name: value(data, 'vehicleName'), class: value(data, 'vehicleClass'), color: value(data, 'vehicleColor') },
+      photo: photoFile ? { name: photoFile.name, size: photoFile.size, type: photoFile.type, modified: photoFile.lastModified } : null
+    };
+    return sha256Hex(JSON.stringify(stable));
+  }
+
+  function getStableSubmissionId(fingerprint) {
+    if (memorySubmission && memorySubmission.fingerprint === fingerprint) return memorySubmission.id;
     try {
-      const stored = sessionStorage.getItem(submissionStorageKey);
-      if (stored) {
-        memorySubmissionId = stored;
-        return stored;
+      const stored = JSON.parse(sessionStorage.getItem(submissionStorageKey) || 'null');
+      if (stored && stored.id && stored.fingerprint === fingerprint) {
+        memorySubmission = stored;
+        return stored.id;
       }
     } catch (_) {}
-    memorySubmissionId = `web-${crypto.randomUUID()}`;
-    try { sessionStorage.setItem(submissionStorageKey, memorySubmissionId); } catch (_) {}
-    return memorySubmissionId;
+    memorySubmission = { id: `web-${crypto.randomUUID()}`, fingerprint };
+    try { sessionStorage.setItem(submissionStorageKey, JSON.stringify(memorySubmission)); } catch (_) {}
+    return memorySubmission.id;
   }
 
   function clearSubmissionId() {
-    memorySubmissionId = '';
+    memorySubmission = null;
     try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {}
   }
 
   [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile].forEach((field) => {
     if (!field) return;
-    field.addEventListener('change', () => {
-      clearFieldErrors();
-      syncConditionalRequirements();
-    });
-    field.addEventListener('input', () => {
-      clearFieldErrors();
-      syncConditionalRequirements();
-    });
+    field.addEventListener('change', () => { clearFieldErrors(); syncConditionalRequirements(); });
+    field.addEventListener('input', () => { clearFieldErrors(); syncConditionalRequirements(); });
   });
   syncConditionalRequirements();
 
@@ -143,7 +157,6 @@
     setMessage('');
     if (!validateForm()) return;
     if (button.disabled) return;
-
     const endpoint = String(window.DV_ONBOARDING_ENDPOINT || '').trim();
     if (!endpoint) {
       setMessage('Online onboarding is being connected. Please try again shortly.', true);
@@ -153,54 +166,40 @@
     const data = new FormData(form);
     button.disabled = true;
     button.textContent = 'Submitting…';
-
     try {
       const photoFile = avatarPhoto && avatarPhoto.files ? avatarPhoto.files[0] : null;
+      const fingerprint = await submissionFingerprint(data, photoFile);
       const photo = avatarRequested && avatarRequested.checked ? await fileToPayload(photoFile) : null;
       const guardianName = value(data, 'guardianName');
       const driverName = value(data, 'driverName');
       const payload = {
-        source_response_id: getStableSubmissionId(),
+        source_response_id: getStableSubmissionId(fingerprint),
+        submission_fingerprint: fingerprint,
         website: value(data, 'website'),
         submission_context: window.DVSubmissionContext?.collect('ONBOARDING') ?? { schema_version: 1, form_source: 'ONBOARDING' },
         guardian: {
-          given_name: guardianName,
-          family_name: '',
-          display_name: guardianName,
-          email: value(data, 'guardianEmail'),
-          mobile: value(data, 'guardianMobile'),
-          sms_opt_in: data.get('guardianSmsOptIn') === 'on'
+          given_name: guardianName, family_name: '', display_name: guardianName,
+          email: value(data, 'guardianEmail'), mobile: value(data, 'guardianMobile'), sms_opt_in: data.get('guardianSmsOptIn') === 'on'
         },
         driver: {
-          given_name: driverName,
-          family_name: '',
-          display_name: driverName,
-          birth_date: value(data, 'driverBirthDate'),
-          email: value(data, 'driverEmail'),
-          mobile: value(data, 'driverMobile'),
-          sms_opt_in: data.get('driverSmsOptIn') === 'on',
-          home_zip: value(data, 'homeZip'),
-          home_state: 'MI',
-          license_stage: value(data, 'licenseStage'),
-          level1_license_date: value(data, 'licenseStageStartDate'),
-          favorite_color: value(data, 'favoriteColor'),
+          given_name: driverName, family_name: '', display_name: driverName, birth_date: value(data, 'driverBirthDate'),
+          email: value(data, 'driverEmail'), mobile: value(data, 'driverMobile'), sms_opt_in: data.get('driverSmsOptIn') === 'on',
+          home_zip: value(data, 'homeZip'), home_state: 'MI', license_stage: value(data, 'licenseStage'),
+          level1_license_date: value(data, 'licenseStageStartDate'), favorite_color: value(data, 'favoriteColor'),
           custom_avatar_requested: data.get('customAvatarRequested') === 'on'
         },
         avatar_photo: photo,
-        vehicle: {
-          name: value(data, 'vehicleName'),
-          class: value(data, 'vehicleClass'),
-          color: value(data, 'vehicleColor')
-        }
+        vehicle: { name: value(data, 'vehicleName'), class: value(data, 'vehicleClass'), color: value(data, 'vehicleColor') }
       };
 
       const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload)
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload)
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.ok !== true) throw new Error(result.error || 'We could not submit onboarding right now.');
+      if (!response.ok || result.ok !== true) {
+        if (response.status === 409 && result.code === 'SUBMISSION_ID_REUSED') clearSubmissionId();
+        throw new Error(result.error || 'We could not submit onboarding right now.');
+      }
       clearSubmissionId();
       form.hidden = true;
       success.hidden = false;
