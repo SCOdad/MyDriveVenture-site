@@ -7,6 +7,10 @@
   const avatarRequested = document.getElementById('custom-avatar-requested');
   const avatarWrap = document.getElementById('avatar-upload-wrap');
   const avatarPhoto = document.getElementById('avatar-photo');
+  const guardianMobile = form.elements.guardianMobile;
+  const driverMobile = form.elements.driverMobile;
+  const guardianSmsOptIn = form.elements.guardianSmsOptIn;
+  const driverSmsOptIn = form.elements.driverSmsOptIn;
   const submissionStorageKey = 'dv:onboarding:submission-id';
   let memorySubmissionId = '';
 
@@ -19,13 +23,64 @@
     return String(data.get(name) || '').trim();
   }
 
-  function syncAvatarUpload() {
+  function clearFieldErrors() {
+    form.querySelectorAll('.field-error').forEach((node) => node.remove());
+    form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute('aria-invalid'));
+    [guardianMobile, driverMobile].forEach((field) => field && field.setCustomValidity(''));
+  }
+
+  function addFieldError(field, text) {
+    if (!field || !text) return;
+    field.setAttribute('aria-invalid', 'true');
+    const helper = document.createElement('span');
+    helper.className = 'field-error';
+    helper.textContent = text;
+    field.insertAdjacentElement('afterend', helper);
+  }
+
+  function syncConditionalRequirements() {
     const requested = Boolean(avatarRequested && avatarRequested.checked);
     if (avatarWrap) avatarWrap.hidden = !requested;
     if (avatarPhoto) {
       avatarPhoto.required = requested;
       if (!requested) avatarPhoto.value = '';
     }
+
+    if (guardianMobile) {
+      guardianMobile.setCustomValidity(
+        guardianSmsOptIn && guardianSmsOptIn.checked && !guardianMobile.value.trim()
+          ? 'Enter a grown-up mobile number or turn off Text Parker opt-in.'
+          : ''
+      );
+    }
+    if (driverMobile) {
+      driverMobile.setCustomValidity(
+        driverSmsOptIn && driverSmsOptIn.checked && !driverMobile.value.trim()
+          ? 'Enter a driver mobile number or turn off Text Parker opt-in.'
+          : ''
+      );
+    }
+  }
+
+  function validationText(field) {
+    if (field.validity.valueMissing) return 'This field is required.';
+    if (field.validity.typeMismatch) return 'Enter a valid value.';
+    if (field.validity.patternMismatch) return 'Enter a valid 5-digit ZIP code.';
+    if (field.validity.customError) return field.validationMessage;
+    return field.validationMessage || 'Please correct this field.';
+  }
+
+  function validateForm() {
+    clearFieldErrors();
+    syncConditionalRequirements();
+    const invalid = Array.from(form.querySelectorAll('input, select')).filter((field) => !field.checkValidity());
+    if (!invalid.length) return true;
+
+    invalid.forEach((field) => addFieldError(field, validationText(field)));
+    setMessage('Please correct the highlighted fields below.', true);
+    invalid[0].focus();
+    invalid[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
   }
 
   async function fileToPayload(file) {
@@ -70,14 +125,23 @@
     try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {}
   }
 
-  if (avatarRequested) avatarRequested.addEventListener('change', syncAvatarUpload);
-  syncAvatarUpload();
+  [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile].forEach((field) => {
+    if (!field) return;
+    field.addEventListener('change', () => {
+      clearFieldErrors();
+      syncConditionalRequirements();
+    });
+    field.addEventListener('input', () => {
+      clearFieldErrors();
+      syncConditionalRequirements();
+    });
+  });
+  syncConditionalRequirements();
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     setMessage('');
-    syncAvatarUpload();
-    if (!form.reportValidity()) return;
+    if (!validateForm()) return;
     if (button.disabled) return;
 
     const endpoint = String(window.DV_ONBOARDING_ENDPOINT || '').trim();
