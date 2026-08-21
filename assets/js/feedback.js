@@ -1,6 +1,6 @@
 (() => {
   const form=document.getElementById('dv-feedback-form'); if(!form) return;
-  const message=document.getElementById('feedback-message'), button=document.getElementById('feedback-submit'),
+  const message=document.getElementById('feedback-message'), button=document.getElementById('feedback-submit'), success=document.getElementById('feedback-success'),
     followUp=document.getElementById('feedback-follow-up'), email=document.getElementById('feedback-email'),
     identity=document.getElementById('feedback-identity'), personFields=document.getElementById('feedback-person-fields'),
     attachments=document.getElementById('feedback-attachments'), files=document.getElementById('feedback-files'), codeEl=document.getElementById('feedback-code'),
