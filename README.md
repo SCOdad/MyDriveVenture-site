@@ -20,10 +20,11 @@ This repository contains no Drive Venture application logic, family records, cre
 - Production URL: <https://mydriveventure.com/>
 - Hosting: GitHub Pages from the `main` branch
 - The apex domain, `www` redirect, HTTP-to-HTTPS redirect, and canonical compliance pages were verified on August 16, 2026.
-- The homepage links to the published Drive Venture onboarding Form.
+- The homepage links to the published Drive Venture onboarding form.
+- Text Parker is active for the Drive Venture pilot and the public site should describe it as available.
 
 ## Operational follow-up
 
-- Keep Text Parker labeled unavailable until A2P approval, production testing, and implementation are complete.
+- Keep Text Parker public instructions aligned with the production command flow and SMS compliance disclosures.
 - Confirm `mike@mydriveventure.com` receives and sends successfully with SPF, DKIM, and DMARC configured.
 - Review Privacy and Terms with counsel before a broader commercial launch.
