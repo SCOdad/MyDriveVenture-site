@@ -4,6 +4,7 @@
   document.head.appendChild(style);
 
   const cache = new Map();
+  let renderToken = 0;
   function ensureUi() {
     const heading = document.getElementById('driver-heading');
     if (!heading || document.getElementById('driver-avatar')) return;
@@ -27,19 +28,19 @@
   }
 
   async function renderAvatar(detail) {
+    const mine = ++renderToken;
     ensureUi();
     const image = document.getElementById('driver-avatar');
     const badge = document.getElementById('driver-avatar-new');
     if (!image || !badge) return;
+    image.classList.add('dv-avatar-hidden');
+    badge.classList.add('dv-avatar-hidden');
+    image.removeAttribute('src');
+    image.alt = '';
     const model = detail?.model || {};
     const driverId = detail?.driverId;
     const assignment = (model.avatar_assignments || []).find(a => a.driver_id === driverId);
-    if (!assignment) {
-      image.classList.add('dv-avatar-hidden');
-      badge.classList.add('dv-avatar-hidden');
-      image.removeAttribute('src');
-      return;
-    }
+    if (!assignment) return;
     const app = window.DV_LOG_APP;
     const client = app?.client;
     if (!client) return;
@@ -53,6 +54,7 @@
       url = data.signedUrl;
       cache.set(assignment.id, url);
     }
+    if (mine !== renderToken || app.getDriverId() !== driverId) return;
     image.src = url;
     image.alt = `${detail?.driver?.display_name || 'Driver'} custom avatar`;
     image.classList.remove('dv-avatar-hidden');
@@ -63,7 +65,7 @@
         if (error) console.error('Unable to mark avatar first viewed', error);
         else assignment.first_viewed_at = new Date().toISOString();
       } catch (error) { console.error('Unable to mark avatar first viewed', error); }
-    } else badge.classList.add('dv-avatar-hidden');
+    }
   }
 
   window.addEventListener('dv:dashboard-rendered', event => { renderAvatar(event.detail).catch(error => console.error('Avatar render failed', error)); });
