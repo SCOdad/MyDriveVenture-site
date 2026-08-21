@@ -35,13 +35,12 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
   const success = document.getElementById('onboarding-success');
   if (!success) return;
 
-  // BKLG-0085: successful registration should feel like a clear state change,
-  // not a small status card appended to a completed form. Reuse the canonical
-  // Parker thumbs-up asset already shipped on the public site.
+  // BKLG-0085: successful registration should feel like a clear state change.
+  // Reuse the canonical Parker key-handoff artwork already shipped on the site.
   success.innerHTML = `
     <div class="registration-success-layout">
       <figure class="registration-success-art">
-        <img src="/assets/images/dv-char-parker-guide.webp" width="560" height="730" alt="Parker gives a welcoming thumbs up.">
+        <img src="/assets/images/dv-scene-parker-key-handoff.webp" width="768" height="768" alt="Parker hands over the keys to start the Drive Venture journey.">
       </figure>
       <div class="registration-success-copy">
         <p class="eyebrow">You're in!</p>
@@ -65,8 +64,8 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
     body.onboarding-complete .onboarding-shell { max-width:72rem; padding-top:2rem; }
     .success-card.registration-success { margin:1rem auto 0; padding:clamp(1.2rem,3vw,2.25rem); border-top-width:6px; }
     .registration-success-layout { display:grid; grid-template-columns:minmax(11rem,18rem) minmax(0,1fr); gap:clamp(1.25rem,4vw,3rem); align-items:center; }
-    .registration-success-art { margin:0; display:flex; justify-content:center; align-self:end; }
-    .registration-success-art img { display:block; width:min(100%,17rem); height:auto; filter:drop-shadow(.45rem .55rem 0 rgba(0,0,0,.34)); }
+    .registration-success-art { margin:0; display:flex; justify-content:center; align-self:center; }
+    .registration-success-art img { display:block; width:min(100%,18rem); height:auto; filter:drop-shadow(.45rem .55rem 0 rgba(0,0,0,.34)); }
     .registration-success-copy h2 { margin:.25rem 0 .9rem; font-size:clamp(2rem,5vw,3.6rem); }
     .registration-success-lede { color:var(--warm-white); font-size:clamp(1.05rem,2vw,1.25rem); line-height:1.55; max-width:46rem; }
     .registration-success-cta { display:inline-flex; margin:.55rem 0 .75rem; }
@@ -79,7 +78,7 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
     @media(max-width:679px){
       .registration-success-layout { grid-template-columns:1fr; }
       .registration-success-art { order:2; }
-      .registration-success-art img { width:min(58vw,14rem); }
+      .registration-success-art img { width:min(72vw,18rem); }
       .registration-success-cta { width:100%; justify-content:center; box-sizing:border-box; }
     }`;
   document.head.appendChild(style);
