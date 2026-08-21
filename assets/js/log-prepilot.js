@@ -1,5 +1,8 @@
 (() => {
   const app=window.DV_LOG_APP;if(!app)return;
+  const navStyle=document.createElement('style');
+  navStyle.textContent='.site-header .nav-cta{box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;width:9.75rem;height:2.75rem;padding:0 .8rem!important;border:3px solid #fff!important;border-radius:0!important;background:#2F7D4A!important;color:#fff!important;font-family:var(--heading-font,Orbitron,sans-serif)!important;font-size:.72rem!important;font-weight:800!important;line-height:1!important;letter-spacing:.05em!important;text-align:center;white-space:nowrap;box-shadow:none!important}.site-header .nav-cta:hover,.site-header .nav-cta:focus-visible{background:#24633a!important;color:#fff!important;border-color:#fff!important}.site-header .nav-cta.logout-sign{background:transparent!important;color:#fff!important;border-color:#fff!important}@media(max-width:500px){.site-header .nav-cta{width:9.25rem;height:2.6rem;font-size:.68rem!important}}';
+  document.head.appendChild(navStyle);
   const DRIVER_KEY='dv.log.driver';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt','"':'&quot;',"'":'&#39;'}[c]));
   function ymd(value,tz){try{const parts=new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value)),o={};for(const p of parts)if(p.type!=='literal')o[p.type]=p.value;return `${o.year}-${o.month}-${o.day}`}catch{return new Date(value).toISOString().slice(0,10)}}
