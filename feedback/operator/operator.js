@@ -2,9 +2,12 @@
   const cfg=window.DV_APP_CONFIG||{}, endpoint=String(window.DV_OPERATOR_FEEDBACK_ENDPOINT||'').trim();
   const msg=document.getElementById('operator-message'), inbox=document.getElementById('feedback-inbox'), workbench=document.getElementById('feedback-workbench'), entry=document.getElementById('operator-entry');
   const userSearch=document.getElementById('feedback-user-search'), userResults=document.getElementById('feedback-user-results'), userSelected=document.getElementById('feedback-user-selected');
+  const app=document.getElementById('main'), denied=document.getElementById('operator-access-denied'), checking=document.getElementById('operator-auth-check'), deniedDetail=document.getElementById('operator-denied-detail');
   let token='', selected=null, feedback=[], client=null, people=[];
-  function status(t,e=false){msg.textContent=t||'';msg.classList.toggle('error',e)}
+  function status(t,e=false){if(!msg)return;msg.textContent=t||'';msg.classList.toggle('error',e)}
   function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function showDenied(reason){checking.hidden=true;app.hidden=true;denied.hidden=false;if(deniedDetail)deniedDetail.textContent=reason||'Sign in with an authorized operator account to continue.'}
+  function showApp(){checking.hidden=true;denied.hidden=true;app.hidden=false}
   async function api(action,data={}){if(!token)throw new Error('Sign in through Drive Venture before using operator tools.');const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token},body:JSON.stringify({action,...data})});const out=await r.json().catch(()=>({}));if(!r.ok||out.ok!==true)throw new Error(out.error||'Operator request failed');return out}
   function fd(form){return Object.fromEntries(new FormData(form).entries())}
   function buildPeople(contacts){const out=[];for(const c of contacts||[]){for(const [kind,p] of [['GROWN_UP',c.grown_up],['DRIVER',c.driver]]){if(!p)continue;const name=String(p.name||'').trim(),email=String(p.email||'').trim(),mobile=String(p.mobile||'').trim();if(!name&&!email&&!mobile)continue;out.push({kind,name,email,mobile,driverId:c.driver_id,search:`${name} ${email} ${mobile}`.toLowerCase()})}}const seen=new Set();return out.filter(p=>{const key=`${p.kind}|${p.email||p.mobile||p.name}`.toLowerCase();if(seen.has(key))return false;seen.add(key);return true})}
@@ -12,7 +15,22 @@
   function clearPickedUser(){userSelected.hidden=true;userSelected.textContent='';entry.elements.name.value='';entry.elements.email.value='';entry.elements.relationship.value=''}
   function pickUser(index){const p=people[index];if(!p)return;entry.elements.name.value=p.name;entry.elements.email.value=p.email;entry.elements.relationship.value=p.kind;userSelected.innerHTML=`Selected <strong>${esc(p.name||p.email||p.mobile)}</strong> · ${p.kind==='DRIVER'?'driver':'grown-up'}${p.email?` · ${esc(p.email)}`:''}`;userSelected.hidden=false;userResults.innerHTML='';userSearch.value=p.name||p.email||p.mobile}
   function renderUserResults(){const q=String(userSearch.value||'').trim().toLowerCase();if(q.length<2){userResults.innerHTML='';return}const matches=people.map((p,i)=>({p,i})).filter(x=>x.p.search.includes(q)).slice(0,12);userResults.innerHTML=matches.length?matches.map(({p,i})=>`<button type="button" class="button button-secondary feedback-user-pick" data-index="${i}" style="display:block;width:100%;text-align:left;margin:.35rem 0"><strong>${esc(p.name||'(name unavailable)')}</strong> · ${p.kind==='DRIVER'?'driver':'grown-up'}<br><small>${esc(p.email||'no email')}${p.mobile?` · ${esc(p.mobile)}`:''}</small></button>`).join(''):'<p class="meta">No matching pilot user. You can enter the person manually.</p>';for(const b of userResults.querySelectorAll('.feedback-user-pick'))b.addEventListener('click',()=>pickUser(Number(b.dataset.index)))}
-  async function init(){if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey)throw new Error('Drive Venture sign-in configuration unavailable.');client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});const {data:{session}}=await client.auth.getSession();if(!session?.access_token)throw new Error('Sign in through Drive Venture first.');token=session.access_token;await Promise.all([loadPeople(),load()])}
+  async function init(){
+    try{
+      if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey)throw new Error('Drive Venture sign-in configuration unavailable.');
+      client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
+      const {data:{session}}=await client.auth.getSession();
+      if(!session?.access_token){showDenied('You are not signed in with an operator account.');return}
+      token=session.access_token;
+      await loadPeople();
+      await load();
+      showApp();
+    }catch(e){
+      const reason=e instanceof Error?e.message:'Operator access required.';
+      if(/operator access|required|permission|not available|no active driver/i.test(reason))showDenied('Your signed-in account does not have Drive Venture operator privileges.');
+      else showDenied(reason);
+    }
+  }
   async function load(){status('');const out=await api('list');feedback=out.feedback||[];const links=out.links||[];const byCode=new Map();for(const l of links){if(!byCode.has(l.feedback_code))byCode.set(l.feedback_code,[]);byCode.get(l.feedback_code).push(l)};inbox.innerHTML=feedback.length?feedback.map(f=>`<button type="button" class="button button-secondary feedback-pick" data-code="${esc(f.feedback_code)}" style="display:block;width:100%;text-align:left;margin:.5rem 0"><strong>${esc(f.feedback_code)}</strong> · ${esc(f.status)} · ${esc(f.disposition_category||'unclassified')}<br><span>${esc(f.category)} / ${esc(f.area)} — ${esc(String(f.message).slice(0,140))}</span><br><small>${esc(f.created_at)}${f.follow_up_requested?' · follow-up requested':''}${(byCode.get(f.feedback_code)||[]).length?' · '+(byCode.get(f.feedback_code)||[]).map(x=>x.backlog_code).join(', '):''}</small></button>`).join(''):'<p>No feedback yet.</p>';for(const b of inbox.querySelectorAll('.feedback-pick'))b.addEventListener('click',()=>select(b.dataset.code))}
   function select(code){selected=feedback.find(f=>f.feedback_code===code);if(!selected)return;document.getElementById('selected-code').textContent=selected.feedback_code;document.getElementById('selected-message').textContent=selected.message;document.getElementById('selected-meta').textContent=`${selected.category} / ${selected.area} · ${selected.status} · project ${selected.project_state||''} · revision ${selected.code_revision||'not supplied'}${selected.follow_up_requested?' · follow-up enabled':''}`;const sel=document.querySelector('#classify-form [name="disposition_category"]');if(selected.disposition_category)sel.value=selected.disposition_category;document.getElementById('ack-form').hidden=!selected.follow_up_requested;workbench.hidden=false;workbench.scrollIntoView({behavior:'smooth',block:'start'})}
   async function run(form,action,extra={}){if(!selected&&action!=='record_backlog_closed')throw new Error('Select feedback first.');const data=fd(form);status('Working…');const out=await api(action,{...(selected?{feedback_code:selected.feedback_code}:{}),...data,...extra});status('Saved.');await load();if(selected)select(selected.feedback_code);return out}
@@ -25,5 +43,5 @@
   document.getElementById('disposition-form').addEventListener('submit',e=>{e.preventDefault();run(e.currentTarget,'disposition').catch(x=>status(x.message,true))});
   document.getElementById('close-backlog-form').addEventListener('submit',async e=>{e.preventDefault();try{status('Recording closure…');const out=await api('record_backlog_closed',fd(e.currentTarget));status(`Closed ${out.backlog_code} for ${out.linked_feedback_count} linked feedback item(s).`);e.currentTarget.reset();await load()}catch(x){status(x.message,true)}});
   document.getElementById('show-attachments').addEventListener('click',async()=>{try{const out=await api('attachments',{feedback_code:selected.feedback_code});document.getElementById('attachment-list').innerHTML=(out.attachments||[]).length?(out.attachments||[]).map(a=>`<p><a href="${esc(a.signed_url)}" target="_blank" rel="noopener">${esc(a.original_filename||'Screenshot')}</a> · ${Math.round(a.size_bytes/1024)} KB</p>`).join(''):'<p>No screenshots.</p>'}catch(x){status(x.message,true)}});
-  init().catch(e=>status(e.message,true));
+  init();
 })();
