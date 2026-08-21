@@ -27,7 +27,7 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
 
     const tip = fieldLabel.querySelector('.tip');
     if (tip) {
-      tip.dataset.tip = 'Required so the driver can receive a magic link and sign in to their Drive Venture account. The driver is the primary app user.';
+      tip.dataset.tip = 'Required so the driver can receive a secure sign-in link and open their Drive Venture account. The driver is the primary app user.';
       tip.setAttribute('aria-label', 'Why driver email is required');
     }
   }
@@ -35,8 +35,8 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
   const success = document.getElementById('onboarding-success');
   if (!success) return;
 
-  // BKLG-0085: successful registration should feel like a clear state change.
-  // Reuse the canonical Parker key-handoff artwork already shipped on the site.
+  // BKLG-0085/BKLG-0086: make registration completion unmistakable, then
+  // guide the user toward the single welcome email that verifies and signs in.
   success.innerHTML = `
     <div class="registration-success-layout">
       <figure class="registration-success-art">
@@ -45,14 +45,17 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
       <div class="registration-success-copy">
         <p class="eyebrow">You're in!</p>
         <h2 id="registration-success-heading">Welcome to Drive Venture.</h2>
-        <p class="registration-success-lede">Your driver account is ready. One last step: open Drive Venture and request a secure sign-in link.</p>
-        <a id="registration-success-cta" class="button primary registration-success-cta" href="/log/">Open Drive Venture</a>
-        <p class="registration-success-email">We'll use <strong id="registration-success-email"></strong> for the driver's passwordless sign-in.</p>
-        <div class="registration-success-next">
-          <strong>If you leave this page</strong>
-          <p>You're still registered. Come back anytime at <a href="https://log.mydriveventure.com/">log.mydriveventure.com</a>. We'll also send a confirmation email with the same durable way back.</p>
+        <p class="registration-success-lede">Registration is complete. Check your email for Parker's welcome message. Its <strong>Open Drive Venture</strong> button verifies your email and signs you in in one step.</p>
+        <div class="registration-success-email-callout">
+          <strong>Check <span id="registration-success-email"></span></strong>
+          <p>You should not need to request a second sign-in email.</p>
         </div>
-        <p class="registration-success-guardian">Grown-ups can also sign in separately with their own registered email.</p>
+        <a id="registration-success-cta" class="button registration-success-cta" href="/log/">Didn't get it? Open sign-in</a>
+        <div class="registration-success-next">
+          <strong>If you come back later</strong>
+          <p>The welcome email remains your easy way back. If its secure link has expired, use <a id="registration-success-return" href="https://log.mydriveventure.com/">log.mydriveventure.com</a> to request a fresh link with the driver's email already filled in.</p>
+        </div>
+        <p class="registration-success-guardian">Grown-ups with a different registered email receive their own access message.</p>
       </div>
     </div>`;
 
@@ -68,8 +71,10 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
     .registration-success-art img { display:block; width:min(100%,18rem); height:auto; filter:drop-shadow(.45rem .55rem 0 rgba(0,0,0,.34)); }
     .registration-success-copy h2 { margin:.25rem 0 .9rem; font-size:clamp(2rem,5vw,3.6rem); }
     .registration-success-lede { color:var(--warm-white); font-size:clamp(1.05rem,2vw,1.25rem); line-height:1.55; max-width:46rem; }
-    .registration-success-cta { display:inline-flex; margin:.55rem 0 .75rem; }
-    .registration-success-email { color:#dce3e8; margin:.35rem 0 1rem; }
+    .registration-success-email-callout { margin:1.1rem 0; padding:1rem 1.1rem; border:2px solid var(--dv-yellow); background:#17212a; }
+    .registration-success-email-callout strong { display:block; color:var(--dv-yellow); font-family:var(--heading-font); }
+    .registration-success-email-callout p { margin:.35rem 0 0; color:#e8edf0; }
+    .registration-success-cta { display:inline-flex; margin:.35rem 0 .75rem; }
     .registration-success-next { margin-top:1.15rem; padding:1rem 1.1rem; border-left:.45rem solid var(--dv-yellow); background:#17212a; }
     .registration-success-next strong { color:var(--dv-yellow); font-family:var(--heading-font); letter-spacing:.04em; text-transform:uppercase; font-size:.8rem; }
     .registration-success-next p { margin:.35rem 0 0; color:#e8edf0; }
@@ -87,6 +92,8 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
     if (success.hidden) return;
     const driverName = String(form.elements.driverName?.value || '').trim();
     const email = field.value.trim();
+    const loginUrl = email ? `/log/?email=${encodeURIComponent(email)}` : '/log/';
+    const durableUrl = email ? `https://log.mydriveventure.com/?email=${encodeURIComponent(email)}` : 'https://log.mydriveventure.com/';
     document.body.classList.add('onboarding-complete');
     success.classList.add('registration-success');
     success.setAttribute('aria-labelledby', 'registration-success-heading');
@@ -95,7 +102,9 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
     const emailNode = document.getElementById('registration-success-email');
     if (emailNode) emailNode.textContent = email;
     const cta = document.getElementById('registration-success-cta');
-    if (cta) cta.href = email ? `/log/?email=${encodeURIComponent(email)}` : '/log/';
+    if (cta) cta.href = loginUrl;
+    const returnLink = document.getElementById('registration-success-return');
+    if (returnLink) returnLink.href = durableUrl;
   }
 
   const observer = new MutationObserver(refreshSuccessState);
