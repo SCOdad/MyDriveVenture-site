@@ -39,6 +39,7 @@
     image.alt = '';
     const model = detail?.model || {};
     const driverId = detail?.driverId;
+    const access = (model.driver_access || []).find(a => a.driver_id === driverId);
     const assignment = (model.avatar_assignments || []).find(a => a.driver_id === driverId);
     if (!assignment) return;
     const app = window.DV_LOG_APP;
@@ -58,7 +59,7 @@
     image.src = url;
     image.alt = `${detail?.driver?.display_name || 'Driver'} custom avatar`;
     image.classList.remove('dv-avatar-hidden');
-    if (!assignment.first_viewed_at) {
+    if (!assignment.first_viewed_at && access?.mode !== 'VIEW') {
       badge.classList.remove('dv-avatar-hidden');
       try {
         const { error } = await client.rpc('mark_avatar_first_viewed_v1', { p_assignment_id: assignment.id });
