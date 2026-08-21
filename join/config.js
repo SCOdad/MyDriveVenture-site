@@ -37,10 +37,11 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
 
   // BKLG-0085/BKLG-0086: make registration completion unmistakable, then
   // guide the user toward the single welcome email that verifies and signs in.
+  // The canonical VisualAssets asset for this moment is DV-CHAR-PARKER-KEYS.
   success.innerHTML = `
     <div class="registration-success-layout">
       <figure class="registration-success-art">
-        <img src="/assets/images/dv-scene-parker-key-handoff.webp" width="768" height="768" alt="Parker hands over the keys to start the Drive Venture journey.">
+        <img src="/assets/images/DV.CHAR-PARKER-KEYS.png" width="768" height="768" alt="Parker smiles and holds up the car keys." onerror="this.onerror=null;this.src='/assets/images/dv-scene-parker-key-handoff.webp';">
       </figure>
       <div class="registration-success-copy">
         <p class="eyebrow">You're in!</p>
