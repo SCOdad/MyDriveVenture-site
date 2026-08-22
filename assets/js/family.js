@@ -1,62 +1,10 @@
 (()=>{
-  const cfg=window.DV_APP_CONFIG||{}
-  const loading=document.getElementById('family-loading'), app=document.getElementById('family-app'), authNeeded=document.getElementById('family-auth-needed')
-  if(!cfg.supabaseUrl||!cfg.publishableKey){loading.innerHTML='<p>Family management is not configured.</p>';return}
-  const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
-  let session=null, overview=null
-  const esc=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
-  const prettyRel=(r)=>({PARENT:'Parent',GUARDIAN:'Guardian',GRANDPARENT:'Grandparent',TRUSTED_ADULT:'Trusted adult'}[String(r||'').toUpperCase()]||'Grown-up')
-  async function call(action,payload={}){
-    const token=session?.access_token
-    if(!token) throw new Error('Please sign in again.')
-    const r=await fetch(`${cfg.supabaseUrl}/functions/v1/family-api`,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`,'apikey':cfg.publishableKey},body:JSON.stringify({action,...payload})})
-    const body=await r.json().catch(()=>({}))
-    if(!r.ok||body.ok!==true) throw new Error(body.error||'Family update failed')
-    return body
-  }
-  function setStatus(id,message,type=''){
-    const el=document.getElementById(id); if(!el)return
-    el.textContent=message||'';el.classList.toggle('family-success',type==='success');el.classList.toggle('family-error',type==='error')
-  }
-  function render(){
-    const drivers=overview?.drivers||[], grownups=overview?.grownups||[]
-    document.getElementById('family-drivers').innerHTML=drivers.length?drivers.map(d=>`<div class="family-person"><div><strong>${esc(d.display_name||'Driver')}</strong><div class="meta">${esc(String(d.license_stage||'').replaceAll('_',' '))}${d.home_zip?` · ZIP ${esc(d.home_zip)}`:''}</div></div><div class="family-chip-row"><span class="family-chip">Driver</span></div></div>`).join(''):'<p class="family-empty">No drivers are available to this account.</p>'
-    const byId=new Map(drivers.map(d=>[String(d.id),d.display_name||'Driver']))
-    document.getElementById('family-grownups').innerHTML=grownups.length?grownups.map(g=>`<div class="family-person"><div><strong>${esc(g.display_name||'Grown-up')}${String(g.person_id)===String(overview.current_person_id)?' (you)':''}</strong><div class="meta">${esc(g.email||'No email shown')} · ${esc(prettyRel(g.relationship))}</div></div><div class="family-chip-row">${(g.driver_ids||[]).map(id=>`<span class="family-chip">${esc(byId.get(String(id))||'Driver')}</span>`).join('')}</div></div>`).join(''):'<p class="family-empty">No grown-ups are linked to these drivers.</p>'
-    document.getElementById('grownup-driver-scope').innerHTML=drivers.map(d=>`<label class="scope-option"><input type="checkbox" name="driver_id" value="${esc(d.id)}"><span><strong>${esc(d.display_name||'Driver')}</strong><br><span class="meta">Grant access to this driver</span></span></label>`).join('')
-  }
-  async function refresh(){overview=await call('overview');render()}
-  async function init(){
-    const result=await client.auth.getSession();session=result.data.session
-    if(!session){loading.hidden=true;authNeeded.hidden=false;return}
-    try{await refresh();loading.hidden=true;app.hidden=false}catch(e){loading.innerHTML=`<p>${esc(e.message||e)}</p>`}
-  }
-  document.querySelectorAll('[data-open-panel]').forEach(b=>b.addEventListener('click',()=>{
-    const which=b.dataset.openPanel
-    document.getElementById('grownup-panel').hidden=which!=='grownup';document.getElementById('driver-panel').hidden=which!=='driver'
-    document.getElementById(`${which==='grownup'?'grownup':'driver'}-panel`).scrollIntoView({behavior:'smooth',block:'start'})
-  }))
-  document.querySelectorAll('[data-close-panel]').forEach(b=>b.addEventListener('click',()=>b.closest('.family-panel').hidden=true))
-  document.getElementById('add-grownup-form')?.addEventListener('submit',async e=>{
-    e.preventDefault();const form=e.currentTarget,fd=new FormData(form),driverIds=fd.getAll('driver_id').map(String)
-    if(!driverIds.length){setStatus('grownup-status','Choose at least one driver.','error');return}
-    const button=form.querySelector('button[type="submit"]');button.disabled=true;setStatus('grownup-status','Adding grown-up…')
-    try{
-      const result=await call('add_guardian',{name:fd.get('name'),email:fd.get('email'),mobile:fd.get('mobile'),relationship:fd.get('relationship'),driver_ids:driverIds})
-      const invite=result.invitation?.status==='SENT'?' Invitation sent.':' They can sign in using their email at Drive Venture.'
-      setStatus('grownup-status',`Grown-up added.${invite}`,'success');form.reset();await refresh()
-    }catch(err){setStatus('grownup-status',err.message||String(err),'error')}finally{button.disabled=false}
-  })
-  document.getElementById('add-driver-form')?.addEventListener('submit',async e=>{
-    e.preventDefault();const form=e.currentTarget,fd=new FormData(form),button=form.querySelector('button[type="submit"]');button.disabled=true;setStatus('driver-status','Adding driver…')
-    try{
-      const payload={};for(const [k,v] of fd.entries())payload[k]=v
-      const result=await call('add_driver',payload)
-      const invite=result.invitation?.status==='SENT'?' Their Drive Venture invitation was sent.':' Their account is ready for passwordless sign-in.'
-      setStatus('driver-status',`Driver added.${invite}`,'success');form.reset();await refresh()
-    }catch(err){setStatus('driver-status',err.message||String(err),'error')}finally{button.disabled=false}
-  })
-  document.getElementById('family-sign-out')?.addEventListener('click',async()=>{await client.auth.signOut();location.replace('/log/')})
-  client.auth.onAuthStateChange((_event,next)=>{session=next})
-  init()
+ const cfg=window.DV_APP_CONFIG||{},loading=document.getElementById('family-loading'),app=document.getElementById('family-app'),authNeeded=document.getElementById('family-auth-needed');if(!cfg.supabaseUrl||!cfg.publishableKey){loading.innerHTML='<p>Family management is not configured.</p>';return}const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});let session=null,overview=null;const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),prettyRel=r=>({PARENT:'Parent',GUARDIAN:'Guardian',GRANDPARENT:'Grandparent',TRUSTED_ADULT:'Trusted adult'}[String(r||'').toUpperCase()]||'Grown-up');async function call(action,payload={}){if(!session?.access_token)throw new Error('Please sign in again.');const r=await fetch(`${cfg.supabaseUrl}/functions/v1/family-api`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action,...payload})}),b=await r.json().catch(()=>({}));if(!r.ok||b.ok!==true)throw new Error(b.error||'Family update failed');return b}function status(id,msg,type=''){const e=document.getElementById(id);if(e){e.textContent=msg||'';e.classList.toggle('family-success',type==='success');e.classList.toggle('family-error',type==='error')}}
+ function render(){const drivers=overview?.drivers||[],grownups=overview?.grownups||[],primary=new Set((overview?.primary_driver_ids||[]).map(String)),byId=new Map(drivers.map(d=>[String(d.id),d.display_name||'Driver']));document.getElementById('family-drivers').innerHTML=drivers.length?drivers.map(d=>`<div class="family-person"><div><strong>${esc(d.display_name||'Driver')}</strong><div class="meta">${esc(String(d.license_stage||'').replaceAll('_',' '))}${primary.has(String(d.id))?' · Primary guardian':''}</div></div><span class="family-chip">Driver</span></div>`).join(''):'<p class="family-empty">No drivers are available to this account.</p>';
+ document.getElementById('family-grownups').innerHTML=grownups.length?grownups.map(g=>{const self=String(g.person_id)===String(overview.current_person_id),editable=!self&&primary.size>0&&(g.driver_ids||[]).some(id=>primary.has(String(id)));return `<div class="family-person"><div><strong>${esc(g.display_name||'Grown-up')}${self?' (you)':''}</strong><div class="meta">${esc(g.email||'No email shown')} · ${esc(prettyRel(g.relationship))}</div><div class="family-chip-row">${(g.driver_ids||[]).map(id=>`<span class="family-chip">${esc(byId.get(String(id))||'Driver')}</span>`).join('')}</div>${editable?`<button class="button secondary manage-access" data-person="${esc(g.person_id)}" type="button">Manage access</button>`:''}</div></div>`}).join(''):'<p class="family-empty">No grown-ups are linked to these drivers.</p>';
+ document.getElementById('grownup-driver-scope').innerHTML=drivers.map(d=>`<label class="scope-option"><input type="checkbox" name="driver_id" value="${esc(d.id)}"><span><strong>${esc(d.display_name||'Driver')}</strong><br><span class="meta">Grant access to this driver</span></span></label>`).join('');document.querySelectorAll('.manage-access').forEach(b=>b.addEventListener('click',()=>manageAccess(b.dataset.person)))}
+ async function manageAccess(personId){const g=(overview.grownups||[]).find(x=>String(x.person_id)===String(personId)),primary=new Set((overview.primary_driver_ids||[]).map(String)),eligible=(overview.drivers||[]).filter(d=>primary.has(String(d.id)));if(!g||!eligible.length)return;const existing=new Set((g.driver_ids||[]).map(String)),panel=document.createElement('div');panel.className='form-card family-panel';panel.innerHTML=`<div class="family-card-head"><div><p class="step-label">Access</p><h2>Manage ${esc(g.display_name)}'s drivers</h2></div><button class="family-close" type="button">×</button></div><p class="family-explainer">As primary guardian, you can grant or remove this grown-up's access to these drivers.</p><form class="onboarding-form compact-form">${eligible.map(d=>`<label class="scope-option"><input type="checkbox" name="driver_id" value="${esc(d.id)}" ${existing.has(String(d.id))?'checked':''}><span><strong>${esc(d.display_name)}</strong></span></label>`).join('')}<div class="form-message" role="status"></div><button class="button primary" type="submit">Save access</button></form>`;document.getElementById('family-app').appendChild(panel);panel.scrollIntoView({behavior:'smooth'});panel.querySelector('.family-close').onclick=()=>panel.remove();panel.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,ids=new FormData(f).getAll('driver_id').map(String),btn=f.querySelector('button[type=submit]'),msg=f.querySelector('.form-message');btn.disabled=true;msg.textContent='Saving…';try{await call('set_guardian_access',{guardian_person_id:personId,driver_ids:ids});msg.textContent='Access updated.';msg.classList.add('family-success');await refresh();setTimeout(()=>panel.remove(),500)}catch(err){msg.textContent=err.message||String(err);msg.classList.add('family-error');btn.disabled=false}}}
+ async function refresh(){overview=await call('overview');render()}async function init(){session=(await client.auth.getSession()).data.session;if(!session){loading.hidden=true;authNeeded.hidden=false;return}try{await refresh();loading.hidden=true;app.hidden=false}catch(e){loading.innerHTML=`<p>${esc(e.message||e)}</p>`}}
+ document.querySelectorAll('[data-open-panel]').forEach(b=>b.onclick=()=>{const w=b.dataset.openPanel;document.getElementById('grownup-panel').hidden=w!=='grownup';document.getElementById('driver-panel').hidden=w!=='driver';document.getElementById(`${w}-panel`).scrollIntoView({behavior:'smooth'})});document.querySelectorAll('[data-close-panel]').forEach(b=>b.onclick=()=>b.closest('.family-panel').hidden=true);
+ document.getElementById('add-grownup-form')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,fd=new FormData(f),ids=fd.getAll('driver_id').map(String);if(!ids.length)return status('grownup-status','Choose at least one driver.','error');const btn=f.querySelector('button[type=submit]');btn.disabled=true;try{await call('add_guardian',{name:fd.get('name'),email:fd.get('email'),mobile:fd.get('mobile'),relationship:fd.get('relationship'),driver_ids:ids});status('grownup-status','Grown-up added.','success');f.reset();await refresh()}catch(x){status('grownup-status',x.message,'error')}finally{btn.disabled=false}});document.getElementById('add-driver-form')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,fd=new FormData(f),p={};for(const[k,v]of fd.entries())p[k]=v;const btn=f.querySelector('button[type=submit]');btn.disabled=true;try{await call('add_driver',p);status('driver-status','Driver added.','success');f.reset();await refresh()}catch(x){status('driver-status',x.message,'error')}finally{btn.disabled=false}});document.getElementById('family-sign-out')?.addEventListener('click',async()=>{await client.auth.signOut();location.replace('/log/')});client.auth.onAuthStateChange((_e,n)=>session=n);init()
 })()
