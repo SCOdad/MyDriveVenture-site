@@ -10,7 +10,7 @@
   const driverSelect = document.getElementById('driver-select');
   const driverSwitcher = document.getElementById('driver-switcher');
   function status(el,text,kind=''){if(!el)return;el.textContent=text||'';el.className=`app-status${kind?` ${kind}`:''}`}
-  function syncAuthUi(signedIn){if(navLogDrive)navLogDrive.hidden=!!signedIn;if(signOut)signOut.hidden=!signedIn}
+  function syncAuthUi(signedIn){if(navLogDrive)navLogDrive.hidden=false;if(signOut)signOut.hidden=true;document.documentElement.toggleAttribute('data-dv-authenticated',!!signedIn)}
   function joinPrompt(){if(!loginStatus)return;loginStatus.className='app-status';loginStatus.innerHTML='<div class="login-join-prompt"><strong>New to Drive Venture?</strong><p>That sign-in link could not be sent. If you have not joined the pilot yet, start here.</p><a class="button primary button-small" href="/join/">Join the pilot</a><p class="meta">Already joined? Double-check the email you used during onboarding and try again.</p></div>'}
   function isUnregisteredOtpError(error){const message=String(error?.message||'').toLowerCase();const code=String(error?.code||'').toLowerCase();return code==='otp_disabled'||message.includes('signups not allowed for otp')||message.includes('signup')&&message.includes('otp')}
   if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey){status(loginStatus,'The web pilot login is not activated yet.','error');loginForm?.querySelector('button')?.setAttribute('disabled','disabled');return}
