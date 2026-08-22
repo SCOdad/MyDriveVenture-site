@@ -102,18 +102,28 @@
       if(action.value!=='CREATE')return;
       e.preventDefault();
       e.stopImmediatePropagation();
-      const feedbackCode=document.getElementById('selected-code')?.textContent?.trim(),endpoint=String(window.DV_OPERATOR_FEEDBACK_ENDPOINT||'').trim(),message=document.getElementById('operator-message');
+      const feedbackCode=document.getElementById('selected-code')?.textContent?.trim(),feedbackEndpoint=String(window.DV_OPERATOR_FEEDBACK_ENDPOINT||'').trim(),backlogEndpoint=String(window.DV_OPERATOR_BACKLOG_ENDPOINT||'').trim(),message=document.getElementById('operator-message');
       const setStatus=(text,isError=false)=>{if(message){message.textContent=text||'';message.classList.toggle('error',isError)}};
       try{
         if(!feedbackCode)throw new Error('Select feedback first.');
-        if(!endpoint||!authHeader)throw new Error('Operator session is not ready. Refresh and try again.');
+        if(!feedbackEndpoint||!backlogEndpoint||!authHeader)throw new Error('Operator session is not ready. Refresh and try again.');
         submit.disabled=true;
-        setStatus('Creating and linking backlog item…');
         const data=Object.fromEntries(new FormData(form).entries());
-        const r=await originalFetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:authHeader},body:JSON.stringify({action:'create_and_link_backlog',feedback_code:feedbackCode,title:data.backlog_title,category:data.backlog_category,priority:data.backlog_priority,description:data.description,link_type:data.link_type,note:data.note})});
-        const out=await r.json().catch(()=>({}));
-        if(!r.ok||out.ok!==true)throw new Error(out.error||'Could not create backlog item');
-        const text=`Created and linked ${out.backlog_code}${out.notification_sent?' and notified the user.':'.'}`;
+        setStatus('Creating backlog item…');
+        const createResponse=await originalFetch(backlogEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:authHeader},body:JSON.stringify({action:'create',title:data.backlog_title,category:data.backlog_category,priority:data.backlog_priority,status:'BACKLOG',description:data.description,source:`Feedback ${feedbackCode}`})});
+        const created=await createResponse.json().catch(()=>({}));
+        if(!createResponse.ok||created.ok!==true)throw new Error(created.error||'Could not create backlog item');
+
+        action.value='LINK';
+        backlogInput.value=created.backlog_code;
+        syncMode();
+        setStatus(`Created ${created.backlog_code}. Linking it to ${feedbackCode}…`);
+        const linkResponse=await originalFetch(feedbackEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:authHeader},body:JSON.stringify({action:'link_backlog',feedback_code:feedbackCode,backlog_code:created.backlog_code,link_type:data.link_type,description:data.description,note:data.note})});
+        const linked=await linkResponse.json().catch(()=>({}));
+        if(!linkResponse.ok||linked.ok!==true){
+          throw new Error(`${created.backlog_code} was created but could not be linked: ${linked.error||'link request failed'}. The form is ready to retry the link.`);
+        }
+        const text=`Created and linked ${created.backlog_code}${linked.notification_sent?' and notified the user.':'.'}`;
         sessionStorage.setItem('dv-feedback-message',text);
         sessionStorage.setItem('dv-feedback-reselect',feedbackCode);
         location.reload();
