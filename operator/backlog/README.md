@@ -1,0 +1,1 @@
+Backlog Manager is the canonical operator surface for BKLG data stored in Supabase. Closing work here is the canonical closure event and sends linked feedback updates to opted-in reporters. Central Configuration Backlog is reference-only after ADR-054 / MIG-005.

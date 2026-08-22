@@ -1,0 +1,1 @@
+Feedback Inbox uses canonical backlog status from Supabase. Active linked BKLG items display yellow rails; terminal items display green rails. Feedback disposition is blocked while any canonical linked backlog item remains open. Backlog closure is performed in `/operator/backlog/`, not from the Feedback Inbox.
