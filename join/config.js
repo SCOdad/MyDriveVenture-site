@@ -112,3 +112,15 @@ window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functi
   observer.observe(success, { attributes: true, attributeFilter: ['hidden'] });
   refreshSuccessState();
 })();
+
+// BKLG-0102: keep first-time onboarding intentionally simple while making it
+// clear that the family can be expanded after the first grown-up + driver pair.
+(() => {
+  const intro = document.querySelector('.join-intro');
+  if (!intro || document.getElementById('family-expansion-note')) return;
+  const note = document.createElement('div');
+  note.id = 'family-expansion-note';
+  note.className = 'notice';
+  note.innerHTML = '<strong>More drivers or grown-ups to add?</strong> Start with one driver and one grown-up. Once your family is set up, you can add additional drivers and trusted grown-ups, including parents, guardians, grandparents, or other adults who help with driving.';
+  intro.insertAdjacentElement('afterend', note);
+})();
