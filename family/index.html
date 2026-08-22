@@ -1,76 +1,34 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <meta name="theme-color" content="#080b0e">
-  <title>Your Family — Drive Venture</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/assets/css/join.css">
-  <link rel="stylesheet" href="/assets/css/family.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#080b0e">
+  <title>Your Family — Drive Venture</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/join.css"><link rel="stylesheet" href="/assets/css/family.css">
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
-  <header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/log/game/">Driver Console</a></li><li><a href="/feedback/">Feedback</a></li><li><a href="/family/" aria-current="page">Family</a></li><li><a href="/profile/">Profile</a></li><li><button id="family-sign-out" class="nav-auth-sign log-out" type="button">Log out</button></li></ul></nav></div></header>
-
-  <main id="main" class="content narrow onboarding-shell family-shell">
-    <section class="family-hero">
-      <p class="eyebrow">Family setup</p>
-      <h1>Your Drive Venture family</h1>
-      <p class="lede">Add another driver or invite another trusted grown-up. Access is assigned driver by driver, so each grown-up sees only the drivers they’re connected to.</p>
-    </section>
-
-    <section id="family-loading" class="form-card"><p>Loading your family…</p></section>
-    <section id="family-auth-needed" class="form-card" hidden>
-      <h2>Sign in first</h2><p>Family management is available after you sign in to Drive Venture.</p><a class="button primary" href="/log/">Open Drive Venture</a>
-    </section>
-
-    <div id="family-app" hidden>
-      <section class="family-overview-grid" aria-label="Family overview">
-        <article class="form-card family-list-card"><div class="family-card-head"><div><p class="step-label">Drivers</p><h2>Your drivers</h2></div><button class="button secondary family-action" type="button" data-open-panel="driver">+ Add driver</button></div><div id="family-drivers" class="family-list"></div></article>
-        <article class="form-card family-list-card"><div class="family-card-head"><div><p class="step-label">Grown-ups</p><h2>Trusted grown-ups</h2></div><button class="button secondary family-action" type="button" data-open-panel="grownup">+ Add grown-up</button></div><div id="family-grownups" class="family-list"></div></article>
-      </section>
-
-      <section id="grownup-panel" class="form-card family-panel" hidden aria-labelledby="grownup-title">
-        <div class="family-card-head"><div><p class="step-label">Invite</p><h2 id="grownup-title">Add a trusted grown-up</h2></div><button class="family-close" type="button" data-close-panel aria-label="Close">×</button></div>
-        <p class="family-explainer">Parents, guardians, grandparents, and other trusted adults can have their own sign-in. Choose exactly which driver or drivers this person should be able to access.</p>
-        <form id="add-grownup-form" class="onboarding-form compact-form">
-          <label><span class="field-label">Name <span class="required-marker">*</span></span><input name="name" required maxlength="100" autocomplete="name" placeholder="What should we call them?"></label>
-          <div class="field-grid two-col"><label><span class="field-label">Email <span class="required-marker">*</span></span><input name="email" type="email" required maxlength="254" autocomplete="email"></label><label><span class="field-label">Mobile <span class="meta">(optional)</span></span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="(248) 555-1234"></label></div>
-          <label><span class="field-label">Relationship <span class="required-marker">*</span></span><select name="relationship" required><option value="PARENT">Parent</option><option value="GUARDIAN">Guardian</option><option value="GRANDPARENT">Grandparent</option><option value="TRUSTED_ADULT">Other trusted adult</option></select></label>
-          <fieldset class="driver-scope-fieldset"><legend>Driver access <span class="required-marker">*</span></legend><p class="meta">Select only the drivers this grown-up should be able to view and help manage.</p><div id="grownup-driver-scope" class="driver-scope-list"></div></fieldset>
-          <div id="grownup-status" class="form-message" role="status" aria-live="polite"></div>
-          <button class="button primary" type="submit">Add grown-up &amp; send invite</button>
-        </form>
-      </section>
-
-      <section id="driver-panel" class="form-card family-panel" hidden aria-labelledby="driver-title">
-        <div class="family-card-head"><div><p class="step-label">New driver</p><h2 id="driver-title">Add another driver</h2></div><button class="family-close" type="button" data-close-panel aria-label="Close">×</button></div>
-        <p class="family-explainer">This adds a driver to your existing family. Their driver account and driving history remain separate from every other driver.</p>
-        <form id="add-driver-form" class="onboarding-form compact-form">
-          <label><span class="field-label">Driver name or nickname <span class="required-marker">*</span></span><input name="name" required maxlength="100"></label>
-          <div class="field-grid two-col"><label><span class="field-label">Birthday <span class="required-marker">*</span></span><input name="birth_date" type="date" required></label><label><span class="field-label">Home ZIP <span class="required-marker">*</span></span><input name="home_zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label></div>
-          <div class="field-grid two-col"><label><span class="field-label">Driver email <span class="required-marker">*</span></span><input name="email" type="email" required maxlength="254"></label><label><span class="field-label">Driver mobile <span class="meta">(optional)</span></span><input name="mobile" type="tel" inputmode="tel"></label></div>
-          <div class="field-grid two-col"><label><span class="field-label">License stage <span class="required-marker">*</span></span><select name="license_stage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option></select></label><label><span class="field-label">Permit / current-stage issue date <span class="required-marker">*</span></span><input name="license_stage_start_date" type="date" required></label></div>
-          <label><span class="field-label">Favorite color <span class="meta">(optional)</span></span><input name="favorite_color" maxlength="40"></label>
-          <hr class="family-rule">
-          <h3>Starting vehicle</h3>
-          <div class="field-grid two-col"><label><span class="field-label">Vehicle name <span class="required-marker">*</span></span><input name="vehicle_name" required maxlength="80" placeholder="Blue Pacifica"></label><label><span class="field-label">Vehicle class <span class="required-marker">*</span></span><select name="vehicle_class" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label></div>
-          <label><span class="field-label">Vehicle color <span class="meta">(optional)</span></span><input name="vehicle_color" maxlength="40"></label>
-          <div id="driver-status" class="form-message" role="status" aria-live="polite"></div>
-          <button class="button primary" type="submit">Add driver</button>
-        </form>
-      </section>
-    </div>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/log/config.js"></script>
-  <script src="/assets/js/family.js"></script>
-</body>
-</html>
+<a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
+<header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/log/game/">Driver Console</a></li><li><a href="/feedback/">Feedback</a></li><li><a href="/family/" aria-current="page">Family</a></li><li><a href="/profile/">Profile</a></li><li><button id="family-sign-out" class="nav-auth-sign log-out" type="button">Log out</button></li></ul></nav></div></header>
+<main id="main" class="content narrow onboarding-shell family-shell">
+<section class="family-hero"><p class="eyebrow">Family setup</p><h1>Your Drive Venture family</h1><p class="lede">Add another driver or invite another trusted grown-up. Access is assigned driver by driver.</p></section>
+<section id="family-loading" class="form-card"><p>Loading your family…</p></section>
+<section id="family-auth-needed" class="form-card" hidden><h2>Sign in first</h2><p>Family management is available after you sign in to Drive Venture.</p><a class="button primary" href="/log/">Open Drive Venture</a></section>
+<section id="invite-acceptance" class="form-card" hidden><p class="step-label">Invitation</p><h2>Family invitation</h2><p id="invite-acceptance-message">Checking your invitation…</p><div id="invite-acceptance-status" class="form-message" role="status" aria-live="polite"></div><button id="accept-family-invite" class="button primary" type="button" hidden>Accept invitation</button></section>
+<div id="family-app" hidden>
+<section class="family-overview-grid" aria-label="Family overview">
+<article class="form-card family-list-card"><div class="family-card-head"><div><p class="step-label">Drivers</p><h2>Your drivers</h2></div><button class="button secondary family-action" type="button" data-open-panel="driver">+ Add driver</button></div><div id="family-drivers" class="family-list"></div></article>
+<article class="form-card family-list-card"><div class="family-card-head"><div><p class="step-label">Grown-ups</p><h2>Trusted grown-ups</h2></div><button class="button secondary family-action" type="button" data-open-panel="grownup">+ Add grown-up</button></div><div id="family-grownups" class="family-list"></div><div id="family-pending-invites" class="family-list"></div></article>
+</section>
+<section id="grownup-panel" class="form-card family-panel" hidden aria-labelledby="grownup-title">
+<div class="family-card-head"><div><p class="step-label">Invite</p><h2 id="grownup-title">Add a trusted grown-up</h2></div><button class="family-close" type="button" data-close-panel aria-label="Close">×</button></div>
+<p class="family-explainer">Start with their email. If that email already belongs to a Drive Venture account, we will not show you any other profile, phone, family, or driver information.</p>
+<form id="grownup-email-form" class="onboarding-form compact-form"><label><span class="field-label">Email <span class="required-marker">*</span></span><input id="grownup-email" name="email" type="email" required maxlength="254" autocomplete="email"></label><div id="grownup-lookup-status" class="form-message" role="status" aria-live="polite"></div><button class="button primary" type="submit">Continue</button></form>
+<form id="add-grownup-form" class="onboarding-form compact-form" hidden>
+<input id="grownup-confirmed-email" name="email" type="hidden"><p id="grownup-account-result" class="family-explainer"></p>
+<div id="new-grownup-fields"><label><span class="field-label">Name <span class="required-marker">*</span></span><input name="name" maxlength="100" autocomplete="name" placeholder="What should we call them?"></label><label><span class="field-label">Mobile <span class="meta">(optional)</span></span><input name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="(248) 555-1234"></label></div>
+<label><span class="field-label">Relationship <span class="required-marker">*</span></span><select name="relationship" required><option value="PARENT">Parent</option><option value="GUARDIAN">Guardian</option><option value="GRANDPARENT">Grandparent</option><option value="TRUSTED_ADULT">Other trusted adult</option></select></label>
+<fieldset class="driver-scope-fieldset"><legend>Driver access <span class="required-marker">*</span></legend><p class="meta">Select only the drivers you are primary guardian for and want to share.</p><div id="grownup-driver-scope" class="driver-scope-list"></div></fieldset>
+<div id="grownup-status" class="form-message" role="status" aria-live="polite"></div><button class="button primary" type="submit">Send invitation</button><button id="grownup-start-over" class="button secondary" type="button">Use a different email</button>
+</form></section>
+<section id="driver-panel" class="form-card family-panel" hidden aria-labelledby="driver-title"><div class="family-card-head"><div><p class="step-label">New driver</p><h2 id="driver-title">Add another driver</h2></div><button class="family-close" type="button" data-close-panel aria-label="Close">×</button></div><p class="family-explainer">This adds a driver to your existing family. Their driver account and driving history remain separate from every other driver.</p><form id="add-driver-form" class="onboarding-form compact-form"><label><span class="field-label">Driver name or nickname <span class="required-marker">*</span></span><input name="name" required maxlength="100"></label><div class="field-grid two-col"><label><span class="field-label">Birthday <span class="required-marker">*</span></span><input name="birth_date" type="date" required></label><label><span class="field-label">Home ZIP <span class="required-marker">*</span></span><input name="home_zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label></div><div class="field-grid two-col"><label><span class="field-label">Driver email <span class="required-marker">*</span></span><input name="email" type="email" required maxlength="254"></label><label><span class="field-label">Driver mobile <span class="meta">(optional)</span></span><input name="mobile" type="tel" inputmode="tel"></label></div><div class="field-grid two-col"><label><span class="field-label">License stage <span class="required-marker">*</span></span><select name="license_stage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option></select></label><label><span class="field-label">Permit / current-stage issue date <span class="required-marker">*</span></span><input name="license_stage_start_date" type="date" required></label></div><label><span class="field-label">Favorite color <span class="meta">(optional)</span></span><input name="favorite_color" maxlength="40"></label><hr class="family-rule"><h3>Starting vehicle</h3><div class="field-grid two-col"><label><span class="field-label">Vehicle name <span class="required-marker">*</span></span><input name="vehicle_name" required maxlength="80" placeholder="Blue Pacifica"></label><label><span class="field-label">Vehicle class <span class="required-marker">*</span></span><select name="vehicle_class" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label></div><label><span class="field-label">Vehicle color <span class="meta">(optional)</span></span><input name="vehicle_color" maxlength="40"></label><div id="driver-status" class="form-message" role="status" aria-live="polite"></div><button class="button primary" type="submit">Add driver</button></form></section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/log/config.js"></script><script src="/assets/js/family.js"></script>
+</body></html>
