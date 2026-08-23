@@ -42,7 +42,11 @@
       <section class="form-card">
         <form id="profile-form" class="onboarding-form compact-form">
           <label><span class="field-label">Name <span class="required-marker">*</span></span><input id="profile-name" name="name" required maxlength="100" autocomplete="name"></label>
-          <label><span class="field-label">Home ZIP <span class="required-marker">*</span></span><input id="profile-zip" name="home_zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label>
+          <label>
+            <span class="field-label">Home ZIP <span id="profile-zip-required" class="required-marker" hidden>*</span></span>
+            <input id="profile-zip" name="home_zip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="postal-code">
+            <small id="profile-zip-help" class="meta">Optional for your profile.</small>
+          </label>
           <div id="profile-status" class="form-message" role="status" aria-live="polite"></div>
           <button class="button primary" type="submit">Save profile</button>
         </form>
@@ -51,9 +55,9 @@
       <section class="form-card contact-card">
         <div class="profile-card-head"><div><p class="step-label">Sign-in &amp; messaging</p><h2>Contact information</h2></div></div>
         <p class="family-explainer">Email and mobile changes need verification so Drive Venture does not accidentally move account access or SMS consent to the wrong person.</p>
-        <div class="contact-row"><div><span class="field-label">Email</span><strong id="profile-email">—</strong><small id="profile-email-status" class="meta"></small></div><button id="change-email" class="button secondary" type="button">Change email</button></div>
-        <div class="contact-row"><div><span class="field-label">Mobile</span><strong id="profile-mobile">—</strong><small id="profile-mobile-status" class="meta"></small></div><button id="change-mobile" class="button secondary" type="button">Change mobile</button></div>
-        <div id="contact-status" class="form-message" role="status" aria-live="polite"></div>
+        <div class="contact-row"><div><span class="field-label">Email</span><strong id="profile-email">—</strong><small id="profile-email-status" class="meta"></small></div><button id="change-email" class="button secondary" type="button" disabled aria-disabled="true">Change email</button></div>
+        <div class="contact-row"><div><span class="field-label">Mobile</span><strong id="profile-mobile">—</strong><small id="profile-mobile-status" class="meta"></small></div><button id="change-mobile" class="button secondary" type="button" disabled aria-disabled="true">Change mobile</button></div>
+        <div id="contact-status" class="form-message" role="status" aria-live="polite">Verified contact changes are not available yet.</div>
       </section>
     </div>
   </main>
