@@ -17,7 +17,7 @@
   clean.searchParams.delete('token');
   window.history.replaceState({}, '', `${clean.pathname}${clean.search}${clean.hash}`);
 
-  fetch(`${cfg.supabaseUrl}/functions/v1/contact-endpoint-api?token=${encodeURIComponent(token)}`, {
+  fetch(`${cfg.supabaseUrl}/functions/v1/contact-endpoint-verify?token=${encodeURIComponent(token)}`, {
     method: 'GET',
     headers: { apikey: cfg.publishableKey },
     cache: 'no-store',
