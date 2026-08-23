@@ -6,19 +6,36 @@
     document.body.appendChild(s);
     return;
   }
+  document.documentElement.setAttribute('data-family-invite-mode','');
+  const hero=document.querySelector('.family-hero');if(hero)hero.hidden=true;
   const cfg=window.DV_APP_CONFIG||{}, loading=document.getElementById('family-loading'), app=document.getElementById('family-app'), authNeeded=document.getElementById('family-auth-needed'), box=document.getElementById('invite-acceptance'), msg=document.getElementById('invite-acceptance-message'), status=document.getElementById('invite-acceptance-status'), button=document.getElementById('accept-family-invite');
   const show=(text,kind='')=>{status.textContent=text||'';status.classList.toggle('family-success',kind==='success');status.classList.toggle('family-error',kind==='error')};
   if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey){loading.innerHTML='<p>Family invitation sign-in is not configured.</p>';return}
   const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});window.DV_SUPABASE_CLIENT=client;
-  async function accept(session){
+  async function invokeAccept(currentSession){
+    const {data,error}=await client.functions.invoke('family-invite-api',{body:{action:'accept',invite_token:invite},headers:{Authorization:`Bearer ${currentSession.access_token}`}});
+    if(error)throw error;
+    if(!data||data.ok!==true)throw new Error(data?.error||'Invitation could not be accepted');
+    return data;
+  }
+  async function accept(initialSession){
     button.disabled=true;show('Accepting invitation…');
     try{
-      const r=await fetch(`${cfg.supabaseUrl}/functions/v1/family-invite-api`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action:'accept',invite_token:invite})});
-      const b=await r.json().catch(()=>({}));
-      if(!r.ok||b.ok!==true)throw new Error(b.error||'Invitation could not be accepted');
+      let current=initialSession;
+      try{await invokeAccept(current)}catch(first){
+        const refreshed=await client.auth.refreshSession();
+        if(refreshed.error||!refreshed.data.session)throw first;
+        current=refreshed.data.session;
+        await invokeAccept(current);
+      }
       show('Invitation accepted. Opening your family…','success');
       setTimeout(()=>location.replace('/family/'),350);
-    }catch(e){show(e?.message||String(e),'error');button.disabled=false}
+    }catch(e){
+      console.error('family invitation acceptance failed',e);
+      const raw=String(e?.message||e||'');
+      const friendly=/load failed|failed to fetch|network/i.test(raw)?'We could not reach Drive Venture to accept the invitation. Please try again.':raw||'Invitation could not be accepted.';
+      show(friendly,'error');button.disabled=false;
+    }
   }
   (async()=>{
     const {data}=await client.auth.getSession(), session=data.session;
