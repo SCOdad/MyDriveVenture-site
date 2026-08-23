@@ -20,6 +20,7 @@
   document.addEventListener('click', async event => {
     const trigger = event.target.closest('[data-drive-detail-id]');
     if (!trigger) return;
+    event.preventDefault();
     const driverId = app.getDriverId();
     if (!driverId) return;
     content.innerHTML = '<p class="drive-detail-loading">Loading drive details…</p>';
