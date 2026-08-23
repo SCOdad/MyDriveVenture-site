@@ -4,6 +4,17 @@
   const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   let activePersonId='',activeName='this grown-up',enhancing=false;
   const dynamicPanels=()=>[...app.querySelectorAll(':scope > .family-panel')].filter(p=>p.id!=='grownup-panel'&&p.id!=='driver-panel');
+  function ensureInviteNotice(){
+    const form=document.getElementById('add-grownup-form');
+    if(!form||document.getElementById('family-invite-notice'))return;
+    const accountResult=document.getElementById('grownup-account-result');
+    const notice=document.createElement('p');
+    notice.id='family-invite-notice';
+    notice.setAttribute('role','note');
+    notice.textContent='After you submit, this grown-up will receive an email invitation to join your family. The driver access you select below will remain pending until they accept.';
+    notice.style.cssText='margin:0;padding:12px 14px;border:1px solid rgba(244,184,32,.65);border-radius:8px;background:rgba(244,184,32,.10);color:#f4b820;font-weight:600;line-height:1.45';
+    if(accountResult?.nextSibling)form.insertBefore(notice,accountResult.nextSibling);else form.prepend(notice);
+  }
   function normalizePanels(){
     const panels=dynamicPanels();
     if(!panels.length)return null;
@@ -55,4 +66,5 @@
   },true);
   const observer=new MutationObserver(()=>{if(dynamicPanels().length){normalizePanels();if(activePersonId)queueMicrotask(enhanceLatest)}});
   observer.observe(app,{childList:true});
+  ensureInviteNotice();
 })();
