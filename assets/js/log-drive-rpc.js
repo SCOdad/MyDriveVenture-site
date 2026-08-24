@@ -3,7 +3,7 @@
   if(!form||!app?.client||form.dataset.dvDriveRpcBound==='true')return;
   form.dataset.dvDriveRpcBound='true';
   const client=app.client,statusEl=document.getElementById('drive-status'),submissionKey='dv:web-drive:submission-id';
-  let edit=null,preEditDraft=null;
+  let edit=null,preEditDraft=null,pendingEditSubmission=null;
   const debug107=new URLSearchParams(location.search).get('dv107debug')==='1';
   if(!document.querySelector('link[data-dv-drive-edit-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-edit.css?v=20260824-3';l.dataset.dvDriveEditCss='true';document.head.appendChild(l)}
   const field=id=>document.getElementById(id),clean=v=>v==null?'':String(v).trim(),time=v=>clean(v).slice(0,5);
@@ -26,8 +26,9 @@
   document.addEventListener('click',e=>{const trigger=e.target.closest?.('[data-edit-drive]');if(trigger){const d=app.detailDrives?.[trigger.dataset.editDrive]||app.getModel().recent_drives.find(x=>x.id===trigger.dataset.editDrive);if(d)enterEdit(d);return}if(e.target.id==='drive-edit-cancel')cancelEdit()});
   function captureEditField(target,stage){if(!edit)return;const key=editField[target?.id];if(!key)return;edit.draft[key]=comparable({[key]:target.value})[key];context();debugSnapshot(stage,edit.draft)}
   form.addEventListener('input',e=>captureEditField(e.target,'input'));form.addEventListener('change',e=>captureEditField(e.target,'change'));
+  form.addEventListener('pointerdown',e=>{if(edit&&e.target.closest?.('button[type=submit]'))pendingEditSubmission={...edit.draft}},true);
   form.addEventListener('submit',async e=>{
-    e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId();if(!driverId)return setStatus('No active driver is selected.','error');const requested=edit?{...edit.draft}:values();
+    e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId();if(!driverId)return setStatus('No active driver is selected.','error');const requested=edit?{...(pendingEditSubmission||edit.draft)}:values();pendingEditSubmission=null;
     if(edit){debugSnapshot('before-comparison',requested);if(same(requested,edit.original))return setStatus('No changes to save. The selected drive is still loaded.');setStatus('Saving changes…');const id=edit.id,{data,error}=await client.functions.invoke('drive-ops',{body:{action:'edit_drive',driver_id:driverId,drive_id:id,...requested}});debugSnapshot('after-invocation',requested,true,data?.drive);if(error||!data?.ok)return setStatus(`Drive edit: ${await errorText(error,data)}`,'error');if(!data.drive||!same(requested,data.drive))return setStatus('Drive edit could not be verified. Your requested values are still loaded; please try saving again.','error');app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;try{await app.refreshDashboard()}catch(_){}enterEdit(data.drive,{scroll:false,preservePriorDraft:false});return setStatus(`Drive updated: ${summary(data.drive)}. Progress and quests were recalculated.${nightMessage(data.night_classification)}`,'success')}
     setStatus('Logging drive…');const{data,error}=await client.functions.invoke('drive-ops',{body:{action:'log_drive',driver_id:driverId,source_event_id:stableSubmissionId(),...requested}});if(error)return setStatus(`Drive: ${error.message||'Request failed'}. You can retry safely.`,'error');if(!data?.ok)return setStatus(`Drive: ${data?.error||'Request failed'}. You can retry safely.`,'error');clearSubmissionId();const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'';setStatus(`Drive logged.${nightMessage(data.night_classification,true)}${earned}`,'success');field('drive-destination').value='';field('drive-notes').value='';try{await app.refreshDashboard()}catch(_){}
   });
