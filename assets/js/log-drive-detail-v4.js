@@ -13,6 +13,8 @@
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   function render(detail) {
     const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [];
+    app.detailDrives = app.detailDrives || {};
+    app.detailDrives[drive.id] = drive;
     const weather = drive.weather?.conditions?.length ? drive.weather.conditions.join(', ') : null;
     const driver = (app.getModel?.().drivers || []).find(row => row.id === drive.driver_id);
     const zip = drive.classification_zip || driver?.home_zip;
