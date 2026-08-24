@@ -1,10 +1,9 @@
 (() => {
-  const originalForm = document.getElementById('drive-form');
+  const form = document.getElementById('drive-form');
   const app = window.DV_LOG_APP;
-  if (!originalForm || !app?.client) return;
+  if (!form || !app?.client || form.dataset.dvDriveRpcBound === 'true') return;
+  form.dataset.dvDriveRpcBound = 'true';
 
-  const form = originalForm.cloneNode(true);
-  originalForm.replaceWith(form);
   const client = app.client;
   const statusEl = document.getElementById('drive-status');
   const submissionKey = 'dv:web-drive:submission-id';
@@ -19,6 +18,7 @@
   }
 
   form.addEventListener('submit', async event => {
+    if (form.dataset.editDrive) return;
     event.preventDefault();
     if (!form.reportValidity()) return;
     const driverId = app.getDriverId();
@@ -48,9 +48,9 @@
   });
 
   function loadOnce(src,attr){
-    if(document.querySelector(`script[${attr}]`))return;
+    if(document.querySelector(`script[${attr}]`) || [...document.scripts].some(s=>s.src.includes(src.split('?')[0]))) return;
     const s=document.createElement('script');s.src=src;s.setAttribute(attr,'true');document.body.appendChild(s);
   }
   loadOnce('/assets/js/log-skin-presenter.js?v=20260820-0007','data-dv-skin-presenter');
-  loadOnce('/assets/js/log-shared-actions.js?v=20260820-0007','data-dv-shared-actions');
+  loadOnce('/assets/js/log-shared-actions.js?v=20260820-2052','data-dv-shared-actions');
 })();
