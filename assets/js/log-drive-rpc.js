@@ -1,56 +1,31 @@
 (() => {
-  const form = document.getElementById('drive-form');
-  const app = window.DV_LOG_APP;
-  if (!form || !app?.client || form.dataset.dvDriveRpcBound === 'true') return;
-  form.dataset.dvDriveRpcBound = 'true';
-
-  const client = app.client;
-  const statusEl = document.getElementById('drive-status');
-  const submissionKey = 'dv:web-drive:submission-id';
-  const setStatus = (text, kind='') => { statusEl.textContent=text||''; statusEl.className=`app-status${kind?` ${kind}`:''}`; };
-  function stableSubmissionId(){try{const existing=sessionStorage.getItem(submissionKey);if(existing)return existing;const id=`web-drive-${crypto.randomUUID()}`;sessionStorage.setItem(submissionKey,id);return id}catch(_){return `web-drive-${crypto.randomUUID()}`}}
+  const form=document.getElementById('drive-form'),app=window.DV_LOG_APP;
+  if(!form||!app?.client||form.dataset.dvDriveRpcBound==='true')return;
+  form.dataset.dvDriveRpcBound='true';
+  const client=app.client,statusEl=document.getElementById('drive-status'),submissionKey='dv:web-drive:submission-id';
+  let edit=null,preEditDraft=null;
+  if(!document.querySelector('link[data-dv-drive-edit-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-edit.css?v=20260824-3';l.dataset.dvDriveEditCss='true';document.head.appendChild(l)}
+  const field=id=>document.getElementById(id),clean=v=>v==null?'':String(v).trim(),time=v=>clean(v).slice(0,5);
+  const setStatus=(text,kind='')=>{statusEl.textContent=text||'';statusEl.className=`app-status${kind?` ${kind}`:''}`};
+  const comparable=d=>({drive_date:clean(d?.drive_date),start_time:time(d?.start_time),end_time:time(d?.end_time),vehicle_id:d?.vehicle_id||null,destination:clean(d?.destination)||null,notes:clean(d?.notes)||null});
+  const values=()=>comparable({drive_date:field('drive-date')?.value,start_time:field('drive-start')?.value,end_time:field('drive-end')?.value,vehicle_id:field('drive-vehicle')?.value,destination:field('drive-destination')?.value,notes:field('drive-notes')?.value});
+  const setFields=d=>{d=comparable(d);field('drive-date').value=d.drive_date;field('drive-start').value=d.start_time;field('drive-end').value=d.end_time;field('drive-vehicle').value=d.vehicle_id||'';field('drive-destination').value=d.destination||'';field('drive-notes').value=d.notes||''};
+  const same=(a,b)=>{a=comparable(a);b=comparable(b);return Object.keys(a).every(k=>a[k]===b[k])};
+  function minutes(d){if(Number.isFinite(Number(d?.duration_minutes)))return Math.round(Number(d.duration_minutes));const[sh,sm]=time(d?.start_time).split(':').map(Number),[eh,em]=time(d?.end_time).split(':').map(Number);if([sh,sm,eh,em].some(Number.isNaN))return 0;let n=eh*60+em-sh*60-sm;if(n<=0)n+=1440;return n}
+  const summary=d=>`${clean(d?.drive_date)} · ${time(d?.start_time)}–${time(d?.end_time)} · ${minutes(d)} min`;
+  function stableSubmissionId(){try{const old=sessionStorage.getItem(submissionKey);if(old)return old;const id=`web-drive-${crypto.randomUUID()}`;sessionStorage.setItem(submissionKey,id);return id}catch(_){return `web-drive-${crypto.randomUUID()}`}}
   function clearSubmissionId(){try{sessionStorage.removeItem(submissionKey)}catch(_){}}
-  function nightMessage(result){
-    if(result?.status==='CLASSIFIED') return result.minutes>0 ? ` ${result.minutes} night minute${result.minutes===1?'':'s'} credited.` : '';
-    if(result?.status==='LOCATION_PENDING') return ' Drive saved, but night credit could not be verified because location information is incomplete.';
-    if(result?.status==='LOOKUP_PENDING') return ' Drive saved, but night credit could not be verified right now.';
-    return '';
-  }
-
-  form.addEventListener('submit', async event => {
-    if (form.dataset.editDrive) return;
-    event.preventDefault();
-    if (!form.reportValidity()) return;
-    const driverId = app.getDriverId();
-    if (!driverId) return setStatus('No active driver is selected.','error');
-    setStatus('Logging drive…');
-    const {data,error}=await client.functions.invoke('drive-ops',{body:{
-      action:'log_drive',
-      driver_id:driverId,
-      source_event_id:stableSubmissionId(),
-      drive_date:document.getElementById('drive-date').value,
-      start_time:document.getElementById('drive-start').value,
-      end_time:document.getElementById('drive-end').value,
-      vehicle_id:document.getElementById('drive-vehicle').value||null,
-      destination:document.getElementById('drive-destination').value.trim()||null,
-      notes:document.getElementById('drive-notes').value.trim()||null
-    }});
-    if(error)return setStatus(`Drive: ${error.message||'Request failed'}. You can retry safely.`,'error');
-    if(!data?.ok)return setStatus(`Drive: ${data?.error||'Request failed'}. You can retry safely.`,'error');
-
-    clearSubmissionId();
-    const awards=data.quests?.awarded||[];
-    const earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'';
-    setStatus(`Drive logged.${nightMessage(data.night_classification)}${earned}`,'success');
-    document.getElementById('drive-destination').value='';
-    document.getElementById('drive-notes').value='';
-    try { await app.refreshDashboard(); } catch (_) {}
+  function nightMessage(r,saved=false){if(r?.status==='CLASSIFIED')return r.minutes>0?` ${r.minutes} night minute${r.minutes===1?'':'s'} credited.`:'';if(r?.status==='LOCATION_PENDING')return saved?' Drive saved, but night credit could not be verified because location information is incomplete.':' Night credit could not be verified because location information is incomplete.';if(r?.status==='LOOKUP_PENDING')return saved?' Drive saved, but night credit could not be verified right now.':' Night credit could not be verified right now.';return ''}
+  async function errorText(error,data){if(data?.error)return data.error;try{if(error?.context?.json){const body=await error.context.json();if(body?.error)return body.error}}catch(_){}return error?.message||'Unable to save changes.'}
+  function context(d=values()){if(!edit)return;let box=document.getElementById('drive-edit-context');if(!box){box=document.createElement('div');box.id='drive-edit-context';box.className='drive-edit-context';form.before(box)}const labels={drive_date:'date',start_time:'start time',end_time:'finish time',vehicle_id:'vehicle',destination:'destination',notes:'road notes'},draft=comparable(d),changed=Object.keys(edit.original).filter(k=>draft[k]!==edit.original[k]).map(k=>labels[k]);box.textContent=`Editing: ${summary(draft)}${changed.length?` · Unsaved changes: ${changed.join(', ')}`:''}`;box.hidden=false}
+  function enterEdit(d,{scroll=true,preservePriorDraft=true}={}){if(preservePriorDraft&&!edit)preEditDraft=values();edit={id:d.id,original:comparable(d)};setFields(d);form.dataset.editDrive=d.id;form.querySelector('button[type=submit]').textContent='Save changes';let cancel=document.getElementById('drive-edit-cancel');if(!cancel){cancel=document.createElement('button');cancel.id='drive-edit-cancel';cancel.type='button';cancel.className='button subtle-button button-small';cancel.textContent='Cancel edit';form.querySelector('button[type=submit]').after(cancel)}cancel.hidden=false;context();if(scroll)form.scrollIntoView({behavior:'smooth',block:'start'})}
+  function cancelEdit(){const restore=preEditDraft;edit=null;preEditDraft=null;delete form.dataset.editDrive;form.querySelector('button[type=submit]').textContent=document.documentElement.dataset.experience==='game'?'Save drive':'Log drive';const cancel=document.getElementById('drive-edit-cancel'),box=document.getElementById('drive-edit-context');if(cancel)cancel.hidden=true;if(box)box.hidden=true;if(restore)setFields(restore);setStatus('Edit cancelled. Your prior drive-log draft was restored.')}
+  document.addEventListener('click',e=>{const trigger=e.target.closest?.('[data-edit-drive]');if(trigger){const d=app.detailDrives?.[trigger.dataset.editDrive]||app.getModel().recent_drives.find(x=>x.id===trigger.dataset.editDrive);if(d)enterEdit(d);return}if(e.target.id==='drive-edit-cancel')cancelEdit()});
+  form.addEventListener('input',()=>{if(edit)context()});form.addEventListener('change',()=>{if(edit)context()});
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId();if(!driverId)return setStatus('No active driver is selected.','error');const requested=values();
+    if(edit){if(same(requested,edit.original))return setStatus('No changes to save. The selected drive is still loaded.');setStatus('Saving changes…');const id=edit.id,{data,error}=await client.functions.invoke('drive-ops',{body:{action:'edit_drive',driver_id:driverId,drive_id:id,...requested}});if(error||!data?.ok)return setStatus(`Drive edit: ${await errorText(error,data)}`,'error');if(!data.drive||!same(requested,data.drive))return setStatus('Drive edit could not be verified. Your requested values are still loaded; please try saving again.','error');app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;try{await app.refreshDashboard()}catch(_){}enterEdit(data.drive,{scroll:false,preservePriorDraft:false});return setStatus(`Drive updated: ${summary(data.drive)}. Progress and quests were recalculated.${nightMessage(data.night_classification)}`,'success')}
+    setStatus('Logging drive…');const{data,error}=await client.functions.invoke('drive-ops',{body:{action:'log_drive',driver_id:driverId,source_event_id:stableSubmissionId(),...requested}});if(error)return setStatus(`Drive: ${error.message||'Request failed'}. You can retry safely.`,'error');if(!data?.ok)return setStatus(`Drive: ${data?.error||'Request failed'}. You can retry safely.`,'error');clearSubmissionId();const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'';setStatus(`Drive logged.${nightMessage(data.night_classification,true)}${earned}`,'success');field('drive-destination').value='';field('drive-notes').value='';try{await app.refreshDashboard()}catch(_){}
   });
-
-  function loadOnce(src,attr){
-    if(document.querySelector(`script[${attr}]`) || [...document.scripts].some(s=>s.src.includes(src.split('?')[0]))) return;
-    const s=document.createElement('script');s.src=src;s.setAttribute(attr,'true');document.body.appendChild(s);
-  }
-  loadOnce('/assets/js/log-skin-presenter.js?v=20260820-0007','data-dv-skin-presenter');
-  loadOnce('/assets/js/log-shared-actions.js?v=20260820-2052','data-dv-shared-actions');
+  if(![...document.scripts].some(s=>s.src.includes('/assets/js/log-skin-presenter.js'))){const s=document.createElement('script');s.src='/assets/js/log-skin-presenter.js?v=20260820-0007';s.dataset.dvSkinPresenter='true';document.body.appendChild(s)}
 })();
