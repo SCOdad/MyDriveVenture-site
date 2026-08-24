@@ -132,13 +132,17 @@
   `;
   document.head.appendChild(style);
 
-  let queued=false;
+  let queued=false,observersStarted=false;
   function schedule(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;decorate()})}
-  window.addEventListener('DOMContentLoaded',()=>{
-    for(const id of ['feedback-inbox','linked-backlog-list']){
-      const target=document.getElementById(id);
-      if(target)new MutationObserver(schedule).observe(target,{childList:true,subtree:true});
+  function init(){
+    if(!observersStarted){
+      observersStarted=true;
+      for(const id of ['feedback-inbox','linked-backlog-list']){
+        const target=document.getElementById(id);
+        if(target)new MutationObserver(schedule).observe(target,{childList:true,subtree:true});
+      }
     }
     schedule();
-  });
+  }
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
