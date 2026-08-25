@@ -11,8 +11,49 @@
   const driverMobile = form.elements.driverMobile;
   const guardianSmsOptIn = form.elements.guardianSmsOptIn;
   const driverSmsOptIn = form.elements.driverSmsOptIn;
+  const homeZip = form.elements.homeZip;
+  const licenseStage = form.elements.licenseStage;
   const submissionStorageKey = 'dv:onboarding:submission-id';
   let memorySubmission = null;
+
+  const STAGES = {
+    MI: [
+      ['LEVEL_1', 'Learner / Level 1 license'],
+      ['LEVEL_2', 'Intermediate / Level 2 license'],
+      ['LEVEL_3', 'Full / Level 3 license']
+    ],
+    KS: [
+      ['INSTRUCTION', 'Instruction permit'],
+      ['RESTRICTED', 'Restricted driver license'],
+      ['LESS_RESTRICTED', 'Less-restricted privileges'],
+      ['FULL', 'Non-restricted driver license']
+    ]
+  };
+
+  function stateFromZip(zip) {
+    if (!/^\d{5}$/.test(zip)) return null;
+    const n = Number(zip);
+    if (n >= 48001 && n <= 49971) return 'MI';
+    if (n >= 66002 && n <= 67954) return 'KS';
+    return null;
+  }
+
+  function syncLicenseStageOptions() {
+    if (!homeZip || !licenseStage) return;
+    const zip = homeZip.value.trim();
+    const state = stateFromZip(zip);
+    if (zip.length === 5 && !state) {
+      homeZip.setCustomValidity('Drive Venture currently supports Michigan and Kansas ZIP codes.');
+    } else {
+      homeZip.setCustomValidity('');
+    }
+    const prior = licenseStage.value;
+    const rows = state ? STAGES[state] : [];
+    licenseStage.innerHTML = `<option value="">${state ? 'Choose one' : 'Enter a supported ZIP first'}</option>` +
+      rows.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+    licenseStage.disabled = !state;
+    if (rows.some(([value]) => value === prior)) licenseStage.value = prior;
+  }
 
   function setMessage(text, isError = false) {
     message.textContent = text || '';
@@ -59,6 +100,7 @@
           : ''
       );
     }
+    syncLicenseStageOptions();
   }
 
   function validationText(field) {
@@ -117,7 +159,7 @@
       driver: {
         name: value(data, 'driverName'), birth: value(data, 'driverBirthDate'), email: value(data, 'driverEmail'),
         mobile: value(data, 'driverMobile'), sms: data.get('driverSmsOptIn') === 'on', zip: value(data, 'homeZip'),
-        stage: value(data, 'licenseStage'), stageDate: value(data, 'licenseStageStartDate'), favorite: value(data, 'favoriteColor'),
+        state: stateFromZip(value(data, 'homeZip')), stage: value(data, 'licenseStage'), stageDate: value(data, 'licenseStageStartDate'), favorite: value(data, 'favoriteColor'),
         avatar: data.get('customAvatarRequested') === 'on'
       },
       vehicle: { name: value(data, 'vehicleName'), class: value(data, 'vehicleClass'), color: value(data, 'vehicleColor') },
@@ -145,7 +187,7 @@
     try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {}
   }
 
-  [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile].forEach((field) => {
+  [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile, homeZip].forEach((field) => {
     if (!field) return;
     field.addEventListener('change', () => { clearFieldErrors(); syncConditionalRequirements(); });
     field.addEventListener('input', () => { clearFieldErrors(); syncConditionalRequirements(); });
@@ -164,6 +206,11 @@
     }
 
     const data = new FormData(form);
+    const state = stateFromZip(value(data, 'homeZip'));
+    if (!state) {
+      setMessage('Drive Venture currently supports Michigan and Kansas ZIP codes.', true);
+      return;
+    }
     button.disabled = true;
     button.textContent = 'Submitting…';
     try {
@@ -184,7 +231,7 @@
         driver: {
           given_name: driverName, family_name: '', display_name: driverName, birth_date: value(data, 'driverBirthDate'),
           email: value(data, 'driverEmail'), mobile: value(data, 'driverMobile'), sms_opt_in: data.get('driverSmsOptIn') === 'on',
-          home_zip: value(data, 'homeZip'), home_state: 'MI', license_stage: value(data, 'licenseStage'),
+          home_zip: value(data, 'homeZip'), home_state: state, license_stage: value(data, 'licenseStage'),
           level1_license_date: value(data, 'licenseStageStartDate'), favorite_color: value(data, 'favoriteColor'),
           custom_avatar_requested: data.get('customAvatarRequested') === 'on'
         },
