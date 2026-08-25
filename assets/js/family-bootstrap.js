@@ -1,3 +1,4 @@
+(()=>{if(document.querySelector('.site-header')&&!document.querySelector('script[data-dv-canonical-header]')){const h=document.createElement('script');h.src='/assets/js/canonical-header.js?v=20260825-0062b';h.defer=true;h.dataset.dvCanonicalHeader='true';document.head.appendChild(h)}})();
 (()=>{
   const params=new URLSearchParams(location.search), invite=params.get('invite');
   if(!invite){const s=document.createElement('script');s.src='/assets/js/family.js?v=20260823-2';document.body.appendChild(s);return}
