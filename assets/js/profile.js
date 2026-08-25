@@ -15,7 +15,7 @@
   const scopeNote=document.getElementById('profile-scope-note')
   const avatarCard=document.getElementById('avatar-card'),avatarSummary=document.getElementById('avatar-summary'),avatarPending=document.getElementById('avatar-pending'),avatarPhoto=document.getElementById('avatar-photo'),avatarParker=document.getElementById('avatar-parker'),avatarParkerHelp=document.getElementById('avatar-parker-help'),avatarParkerRow=document.getElementById('avatar-parker-row'),avatarParkerReopt=document.getElementById('avatar-parker-reopt')
   const licenseCard=document.getElementById('license-card'),licenseEffective=document.getElementById('license-effective-date'),licenseTarget=document.getElementById('license-target'),licenseAdvance=document.getElementById('license-advance'),licenseRequirements=document.getElementById('license-requirements')
-  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
   const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
   const REQUIREMENT_LABELS={
     MinimumAgeYears:'Minimum age',
