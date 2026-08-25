@@ -51,6 +51,7 @@
     SkillsTestRequired:'Pass the required road skills test.',
     ViolationFreeDays:'The driver must complete the required violation-free period.'
   }
+  const GROWNUP_ONLY_REQUIREMENTS=new Set(['ParentAuthorizationRequired','ParentCertificationRequired','PracticeAffidavitRequired','PracticeAffidavitRequiredUnderAgeYears'])
   const requirementLabel=s=>REQUIREMENT_LABELS[s]||String(s||'Requirement').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())
   const requirementExplainer=s=>REQUIREMENT_EXPLAINERS[s]||''
   const numericValue=v=>{const n=Number(v);return Number.isFinite(n)?n:null}
@@ -110,26 +111,31 @@
     }
     document.getElementById('license-current-stage').textContent=licenseState.current_stage_display||licenseState.current_stage||'—'
     document.getElementById('license-jurisdiction').textContent=licenseState.jurisdiction||''
-    const eligible=licenseState.eligible_targets||[]
-    licenseTarget.innerHTML=eligible.length
-      ?'<option value="">Choose an eligible stage</option>'+eligible.map(t=>`<option value="${esc(t.target_stage)}">${esc(t.target_stage_display||t.target_stage)}</option>`).join('')
-      :'<option value="">No eligible stage yet</option>'
-    licenseAdvance.disabled=true
     const targets=licenseState.targets||[]
     if(!targets.length){
+      licenseTarget.innerHTML='<option value="">No later stage configured</option>'
+      licenseAdvance.disabled=true
       licenseRequirements.innerHTML='<p class="meta">There is no later ordinary licensing stage configured from the current stage.</p>'
       return
     }
-    licenseRequirements.innerHTML=targets.map(t=>{
+    const nextTarget=targets[0],laterTargets=targets.slice(1)
+    const nextEligible=(licenseState.eligible_targets||[]).find(t=>t.target_stage===nextTarget.target_stage)
+    licenseTarget.innerHTML=nextEligible
+      ?`<option value="">Choose the next eligible stage</option><option value="${esc(nextEligible.target_stage)}">${esc(nextEligible.target_stage_display||nextEligible.target_stage)}</option>`
+      :'<option value="">Next stage is not yet eligible</option>'
+    licenseAdvance.disabled=true
+    const renderTarget=(t,{interactive=false,kicker='' }={})=>{
       const reqs=t.requirements||[],unmet=t.unmet_requirements||[]
       return `<div class="license-target-block">
         <div class="license-target-head">
-          <strong>${esc(t.target_stage_display||t.target_stage)}</strong>
+          <div>${kicker?`<small class="license-target-kicker">${esc(kicker)}</small>`:''}<strong>${esc(t.target_stage_display||t.target_stage)}</strong></div>
           <span class="${t.eligible?'license-met':'license-unmet'}">${t.eligible?'Eligible':'Not yet eligible'}</span>
         </div>
         <div class="license-requirement-list">
           ${reqs.map(r=>{
-            const confirmable=!r.met&&/needs confirmation/i.test(r.reason||'')
+            const confirmable=interactive&&!r.met&&/needs confirmation/i.test(r.reason||'')
+            const grownupOnly=GROWNUP_ONLY_REQUIREMENTS.has(r.requirement_type)
+            const actorCanConfirm=!(s.relation==='SELF'&&grownupOnly)
             const progress=requirementProgress(r,t.effective_date||licenseState.effective_date)
             const neutral=Boolean(progress?.notRequired)
             const stateClass=neutral?'license-neutral':(r.met?'license-met':'license-unmet')
@@ -140,15 +146,21 @@
                 <div class="license-requirement-title"><span>${esc(requirementLabel(r.requirement_type))}</span><small class="${stateClass}">${neutral?'Not required':(r.met?'Satisfied':'Needed')}</small></div>
                 ${explainer?`<small class="license-requirement-explainer">${esc(explainer)}</small>`:''}
                 <small class="license-requirement-progress-copy">${esc(detail)}</small>
+                ${confirmable&&grownupOnly&&!actorCanConfirm?'<small class="license-requirement-actor-note">A parent or grownup must confirm this requirement.</small>':''}
                 ${requirementProgressHtml(r,t.effective_date||licenseState.effective_date)}
               </div>
-              ${confirmable?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
+              ${confirmable&&actorCanConfirm?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
             </div>`
           }).join('')}
         </div>
         ${!reqs.length&&unmet.length?`<p class="meta">${esc(unmet.map(x=>x.reason).join(' · '))}</p>`:''}
       </div>`
-    }).join('')
+    }
+    const nextHtml=renderTarget(nextTarget,{interactive:true,kicker:'Next stage'})
+    const laterHtml=laterTargets.length
+      ?`<details class="license-later-stages"><summary>See later licensing stages (${laterTargets.length})</summary><p class="license-later-note">Planning view only. Later-stage requirements may depend on first receiving the next stage, so no confirmations or stage-change controls appear here.</p>${laterTargets.map(t=>renderTarget(t,{interactive:false})).join('')}</details>`
+      :''
+    licenseRequirements.innerHTML=nextHtml+laterHtml
   }
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
   function renderSubject(){const s=selected();if(!s)return;const driver=s.kind==='DRIVER';const pe=pendingFor(s.person_id,'EMAIL'),pm=pendingFor(s.person_id,'MOBILE');nameInput.value=s.name||'';zipInput.value=s.home_zip||'';zipInput.required=driver;zipRequired.hidden=!driver;zipHelp.textContent=driver?'Required for driver location, weather, and night calculations.':'Optional for your profile.';emailEl.textContent=pe?.proposed_value||s.email||'Not set';mobileEl.textContent=pm?.proposed_value||s.mobile||'Not set';emailStatus.textContent=pe?`Pending verification — current: ${s.email||'not set'}`:(s.email?`${s.email_verified?'Verified':'Not verified'}`:'');mobileStatus.textContent=pm?`Pending verification — current: ${s.mobile||'not set'}`:(s.mobile?`${s.mobile_verified?'Verified':'Not verified'}`:'');scopeNote.textContent=s.relation==='SELF'?'You are editing your own profile.':'You are editing a driver profile you are authorized to manage.';changeEmail.disabled=false;changeMobile.disabled=false;changeEmail.setAttribute('aria-disabled','false');changeMobile.setAttribute('aria-disabled','false');status('profile-status','');status('contact-status','');refreshAvatar();refreshLicense()}
