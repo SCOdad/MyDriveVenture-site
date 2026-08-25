@@ -34,8 +34,8 @@
     if(!dash)return;
 
     const pTarget=requirement(license,'MinimumPracticeHours',50),nTarget=requirement(license,'MinimumNightHours',10);
-    const p=pTarget>0?Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100):100;
-    const n=nTarget>0?Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100):100;
+    const p=pTarget>0?Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100):0;
+    const n=nTarget>0?Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100):0;
     dash.style.setProperty('--practice-p',String(Math.max(0,p)));
     dash.style.setProperty('--night-p',String(Math.max(0,n)));
 
