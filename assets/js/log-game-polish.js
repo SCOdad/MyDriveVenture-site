@@ -39,6 +39,17 @@
     dash.style.setProperty('--practice-p',String(Math.max(0,p)));
     dash.style.setProperty('--night-p',String(Math.max(0,n)));
 
+    const sign=document.getElementById('hours-sign');
+    if(sign){
+      if(license?.next_stage_display){
+        const remaining=Math.max(0,pTarget-(Number(progress?.total_minutes||0)/60));
+        sign.textContent=`${String(license.next_stage_display).toUpperCase()}\n${remaining.toFixed(1)} HOURS`;
+        sign.style.whiteSpace='pre-line';
+      }else{
+        sign.textContent='LICENSE MILESTONES COMPLETE';
+      }
+    }
+
     currentTimezone=driver.timezone||null;
     renderClock();
     if(!clockTimer)clockTimer=setInterval(renderClock,1000);
