@@ -1,7 +1,7 @@
 (()=>{if(document.querySelector('.site-header')&&!document.querySelector('script[data-dv-canonical-header]')){const h=document.createElement('script');h.src='/assets/js/canonical-header.js?v=20260825-0062b';h.defer=true;h.dataset.dvCanonicalHeader='true';document.head.appendChild(h)}})();
 (()=>{
   const params=new URLSearchParams(location.search), invite=params.get('invite');
-  if(!invite){const s=document.createElement('script');s.src='/assets/js/family.js?v=20260823-2';document.body.appendChild(s);return}
+  if(!invite){const j=document.createElement('script');j.src='/assets/js/family-license-stages.js?v=20260825-1';document.body.appendChild(j);const s=document.createElement('script');s.src='/assets/js/family.js?v=20260823-2';document.body.appendChild(s);return}
   document.documentElement.setAttribute('data-family-invite-mode','');
   const hero=document.querySelector('.family-hero');if(hero)hero.style.display='none';
   const cfg=window.DV_APP_CONFIG||{},loading=document.getElementById('family-loading'),app=document.getElementById('family-app'),authNeeded=document.getElementById('family-auth-needed'),box=document.getElementById('invite-acceptance'),msg=document.getElementById('invite-acceptance-message'),status=document.getElementById('invite-acceptance-status'),button=document.getElementById('accept-family-invite');
