@@ -88,7 +88,8 @@ User-tested on a phone-sized device/browser:
 - Operator Help discoverability: PASS after correction.
 - Operator phone-width banner/menu usability: PASS.
 - Operator logout from shared Account menu: PASS.
-- Driver (Parker) mobile verification: Log Your Drive remains visible on the homepage and across tested menus/pages: PASS.
+- Driver (Parker) mobile verification: PASS. Log Your Drive remains visible; Driver Console, Profile / Settings, Feedback, Help, and Log out are present; Family is not shown merely because the authenticated user is a Driver; logout works.
+- Grown-Up mobile verification using a newly onboarded Grown-Up account: PASS. Banner and Account-menu behavior are correct, including Family and Help, and logout works.
 
 The initial test looked for the state table on `/research/`; this was a test-location mismatch rather than a product defect. The acceptance mapping above now records the intended location explicitly.
 
@@ -97,7 +98,5 @@ The initial test looked for the state table on `/research/`; this was a test-loc
 - Verify `/research/` research/evidence tables and representative source links at phone width.
 - Confirm Help appears in the canonical desktop public banner after deployment of the correction.
 - Keyboard-tab through applicable Join/Waitlist interactive controls and confirm visible focus, Enter/Space activation, and Escape dismissal if not already exercised separately.
-- Complete Driver Account-menu verification: Driver Console, Profile / Settings, Feedback, Help, Log out; confirm Family is absent merely because a Driver is authenticated; confirm logout works.
-- Verify Grown-Up banner and Account-menu behavior at phone width, including Family and Help; confirm logout works.
 
-BKLG-0062 should remain `PENDING_TEST` until those deployed runtime checks pass. FDBK-0002's specific Join/Waitlist touch regression has passed; keep the relationship open until BKLG-0062 completes its remaining persona/browser checks and closure recordkeeping.
+BKLG-0062 should remain `PENDING_TEST` until those deployed runtime checks pass. FDBK-0002's specific Join/Waitlist touch regression has passed; keep the relationship open until BKLG-0062 completes its remaining browser checks and closure recordkeeping.
