@@ -15,20 +15,22 @@
     .research-art img { display:block; width:100%; height:auto; object-fit:contain; image-rendering:pixelated; }
     .research-art figcaption { margin:.7rem .25rem .1rem; color:var(--silver); font-size:.86rem; line-height:1.45; }
     .research-pair { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(18rem,.88fr); gap:clamp(1.75rem,4vw,3.5rem); align-items:start; margin:2rem 0 3.5rem; }
-    .research-pair.reverse { grid-template-columns:minmax(18rem,.88fr) minmax(0,1.12fr); }
     .research-pair > .research-art { position:sticky; top:1.5rem; }
     .research-pair-copy > section:first-child { padding-top:0; }
     .research-pair-copy > section:last-child { padding-bottom:0; }
     .building-layout { display:grid; grid-template-columns:minmax(18rem,.9fr) minmax(0,1.1fr); gap:clamp(1.75rem,4vw,3.5rem); align-items:start; margin-top:1.5rem; }
     .building-layout .research-art { align-self:start; }
-    .closing-layout { margin-top:1.5rem; }
+    #expert-guidance { margin-top:3.5rem; }
+    .policy-layout { display:grid; grid-template-columns:minmax(0,1.14fr) minmax(18rem,.86fr); gap:clamp(1.75rem,4vw,3.5rem); align-items:start; margin:2.5rem 0 3.5rem; }
+    .policy-layout .research-art { align-self:start; margin-top:.2rem; }
+    .policy-layout #drive-venture-policy { padding-top:0; }
     @media (max-width: 780px) {
-      .research-pair, .research-pair.reverse, .building-layout { grid-template-columns:1fr; gap:1.4rem; }
+      .research-pair, .building-layout, .policy-layout { grid-template-columns:1fr; gap:1.4rem; }
       .research-pair > .research-art { position:static; }
-      .research-pair .research-art { order:2; }
-      .research-pair.reverse .research-art { order:2; }
-      .building-layout .research-art { order:2; }
+      .research-pair .research-art, .building-layout .research-art, .policy-layout .research-art { order:2; }
       .research-art { box-shadow:.35rem .35rem 0 var(--true-black); }
+      #expert-guidance { margin-top:2.5rem; }
+      .policy-layout { margin-top:1.75rem; }
     }
   </style>
 </head>
@@ -99,34 +101,32 @@
         </div>
       </section>
 
-      <div class="research-pair reverse closing-layout">
+      <section id="expert-guidance">
+        <p class="eyebrow">Breaks on longer trips</p>
+        <h2>What experts recommend.</h2>
+        <p>Safety organizations commonly suggest taking a break about every two hours on longer trips. That’s a reminder to stretch, switch drivers, or rest.</p>
+        <p>That isn’t a promise that shorter drives are safe. It’s a general habit to encourage regular breaks, and drivers should stop sooner whenever they feel sleepy or less alert.</p>
+      </section>
+
+      <div class="policy-layout">
+        <section id="drive-venture-policy">
+          <p class="eyebrow">How the game handles long drives</p>
+          <h2>Drive Venture’s policy.</h2>
+          <p>Because games can shape behavior, we choose not to reward staying behind the wheel longer. We reward variety and steady progress across many drives.</p>
+          <p>Our policy is simple: we encourage frequent practice and taking breaks.</p>
+          <p>If you reach our limit—if you see a message saying we’ve stopped counting time—don’t worry. It doesn’t mean you’ve done anything wrong. It just means we’ve hit the point where we don’t want the game encouraging longer uninterrupted driving.</p>
+          <p>If you’re still on the road, just focus, finish the trip safely, and take a break before starting another long stretch.</p>
+
+          <aside class="notice safety">
+            <p class="eyebrow">Parker tip</p>
+            <h2>Great drivers build experience over many drives, not one long one.</h2>
+          </aside>
+        </section>
+
         <figure class="research-art">
           <img src="/assets/images/DV-CHAR-PARKER-SCENIC-SAFE-STOP.png" alt="Pixel-art scene of Parker stretching beside a parked car at a safe scenic stop." loading="lazy">
           <figcaption>Park. Stretch. Reset. Start the next stretch ready to focus.</figcaption>
         </figure>
-
-        <div class="research-pair-copy">
-          <section id="expert-guidance">
-            <p class="eyebrow">Breaks on longer trips</p>
-            <h2>What experts recommend.</h2>
-            <p>Safety organizations commonly suggest taking a break about every two hours on longer trips. That’s a reminder to stretch, switch drivers, or rest.</p>
-            <p>That isn’t a promise that shorter drives are safe. It’s a general habit to encourage regular breaks, and drivers should stop sooner whenever they feel sleepy or less alert.</p>
-          </section>
-
-          <section id="drive-venture-policy">
-            <p class="eyebrow">How the game handles long drives</p>
-            <h2>Drive Venture’s policy.</h2>
-            <p>Because games can shape behavior, we choose not to reward staying behind the wheel longer. We reward variety and steady progress across many drives.</p>
-            <p>Our policy is simple: we encourage frequent practice and taking breaks.</p>
-            <p>If you reach our limit—if you see a message saying we’ve stopped counting time—don’t worry. It doesn’t mean you’ve done anything wrong. It just means we’ve hit the point where we don’t want the game encouraging longer uninterrupted driving.</p>
-            <p>If you’re still on the road, just focus, finish the trip safely, and take a break before starting another long stretch.</p>
-
-            <aside class="notice safety">
-              <p class="eyebrow">Parker tip</p>
-              <h2>Great drivers build experience over many drives, not one long one.</h2>
-            </aside>
-          </section>
-        </div>
       </div>
 
       <section id="sources">
