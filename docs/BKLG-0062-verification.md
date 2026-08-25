@@ -82,6 +82,13 @@ User-tested on a phone-sized device/browser:
 - Waitlist help controls by touch/tap, directly exercising FDBK-0002: PASS.
 - Homepage state-by-state table expands and its table region behaves correctly on phone width: PASS.
 - Public sitemap-page banner appearance across homepage, drowsy-driving research, Help, Privacy, Terms, and Text Parker: PASS, with Help discoverability correction subsequently applied to the canonical banner standard.
+- Operator banner and Account control on mobile: PASS.
+- Operator Account menu contents: PASS after Help delivery correction.
+- Operator navigation across Operator Home, Feedback, Backlog, Classification, and Product Themes: PASS.
+- Operator Help discoverability: PASS after correction.
+- Operator phone-width banner/menu usability: PASS.
+- Operator logout from shared Account menu: PASS.
+- Driver (Parker) mobile verification: Log Your Drive remains visible on the homepage and across tested menus/pages: PASS.
 
 The initial test looked for the state table on `/research/`; this was a test-location mismatch rather than a product defect. The acceptance mapping above now records the intended location explicitly.
 
@@ -90,7 +97,7 @@ The initial test looked for the state table on `/research/`; this was a test-loc
 - Verify `/research/` research/evidence tables and representative source links at phone width.
 - Confirm Help appears in the canonical desktop public banner after deployment of the correction.
 - Keyboard-tab through applicable Join/Waitlist interactive controls and confirm visible focus, Enter/Space activation, and Escape dismissal if not already exercised separately.
-- Repeat top-banner verification while authenticated as Driver, Grown-Up, and Operator, including phone width and Account disclosure behavior.
-- Confirm logout works from the shared Account disclosure for each authenticated persona.
+- Complete Driver Account-menu verification: Driver Console, Profile / Settings, Feedback, Help, Log out; confirm Family is absent merely because a Driver is authenticated; confirm logout works.
+- Verify Grown-Up banner and Account-menu behavior at phone width, including Family and Help; confirm logout works.
 
 BKLG-0062 should remain `PENDING_TEST` until those deployed runtime checks pass. FDBK-0002's specific Join/Waitlist touch regression has passed; keep the relationship open until BKLG-0062 completes its remaining persona/browser checks and closure recordkeeping.
