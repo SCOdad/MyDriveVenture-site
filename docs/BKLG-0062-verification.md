@@ -23,80 +23,38 @@ The following requirements have been verified in the production source on `main`
 
 ## Public sitemap banner inventory
 
-The current public sitemap contains:
-
-1. `/`
-2. `/text-parker/`
-3. `/research/`
-4. `/research/teen-drowsy-driving/`
-5. `/help/`
-6. `/privacy/`
-7. `/terms/`
-
-All seven load the same canonical banner controller and therefore share the same visitor/authenticated persona treatment.
+The current public sitemap contains `/`, `/text-parker/`, `/research/`, `/research/teen-drowsy-driving/`, `/help/`, `/privacy/`, and `/terms/`. All seven load the same canonical banner controller.
 
 ## Acceptance-test location clarification
 
-The state-requirements map and expandable state-by-state table intentionally live on the homepage, not on `/research/`. The `/research/` page contains research/evidence tables and citations. Runtime acceptance should therefore be mapped as follows:
-
-- Homepage: state map, expandable state-by-state table, official state source links, and Join the Michigan pilot CTA.
-- `/research/`: research/evidence tables, research source links/citations, and phone-sized table usability.
-
-No duplicate state table is required on `/research/`.
-
-## Persona expectations for runtime verification
-
-### Logged-out visitor
-
-- Drive Venture logo/home link is visible.
-- Desktop public links include How it works, Why it matters, Feedback, Help, and Log Your Drive.
-- On phone width, public text links collapse while the Log Your Drive CTA remains visible.
-- Account control is absent when no authenticated session exists.
-- Help remains available from the footer on mobile.
-
-### Driver
-
-- Log Your Drive CTA remains visible.
-- Account control identifies the Driver or their single driver display name when available.
-- Account disclosure includes Driver Console, Profile / Settings, Feedback, Help, and Log out.
-- Family management is not shown merely because a Driver is authenticated.
-
-### Grown-Up
-
-- Log Your Drive CTA remains visible.
-- Account disclosure includes Driver Console, Family, Profile / Settings, Feedback, Help, and Log out.
-- Multiple-driver accounts may label the disclosure `My drivers`.
-
-### Operator
-
-- Operator status takes precedence over Driver/Grown-Up inference.
-- Account disclosure identifies Operator and includes Operator Home, Operator Feedback, Backlog, Classification, Product Themes, Driver Console, Profile / Settings, Feedback, Help, and Log out.
-- Operator application pages retain their specialized workbench content while using the common top-banner shell.
+The state-requirements map and expandable state-by-state table intentionally live on the homepage, not on `/research/`. `/research/` contains research/evidence tables and citations. No duplicate state table is required.
 
 ## Runtime verification evidence — August 25, 2026
 
-User-tested on a phone-sized device/browser:
+All user-run runtime acceptance checks PASS:
 
-- Homepage logged-out banner fits without horizontal scrolling: PASS.
-- Join help controls by touch/tap: PASS.
-- Waitlist help controls by touch/tap, directly exercising FDBK-0002: PASS.
-- Homepage state-by-state table expands and its table region behaves correctly on phone width: PASS.
-- Public sitemap-page banner appearance across homepage, drowsy-driving research, Help, Privacy, Terms, and Text Parker: PASS, with Help discoverability correction subsequently applied to the canonical banner standard.
-- Operator banner and Account control on mobile: PASS.
-- Operator Account menu contents: PASS after Help delivery correction.
-- Operator navigation across Operator Home, Feedback, Backlog, Classification, and Product Themes: PASS.
-- Operator Help discoverability: PASS after correction.
-- Operator phone-width banner/menu usability: PASS.
-- Operator logout from shared Account menu: PASS.
-- Driver (Parker) mobile verification: PASS. Log Your Drive remains visible; Driver Console, Profile / Settings, Feedback, Help, and Log out are present; Family is not shown merely because the authenticated user is a Driver; logout works.
-- Grown-Up mobile verification using a newly onboarded Grown-Up account: PASS. Banner and Account-menu behavior are correct, including Family and Help, and logout works.
+- Logged-out homepage banner fits at phone width without horizontal scrolling.
+- Join and Waitlist help controls pass touch/tap testing; Waitlist directly exercises FDBK-0002.
+- Homepage state map/expandable state table, table scrolling, source links, and Join CTA behave correctly at phone width.
+- `/research/` evidence tables and representative source links behave correctly at phone width.
+- Public sitemap-page banners are consistent across the site.
+- Help appears in the canonical desktop public banner.
+- Join/Waitlist keyboard/focus behavior passes visible focus, Enter/Space activation, and Escape dismissal.
+- Operator mobile persona passes, including Help, operator destinations, phone-width usability, and logout.
+- Driver (Parker) mobile persona passes: Log Your Drive remains visible; Driver Console, Profile / Settings, Feedback, Help, and Log out are present; Family is not shown merely because a Driver is authenticated; logout works.
+- Grown-Up mobile persona passes using a newly onboarded Grown-Up account: Family and Help are present and account-menu/logout behavior works.
 
-The initial test looked for the state table on `/research/`; this was a test-location mismatch rather than a product defect. The acceptance mapping above now records the intended location explicitly.
+## Closeout readiness / EOS — August 25, 2026
 
-## Runtime/device checks still required before closure
+All BKLG-0062 acceptance criteria are satisfied. The item is ready for operator terminal disposition, but is intentionally left non-terminal at the operator's request.
 
-- Verify `/research/` research/evidence tables and representative source links at phone width.
-- Confirm Help appears in the canonical desktop public banner after deployment of the correction.
-- Keyboard-tab through applicable Join/Waitlist interactive controls and confirm visible focus, Enter/Space activation, and Escape dismissal if not already exercised separately.
+FDBK-0002's Join/Waitlist tooltip defect has passed its pointer/touch/keyboard/focus regression checks. Its BKLG-0062 relationship is ready for closure/disposition when the operator marks BKLG-0062 terminal.
 
-BKLG-0062 should remain `PENDING_TEST` until those deployed runtime checks pass. FDBK-0002's specific Join/Waitlist touch regression has passed; keep the relationship open until BKLG-0062 completes its remaining browser checks and closure recordkeeping.
+Documentation/governance closeout:
+
+- Central Configuration `DD-WEB-002` records the next annual research/state-rule review as August 16, 2027, mandatory re-verification before enabling another state, the sourcing/social-metadata closeout, and the no-analytics-without-intentional-privacy-decision guardrail.
+- This verification record is the durable source/runtime evidence for BKLG-0062.
+- No ADR change is required: ADR-030 establishes the stable public identity/endpoints; BKLG-0062 refines website quality, navigation, evidence maintenance, and accessibility without changing that architectural decision.
+- No migration documentation is required for this bounded website closeout.
+
+Post-closeout product boundary: routine discretionary website refinement is frozen after BKLG-0062. Material defects continue through normal backlog/feedback triage; product focus returns to onboarding, Text Parker, and MVP architecture work.
