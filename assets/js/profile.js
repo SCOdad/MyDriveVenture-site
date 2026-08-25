@@ -17,7 +17,76 @@
   const licenseCard=document.getElementById('license-card'),licenseEffective=document.getElementById('license-effective-date'),licenseTarget=document.getElementById('license-target'),licenseAdvance=document.getElementById('license-advance'),licenseRequirements=document.getElementById('license-requirements')
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
   const localDate=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10)}
-  const requirementLabel=s=>String(s||'Requirement').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())
+  const REQUIREMENT_LABELS={
+    MinimumAgeYears:'Minimum age',
+    MinimumPracticeHours:'Supervised practice hours',
+    MinimumNightHours:'Night driving hours',
+    PriorStageMonths:'Time in current licensing stage',
+    DrivingLogRequired:'Driving log',
+    DriverEducationRequired:'Driver education',
+    ParentAuthorizationRequired:'Parent / grownup authorization',
+    PracticeAffidavitRequired:'Practice-hours affidavit',
+    PracticeAffidavitRequiredUnderAgeYears:'Practice-hours affidavit',
+    GoodDrivingRecordRequired:'Good driving record',
+    AtFaultCrashFreeDays:'At-fault-crash-free period',
+    ParentCertificationRequired:'Parent certification',
+    Segment2Required:'Segment 2 driver education',
+    SkillsTestRequired:'Road skills test',
+    ViolationFreeDays:'Violation-free period'
+  }
+  const REQUIREMENT_EXPLAINERS={
+    MinimumAgeYears:'Driver must reach the minimum age for this licensing stage.',
+    MinimumPracticeHours:'Complete the required supervised practice driving hours.',
+    MinimumNightHours:'Complete the required supervised night-driving hours.',
+    PriorStageMonths:'Remain in the current licensing stage for the required amount of time.',
+    DrivingLogRequired:'Keep completed drives in the Drive Venture driving log.',
+    DriverEducationRequired:'Complete the driver-education requirement for this stage.',
+    ParentAuthorizationRequired:'A parent or grownup must authorize this licensing step.',
+    PracticeAffidavitRequired:'A parent or grownup must confirm the required practice-hours affidavit.',
+    PracticeAffidavitRequiredUnderAgeYears:'A practice-hours affidavit is required below the configured age.',
+    GoodDrivingRecordRequired:'The driver must meet the jurisdiction’s good-driving-record requirement.',
+    AtFaultCrashFreeDays:'The driver must complete the required period without an at-fault crash.',
+    ParentCertificationRequired:'A parent or grownup must provide the required certification.',
+    Segment2Required:'Complete Segment 2 driver education.',
+    SkillsTestRequired:'Pass the required road skills test.',
+    ViolationFreeDays:'The driver must complete the required violation-free period.'
+  }
+  const requirementLabel=s=>REQUIREMENT_LABELS[s]||String(s||'Requirement').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())
+  const requirementExplainer=s=>REQUIREMENT_EXPLAINERS[s]||''
+  const numericValue=v=>{const n=Number(v);return Number.isFinite(n)?n:null}
+  const formatNumber=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:2})
+  function requirementProgress(r,effectiveDate){
+    const required=numericValue(r.required)
+    if(required===null)return null
+    let actual=numericValue(r.actual)
+    if(r.requirement_type==='PriorStageMonths'&&typeof r.actual==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.actual)&&effectiveDate){
+      const start=new Date(`${r.actual}T00:00:00Z`),end=new Date(`${effectiveDate}T00:00:00Z`)
+      if(!Number.isNaN(start.getTime())&&!Number.isNaN(end.getTime())&&end>=start)actual=(end-start)/86400000/30.4375
+    }
+    if(actual===null)return null
+    if(required<=0)return{actual,required,pct:100,notRequired:true}
+    return{actual,required,pct:Math.max(0,Math.min(100,(actual/required)*100)),notRequired:false}
+  }
+  function requirementDetail(r,effectiveDate){
+    const progress=requirementProgress(r,effectiveDate),unit=r.unit?String(r.unit).toLowerCase():''
+    if(r.requirement_type==='DrivingLogRequired'){
+      const count=numericValue(r.actual)
+      return count===null?'Driving log required':`${formatNumber(count)} completed drive${count===1?'':'s'} logged`
+    }
+    if(progress){
+      const unitText=unit?` ${unit}`:''
+      if(progress.notRequired)return `${formatNumber(progress.actual)}${unitText} (${formatNumber(progress.required)} required — not required for this stage)`
+      return `${formatNumber(progress.actual)} of ${formatNumber(progress.required)}${unitText}`
+    }
+    if(r.met)return r.actual&&r.actual!=='not confirmed'?`Requirement satisfied · ${r.actual}${r.unit?` ${String(r.unit).toLowerCase()}`:''}`:'Requirement satisfied'
+    return r.reason||'Not yet satisfied'
+  }
+  function requirementProgressHtml(r,effectiveDate){
+    const progress=requirementProgress(r,effectiveDate)
+    if(!progress||progress.notRequired)return''
+    const label=`${requirementLabel(r.requirement_type)}: ${formatNumber(progress.actual)} of ${formatNumber(progress.required)} ${String(r.unit||'').toLowerCase()}`.trim()
+    return `<div class="license-progress" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="${esc(progress.required)}" aria-valuenow="${esc(Math.min(progress.actual,progress.required))}"><span style="width:${progress.pct.toFixed(1)}%"></span></div>`
+  }
   async function call(action,payload={}){const token=session?.access_token;if(!token)throw new Error('Please sign in again.');const r=await fetch(`${cfg.supabaseUrl}/functions/v1/profile-api`,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`,'apikey':cfg.publishableKey},body:JSON.stringify({action,...payload})});const body=await r.json().catch(()=>({}));if(!r.ok||body.ok!==true)throw new Error(body.error||'Profile update failed');return body}
   async function contactCall(payload){const token=session?.access_token;if(!token)throw new Error('Please sign in again.');const r=await fetch(`${cfg.supabaseUrl}/functions/v1/contact-endpoint-api`,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`,'apikey':cfg.publishableKey},body:JSON.stringify(payload)});const body=await r.json().catch(()=>({}));if(!r.ok||body.ok!==true)throw new Error(body.error||'Contact change failed');return body}
   async function avatarCall(payload,form=null){const token=session?.access_token;if(!token)throw new Error('Please sign in again.');const headers={'authorization':`Bearer ${token}`,'apikey':cfg.publishableKey};if(!form)headers['content-type']='application/json';const r=await fetch(`${cfg.supabaseUrl}/functions/v1/avatar-request-api`,{method:'POST',headers,body:form||JSON.stringify(payload)});const body=await r.json().catch(()=>({}));if(!r.ok||body.ok!==true)throw new Error(body.error||'Avatar request failed');return body}
@@ -26,7 +95,61 @@
   function pendingFor(personId,type){return pendingChanges.find(p=>String(p.person_id)===String(personId)&&String(p.endpoint_type)===type)||null}
   function renderAvatar(){const s=selected();if(!avatarCard)return;if(!s?.driver_id){avatarCard.hidden=true;avatarState=null;return}avatarCard.hidden=false;const current=avatarState?.current_avatar,pending=avatarState?.pending_request,reoptRequired=Boolean(avatarState?.parker_mms_reopt_required||avatarState?.parker_mms_one_time);if(current)avatarSummary.textContent='A custom avatar is active. Upload a new photo or ask Parker for one to replace it; the current avatar stays live until the replacement is published.';else avatarSummary.textContent='Create a custom Drive Venture avatar from a clear photo.';avatarPending.textContent=pending?`Avatar request in progress — ${String(pending.status||'REQUESTED').replaceAll('_',' ').toLowerCase()}.`:'';const locked=Boolean(pending);if(avatarPhoto)avatarPhoto.disabled=locked;if(avatarParkerHelp)avatarParkerHelp.textContent='Parker can ask you for the photo by text.';if(avatarParkerRow)avatarParkerRow.hidden=reoptRequired;if(avatarParkerReopt)avatarParkerReopt.hidden=!reoptRequired;if(avatarParker){avatarParker.disabled=locked||reoptRequired||!avatarState?.parker_mms_available;avatarParker.setAttribute('aria-disabled',String(avatarParker.disabled));avatarParker.textContent=current?'Text me to replace it':'Text me for a photo'}const upload=document.getElementById('avatar-upload');if(upload){upload.disabled=locked;upload.textContent=current?'Upload replacement photo':'Upload photo'}}
   async function refreshAvatar(){const s=selected();avatarState=null;status('avatar-status','');if(!s?.driver_id){renderAvatar();return}try{avatarState=await avatarCall({action:'overview',driver_id:s.driver_id});renderAvatar()}catch(err){avatarState=null;if(avatarCard)avatarCard.hidden=true;console.warn('Avatar settings unavailable',err)}}
-  function renderLicense(){const s=selected();if(!licenseCard)return;if(!s?.driver_id){licenseCard.hidden=true;licenseState=null;return}licenseCard.hidden=false;if(!licenseState){document.getElementById('license-current-stage').textContent='Loading…';document.getElementById('license-jurisdiction').textContent='';licenseRequirements.innerHTML='';licenseTarget.innerHTML='<option value="">Loading…</option>';licenseAdvance.disabled=true;return}document.getElementById('license-current-stage').textContent=licenseState.current_stage_display||licenseState.current_stage||'—';document.getElementById('license-jurisdiction').textContent=licenseState.jurisdiction||'';const eligible=licenseState.eligible_targets||[];licenseTarget.innerHTML=eligible.length?'<option value="">Choose an eligible stage</option>'+eligible.map(t=>`<option value="${esc(t.target_stage)}">${esc(t.target_stage_display||t.target_stage)}</option>`).join(''):'<option value="">No eligible stage yet</option>';licenseAdvance.disabled=true;const targets=licenseState.targets||[];if(!targets.length){licenseRequirements.innerHTML='<p class="meta">There is no later ordinary licensing stage configured from the current stage.</p>';return}licenseRequirements.innerHTML=targets.map(t=>{const reqs=t.requirements||[];const unmet=t.unmet_requirements||[];return `<div class="license-target-block"><div class="license-target-head"><strong>${esc(t.target_stage_display||t.target_stage)}</strong><span class="${t.eligible?'license-met':'license-unmet'}">${t.eligible?'Eligible':'Not yet eligible'}</span></div>${reqs.map(r=>{const confirmable=!r.met&&/needs confirmation/i.test(r.reason||'');const detail=r.met?`Met${r.actual?` · ${esc(r.actual)}${r.unit?` ${esc(r.unit)}`:''}`:''}`:esc(r.reason||'Not yet met');return `<div class="license-requirement"><div class="license-requirement-copy"><span>${esc(requirementLabel(r.requirement_type))}</span><small class="${r.met?'license-met':'license-unmet'}">${detail}</small></div>${confirmable?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}</div>`}).join('')}${!reqs.length&&unmet.length?`<p class="meta">${esc(unmet.map(x=>x.reason).join(' · '))}</p>`:''}</div>`}).join('')}
+  function renderLicense(){
+    const s=selected()
+    if(!licenseCard)return
+    if(!s?.driver_id){licenseCard.hidden=true;licenseState=null;return}
+    licenseCard.hidden=false
+    if(!licenseState){
+      document.getElementById('license-current-stage').textContent='Loading…'
+      document.getElementById('license-jurisdiction').textContent=''
+      licenseRequirements.innerHTML=''
+      licenseTarget.innerHTML='<option value="">Loading…</option>'
+      licenseAdvance.disabled=true
+      return
+    }
+    document.getElementById('license-current-stage').textContent=licenseState.current_stage_display||licenseState.current_stage||'—'
+    document.getElementById('license-jurisdiction').textContent=licenseState.jurisdiction||''
+    const eligible=licenseState.eligible_targets||[]
+    licenseTarget.innerHTML=eligible.length
+      ?'<option value="">Choose an eligible stage</option>'+eligible.map(t=>`<option value="${esc(t.target_stage)}">${esc(t.target_stage_display||t.target_stage)}</option>`).join('')
+      :'<option value="">No eligible stage yet</option>'
+    licenseAdvance.disabled=true
+    const targets=licenseState.targets||[]
+    if(!targets.length){
+      licenseRequirements.innerHTML='<p class="meta">There is no later ordinary licensing stage configured from the current stage.</p>'
+      return
+    }
+    licenseRequirements.innerHTML=targets.map(t=>{
+      const reqs=t.requirements||[],unmet=t.unmet_requirements||[]
+      return `<div class="license-target-block">
+        <div class="license-target-head">
+          <strong>${esc(t.target_stage_display||t.target_stage)}</strong>
+          <span class="${t.eligible?'license-met':'license-unmet'}">${t.eligible?'Eligible':'Not yet eligible'}</span>
+        </div>
+        <div class="license-requirement-list">
+          ${reqs.map(r=>{
+            const confirmable=!r.met&&/needs confirmation/i.test(r.reason||'')
+            const progress=requirementProgress(r,t.effective_date||licenseState.effective_date)
+            const neutral=Boolean(progress?.notRequired)
+            const stateClass=neutral?'license-neutral':(r.met?'license-met':'license-unmet')
+            const explainer=requirementExplainer(r.requirement_type)
+            const detail=requirementDetail(r,t.effective_date||licenseState.effective_date)
+            return `<div class="license-requirement">
+              <div class="license-requirement-copy">
+                <div class="license-requirement-title"><span>${esc(requirementLabel(r.requirement_type))}</span><small class="${stateClass}">${neutral?'Not required':(r.met?'Satisfied':'Needed')}</small></div>
+                ${explainer?`<small class="license-requirement-explainer">${esc(explainer)}</small>`:''}
+                <small class="license-requirement-progress-copy">${esc(detail)}</small>
+                ${requirementProgressHtml(r,t.effective_date||licenseState.effective_date)}
+              </div>
+              ${confirmable?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
+            </div>`
+          }).join('')}
+        </div>
+        ${!reqs.length&&unmet.length?`<p class="meta">${esc(unmet.map(x=>x.reason).join(' · '))}</p>`:''}
+      </div>`
+    }).join('')
+  }
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
   function renderSubject(){const s=selected();if(!s)return;const driver=s.kind==='DRIVER';const pe=pendingFor(s.person_id,'EMAIL'),pm=pendingFor(s.person_id,'MOBILE');nameInput.value=s.name||'';zipInput.value=s.home_zip||'';zipInput.required=driver;zipRequired.hidden=!driver;zipHelp.textContent=driver?'Required for driver location, weather, and night calculations.':'Optional for your profile.';emailEl.textContent=pe?.proposed_value||s.email||'Not set';mobileEl.textContent=pm?.proposed_value||s.mobile||'Not set';emailStatus.textContent=pe?`Pending verification — current: ${s.email||'not set'}`:(s.email?`${s.email_verified?'Verified':'Not verified'}`:'');mobileStatus.textContent=pm?`Pending verification — current: ${s.mobile||'not set'}`:(s.mobile?`${s.mobile_verified?'Verified':'Not verified'}`:'');scopeNote.textContent=s.relation==='SELF'?'You are editing your own profile.':'You are editing a driver profile you are authorized to manage.';changeEmail.disabled=false;changeMobile.disabled=false;changeEmail.setAttribute('aria-disabled','false');changeMobile.setAttribute('aria-disabled','false');status('profile-status','');status('contact-status','');refreshAvatar();refreshLicense()}
   function render(){subjectSelect.innerHTML=subjects.map(s=>`<option value="${esc(s.person_id)}">${esc(s.name)}${s.relation==='SELF'?' (you)':''}</option>`).join('');renderSubject()}
