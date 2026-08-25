@@ -1,3 +1,4 @@
+(()=>{if(document.querySelector('.site-header')&&!document.querySelector('script[data-dv-canonical-header]')){const h=document.createElement('script');h.src='/assets/js/canonical-header.js?v=20260825-0062b';h.defer=true;h.dataset.dvCanonicalHeader='true';document.head.appendChild(h)}})();
 (()=>{
   const cfg=window.DV_APP_CONFIG||{}
   const loading=document.getElementById('profile-loading'),app=document.getElementById('profile-app'),authNeeded=document.getElementById('profile-auth-needed')
