@@ -21,9 +21,10 @@
     .building-layout { display:grid; grid-template-columns:minmax(18rem,.9fr) minmax(0,1.1fr); gap:clamp(1.75rem,4vw,3.5rem); align-items:start; margin-top:1.5rem; }
     .building-layout .research-art { align-self:start; }
     #expert-guidance { margin-top:5rem; }
-    .policy-layout { display:grid; grid-template-columns:minmax(0,1.18fr) minmax(17rem,.82fr); gap:clamp(2.25rem,5vw,4.5rem); align-items:start; margin:4.5rem 0 4rem; }
+    .policy-layout { display:grid; grid-template-columns:minmax(0,1.18fr) minmax(17rem,.82fr); gap:clamp(2.25rem,5vw,4.5rem); align-items:start; margin:4.5rem 0 2rem; }
     .policy-layout .research-art { align-self:start; justify-self:end; width:min(100%,30rem); margin-top:.35rem; }
     .policy-layout #drive-venture-policy { padding-top:0; }
+    .parker-tip-wide { width:100%; margin:2rem 0 4rem; }
     @media (max-width: 780px) {
       .research-pair, .building-layout, .policy-layout { grid-template-columns:1fr; gap:1.4rem; }
       .research-pair > .research-art { position:static; }
@@ -32,6 +33,7 @@
       .research-art { box-shadow:.35rem .35rem 0 var(--true-black); }
       #expert-guidance { margin-top:3rem; }
       .policy-layout { margin-top:2.75rem; }
+      .parker-tip-wide { margin-top:1.5rem; }
     }
   </style>
 </head>
@@ -71,7 +73,6 @@
             <p>Fatigue builds gradually. Some days a driver feels sharp for a long stretch. Other days they get tired much faster. Sleep, stress, time of day, traffic, weather—all of it counts.</p>
             <p>That’s why no app or website can promise that any specific amount of time is safe. Safety is about good choices throughout the drive.</p>
           </section>
-
           <section id="teens-are-different">
             <p class="eyebrow">Why teen drivers need special attention</p>
             <h2>Teens are different.</h2>
@@ -79,7 +80,6 @@
             <p>NHTSA notes that drowsy driving affects more than whether someone actually dozes off: it can reduce alertness, attention, reaction time, judgment, and decision-making ability. CDC also identifies young drivers as a group at high risk for drowsy driving, particularly in the early morning and late at night.</p>
           </section>
         </div>
-
         <figure class="research-art">
           <img src="/assets/images/DV-CHAR-PARKER-REST-AREA-AHEAD.png" alt="Pixel-art scene of Parker driving with a rest area sign ahead." loading="eager">
           <figcaption>A good drive includes knowing when it is time to stop.</figcaption>
@@ -117,18 +117,17 @@
           <p>Our policy is simple: we encourage frequent practice and taking breaks.</p>
           <p>If you reach our limit—if you see a message saying we’ve stopped counting time—don’t worry. It doesn’t mean you’ve done anything wrong. It just means we’ve hit the point where we don’t want the game encouraging longer uninterrupted driving.</p>
           <p>If you’re still on the road, just focus, finish the trip safely, and take a break before starting another long stretch.</p>
-
-          <aside class="notice safety">
-            <p class="eyebrow">Parker tip</p>
-            <h2>Great drivers build experience over many drives, not one long one.</h2>
-          </aside>
         </section>
-
         <figure class="research-art">
           <img src="/assets/images/DV-CHAR-PARKER-SCENIC-SAFE-STOP.png" alt="Pixel-art scene of Parker stretching beside a parked car at a safe scenic stop." loading="lazy">
           <figcaption>Park. Stretch. Reset. Start the next stretch ready to focus.</figcaption>
         </figure>
       </div>
+
+      <aside class="notice safety parker-tip-wide">
+        <p class="eyebrow">Parker tip</p>
+        <h2>Great drivers build experience over many drives, not one long one.</h2>
+      </aside>
 
       <section id="sources">
         <p class="eyebrow">Sources</p>
