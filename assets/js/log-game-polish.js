@@ -1,6 +1,53 @@
 (() => {
   if (document.documentElement.dataset.experience !== 'game') return;
-  function requirement(model,type,fallback){const r=(model.license_requirements||[]).find(x=>x.license_stage==='LEVEL_2'&&x.requirement_type===type);const n=Number(r?.value_text);return Number.isFinite(n)?n:fallback}
-  function apply(e){const {model,driverId,progress}=e.detail||{};if(!model||!driverId)return;const dash=document.querySelector('.dashboard-console');if(!dash)return;const pTarget=requirement(model,'MinimumPracticeHours',50),nTarget=requirement(model,'MinimumNightHours',10);const p=Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100);const n=Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100);dash.style.setProperty('--practice-p',String(Math.max(0,p)));dash.style.setProperty('--night-p',String(Math.max(0,n)))}
+  let currentTimezone = null;
+  let clockTimer = null;
+
+  function requirement(license,type,fallback){
+    const r=(license?.requirements||[]).find(x=>x.requirement_type===type);
+    const n=Number(r?.value_text);
+    return Number.isFinite(n)?n:fallback;
+  }
+
+  function renderClock(){
+    const c=document.getElementById('dash-clock');
+    if(!c||!currentTimezone)return;
+    try{
+      c.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:currentTimezone});
+    }catch(_){
+      c.textContent='--:--';
+    }
+  }
+
+  function driverLocalDate(timezone){
+    try{
+      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+      const byType=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+      return `${byType.year}-${byType.month}-${byType.day}`;
+    }catch(_){return null}
+  }
+
+  function apply(e){
+    const {model,driverId,progress,driver,license}=e.detail||{};
+    if(!model||!driverId||!driver)return;
+    const dash=document.querySelector('.dashboard-console');
+    if(!dash)return;
+
+    const pTarget=requirement(license,'MinimumPracticeHours',50),nTarget=requirement(license,'MinimumNightHours',10);
+    const p=pTarget>0?Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100):100;
+    const n=nTarget>0?Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100):100;
+    dash.style.setProperty('--practice-p',String(Math.max(0,p)));
+    dash.style.setProperty('--night-p',String(Math.max(0,n)));
+
+    currentTimezone=driver.timezone||null;
+    renderClock();
+    if(!clockTimer)clockTimer=setInterval(renderClock,1000);
+
+    const dateEl=document.getElementById('drive-date');
+    const localDate=currentTimezone?driverLocalDate(currentTimezone):null;
+    if(dateEl&&localDate&&!dateEl.dataset.dvUserEdited){dateEl.value=localDate}
+  }
+
+  document.getElementById('drive-date')?.addEventListener('input',e=>{e.currentTarget.dataset.dvUserEdited='true'});
   window.addEventListener('dv:dashboard-rendered',apply);
 })();
