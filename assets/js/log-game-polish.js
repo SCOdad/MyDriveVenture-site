@@ -27,6 +27,27 @@
     }catch(_){return null}
   }
 
+  function daysBetweenDateStrings(fromDate,toDate){
+    if(!fromDate||!toDate)return null;
+    const a=Date.parse(`${fromDate}T00:00:00Z`),b=Date.parse(`${toDate}T00:00:00Z`);
+    if(!Number.isFinite(a)||!Number.isFinite(b))return null;
+    return Math.max(0,Math.ceil((b-a)/86400000));
+  }
+
+  function roadSignMetric({license,progress,driver,pTarget,nTarget}){
+    const practiceRemaining=Math.max(0,pTarget-(Number(progress?.total_minutes||0)/60));
+    if(practiceRemaining>0.0001)return `${practiceRemaining.toFixed(1)} HOURS`;
+
+    const nightRemaining=Math.max(0,nTarget-(Number(progress?.night_minutes||0)/60));
+    if(nTarget>0&&nightRemaining>0.0001)return `${nightRemaining.toFixed(1)} NIGHT HOURS`;
+
+    const localDate=driverLocalDate(driver?.timezone||'America/Detroit');
+    const days=daysBetweenDateStrings(localDate,license?.next_milestone_date);
+    if(days!==null&&days>0)return `${days} ${days===1?'DAY':'DAYS'}`;
+
+    return 'REQUIREMENTS PENDING';
+  }
+
   function apply(e){
     const {model,driverId,progress,driver,license}=e.detail||{};
     if(!model||!driverId||!driver)return;
@@ -42,8 +63,7 @@
     const sign=document.getElementById('hours-sign');
     if(sign){
       if(license?.next_stage_display){
-        const remaining=Math.max(0,pTarget-(Number(progress?.total_minutes||0)/60));
-        sign.textContent=`${String(license.next_stage_display).toUpperCase()}\n${remaining.toFixed(1)} HOURS`;
+        sign.textContent=`${String(license.next_stage_display).toUpperCase()}\n${roadSignMetric({license,progress,driver,pTarget,nTarget})}`;
         sign.style.whiteSpace='pre-line';
       }else{
         sign.textContent='LICENSE MILESTONES COMPLETE';
