@@ -27,6 +27,14 @@
     host.appendChild(identity);
   }
 
+  function clearAvatar() {
+    renderToken += 1;
+    ensureUi();
+    const image=document.getElementById('driver-avatar'),badge=document.getElementById('driver-avatar-new');
+    if(image){image.classList.add('dv-avatar-hidden');image.removeAttribute('src');image.alt='';}
+    if(badge)badge.classList.add('dv-avatar-hidden');
+  }
+
   function getAccess(detail) { return (detail?.model?.driver_access || []).find(a => a.driver_id === detail?.driverId) || null; }
   function getContact(detail) { return (detail?.model?.operator_contacts || []).find(a => a.driver_id === detail?.driverId) || null; }
 
@@ -64,14 +72,17 @@
   function sortDriverOptions(model,select){ if(!select)return; const accessByDriver=new Map((model.driver_access||[]).map(a=>[a.driver_id,a]));const driverById=new Map((model.drivers||[]).map(d=>[d.id,d]));const selected=select.value;const options=Array.from(select.options);options.sort((a,b)=>{const aa=accessByDriver.get(a.value)?.mode==='VIEW'?1:0;const bb=accessByDriver.get(b.value)?.mode==='VIEW'?1:0;if(aa!==bb)return aa-bb;return (driverById.get(a.value)?.display_name||'Driver').localeCompare(driverById.get(b.value)?.display_name||'Driver',undefined,{sensitivity:'base'})});options.forEach(o=>{const d=driverById.get(o.value),a=accessByDriver.get(o.value);if(d)o.textContent=`${d.display_name||'Driver'}${a?.mode==='VIEW'?' · View only':''}`;select.appendChild(o)});if(options.some(o=>o.value===selected))select.value=selected; }
 
   function applyOperatorView(detail){
-    const access=getAccess(detail);if(!access)return;const readOnly=access.mode==='VIEW';applyReadOnlyControls(readOnly);const model=detail?.model||{};sortDriverOptions(model,document.getElementById('driver-select'));
-    const badge=ensureAccessBadge();if(badge){badge.textContent=readOnly?'View only':'Family access';badge.className=`dv-access-badge${readOnly?' view':''}`;}
-    const panel=ensureOperatorConsole();if(panel){if(readOnly){const contact=getContact(detail);panel.innerHTML=`<div class="dv-operator-console-title">Operator View · Read Only</div>${operatorRow('Grown-Up',contact?.grown_up,true)}${operatorRow('Driver',{...(contact?.driver||{}),id:detail?.driverId},false)}`;panel.className='dv-operator-console view';}else{panel.innerHTML='';panel.className='dv-operator-console';}}
+    const access=getAccess(detail);const badge=ensureAccessBadge(),panel=ensureOperatorConsole();
+    if(!access){if(badge){badge.textContent='';badge.className='dv-access-badge';}if(panel){panel.innerHTML='';panel.className='dv-operator-console';}applyReadOnlyControls(false);return;}
+    const readOnly=access.mode==='VIEW';applyReadOnlyControls(readOnly);const model=detail?.model||{};sortDriverOptions(model,document.getElementById('driver-select'));
+    if(badge){badge.textContent=readOnly?'View only':'Family access';badge.className=`dv-access-badge${readOnly?' view':''}`;}
+    if(panel){if(readOnly){const contact=getContact(detail);panel.innerHTML=`<div class="dv-operator-console-title">Operator View · Read Only</div>${operatorRow('Grown-Up',contact?.grown_up,true)}${operatorRow('Driver',{...(contact?.driver||{}),id:detail?.driverId},false)}`;panel.className='dv-operator-console view';}else{panel.innerHTML='';panel.className='dv-operator-console';}}
   }
 
   async function renderAvatar(detail){
     const mine=++renderToken;ensureUi();const image=document.getElementById('driver-avatar');const badge=document.getElementById('driver-avatar-new');if(!image||!badge)return;image.classList.add('dv-avatar-hidden');badge.classList.add('dv-avatar-hidden');image.removeAttribute('src');image.alt='';const model=detail?.model||{};const driverId=detail?.driverId;const access=getAccess(detail);const assignment=(model.avatar_assignments||[]).find(a=>a.driver_id===driverId);if(!assignment)return;const app=window.DV_LOG_APP;const client=app?.client;if(!client)return;let url=cache.get(assignment.id);if(!url){const{data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(assignment.storage_path,3600);if(error||!data?.signedUrl){console.error('Unable to resolve driver avatar',error);return}url=data.signedUrl;cache.set(assignment.id,url)}if(mine!==renderToken||app.getDriverId()!==driverId)return;image.src=url;image.alt=`${detail?.driver?.display_name||'Driver'} custom avatar`;image.classList.remove('dv-avatar-hidden');if(!assignment.first_viewed_at&&access?.mode!=='VIEW'){badge.classList.remove('dv-avatar-hidden');try{const{error}=await client.rpc('mark_avatar_first_viewed_v1',{p_assignment_id:assignment.id});if(error)console.error('Unable to mark avatar first viewed',error);else assignment.first_viewed_at=new Date().toISOString()}catch(error){console.error('Unable to mark avatar first viewed',error)}}
   }
 
+  window.addEventListener('dv:driver-changing',clearAvatar);
   window.addEventListener('dv:dashboard-rendered',event=>{applyOperatorView(event.detail);renderAvatar(event.detail).catch(error=>console.error('Avatar render failed',error));});
 })();
