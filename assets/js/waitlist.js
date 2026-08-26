@@ -5,6 +5,8 @@
   const message = document.getElementById('waitlist-message');
   const button = document.getElementById('waitlist-submit');
   const success = document.getElementById('waitlist-success');
+  const eligible = document.getElementById('waitlist-eligible');
+  const eligibleLink = document.getElementById('waitlist-eligible-link');
 
   function setMessage(text, isError = false) {
     message.textContent = text || '';
@@ -52,8 +54,18 @@
       }
 
       if (result.route === 'JOIN' && result.join_url) {
-        button.textContent = 'Registration is open — continuing…';
-        window.location.assign(result.join_url);
+        try {
+          sessionStorage.setItem('dv:waitlist:onboarding-prefill', JSON.stringify({
+            name: payload.name,
+            email: payload.email,
+            home_state: payload.home_state,
+            driver_age_range: payload.driver_age_range
+          }));
+        } catch (_) {}
+        form.hidden = true;
+        eligibleLink.href = result.join_url;
+        eligible.hidden = false;
+        eligible.focus();
         return;
       }
 
