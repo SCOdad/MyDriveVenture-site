@@ -9,6 +9,8 @@
   const avatarPhoto = document.getElementById('avatar-photo');
   const guardianMobile = form.elements.guardianMobile;
   const driverMobile = form.elements.driverMobile;
+  const guardianEmail = form.elements.guardianEmail;
+  const driverEmail = form.elements.driverEmail;
   const homeZip = form.elements.homeZip;
   const licenseStage = form.elements.licenseStage;
   const guardianSmsOptIn = form.elements.guardianSmsOptIn;
@@ -21,7 +23,7 @@
   function value(data, name) { return String(data.get(name) || '').trim(); }
   function stateFromZip(zip){if(!/^\d{5}$/.test(zip))return null;const n=Number(zip);if(n>=48001&&n<=49971)return'MI';if(n>=66002&&n<=67954)return'KS';return null}
   function syncLicenseStages(){if(!homeZip||!licenseStage)return;const zip=homeZip.value.trim(),state=stateFromZip(zip),prior=licenseStage.value;homeZip.setCustomValidity(zip.length===5&&!state?'Drive Venture currently supports Michigan and Kansas ZIP codes.':'');const choices=STAGES[state||'MI'];licenseStage.innerHTML='<option value="">Choose one</option>'+choices.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');if(choices.some(([v])=>v===prior))licenseStage.value=prior}
-  function clearFieldErrors() { form.querySelectorAll('.field-error').forEach((node) => node.remove()); form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute('aria-invalid')); [guardianMobile, driverMobile,homeZip].forEach((field) => field && field.setCustomValidity('')); }
+  function clearFieldErrors() { form.querySelectorAll('.field-error').forEach((node) => node.remove()); form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute('aria-invalid')); [guardianMobile, driverMobile,guardianEmail,driverEmail,homeZip].forEach((field) => field && field.setCustomValidity('')); }
   function addFieldError(field, text) { if (!field || !text) return; field.setAttribute('aria-invalid', 'true'); const helper = document.createElement('span'); helper.className = 'field-error'; helper.textContent = text; field.insertAdjacentElement('afterend', helper); }
   function syncConditionalRequirements() {
     const requested = Boolean(avatarRequested && avatarRequested.checked);
@@ -29,6 +31,10 @@
     if (avatarPhoto) { avatarPhoto.required = requested; if (!requested) avatarPhoto.value = ''; }
     if (guardianMobile) guardianMobile.setCustomValidity(guardianSmsOptIn && guardianSmsOptIn.checked && !guardianMobile.value.trim() ? 'Enter a grown-up mobile number or turn off Text Parker opt-in.' : '');
     if (driverMobile) driverMobile.setCustomValidity(driverSmsOptIn && driverSmsOptIn.checked && !driverMobile.value.trim() ? 'Enter a driver mobile number or turn off Text Parker opt-in.' : '');
+    if (driverEmail && guardianEmail) {
+      const g=guardianEmail.value.trim().toLowerCase(),d=driverEmail.value.trim().toLowerCase();
+      driverEmail.setCustomValidity(g && d && g===d ? 'Use a different email for the driver. Each login email must belong to one person; phone numbers may be shared within a family.' : '');
+    }
     syncLicenseStages();
   }
   function validationText(field) { if (field.validity.valueMissing) return 'This field is required.'; if (field.validity.typeMismatch) return 'Enter a valid value.'; if (field.validity.patternMismatch) return 'Enter a valid 5-digit ZIP code.'; if (field.validity.customError) return field.validationMessage; return field.validationMessage || 'Please correct this field.'; }
@@ -38,7 +44,7 @@
   async function submissionFingerprint(data, photoFile) { const stable = { guardian: { name: value(data, 'guardianName'), email: value(data, 'guardianEmail'), mobile: value(data, 'guardianMobile'), sms: data.get('guardianSmsOptIn') === 'on' }, driver: { name: value(data, 'driverName'), birth: value(data, 'driverBirthDate'), email: value(data, 'driverEmail'), mobile: value(data, 'driverMobile'), sms: data.get('driverSmsOptIn') === 'on', zip: value(data, 'homeZip'), state:stateFromZip(value(data,'homeZip')), stage: value(data, 'licenseStage'), stageDate: value(data, 'licenseStageStartDate'), favorite: value(data, 'favoriteColor'), avatar: data.get('customAvatarRequested') === 'on' }, vehicle: { name: value(data, 'vehicleName'), class: value(data, 'vehicleClass'), color: value(data, 'vehicleColor') }, photo: photoFile ? { name: photoFile.name, size: photoFile.size, type: photoFile.type, modified: photoFile.lastModified } : null }; return sha256Hex(JSON.stringify(stable)); }
   function getStableSubmissionId(fingerprint) { if (memorySubmission && memorySubmission.fingerprint === fingerprint) return memorySubmission.id; try { const stored = JSON.parse(sessionStorage.getItem(submissionStorageKey) || 'null'); if (stored && stored.id && stored.fingerprint === fingerprint) { memorySubmission = stored; return stored.id; } } catch (_) {} memorySubmission = { id: `web-${crypto.randomUUID()}`, fingerprint }; try { sessionStorage.setItem(submissionStorageKey, JSON.stringify(memorySubmission)); } catch (_) {} return memorySubmission.id; }
   function clearSubmissionId() { memorySubmission = null; try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {} }
-  [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile,homeZip].forEach((field) => { if (!field) return; field.addEventListener('change', () => { clearFieldErrors(); syncConditionalRequirements(); }); field.addEventListener('input', () => { clearFieldErrors(); syncConditionalRequirements(); }); });
+  [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile,guardianEmail,driverEmail,homeZip].forEach((field) => { if (!field) return; field.addEventListener('change', () => { clearFieldErrors(); syncConditionalRequirements(); }); field.addEventListener('input', () => { clearFieldErrors(); syncConditionalRequirements(); }); });
   syncConditionalRequirements();
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); setMessage(''); if (!validateForm()) return; if (button.disabled) return; const endpoint = String(window.DV_ONBOARDING_ENDPOINT || '').trim(); if (!endpoint) { setMessage('Online onboarding is being connected. Please try again shortly.', true); return; }
@@ -47,7 +53,7 @@
       const state=stateFromZip(value(data,'homeZip'));if(!state)throw new Error('Drive Venture currently supports Michigan and Kansas ZIP codes.');
       const photoFile = avatarPhoto && avatarPhoto.files ? avatarPhoto.files[0] : null; const fingerprint = await submissionFingerprint(data, photoFile); const photo = avatarRequested && avatarRequested.checked ? await fileToPayload(photoFile) : null; const guardianName = value(data, 'guardianName'); const driverName = value(data, 'driverName');
       const payload = { source_response_id: getStableSubmissionId(fingerprint), submission_fingerprint: fingerprint, website: value(data, 'website'), submission_context: window.DVSubmissionContext?.collect('ONBOARDING') ?? { schema_version: 1, form_source: 'ONBOARDING' }, guardian: { given_name: guardianName, family_name: '', display_name: guardianName, email: value(data, 'guardianEmail'), mobile: value(data, 'guardianMobile'), sms_opt_in: data.get('guardianSmsOptIn') === 'on' }, driver: { given_name: driverName, family_name: '', display_name: driverName, birth_date: value(data, 'driverBirthDate'), email: value(data, 'driverEmail'), mobile: value(data, 'driverMobile'), sms_opt_in: data.get('driverSmsOptIn') === 'on', home_zip: value(data, 'homeZip'), home_state: state, license_stage: value(data, 'licenseStage'), level1_license_date: value(data, 'licenseStageStartDate'), favorite_color: value(data, 'favoriteColor'), custom_avatar_requested: data.get('customAvatarRequested') === 'on' }, avatar_photo: photo, vehicle: { name: value(data, 'vehicleName'), class: value(data, 'vehicleClass'), color: value(data, 'vehicleColor') } };
-      const response = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }); const result = await response.json().catch(() => ({})); if (!response.ok || result.ok !== true) { if (response.status === 409 && result.code === 'SUBMISSION_ID_REUSED') clearSubmissionId(); throw new Error(result.error || 'We could not submit onboarding right now.'); }
+      const response = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }); const result = await response.json().catch(() => ({})); if (!response.ok || result.ok !== true) { if (response.status === 409 && result.code === 'SUBMISSION_ID_REUSED') clearSubmissionId(); const serverText=String(result.error||''); if(serverText.includes('DV_CONTACT_ENDPOINT_ALREADY_IN_USE')) throw new Error('That email or mobile number is already attached to another Drive Venture account. If this is a shared family phone, please try again; shared guardian/driver phones are supported.'); throw new Error(serverText || 'We could not submit onboarding right now.'); }
       clearSubmissionId(); form.hidden = true; success.hidden = false; success.focus();
     } catch (error) { setMessage(error instanceof Error ? error.message : 'We could not submit onboarding right now.', true); } finally { button.disabled = false; button.textContent = 'Join the pilot'; }
   });
