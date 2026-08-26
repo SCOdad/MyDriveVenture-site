@@ -64,6 +64,7 @@
         } catch (_) {}
         form.hidden = true;
         eligibleLink.href = result.join_url;
+        document.body.classList.add('waitlist-eligible-state');
         eligible.hidden = false;
         eligible.focus();
         return;
