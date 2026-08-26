@@ -112,6 +112,110 @@
     }
   }
 
+  function installCreateBacklogMode(){
+    const form=document.getElementById('link-form');
+    if(!form||form.dataset.createBacklogInstalled==='true')return;
+    form.dataset.createBacklogInstalled='true';
+
+    const backlogInput=form.elements.backlog_code,linkType=form.elements.link_type,description=form.elements.description;
+    if(!backlogInput||!linkType||!description)return;
+    const codeLabel=backlogInput.closest('label'),descriptionLabel=description.closest('label'),submit=form.querySelector('button[type="submit"]');
+    const relationshipLabel=linkType.closest('label')?.querySelector('.field-label');
+    if(relationshipLabel)relationshipLabel.textContent='Link type';
+
+    const actionLabel=document.createElement('label');
+    actionLabel.innerHTML='<span class="field-label">Backlog action</span><select name="backlog_action" id="backlog-action"><option value="LINK">Link existing backlog item</option><option value="CREATE">Create new backlog item</option></select><span class="field-help">Choose whether this feedback belongs to work that already exists or should create a new canonical backlog item.</span>';
+    form.insertBefore(actionLabel,form.firstChild);
+
+    const createFields=document.createElement('div');
+    createFields.id='create-backlog-fields';
+    createFields.hidden=true;
+    createFields.innerHTML='<label><span class="field-label">Backlog title</span><input name="backlog_title" type="text" maxlength="300" placeholder="Short canonical work-item title"></label><div class="field-grid two-col"><label><span class="field-label">Backlog category</span><input name="backlog_category" type="text" maxlength="100" placeholder="e.g. Web MVP"></label><label><span class="field-label">Priority</span><select name="backlog_priority"><option>P0</option><option>P1</option><option>P2</option><option selected>P3</option></select></label></div><span class="field-help">New items start in BACKLOG. Status and the remaining backlog fields can be refined in Backlog Manager.</span>';
+    descriptionLabel.parentNode.insertBefore(createFields,descriptionLabel);
+
+    const action=form.elements.backlog_action,title=form.elements.backlog_title,category=form.elements.backlog_category;
+    function syncMode(){
+      const creating=action.value==='CREATE';
+      createFields.hidden=!creating;
+      codeLabel.hidden=creating;
+      backlogInput.required=!creating;
+      title.required=creating;
+      category.required=creating;
+      const descriptionName=descriptionLabel.querySelector('.field-label');
+      if(descriptionName)descriptionName.textContent=creating?'Backlog description':'Link description';
+      description.placeholder=creating?'Describe the canonical backlog work created from this feedback.':'What part of this feedback does this backlog item address?';
+      submit.textContent=creating?'Create & link backlog item':'Add backlog link';
+    }
+    action.addEventListener('change',syncMode);
+    syncMode();
+
+    const selectedCode=document.getElementById('selected-code');
+    if(selectedCode){
+      new MutationObserver(()=>{
+        const classification=document.querySelector('#classify-form [name="disposition_category"]')?.value;
+        linkType.value=['BUG','ENHANCEMENT'].includes(classification)?classification:'RELATED';
+      }).observe(selectedCode,{childList:true,characterData:true,subtree:true});
+    }
+
+    form.addEventListener('submit',async e=>{
+      if(action.value!=='CREATE')return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const feedbackCode=document.getElementById('selected-code')?.textContent?.trim(),feedbackEndpoint=String(window.DV_OPERATOR_FEEDBACK_ENDPOINT||'').trim(),backlogEndpoint=String(window.DV_OPERATOR_BACKLOG_ENDPOINT||'').trim(),message=document.getElementById('operator-message');
+      const setStatus=(text,isError=false)=>{if(message){message.textContent=text||'';message.classList.toggle('error',isError)}};
+      try{
+        if(!feedbackCode)throw new Error('Select feedback first.');
+        if(!feedbackEndpoint||!backlogEndpoint||!authHeader)throw new Error('Operator session is not ready. Refresh and try again.');
+        submit.disabled=true;
+        const data=Object.fromEntries(new FormData(form).entries());
+        setStatus('Creating backlog item…');
+        const createResponse=await originalFetch(backlogEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:authHeader},body:JSON.stringify({action:'create',title:data.backlog_title,category:data.backlog_category,priority:data.backlog_priority,status:'BACKLOG',description:data.description,source:`Feedback ${feedbackCode}`})});
+        const created=await createResponse.json().catch(()=>({}));
+        if(!createResponse.ok||created.ok!==true)throw new Error(created.error||'Could not create backlog item');
+
+        action.value='LINK';
+        backlogInput.value=created.backlog_code;
+        syncMode();
+        setStatus(`Created ${created.backlog_code}. Linking it to ${feedbackCode}…`);
+        const linkResponse=await originalFetch(feedbackEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:authHeader},body:JSON.stringify({action:'link_backlog',feedback_code:feedbackCode,backlog_code:created.backlog_code,link_type:data.link_type,description:data.description,note:data.note})});
+        const linked=await linkResponse.json().catch(()=>({}));
+        if(!linkResponse.ok||linked.ok!==true){
+          throw new Error(`${created.backlog_code} was created but could not be linked: ${linked.error||'link request failed'}. The form is ready to retry the link.`);
+        }
+        const text=`Created and linked ${created.backlog_code}${linked.notification_sent?' and notified the user.':'.'}`;
+        sessionStorage.setItem('dv-feedback-message',text);
+        sessionStorage.setItem('dv-feedback-reselect',feedbackCode);
+        location.reload();
+      }catch(error){
+        setStatus(error instanceof Error?error.message:'Could not create backlog item',true);
+        submit.disabled=false;
+      }
+    },true);
+  }
+
+  function restoreAfterCreate(){
+    const message=sessionStorage.getItem('dv-feedback-message'),reselect=sessionStorage.getItem('dv-feedback-reselect');
+    if(message){
+      sessionStorage.removeItem('dv-feedback-message');
+      const el=document.getElementById('operator-message');
+      if(el)el.textContent=message;
+    }
+    if(!reselect)return;
+    const inbox=document.getElementById('feedback-inbox');
+    if(!inbox)return;
+    const trySelect=()=>{
+      const button=[...inbox.querySelectorAll('.feedback-pick')].find(x=>x.dataset.code===reselect);
+      if(!button)return false;
+      sessionStorage.removeItem('dv-feedback-reselect');
+      button.click();
+      return true;
+    };
+    if(!trySelect()){
+      const observer=new MutationObserver(()=>{if(trySelect())observer.disconnect()});
+      observer.observe(inbox,{childList:true,subtree:true});
+    }
+  }
+
   const style=document.createElement('style');
   style.textContent=`
     .feedback-group{margin:1rem 0 1.35rem;padding:.8rem;border:1px solid rgba(0,0,0,.14);border-left-width:5px;border-radius:.45rem;background:rgba(255,255,255,.025)}
@@ -128,6 +232,7 @@
     .feedback-group-finished .feedback-pick{border-color:#45a565}
     .feedback-group-empty{margin:.55rem 0 .2rem;font-size:.9rem;opacity:.72}
     .backlog-score{margin-left:.35rem;vertical-align:middle}
+    #create-backlog-fields{margin:.75rem 0}
     @media (max-width:640px){.feedback-group{padding:.65rem}.feedback-group-heading p{font-size:.82rem}}
   `;
   document.head.appendChild(style);
@@ -135,6 +240,8 @@
   let queued=false,observersStarted=false;
   function schedule(){if(queued)return;queued=true;queueMicrotask(()=>{queued=false;decorate()})}
   function init(){
+    installCreateBacklogMode();
+    restoreAfterCreate();
     if(!observersStarted){
       observersStarted=true;
       for(const id of ['feedback-inbox','linked-backlog-list']){
