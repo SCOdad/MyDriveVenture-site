@@ -18,6 +18,18 @@
   const submissionStorageKey = 'dv:onboarding:submission-id';
   const STAGES={MI:[['LEVEL_1','Learner / Level 1 permit'],['LEVEL_2','Intermediate / Level 2 license'],['LEVEL_3','Full / Level 3 license']],KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']]};
   let memorySubmission = null;
+  const waitlistPrefillKey = 'dv:waitlist:onboarding-prefill';
+
+  function applyWaitlistPrefill() {
+    let prefill = null;
+    try { prefill = JSON.parse(sessionStorage.getItem(waitlistPrefillKey) || 'null'); } catch (_) {}
+    if (!prefill || typeof prefill !== 'object') return;
+    if (form.elements.guardianName && !form.elements.guardianName.value) form.elements.guardianName.value = String(prefill.name || '').slice(0, 100);
+    if (guardianEmail && !guardianEmail.value) guardianEmail.value = String(prefill.email || '').slice(0, 254);
+    try { sessionStorage.removeItem(waitlistPrefillKey); } catch (_) {}
+    const grownup = document.getElementById('grownup-heading');
+    if (grownup) grownup.insertAdjacentHTML('afterend', '<p class="field-help">We filled in the details you provided on the availability page. Please review them before submitting.</p>');
+  }
 
   function setMessage(text, isError = false) { message.textContent = text || ''; message.classList.toggle('error', isError); }
   function value(data, name) { return String(data.get(name) || '').trim(); }
@@ -45,6 +57,7 @@
   function getStableSubmissionId(fingerprint) { if (memorySubmission && memorySubmission.fingerprint === fingerprint) return memorySubmission.id; try { const stored = JSON.parse(sessionStorage.getItem(submissionStorageKey) || 'null'); if (stored && stored.id && stored.fingerprint === fingerprint) { memorySubmission = stored; return stored.id; } } catch (_) {} memorySubmission = { id: `web-${crypto.randomUUID()}`, fingerprint }; try { sessionStorage.setItem(submissionStorageKey, JSON.stringify(memorySubmission)); } catch (_) {} return memorySubmission.id; }
   function clearSubmissionId() { memorySubmission = null; try { sessionStorage.removeItem(submissionStorageKey); } catch (_) {} }
   [avatarRequested, guardianSmsOptIn, driverSmsOptIn, guardianMobile, driverMobile,guardianEmail,driverEmail,homeZip].forEach((field) => { if (!field) return; field.addEventListener('change', () => { clearFieldErrors(); syncConditionalRequirements(); }); field.addEventListener('input', () => { clearFieldErrors(); syncConditionalRequirements(); }); });
+  applyWaitlistPrefill();
   syncConditionalRequirements();
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); setMessage(''); if (!validateForm()) return; if (button.disabled) return; const endpoint = String(window.DV_ONBOARDING_ENDPOINT || '').trim(); if (!endpoint) { setMessage('Online onboarding is being connected. Please try again shortly.', true); return; }
@@ -58,3 +71,4 @@
     } catch (error) { setMessage(error instanceof Error ? error.message : 'We could not submit onboarding right now.', true); } finally { button.disabled = false; button.textContent = 'Join the pilot'; }
   });
 })();
+
