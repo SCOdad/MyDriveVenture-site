@@ -67,9 +67,24 @@
 .operator-tool p{color:var(--silver)}
 .operator-tool .button{margin-top:auto}
 .denied-card{border-top:6px solid var(--dv-yellow)}
+.waitlist-operations{margin-top:1rem}
+.waitlist-grid{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(320px,1.15fr);gap:1.25rem}
+.eligibility-form{display:grid;gap:.8rem;padding:1rem;border-left:5px solid var(--dv-yellow);background:var(--panel)}
+.eligibility-form label{display:grid;gap:.35rem}
+.eligibility-form .checkbox-row{grid-template-columns:auto 1fr;align-items:start}
+.eligibility-form .button{justify-self:start}
+.state-bars{display:grid;gap:.7rem}
+.state-bar{display:grid;grid-template-columns:2.5rem minmax(100px,1fr) 2rem;gap:.65rem;align-items:center}
+.state-bar span{display:block;height:.8rem;background:rgba(174,184,194,.16)}
+.state-bar i{display:block;height:100%;background:var(--dv-yellow)}
+.waitlist-table{width:100%;min-width:780px;border-collapse:collapse}
+.waitlist-table th,.waitlist-table td{padding:.7rem .6rem;border-bottom:1px solid rgba(174,184,194,.18);text-align:left;vertical-align:top}
+.waitlist-table th{color:var(--silver);font:800 .68rem var(--heading-font);letter-spacing:.05em;text-transform:uppercase}
+.waitlist-table small{display:block;color:var(--silver)}
 
 @media(max-width:900px){.operator-kpis,.operator-tools,.classification-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
 .operator-grid{grid-template-columns:1fr}
+.waitlist-grid{grid-template-columns:1fr}
 .operator-head{align-items:start;flex-direction:column}
 }
 

@@ -51,6 +51,12 @@
         throw new Error(result.error || 'We could not save your interest right now.');
       }
 
+      if (result.route === 'JOIN' && result.join_url) {
+        button.textContent = 'Registration is open — continuing…';
+        window.location.assign(result.join_url);
+        return;
+      }
+
       form.hidden = true;
       success.hidden = false;
       success.focus();
@@ -58,7 +64,7 @@
       setMessage(error instanceof Error ? error.message : 'We could not save your interest right now.', true);
     } finally {
       button.disabled = false;
-      button.textContent = 'Join the waitlist';
+      button.textContent = 'Check availability';
     }
   });
 })();
