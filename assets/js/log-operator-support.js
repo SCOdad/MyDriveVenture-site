@@ -16,5 +16,7 @@
   const originalInvoke=app.client.functions.invoke.bind(app.client.functions);
   app.client.functions.invoke=async(name,options={})=>{const body=options?.body||{};if(name==='drive-ops'&&body.action==='edit_drive'&&model?.is_operator&&accessMode(body.driver_id)==='VIEW'){const reason=window.prompt('Administrator edit: enter a brief reason for this change.');if(!reason?.trim())return {data:{ok:false,error:'Administrator edit cancelled: a reason is required.'},error:null};const driver=(model.drivers||[]).find(d=>d.id===body.driver_id);if(!window.confirm(`Modify ${driver?.display_name||'this driver'}’s drive as an administrator?\n\nReason: ${reason.trim()}`))return {data:{ok:false,error:'Administrator edit cancelled.'},error:null};options={...options,body:{...body,reason:reason.trim()}}}return originalInvoke(name,options)};
 
-  window.addEventListener('dv:dashboard-rendered',e=>{model=e.detail?.model||app.getModel?.();if(!model?.is_operator)return;ensureSearch()});
+  const activate=nextModel=>{model=nextModel||app.getModel?.();if(model?.is_operator)ensureSearch()};
+  window.addEventListener('dv:dashboard-rendered',e=>activate(e.detail?.model));
+  activate();
 })();
