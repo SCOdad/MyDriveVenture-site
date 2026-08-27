@@ -2,83 +2,17 @@
   if (document.documentElement.dataset.experience !== 'game') return;
   let currentTimezone = null;
   let clockTimer = null;
+  let nightToken = 0;
 
-  function requirement(license,type,fallback){
-    const r=(license?.requirements||[]).find(x=>x.requirement_type===type);
-    const n=Number(r?.value_text);
-    return Number.isFinite(n)?n:fallback;
-  }
-
-  function renderClock(){
-    const c=document.getElementById('dash-clock');
-    if(!c||!currentTimezone)return;
-    try{
-      c.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:currentTimezone});
-    }catch(_){
-      c.textContent='--:--';
-    }
-  }
-
-  function driverLocalDate(timezone){
-    try{
-      const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-      const byType=Object.fromEntries(parts.map(p=>[p.type,p.value]));
-      return `${byType.year}-${byType.month}-${byType.day}`;
-    }catch(_){return null}
-  }
-
-  function daysBetweenDateStrings(fromDate,toDate){
-    if(!fromDate||!toDate)return null;
-    const a=Date.parse(`${fromDate}T00:00:00Z`),b=Date.parse(`${toDate}T00:00:00Z`);
-    if(!Number.isFinite(a)||!Number.isFinite(b))return null;
-    return Math.max(0,Math.ceil((b-a)/86400000));
-  }
-
-  function roadSignMetric({license,progress,driver,pTarget,nTarget}){
-    const practiceRemaining=Math.max(0,pTarget-(Number(progress?.total_minutes||0)/60));
-    if(practiceRemaining>0.0001)return `${practiceRemaining.toFixed(1)} HOURS`;
-
-    const nightRemaining=Math.max(0,nTarget-(Number(progress?.night_minutes||0)/60));
-    if(nTarget>0&&nightRemaining>0.0001)return `${nightRemaining.toFixed(1)} NIGHT HOURS`;
-
-    const localDate=driverLocalDate(driver?.timezone||'America/Detroit');
-    const days=daysBetweenDateStrings(localDate,license?.next_milestone_date);
-    if(days!==null&&days>0)return `${days} ${days===1?'DAY':'DAYS'}`;
-
-    return 'REQUIREMENTS PENDING';
-  }
-
-  function apply(e){
-    const {model,driverId,progress,driver,license}=e.detail||{};
-    if(!model||!driverId||!driver)return;
-    const dash=document.querySelector('.dashboard-console');
-    if(!dash)return;
-
-    const pTarget=requirement(license,'MinimumPracticeHours',50),nTarget=requirement(license,'MinimumNightHours',10);
-    const p=pTarget>0?Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100):0;
-    const n=nTarget>0?Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100):0;
-    dash.style.setProperty('--practice-p',String(Math.max(0,p)));
-    dash.style.setProperty('--night-p',String(Math.max(0,n)));
-
-    const sign=document.getElementById('hours-sign');
-    if(sign){
-      if(license?.next_stage_display){
-        sign.textContent=`${String(license.next_stage_display).toUpperCase()}\n${roadSignMetric({license,progress,driver,pTarget,nTarget})}`;
-        sign.style.whiteSpace='pre-line';
-      }else{
-        sign.textContent='LICENSE MILESTONES COMPLETE';
-      }
-    }
-
-    currentTimezone=driver.timezone||null;
-    renderClock();
-    if(!clockTimer)clockTimer=setInterval(renderClock,1000);
-
-    const dateEl=document.getElementById('drive-date');
-    const localDate=currentTimezone?driverLocalDate(currentTimezone):null;
-    if(dateEl&&localDate&&!dateEl.dataset.dvUserEdited){dateEl.value=localDate}
-  }
-
+  function requirement(license,type,fallback){const r=(license?.requirements||[]).find(x=>x.requirement_type===type);const n=Number(r?.value_text);return Number.isFinite(n)?n:fallback}
+  function renderClock(){const c=document.getElementById('dash-clock');if(!c||!currentTimezone)return;try{c.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',timeZone:currentTimezone})}catch(_){c.textContent='--:--'}}
+  function driverLocalDate(timezone){try{const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const byType=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${byType.year}-${byType.month}-${byType.day}`}catch(_){return null}}
+  function formatClock(value){if(!/^\d{2}:\d{2}$/.test(String(value||'')))return 'Unavailable';const[h,m]=value.split(':').map(Number),suffix=h>=12?'PM':'AM',hour=h%12||12;return `${hour}:${String(m).padStart(2,'0')} ${suffix}`}
+  function ensureNightStatus(){const status=document.querySelector('.dash-status');if(!status)return null;let el=document.getElementById('night-xp-start');if(el)return el;const wrap=document.createElement('span');wrap.className='night-xp-status';wrap.innerHTML='NIGHT XP BEGINS <b id="night-xp-start">Loading…</b>';status.appendChild(wrap);return document.getElementById('night-xp-start')}
+  async function renderNightXpStart(driver){const el=ensureNightStatus();if(!el)return;const mine=++nightToken,timezone=driver?.timezone||null,date=timezone?driverLocalDate(timezone):null;el.textContent='Loading…';if(!date){el.textContent='Unavailable';return}try{const app=window.DV_LOG_APP;if(!app?.client){el.textContent='Unavailable';return}const{data,error}=await app.client.functions.invoke('night-xp-start',{body:{driver_id:driver.id,date}});if(mine!==nightToken)return;if(error||!data?.ok||data.threshold?.status!=='CLASSIFIED'||!data.threshold?.localTime){el.textContent='Unavailable';return}el.textContent=formatClock(data.threshold.localTime)}catch(_){if(mine===nightToken)el.textContent='Unavailable'}}
+  function daysBetweenDateStrings(fromDate,toDate){if(!fromDate||!toDate)return null;const a=Date.parse(`${fromDate}T00:00:00Z`),b=Date.parse(`${toDate}T00:00:00Z`);if(!Number.isFinite(a)||!Number.isFinite(b))return null;return Math.max(0,Math.ceil((b-a)/86400000))}
+  function roadSignMetric({license,progress,driver,pTarget,nTarget}){const practiceRemaining=Math.max(0,pTarget-(Number(progress?.total_minutes||0)/60));if(practiceRemaining>0.0001)return `${practiceRemaining.toFixed(1)} HOURS`;const nightRemaining=Math.max(0,nTarget-(Number(progress?.night_minutes||0)/60));if(nTarget>0&&nightRemaining>0.0001)return `${nightRemaining.toFixed(1)} NIGHT HOURS`;const localDate=driverLocalDate(driver?.timezone||'America/Detroit');const days=daysBetweenDateStrings(localDate,license?.next_milestone_date);if(days!==null&&days>0)return `${days} ${days===1?'DAY':'DAYS'}`;return 'REQUIREMENTS PENDING'}
+  function apply(e){const {model,driverId,progress,driver,license}=e.detail||{};if(!model||!driverId||!driver)return;const dash=document.querySelector('.dashboard-console');if(!dash)return;const pTarget=requirement(license,'MinimumPracticeHours',50),nTarget=requirement(license,'MinimumNightHours',10);const p=pTarget>0?Math.min(100,Number(progress?.total_minutes||0)/(pTarget*60)*100):0;const n=nTarget>0?Math.min(100,Number(progress?.night_minutes||0)/(nTarget*60)*100):0;dash.style.setProperty('--practice-p',String(Math.max(0,p)));dash.style.setProperty('--night-p',String(Math.max(0,n)));const sign=document.getElementById('hours-sign');if(sign){if(license?.next_stage_display){sign.textContent=`${String(license.next_stage_display).toUpperCase()}\n${roadSignMetric({license,progress,driver,pTarget,nTarget})}`;sign.style.whiteSpace='pre-line'}else sign.textContent='LICENSE MILESTONES COMPLETE'}currentTimezone=driver.timezone||null;renderClock();if(!clockTimer)clockTimer=setInterval(renderClock,1000);renderNightXpStart(driver);const dateEl=document.getElementById('drive-date');const localDate=currentTimezone?driverLocalDate(currentTimezone):null;if(dateEl&&localDate&&!dateEl.dataset.dvUserEdited)dateEl.value=localDate}
   document.getElementById('drive-date')?.addEventListener('input',e=>{e.currentTarget.dataset.dvUserEdited='true'});
   window.addEventListener('dv:dashboard-rendered',apply);
 })();
