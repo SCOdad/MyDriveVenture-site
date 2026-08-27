@@ -1,0 +1,11 @@
+const fs=require('fs');
+const assert=require('assert');
+const operator=fs.readFileSync('assets/js/log-operator-support.js','utf8');
+const detail=fs.readFileSync('assets/js/log-drive-detail-v4.js','utf8');
+assert(operator.includes('Find driver'));
+assert(operator.includes('Recompute progress'));
+assert(operator.includes("name==='drive-ops'&&body.action==='edit_drive'"));
+assert(operator.includes('reason'));
+assert(detail.includes('Administrator modification'));
+assert(detail.includes('Edit history'));
+console.log('BKLG-0078 operator support smoke test passed');

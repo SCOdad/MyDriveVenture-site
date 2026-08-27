@@ -11,8 +11,19 @@
   const content = dialog.querySelector('.drive-detail-content');
   dialog.querySelector('.drive-detail-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+
+  const EDIT_FIELDS={drive_date:'date',start_time:'start time',end_time:'finish time',vehicle_id:'vehicle',destination:'destination',notes:'road notes',night_minutes:'night credit',weather:'weather'};
+  function changedFields(edit){const before=edit.before_state||{},after=edit.after_state||{};return Object.entries(EDIT_FIELDS).filter(([key])=>JSON.stringify(before[key]??null)!==JSON.stringify(after[key]??null)).map(([,label])=>label)}
+  function editHistoryMarkup(history){
+    if(!history?.length)return '';
+    const latestOperator=history.find(h=>h.actor_kind==='OPERATOR');
+    const notice=latestOperator?`<div class="drive-edit-notice"><strong>Administrator modification</strong><p>An administrator modified this drive on ${esc(new Date(latestOperator.created_at).toLocaleString())}.${latestOperator.reason?` Reason: ${esc(latestOperator.reason)}.`:''}</p></div>`:'';
+    const rows=history.map(h=>{const who=h.actor_kind==='OPERATOR'?'Drive Venture administrator':h.actor_display_name||String(h.actor_kind||'Authorized user').toLowerCase(),changed=changedFields(h);return `<li><strong>${esc(who)}</strong> · ${esc(new Date(h.created_at).toLocaleString())}<br><small>${changed.length?`Changed: ${esc(changed.join(', '))}`:'Drive record updated'}${h.reason?` · Reason: ${esc(h.reason)}`:''}</small></li>`}).join('');
+    return `${notice}<details class="drive-edit-history"><summary>Edit history (${history.length})</summary><ul>${rows}</ul></details>`;
+  }
+
   function render(detail) {
-    const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [];
+    const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [], history=detail.edit_history||[];
     app.detailDrives = app.detailDrives || {};
     app.detailDrives[drive.id] = drive;
     const weather = drive.weather?.conditions?.length ? drive.weather.conditions.join(', ') : null;
@@ -20,7 +31,7 @@
     const zip = drive.classification_zip || driver?.home_zip;
     const home = driver?.home_city ? `Home: ${driver.home_city}${driver.home_state ? `, ${driver.home_state}` : ''}` : null;
     const locationBasis = [zip, home].filter(Boolean).join(' · ');
-    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2><dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes || 'None')}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min`)}${optional('Night rule', 'v1 · Jul 2, 2026')}${optional('Location basis', locationBasis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section><div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">Edit this drive</button></div>`;
+    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2>${editHistoryMarkup(history)}<dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes || 'None')}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min`)}${optional('Night rule', 'v1 · Jul 2, 2026')}${optional('Location basis', locationBasis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section><div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">Edit this drive</button></div>`;
   }
   document.addEventListener('click', async event => {
     if (event.target.closest('[data-edit-drive]') && dialog.open) dialog.close();
