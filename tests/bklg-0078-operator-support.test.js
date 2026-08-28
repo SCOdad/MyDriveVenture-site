@@ -46,6 +46,7 @@ function architectureChecks(){
   assert(operator.includes('operator-support-host'),'operator support must use the stable operator host');
   assert(!operator.includes("name==='drive-ops'&&body.action==='edit_drive'"),'operator support must not monkey-patch drive edits');
   assert(driveRpc.includes('drive-admin-reason'),'admin drive edit must expose a visible reason field');
+  assert(driveRpc.includes("wrap.style.display=active?'grid':'none'"),'admin reason field must be forcibly hidden for non-operator edits');
   assert(driveRpc.includes('Administrator edit reason is required.'),'admin drive edit must validate the reason locally');
   assert(driveRpc.includes("...(reason?{reason}:{})"),'admin drive edit must send the reason explicitly');
   assert(driveRpc.includes('Modify ${driver?.display_name'),'admin drive edit must still require confirmation');
