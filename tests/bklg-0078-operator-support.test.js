@@ -45,6 +45,8 @@ function architectureChecks(){
   assert(detail.includes('detailToken'),'drive-detail responses must be tokenized against stale renders');
   assert(shared.includes("addEventListener('dv:driver-changing'"),'shared async work must invalidate on driver change');
   assert(!shared.includes("rpc('get_authenticated_driver_status_v1'"),'shared actions must reuse the dashboard status instead of duplicating it');
+  assert(shared.includes('isReadOnly'),'late-created garage controls must enforce read-only access');
+  assert(shared.includes("Garage changes are unavailable in read-only operator view."),'garage mutations need a read-only guard');
   assert(!prepilot.includes('authNav('),'prepilot code must not own canonical account navigation');
   assert(!prepilot.includes('DRIVER_KEY'),'driver selection persistence must have one owner');
   assert(dashboard.includes('getRenderGeneration'),'dashboard must expose a render generation');
