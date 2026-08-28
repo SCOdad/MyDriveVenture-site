@@ -47,11 +47,14 @@ function architectureChecks(){
   assert(!shared.includes("rpc('get_authenticated_driver_status_v1'"),'shared actions must reuse the dashboard status instead of duplicating it');
   assert(shared.includes('isReadOnly'),'late-created garage controls must enforce read-only access');
   assert(shared.includes("Garage changes are unavailable in read-only operator view."),'garage mutations need a read-only guard');
+  assert(!shared.includes('cockpitStatus'),'shared actions must not duplicate license rendering');
   assert(!prepilot.includes('authNav('),'prepilot code must not own canonical account navigation');
   assert(!prepilot.includes('DRIVER_KEY'),'driver selection persistence must have one owner');
   assert(dashboard.includes('getRenderGeneration'),'dashboard must expose a render generation');
   assert(dashboard.includes('selectDriver'),'dashboard must expose the authoritative driver selection API');
-  assert(dashboard.includes('Driver status timed out'),'driver switching must have a bounded status wait');
+  assert(dashboard.includes('Driver status timed out'),'driver status work must have a bounded timeout');
+  assert(dashboard.includes('renderLicenseOnly'),'license status should update independently after an immediate driver render');
+  assert(dashboard.includes('licenseStatusInFlight'),'selected-driver status calls must be deduplicated');
   assert(detail.includes('Administrator modification'));
   assert(detail.includes('Edit history'));
 }
@@ -185,14 +188,14 @@ async function lifecycleChecks(){
   assert.strictEqual(elements.get('driver-select').options.length,3,'switching must not rebuild a filtered driver selector');
 
   const renderedBeforeSlow=rendered.length;
-  const slowSelection=app.selectDriver('slow');
-  await new Promise(r=>setTimeout(r,0));
-  const manageSelection=app.selectDriver('manage');
-  await manageSelection;
+  await app.selectDriver('slow');
+  await app.selectDriver('manage');
+  const renderedAfterManage=rendered.length;
   resolveSlow({data:{...statusPayload},error:null});
-  await slowSelection;
+  await new Promise(r=>setTimeout(r,0));
   assert.strictEqual(app.getDriverId(),'manage','later selection must win over a slow earlier selection');
-  assert.strictEqual(rendered.length,renderedBeforeSlow+1,'stale slow status must not trigger an extra render');
+  assert.strictEqual(renderedAfterManage,renderedBeforeSlow+2,'both explicit selections should render immediately');
+  assert.strictEqual(rendered.length,renderedAfterManage,'late slow status must not trigger an extra dashboard render');
   assert.strictEqual(rendered.at(-1),'manage','stale async work must not repaint the prior driver');
   assert.strictEqual(changing.at(-1),'manage');
 }
