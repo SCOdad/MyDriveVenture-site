@@ -22,7 +22,7 @@
     const rows=history.map(h=>{const who=h.actor_kind==='OPERATOR'?'Drive Venture administrator':h.actor_display_name||String(h.actor_kind||'Authorized user').toLowerCase(),changed=changedFields(h);return `<li><strong>${esc(who)}</strong> · ${esc(new Date(h.created_at).toLocaleString())}<br><small>${changed.length?`Changed: ${esc(changed.join(', '))}`:'Drive record updated'}${h.reason?` · Reason: ${esc(h.reason)}`:''}</small></li>`}).join('');
     return `${notice}<details class="drive-edit-history"><summary>Edit history (${history.length})</summary><ul>${rows}</ul></details>`;
   }
-  function accessMode(driverId){return app.getAccessMode?.(driverId)||(app.getModel?.()?.driver_access||[]).find(row=>row.driver_id===driverId)?.mode||'MANAGE'}
+  function accessMode(driverId){const model=app.getModel?.()||{};return app.getAccessMode?.(driverId)||(model.driver_access||[]).find(row=>row.driver_id===driverId)?.mode||(model.is_operator===true?'VIEW':'MANAGE')}
   function isOperatorView(driverId){const model=app.getModel?.()||{};return model.is_operator===true&&accessMode(driverId)==='VIEW'}
   function canEditDrive(driverId){const model=app.getModel?.()||{};return accessMode(driverId)!=='VIEW'||model.is_operator===true}
 
