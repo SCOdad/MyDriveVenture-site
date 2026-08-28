@@ -44,8 +44,11 @@ function architectureChecks(){
   assert(!header.includes("dv:dashboard-rendered',()=>hydrate"),'driver render must not trigger header dashboard hydration');
 
   assert(operator.includes('operator-support-host'),'operator support must use the stable operator host');
-  assert(operator.includes("name==='drive-ops'&&body.action==='edit_drive'"),'operator drive edit interception must remain active');
-  assert(operator.includes('Administrator edit: enter a brief reason'),'admin drive edit must still require a reason');
+  assert(!operator.includes("name==='drive-ops'&&body.action==='edit_drive'"),'operator support must not monkey-patch drive edits');
+  assert(driveRpc.includes('drive-admin-reason'),'admin drive edit must expose a visible reason field');
+  assert(driveRpc.includes('Administrator edit reason is required.'),'admin drive edit must validate the reason locally');
+  assert(driveRpc.includes("...(reason?{reason}:{})"),'admin drive edit must send the reason explicitly');
+  assert(driveRpc.includes('Modify ${driver?.display_name'),'admin drive edit must still require confirmation');
   assert(operator.includes('Recompute progress'),'operator repair control must remain available');
   assert(operator.includes('app.selectDriver'),'operator search must select through the dashboard API');
   assert(!operator.includes('operatorBubble'),'operator support must not locate its host by page-wide text search');
