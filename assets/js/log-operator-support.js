@@ -1,8 +1,10 @@
 (() => {
+  if (window.__DV_OPERATOR_SUPPORT_INIT) return;
+  window.__DV_OPERATOR_SUPPORT_INIT = true;
   const app=window.DV_LOG_APP;
   if(!app?.client)return;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let model=null,lastDetailDriveId='';
+  let model=null;
 
   function accessMode(driverId){return (model?.driver_access||[]).find(x=>x.driver_id===driverId)?.mode||'VIEW'}
   function searchText(driver){const contact=(model?.operator_contacts||[]).find(x=>x.driver_id===driver.id)||{};return [driver.display_name,driver.id,driver.person_id,contact.driver?.name,contact.driver?.email,contact.driver?.mobile,contact.grown_up?.name,contact.grown_up?.email,contact.grown_up?.mobile,contact.grown_up?.id,contact.grown_up?.uuid].filter(Boolean).join(' ').toLowerCase()}
@@ -18,15 +20,11 @@
   }
   function filterDrivers(value){const select=document.getElementById('driver-select');if(!select||!model)return;const q=String(value||'').trim().toLowerCase(),current=app.getDriverId?.(),matches=(model.drivers||[]).filter(d=>!q||searchText(d).includes(q));select.innerHTML=matches.map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}</option>`).join('');if(matches.some(d=>d.id===current))select.value=current;else if(matches.length===1){select.value=matches[0].id;select.dispatchEvent(new Event('change',{bubbles:true}))}const status=document.getElementById('operator-driver-search-status');if(status)status.textContent=q?`${matches.length} match${matches.length===1?'':'es'}`:''}
   async function recomputeProgress(){const driverId=app.getDriverId?.(),driver=(model?.drivers||[]).find(d=>d.id===driverId);if(!driverId)return;const reason=window.prompt(`Recompute ${driver?.display_name||'this driver'}’s progress. Enter a reason:`);if(!reason?.trim())return;if(!window.confirm(`Recompute progress for ${driver?.display_name||'this driver'}?\n\nReason: ${reason.trim()}`))return;const status=document.getElementById('operator-driver-search-status');if(status)status.textContent='Recomputing…';const {data,error}=await originalInvoke('operator-repair',{body:{action:'recompute_progress',driver_id:driverId,reason:reason.trim()}});if(error||!data?.ok){if(status)status.textContent=data?.error||error?.message||'Repair failed';return}try{await app.refreshDashboard?.()}catch(_){}if(status)status.textContent='Progress recomputed.'}
-  function ensureAdminDriveEdit(){const driverId=app.getDriverId?.(),content=document.querySelector('.drive-detail-content');if(!model?.is_operator||!driverId||accessMode(driverId)!=='VIEW'||!lastDetailDriveId||!content)return;if(content.querySelector('.drive-detail-loading,.drive-detail-error'))return;const existing=content.querySelector('[data-edit-drive]');if(existing){if(existing.textContent!=='Admin edit this drive')existing.textContent='Admin edit this drive';if(existing.getAttribute('aria-label')!=='Admin edit this drive')existing.setAttribute('aria-label','Admin edit this drive');return}let actions=content.querySelector('.drive-detail-actions');if(!actions){actions=document.createElement('div');actions.className='drive-detail-actions';content.appendChild(actions)}const button=document.createElement('button');button.type='button';button.className='button subtle-button button-small drive-detail-edit';button.dataset.editDrive=lastDetailDriveId;button.textContent='Admin edit this drive';button.setAttribute('aria-label','Admin edit this drive');actions.appendChild(button)}
-
-  document.addEventListener('click',e=>{const detail=e.target.closest?.('[data-drive-detail-id]');if(detail){lastDetailDriveId=detail.dataset.driveDetailId||'';setTimeout(ensureAdminDriveEdit,0)}} ,true);
-  const detailObserver=new MutationObserver(()=>ensureAdminDriveEdit());detailObserver.observe(document.body,{subtree:true,childList:true});
 
   const originalInvoke=app.client.functions.invoke.bind(app.client.functions);
   app.client.functions.invoke=async(name,options={})=>{const body=options?.body||{};if(name==='drive-ops'&&body.action==='edit_drive'&&model?.is_operator&&accessMode(body.driver_id)==='VIEW'){const reason=window.prompt('Administrator edit: enter a brief reason for this change.');if(!reason?.trim())return {data:{ok:false,error:'Administrator edit cancelled: a reason is required.'},error:null};const driver=(model.drivers||[]).find(d=>d.id===body.driver_id);if(!window.confirm(`Modify ${driver?.display_name||'this driver'}’s drive as an administrator?\n\nReason: ${reason.trim()}`))return {data:{ok:false,error:'Administrator edit cancelled.'},error:null};options={...options,body:{...body,reason:reason.trim()}}}return originalInvoke(name,options)};
 
-  const activate=nextModel=>{model=nextModel||app.getModel?.();if(model?.is_operator){ensureSearch();ensureAdminDriveEdit()}};
+  const activate=nextModel=>{model=nextModel||app.getModel?.();if(model?.is_operator)ensureSearch()};
   window.addEventListener('dv:dashboard-rendered',e=>activate(e.detail?.model));
   activate();
 })();
