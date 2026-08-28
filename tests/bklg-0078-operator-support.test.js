@@ -9,3 +9,15 @@ assert(operator.includes('reason'));
 assert(detail.includes('Administrator modification'));
 assert(detail.includes('Edit history'));
 console.log('BKLG-0078 operator support smoke test passed');
+
+const game=fs.readFileSync('log/game/index.html','utf8');
+const classic=fs.readFileSync('log/index.html','utf8');
+const config=fs.readFileSync('log/config.js','utf8');
+const header=fs.readFileSync('assets/js/canonical-header.js','utf8');
+const operatorScript=/log-operator-support\.js/g;
+assert.strictEqual((game.match(operatorScript)||[]).length,1,'game console must load operator support exactly once');
+assert.strictEqual((classic.match(operatorScript)||[]).length,1,'classic console must load operator support exactly once');
+assert(game.includes('data-dv-operator-support="true"'),'game operator script must be explicitly marked');
+assert(classic.includes('data-dv-operator-support="true"'),'classic operator script must be explicitly marked');
+assert(!config.includes('log-operator-support.js'),'config must not dynamically inject operator support');
+assert(!header.includes('log-operator-support.js'),'canonical header must not dynamically inject operator support');
