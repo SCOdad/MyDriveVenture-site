@@ -1,2 +1,2 @@
 // Public configuration only. No secrets belong in browser JavaScript.
-window.DV_OPERATOR_BACKLOG_ENDPOINT='https://cayoyqwrmouxuttloemc.supabase.co/functions/v1/operator-backlog';
+window.DV_OPERATOR_BACKLOG_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-backlog');

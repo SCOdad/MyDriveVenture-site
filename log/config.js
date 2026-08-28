@@ -1,8 +1,9 @@
-// Public browser configuration. Supabase publishable keys are designed for client-side use with RLS.
-window.DV_APP_CONFIG = {
-  supabaseUrl: 'https://cayoyqwrmouxuttloemc.supabase.co',
-  publishableKey: 'sb_publishable_7RzACdnPmj_QiYSqzJRlfw_YaXyMws6',
-};
+// Public browser configuration. Environment selection is host-pinned.
+if (!window.DV_ENVIRONMENT_CONFIG) throw new Error('Drive Venture environment configuration was not loaded');
+window.DV_APP_CONFIG = Object.freeze({
+  supabaseUrl: window.DV_ENVIRONMENT_CONFIG.supabaseUrl,
+  publishableKey: window.DV_ENVIRONMENT_CONFIG.publishableKey,
+});
 
 // BKLG-0081: accept the onboarding handoff email, prefill the shared login
 // form used by both skins, then remove the email from the visible URL so it is
