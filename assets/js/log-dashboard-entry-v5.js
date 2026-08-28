@@ -102,8 +102,10 @@
       data=result?.data??null;error=result?.error??null;
     }catch(err){error=err}
     const statusValue=!error&&data?.ok?data:null;
-    licenseStatusCache.set(driverId,statusValue);
-    model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
+    if(statusValue){
+      licenseStatusCache.set(driverId,statusValue);
+      model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
+    }
     return statusValue;
   }
 
