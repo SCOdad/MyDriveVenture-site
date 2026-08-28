@@ -7,7 +7,7 @@
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let model=null;
 
-  function accessMode(driverId){return app.getAccessMode?.(driverId)||(model?.driver_access||[]).find(x=>x.driver_id===driverId)?.mode||'MANAGE'}
+  function accessMode(driverId){return app.getAccessMode?.(driverId)||(model?.driver_access||[]).find(x=>x.driver_id===driverId)?.mode||(model?.is_operator===true?'VIEW':'MANAGE')}
   function searchText(driver){const contact=(model?.operator_contacts||[]).find(x=>x.driver_id===driver.id)||{};return [driver.display_name,driver.id,driver.person_id,contact.driver?.name,contact.driver?.email,contact.driver?.mobile,contact.grown_up?.name,contact.grown_up?.email,contact.grown_up?.mobile,contact.grown_up?.id,contact.grown_up?.uuid].filter(Boolean).join(' ').toLowerCase()}
 
   function ensureStyle(){
