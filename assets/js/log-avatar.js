@@ -103,11 +103,12 @@
     const access=getAccess(detail),model=detail?.model||{},isOperator=model.is_operator===true;
     const badge=ensureAccessBadge(),panel=ensureOperatorConsole(),details=document.getElementById('operator-console-details'),title=document.getElementById('operator-console-title');
     if(!access){
-      if(badge){badge.textContent='';badge.className='dv-access-badge';}
+      const readOnly=isOperator;
+      if(badge){badge.textContent=readOnly?'View only':'';badge.className=`dv-access-badge${readOnly?' view':''}`;}
       if(details)details.innerHTML='';
-      if(title)title.textContent=isOperator?'Operator tools':'Operator View · Read Only';
+      if(title)title.textContent=readOnly?'Operator View · Read Only':'Operator tools';
       if(panel)panel.className=isOperator?'dv-operator-console operator':'dv-operator-console';
-      applyReadOnlyControls(false,isOperator);
+      applyReadOnlyControls(readOnly,isOperator);
       return;
     }
     const readOnly=access.mode==='VIEW';
