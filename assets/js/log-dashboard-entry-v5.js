@@ -69,12 +69,12 @@
     const dashXp=document.getElementById('dash-xp');if(dashXp)dashXp.textContent=String(progress.xp||0);
     const stage=document.getElementById('license-stage');if(stage)stage.textContent=license?.current_stage_display||driver.license_stage||'—';
     const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent=license?.stage_start_date||driver.level1_license_date||'—';
-    const ageGate=document.getElementById('age-gate');if(ageGate)ageGate.textContent=license?.next_stage_display?`${license.next_stage_display}${license.next_milestone_date?` · ${license.next_milestone_date}`:''}`:'All time milestones reached';
+    const ageGate=document.getElementById('age-gate');if(ageGate)ageGate.textContent=license?(license.next_stage_display?`${license.next_stage_display}${license.next_milestone_date?` · ${license.next_milestone_date}`:''}`:'All time milestones reached'):'Loading…';
     const lh=document.getElementById('license-hours');if(lh)lh.textContent=`${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
 
     const dash=document.querySelector('.dashboard-console');
-    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license?.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'}
+    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'
 
     const vehicles=activeVehicles(),vehicleList=document.getElementById('vehicle-list');
     if(vehicleList)vehicleList.innerHTML=vehicles.length?vehicles.map(vehicleMarkup).join(''):'<li class="empty-state">No active vehicles yet.</li>';
@@ -88,6 +88,24 @@
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
 
     window.dispatchEvent(new CustomEvent('dv:dashboard-rendered',{detail:{model,driverId:currentDriverId,driver,progress,license,generation}}));
+  }
+
+  function renderLicenseOnly(generation=renderGeneration){
+    if(generation!==renderGeneration)return;
+    const driver=currentDriver();if(!driver)return;
+    const progress=currentProgress(),license=currentLicenseStatus();if(!license)return;
+    const practiceTarget=requirement('MinimumPracticeHours',50),nightTarget=requirement('MinimumNightHours',10);
+    const stage=document.getElementById('license-stage');if(stage)stage.textContent=license.current_stage_display||driver.license_stage||'—';
+    const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent=license.stage_start_date||driver.level1_license_date||'—';
+    const ageGate=document.getElementById('age-gate');
+    if(ageGate){
+      if(document.querySelector('.dashboard-console')&&license.days_until_age_eligible!=null)ageGate.textContent=license.days_until_age_eligible===0?'AGE ELIGIBLE':`${license.days_until_age_eligible} DAYS`;
+      else ageGate.textContent=license.next_stage_display?`${license.next_stage_display}${license.next_milestone_date?` · ${license.next_milestone_date}`:''}`:'All time milestones reached';
+    }
+    const lh=document.getElementById('license-hours');if(lh)lh.textContent=`${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
+    const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
+    const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE';
+    window.dispatchEvent(new CustomEvent('dv:license-status-updated',{detail:{model,driverId:currentDriverId,driver,progress,license,generation}}));
   }
 
   async function ensureLicenseStatus(driverId){
@@ -124,9 +142,13 @@
     if(persist){try{localStorage.setItem('dv.log.driver',currentDriverId)}catch(_){}}
     window.dispatchEvent(new CustomEvent('dv:driver-changing',{detail:{driverId:nextDriverId,previousDriverId,generation}}));
     resetDriverPresentation();
-    await ensureLicenseStatus(nextDriverId);
-    if(generation!==renderGeneration||currentDriverId!==nextDriverId)return false;
+    const hasLicense=!!currentLicenseStatus();
     render(generation);
+    if(hasLicense)return true;
+    ensureLicenseStatus(nextDriverId).then(()=>{
+      if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
+      renderLicenseOnly(generation);
+    }).catch(()=>{});
     return true;
   }
 
