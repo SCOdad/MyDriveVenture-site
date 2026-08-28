@@ -144,7 +144,7 @@
     }
   }
 
-  window.addEventListener('dv:driver-changing',clearAvatar);
+  window.addEventListener('dv:driver-changing',event=>{clearAvatar();const model=window.DV_LOG_APP?.getModel?.()||{},driverId=event.detail?.driverId,driver=(model.drivers||[]).find(d=>d.id===driverId);lastDashboardDetail={model,driverId,driver};applyOperatorView(lastDashboardDetail)});
   window.addEventListener('dv:drive-edit-mode',()=>applyOperatorView(lastDashboardDetail));
   window.addEventListener('dv:dashboard-rendered',event=>{
     applyOperatorView(event.detail);
