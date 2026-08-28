@@ -161,7 +161,7 @@
   };
 
   if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20260824-6';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20260827-2150';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
+  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20260827-0078-stable1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
 
   loginForm.addEventListener('submit',async e=>{e.preventDefault();status(loginStatus,'Sending sign-in link…');const email=loginEmail.value.trim();if(!email)return;const{error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}${document.documentElement.dataset.experience==='game'?'/log/game/':'/log/'}`,shouldCreateUser:false}});if(error){if(isUnregisteredOtpError(error))joinPrompt();else status(loginStatus,'We could not send a sign-in link right now. Please try again.','error')}else status(loginStatus,'Check your email for a secure sign-in link.','success')});
   signOut?.addEventListener('click',async()=>{accessReady=false;await client.auth.signOut();syncAuthUi(false);appMain.classList.add('app-hidden');loginCard.classList.remove('app-hidden');status(loginStatus,'Signed out.')});
