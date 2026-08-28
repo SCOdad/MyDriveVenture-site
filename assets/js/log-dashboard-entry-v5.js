@@ -93,7 +93,14 @@
     if(licenseStatusCache.has(driverId))return licenseStatusCache.get(driverId);
     const existing=model.license_statuses?.find(s=>s.driver_id===driverId)?.status;
     if(existing){licenseStatusCache.set(driverId,existing);return existing}
-    const {data,error}=await client.rpc('get_authenticated_driver_status_v1',{p_driver_id:driverId});
+    let data=null,error=null;
+    try{
+      const result=await Promise.race([
+        client.rpc('get_authenticated_driver_status_v1',{p_driver_id:driverId}),
+        new Promise(resolve=>setTimeout(()=>resolve({data:null,error:{message:'Driver status timed out'}}),5000))
+      ]);
+      data=result?.data??null;error=result?.error??null;
+    }catch(err){error=err}
     const statusValue=!error&&data?.ok?data:null;
     licenseStatusCache.set(driverId,statusValue);
     model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
