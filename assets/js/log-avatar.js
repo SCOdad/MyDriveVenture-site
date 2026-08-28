@@ -1,6 +1,6 @@
 (() => {
   const style = document.createElement('style');
-  style.textContent = `.dv-driver-identity{display:flex;align-items:center;gap:14px}.dv-driver-avatar{width:76px;height:76px;object-fit:cover;border:3px solid var(--dv-yellow,#f8ba20);background:#111;border-radius:8px;box-shadow:3px 3px 0 #050707}.dv-avatar-new{display:inline-block;margin-top:6px;padding:4px 7px;background:var(--dv-yellow,#f8ba20);color:#101416;font:800 10px/1.1 Orbitron,Arial,sans-serif;letter-spacing:.06em}.dv-avatar-hidden{display:none!important}.dv-access-badge{display:inline-flex;align-items:center;min-height:30px;padding:5px 9px;border:1px solid currentColor;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}.dv-access-badge.view{opacity:.82}.dv-readonly-control:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.35)}.dv-operator-console{display:none;margin:0 0 22px;padding:14px 18px;border:1px solid #425158;background:#101719;color:#dfe8e8;font-size:12px;line-height:1.55}.dv-operator-console.view{display:block}.dv-operator-console-title{margin:0 0 8px;color:var(--dv-yellow,#f8ba20);font:800 12px/1.2 Orbitron,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}.dv-operator-row{overflow-wrap:anywhere}.dv-operator-row b{color:#fff}.dv-operator-uuid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}@media(max-width:760px){.dv-driver-avatar{width:62px;height:62px}.dv-access-badge{white-space:normal}.dv-operator-console{padding:12px}}`;
+  style.textContent = `.dv-driver-identity{display:flex;align-items:center;gap:14px}.dv-driver-avatar{width:76px;height:76px;object-fit:cover;border:3px solid var(--dv-yellow,#f8ba20);background:#111;border-radius:8px;box-shadow:3px 3px 0 #050707}.dv-avatar-new{display:inline-block;margin-top:6px;padding:4px 7px;background:var(--dv-yellow,#f8ba20);color:#101416;font:800 10px/1.1 Orbitron,Arial,sans-serif;letter-spacing:.06em}.dv-avatar-hidden{display:none!important}.dv-access-badge{display:inline-flex;align-items:center;min-height:30px;padding:5px 9px;border:1px solid currentColor;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}.dv-access-badge.view{opacity:.82}.dv-readonly-control:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.35)}.dv-operator-console{display:none;margin:0 0 22px;padding:14px 18px;border:1px solid #425158;background:#101719;color:#dfe8e8;font-size:12px;line-height:1.55}.dv-operator-console.operator{display:block}.dv-operator-console-title{margin:0 0 8px;color:var(--dv-yellow,#f8ba20);font:800 12px/1.2 Orbitron,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}.dv-operator-row{overflow-wrap:anywhere}.dv-operator-row b{color:#fff}.dv-operator-uuid{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}@media(max-width:760px){.dv-driver-avatar{width:62px;height:62px}.dv-access-badge{white-space:normal}.dv-operator-console{padding:12px}}`;
   document.head.appendChild(style);
 
   const cache = new Map();
@@ -56,7 +56,7 @@
       panel.id='operator-console';
       panel.className='dv-operator-console';
       panel.setAttribute('aria-label','Operator console');
-      panel.innerHTML='<div class="dv-operator-console-title">Operator View · Read Only</div><div id="operator-console-details"></div><div id="operator-support-host"></div>';
+      panel.innerHTML='<div id="operator-console-title" class="dv-operator-console-title">Operator tools</div><div id="operator-console-details"></div><div id="operator-support-host"></div>';
       topline.parentElement.insertBefore(panel,topline);
     }
     return panel;
@@ -101,24 +101,26 @@
     detail=lastDashboardDetail;
     if(!detail)return;
     const access=getAccess(detail),model=detail?.model||{},isOperator=model.is_operator===true;
-    const badge=ensureAccessBadge(),panel=ensureOperatorConsole(),details=document.getElementById('operator-console-details');
+    const badge=ensureAccessBadge(),panel=ensureOperatorConsole(),details=document.getElementById('operator-console-details'),title=document.getElementById('operator-console-title');
     if(!access){
       if(badge){badge.textContent='';badge.className='dv-access-badge';}
       if(details)details.innerHTML='';
-      if(panel)panel.className='dv-operator-console';
+      if(title)title.textContent=isOperator?'Operator tools':'Operator View · Read Only';
+      if(panel)panel.className=isOperator?'dv-operator-console operator':'dv-operator-console';
       applyReadOnlyControls(false,isOperator);
       return;
     }
     const readOnly=access.mode==='VIEW';
     applyReadOnlyControls(readOnly,isOperator);
     if(badge){badge.textContent=readOnly?'View only':'Family access';badge.className=`dv-access-badge${readOnly?' view':''}`;}
+    if(title)title.textContent=readOnly?'Operator View · Read Only':'Operator tools · Family access';
     if(details){
       if(readOnly){
         const contact=getContact(detail);
         details.innerHTML=`${operatorRow('Grown-Up',contact?.grown_up,true)}${operatorRow('Driver',{...(contact?.driver||{}),id:detail?.driverId},false)}`;
       }else details.innerHTML='';
     }
-    if(panel)panel.className=readOnly&&isOperator?'dv-operator-console view':'dv-operator-console';
+    if(panel)panel.className=isOperator?'dv-operator-console operator':'dv-operator-console';
   }
 
   async function renderAvatar(detail){
