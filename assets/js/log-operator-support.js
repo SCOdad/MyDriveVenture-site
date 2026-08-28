@@ -65,6 +65,7 @@
     if(error||!data?.ok){if(status)status.textContent=data?.error||error?.message||'Repair failed';return}
     if(app.getDriverId?.()!==driverId||generation!==app.getRenderGeneration?.())return;
     try{await app.refreshDashboard?.()}catch(_){}
+    if(app.getDriverId?.()!==driverId)return;
     if(status)status.textContent='Progress recomputed.';
   }
 
