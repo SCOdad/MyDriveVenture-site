@@ -4,6 +4,21 @@ const assert=require('assert');
 
 function source(path){return fs.readFileSync(path,'utf8')}
 
+
+function syntaxChecks(){
+  [
+    'assets/js/log-dashboard-entry-v5.js',
+    'assets/js/log-avatar.js',
+    'assets/js/log-operator-support.js',
+    'assets/js/log-drive-rpc.js',
+    'assets/js/log-drive-detail-v4.js',
+    'assets/js/log-prepilot-v2.js',
+    'assets/js/log-shared-actions.js',
+    'assets/js/log-game-polish.js',
+    'assets/js/canonical-header.js'
+  ].forEach(path=>assert.doesNotThrow(()=>new vm.Script(source(path),{filename:path}),path+' must parse'));
+}
+
 function architectureChecks(){
   const operator=source('assets/js/log-operator-support.js');
   const detail=source('assets/js/log-drive-detail-v4.js');
@@ -201,6 +216,7 @@ async function lifecycleChecks(){
 }
 
 (async()=>{
+  syntaxChecks();
   architectureChecks();
   await lifecycleChecks();
   console.log('BKLG-0078 operator support and driver lifecycle regression tests passed');

@@ -75,7 +75,7 @@
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
 
     const dash=document.querySelector('.dashboard-console');
-    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'
+    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'}
 
     const vehicles=activeVehicles(),vehicleList=document.getElementById('vehicle-list');
     if(vehicleList)vehicleList.innerHTML=vehicles.length?vehicles.map(vehicleMarkup).join(''):'<li class="empty-state">No active vehicles yet.</li>';
