@@ -21,5 +21,5 @@
  document.addEventListener('pointerup',e=>{const t=e.target.closest('.quest-help-target');if(!t)return;if(matchMedia('(hover:none)').matches||matchMedia('(pointer:coarse)').matches||innerWidth<=760){e.preventDefault();openInlineHelp(t)}});
  document.addEventListener('keydown',e=>{if(!['Enter',' '].includes(e.key))return;const t=e.target.closest?.('.quest-help-target');if(!t)return;e.preventDefault();openInlineHelp(t)});
  window.addEventListener('dv:driver-changing',()=>{archiveToken+=1;token+=1});
- window.addEventListener('dv:dashboard-rendered',e=>{const{model,driverId,license}=e.detail||{};if(!model||!driverId)return;annotate(model,driverId);garageControls();archived(driverId);mission(driverId);cockpitStatus(license)});
+ window.addEventListener('dv:dashboard-rendered',e=>{const{model,driverId}=e.detail||{};if(!model||!driverId)return;annotate(model,driverId);garageControls();archived(driverId);mission(driverId)});
 })();
