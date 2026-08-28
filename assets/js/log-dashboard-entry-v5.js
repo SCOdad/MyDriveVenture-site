@@ -25,6 +25,7 @@
   let accessInFlight=null;
   let accessReady=false;
   let renderGeneration=0;
+  let modelEpoch=0;
   const licenseStatusCache=new Map();
   const licenseStatusInFlight=new Map();
 
@@ -113,6 +114,7 @@
     const existing=model.license_statuses?.find(s=>s.driver_id===driverId)?.status;
     if(existing){licenseStatusCache.set(driverId,existing);return existing}
     if(licenseStatusInFlight.has(driverId))return licenseStatusInFlight.get(driverId);
+    const epoch=modelEpoch;
     const request=(async()=>{
       let data=null,error=null;
       try{
@@ -123,7 +125,7 @@
         data=result?.data??null;error=result?.error??null;
       }catch(err){error=err}
       const statusValue=!error&&data?.ok?data:null;
-      if(statusValue){
+      if(statusValue&&epoch===modelEpoch){
         licenseStatusCache.set(driverId,statusValue);
         model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
       }
@@ -159,6 +161,7 @@
     if(error)throw new Error(`Dashboard: ${error.message||'Unable to load dashboard'}`);
     if(!data||data.ok!==true)throw new Error(`Dashboard: ${data?.error||'Unable to load dashboard'}`);
     model=data;
+    modelEpoch+=1;
     model.license_statuses=[];
     licenseStatusCache.clear();
     licenseStatusInFlight.clear();
