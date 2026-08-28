@@ -1,13 +1,11 @@
 // Public configuration only. No secrets belong in browser JavaScript.
 (() => {
-  const PROD_URL='https://cayoyqwrmouxuttloemc.supabase.co';
-  const host=String(window.location.hostname||'').toLowerCase();
-  const nonProdSubdomain=/^(dev|staging|preview)\./.test(host);
-  const isProdHost=!nonProdSubdomain&&(host==='mydriveventure.com'||host.endsWith('.mydriveventure.com'));
-  const injected=window.DV_RUNTIME_CONFIG||{};
-  const base=String(injected.supabaseUrl||(isProdHost?PROD_URL:'')).replace(/\/$/,'');
-  if(!base) throw new Error('Drive Venture non-production operator environment is not configured. Refusing PROD fallback.');
-  if(!isProdHost&&base===PROD_URL) throw new Error('Non-production operator host attempted to use PROD Supabase.');
+  const PROD = 'https://cayoyqwrmouxuttloemc.supabase.co';
+  const DEV = 'https://safwylxxhywbsfxpmchd.supabase.co';
+  const host = String(window.location.hostname || '').toLowerCase();
+  const isProdHost = host === 'mydriveventure.com' || (host.endsWith('.mydriveventure.com') && !/^(dev|staging|preview)\./.test(host));
+  const base = isProdHost ? PROD : DEV;
+  if (!isProdHost && base === PROD) throw new Error('Non-production operator UI cannot target PROD.');
   window.DV_OPERATOR_BACKLOG_ENDPOINT=`${base}/functions/v1/operator-backlog`;
   window.DV_OPERATOR_FEEDBACK_ENDPOINT=`${base}/functions/v1/operator-feedback`;
   window.DV_OPERATOR_PRODUCT_SIGNALS_ENDPOINT=`${base}/functions/v1/operator-product-signals`;
