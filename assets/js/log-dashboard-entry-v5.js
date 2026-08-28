@@ -26,6 +26,7 @@
   let accessReady=false;
   let renderGeneration=0;
   const licenseStatusCache=new Map();
+  const licenseStatusInFlight=new Map();
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const hours=m=>(Number(m||0)/60).toFixed(1);
@@ -93,20 +94,25 @@
     if(licenseStatusCache.has(driverId))return licenseStatusCache.get(driverId);
     const existing=model.license_statuses?.find(s=>s.driver_id===driverId)?.status;
     if(existing){licenseStatusCache.set(driverId,existing);return existing}
-    let data=null,error=null;
-    try{
-      const result=await Promise.race([
-        client.rpc('get_authenticated_driver_status_v1',{p_driver_id:driverId}),
-        new Promise(resolve=>setTimeout(()=>resolve({data:null,error:{message:'Driver status timed out'}}),5000))
-      ]);
-      data=result?.data??null;error=result?.error??null;
-    }catch(err){error=err}
-    const statusValue=!error&&data?.ok?data:null;
-    if(statusValue){
-      licenseStatusCache.set(driverId,statusValue);
-      model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
-    }
-    return statusValue;
+    if(licenseStatusInFlight.has(driverId))return licenseStatusInFlight.get(driverId);
+    const request=(async()=>{
+      let data=null,error=null;
+      try{
+        const result=await Promise.race([
+          client.rpc('get_authenticated_driver_status_v1',{p_driver_id:driverId}),
+          new Promise(resolve=>setTimeout(()=>resolve({data:null,error:{message:'Driver status timed out'}}),5000))
+        ]);
+        data=result?.data??null;error=result?.error??null;
+      }catch(err){error=err}
+      const statusValue=!error&&data?.ok?data:null;
+      if(statusValue){
+        licenseStatusCache.set(driverId,statusValue);
+        model.license_statuses=[...(model.license_statuses||[]).filter(s=>s.driver_id!==driverId),{driver_id:driverId,status:statusValue}];
+      }
+      return statusValue;
+    })();
+    licenseStatusInFlight.set(driverId,request);
+    try{return await request}finally{if(licenseStatusInFlight.get(driverId)===request)licenseStatusInFlight.delete(driverId)}
   }
 
   async function selectDriver(nextDriverId,{persist=true}={}){
@@ -133,6 +139,7 @@
     model=data;
     model.license_statuses=[];
     licenseStatusCache.clear();
+    licenseStatusInFlight.clear();
     if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId)){let savedDriverId='';try{savedDriverId=localStorage.getItem('dv.log.driver')||''}catch(_){}currentDriverId=model.drivers.some(d=>d.id===savedDriverId)?savedDriverId:(model.drivers[0]?.id||'')}
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
