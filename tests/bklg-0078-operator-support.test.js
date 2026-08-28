@@ -24,7 +24,9 @@ function architectureChecks(){
   assert(classic.includes('data-dv-operator-support="true"'),'classic operator script must be explicitly marked');
   assert(!config.includes('log-operator-support.js'),'config must not dynamically inject operator support');
   assert(!header.includes('log-operator-support.js'),'canonical header must not dynamically inject operator support');
-  assert(!header.includes("addEventListener('dv:dashboard-rendered'"),'header must not refetch dashboard on driver render');
+  assert(header.includes("addEventListener('dv:dashboard-rendered'"),'log header should consume dashboard render state');
+  assert(header.includes('applyDashboardModel'),'log header must reuse the dashboard model instead of refetching it');
+  assert(!header.includes("dv:dashboard-rendered',()=>hydrate"),'driver render must not trigger header dashboard hydration');
 
   assert(operator.includes('operator-support-host'),'operator support must use the stable operator host');
   assert(operator.includes('app.selectDriver'),'operator search must select through the dashboard API');
@@ -160,6 +162,7 @@ async function lifecycleChecks(){
   assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'initial dashboard should load once');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage'],'initial load must fetch status only for the active driver');
   assert.strictEqual(app.getAccessMode('view'),'VIEW');
+  assert.strictEqual(app.getAccessMode('missing'),'VIEW','operator access must fail closed to VIEW when metadata is missing');
 
   const initialGeneration=app.getRenderGeneration();
   await app.selectDriver('view');
