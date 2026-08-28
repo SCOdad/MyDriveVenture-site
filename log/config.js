@@ -2,18 +2,22 @@
 (() => {
   const PROD_URL = 'https://cayoyqwrmouxuttloemc.supabase.co';
   const PROD_KEY = 'sb_publishable_7RzACdnPmj_QiYSqzJRlfw_YaXyMws6';
+  const DEV_URL = 'https://safwylxxhywbsfxpmchd.supabase.co';
+  const DEV_KEY = 'sb_publishable_RkvQiWAFZG0RFJT5OzjRcg_rKIzLe1e';
   const host = String(window.location.hostname || '').toLowerCase();
-  const nonProdSubdomain = /^(dev|staging|preview)\./.test(host);
-  const isProdHost = !nonProdSubdomain && (host === 'mydriveventure.com' || host.endsWith('.mydriveventure.com'));
+  const isProdHost = host === 'mydriveventure.com' || host.endsWith('.mydriveventure.com') && !/^(dev|staging|preview)\./.test(host);
   const injected = window.DV_RUNTIME_CONFIG || {};
-  const supabaseUrl = String(injected.supabaseUrl || (isProdHost ? PROD_URL : '')).trim();
-  const publishableKey = String(injected.publishableKey || (isProdHost ? PROD_KEY : '')).trim();
+  const supabaseUrl = String(injected.supabaseUrl || (isProdHost ? PROD_URL : DEV_URL)).trim();
+  const publishableKey = String(injected.publishableKey || (isProdHost ? PROD_KEY : DEV_KEY)).trim();
 
   if (!supabaseUrl || !publishableKey) {
-    throw new Error('Drive Venture non-production browser environment is not configured. Refusing to fall back to PROD.');
+    throw new Error('Drive Venture browser environment is not configured.');
   }
   if (!isProdHost && supabaseUrl === PROD_URL) {
     throw new Error('Drive Venture non-production host attempted to use the PROD Supabase project.');
+  }
+  if (isProdHost && supabaseUrl !== PROD_URL) {
+    throw new Error('Drive Venture production host attempted to use a non-production Supabase project.');
   }
 
   window.DV_APP_CONFIG = { supabaseUrl, publishableKey };
@@ -34,4 +38,3 @@
   const next = `${url.pathname}${url.search}${url.hash}`;
   window.history.replaceState({}, '', next);
 })();
-
