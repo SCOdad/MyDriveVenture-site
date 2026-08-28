@@ -20,12 +20,3 @@ window.DV_APP_CONFIG = {
   window.history.replaceState({}, '', next);
 })();
 
-// BKLG-0078: layer operator-only search and bounded repair UX over the
-// existing shared driver dashboard after its normal scripts are ready.
-window.addEventListener('load', () => {
-  if (document.querySelector('script[data-dv-operator-support]')) return;
-  const script = document.createElement('script');
-  script.src = '/assets/js/log-operator-support.js?v=20260827-0078';
-  script.dataset.dvOperatorSupport = 'true';
-  document.body.appendChild(script);
-});
