@@ -5,6 +5,8 @@
 
   const cache = new Map();
   let renderToken = 0;
+  let lastDashboardDetail = null;
+
   function ensureUi() {
     const heading = document.getElementById('driver-heading');
     if (!heading || document.getElementById('driver-avatar')) return;
@@ -49,7 +51,14 @@
     const heading=document.getElementById('driver-heading'); if(!heading) return null;
     const topline=heading.closest('.app-topline'); if(!topline) return null;
     let panel=document.getElementById('operator-console');
-    if(!panel){ panel=document.createElement('section'); panel.id='operator-console'; panel.className='dv-operator-console'; panel.setAttribute('aria-label','Operator console'); topline.parentElement.insertBefore(panel,topline); }
+    if(!panel){
+      panel=document.createElement('section');
+      panel.id='operator-console';
+      panel.className='dv-operator-console';
+      panel.setAttribute('aria-label','Operator console');
+      panel.innerHTML='<div class="dv-operator-console-title">Operator View · Read Only</div><div id="operator-console-details"></div><div id="operator-support-host"></div>';
+      topline.parentElement.insertBefore(panel,topline);
+    }
     return panel;
   }
 
@@ -62,27 +71,83 @@
     return `<div class="dv-operator-row"><b>${label}:</b> ${bits.join(' / ')}</div>`;
   }
 
-  function setDisabled(control,disabled){ if(!control)return; control.disabled=disabled; control.classList.toggle('dv-readonly-control',disabled); if(disabled)control.setAttribute('aria-disabled','true');else control.removeAttribute('aria-disabled'); }
-  function applyReadOnlyControls(readOnly){
-    const driveForm=document.getElementById('drive-form'); if(driveForm){ driveForm.hidden=false; driveForm.closest('.app-card')?.removeAttribute('hidden'); driveForm.querySelectorAll('input,textarea,button').forEach(c=>setDisabled(c,readOnly)); setDisabled(document.getElementById('drive-vehicle'),false); }
-    const vehicleForm=document.getElementById('vehicle-form'); if(vehicleForm){ vehicleForm.hidden=false; const heading=vehicleForm.previousElementSibling;if(heading&&heading.tagName==='H3')heading.hidden=false; vehicleForm.querySelectorAll('input,select,textarea,button').forEach(c=>setDisabled(c,readOnly)); }
-    document.querySelectorAll('[data-archive-vehicle],[data-primary-vehicle],[data-edit-drive],[data-save-drive-edit],[data-cancel-drive-edit]').forEach(b=>{b.hidden=false;setDisabled(b,readOnly)});
+  function setDisabled(control,disabled){
+    if(!control)return;
+    control.disabled=disabled;
+    control.classList.toggle('dv-readonly-control',disabled);
+    if(disabled)control.setAttribute('aria-disabled','true');else control.removeAttribute('aria-disabled');
   }
 
-  function sortDriverOptions(model,select){ if(!select)return; const accessByDriver=new Map((model.driver_access||[]).map(a=>[a.driver_id,a]));const driverById=new Map((model.drivers||[]).map(d=>[d.id,d]));const selected=select.value;const options=Array.from(select.options);options.sort((a,b)=>{const aa=accessByDriver.get(a.value)?.mode==='VIEW'?1:0;const bb=accessByDriver.get(b.value)?.mode==='VIEW'?1:0;if(aa!==bb)return aa-bb;return (driverById.get(a.value)?.display_name||'Driver').localeCompare(driverById.get(b.value)?.display_name||'Driver',undefined,{sensitivity:'base'})});options.forEach(o=>{const d=driverById.get(o.value),a=accessByDriver.get(o.value);if(d)o.textContent=`${d.display_name||'Driver'}${a?.mode==='VIEW'?' · View only':''}`;select.appendChild(o)});if(options.some(o=>o.value===selected))select.value=selected; }
+  function applyReadOnlyControls(readOnly,isOperator){
+    const driveForm=document.getElementById('drive-form');
+    if(driveForm){
+      driveForm.hidden=false;
+      driveForm.closest('.app-card')?.removeAttribute('hidden');
+      const allowAdminEdit=readOnly&&isOperator&&!!driveForm.dataset.editDrive;
+      driveForm.querySelectorAll('input,select,textarea,button').forEach(c=>setDisabled(c,readOnly&&!allowAdminEdit));
+    }
+    const vehicleForm=document.getElementById('vehicle-form');
+    if(vehicleForm){
+      vehicleForm.hidden=false;
+      const heading=vehicleForm.previousElementSibling;if(heading&&heading.tagName==='H3')heading.hidden=false;
+      vehicleForm.querySelectorAll('input,select,textarea,button').forEach(c=>setDisabled(c,readOnly));
+    }
+    document.querySelectorAll('[data-archive-vehicle],[data-primary-vehicle],[data-save-drive-edit]').forEach(b=>{b.hidden=false;setDisabled(b,readOnly)});
+    document.querySelectorAll('[data-edit-drive]').forEach(b=>{b.hidden=false;setDisabled(b,readOnly&&!isOperator)});
+  }
 
   function applyOperatorView(detail){
-    const access=getAccess(detail);const badge=ensureAccessBadge(),panel=ensureOperatorConsole();
-    if(!access){if(badge){badge.textContent='';badge.className='dv-access-badge';}if(panel){panel.innerHTML='';panel.className='dv-operator-console';}applyReadOnlyControls(false);return;}
-    const readOnly=access.mode==='VIEW';applyReadOnlyControls(readOnly);const model=detail?.model||{};sortDriverOptions(model,document.getElementById('driver-select'));
+    lastDashboardDetail=detail||lastDashboardDetail;
+    detail=lastDashboardDetail;
+    if(!detail)return;
+    const access=getAccess(detail),model=detail?.model||{},isOperator=model.is_operator===true;
+    const badge=ensureAccessBadge(),panel=ensureOperatorConsole(),details=document.getElementById('operator-console-details');
+    if(!access){
+      if(badge){badge.textContent='';badge.className='dv-access-badge';}
+      if(details)details.innerHTML='';
+      if(panel)panel.className='dv-operator-console';
+      applyReadOnlyControls(false,isOperator);
+      return;
+    }
+    const readOnly=access.mode==='VIEW';
+    applyReadOnlyControls(readOnly,isOperator);
     if(badge){badge.textContent=readOnly?'View only':'Family access';badge.className=`dv-access-badge${readOnly?' view':''}`;}
-    if(panel){if(readOnly){const contact=getContact(detail);panel.innerHTML=`<div class="dv-operator-console-title">Operator View · Read Only</div>${operatorRow('Grown-Up',contact?.grown_up,true)}${operatorRow('Driver',{...(contact?.driver||{}),id:detail?.driverId},false)}`;panel.className='dv-operator-console view';}else{panel.innerHTML='';panel.className='dv-operator-console';}}
+    if(details){
+      if(readOnly){
+        const contact=getContact(detail);
+        details.innerHTML=`${operatorRow('Grown-Up',contact?.grown_up,true)}${operatorRow('Driver',{...(contact?.driver||{}),id:detail?.driverId},false)}`;
+      }else details.innerHTML='';
+    }
+    if(panel)panel.className=readOnly&&isOperator?'dv-operator-console view':'dv-operator-console';
   }
 
   async function renderAvatar(detail){
-    const mine=++renderToken;ensureUi();const image=document.getElementById('driver-avatar');const badge=document.getElementById('driver-avatar-new');if(!image||!badge)return;image.classList.add('dv-avatar-hidden');badge.classList.add('dv-avatar-hidden');image.removeAttribute('src');image.alt='';const model=detail?.model||{};const driverId=detail?.driverId;const access=getAccess(detail);const assignment=(model.avatar_assignments||[]).find(a=>a.driver_id===driverId);if(!assignment)return;const app=window.DV_LOG_APP;const client=app?.client;if(!client)return;let url=cache.get(assignment.id);if(!url){const{data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(assignment.storage_path,3600);if(error||!data?.signedUrl){console.error('Unable to resolve driver avatar',error);return}url=data.signedUrl;cache.set(assignment.id,url)}if(mine!==renderToken||app.getDriverId()!==driverId)return;image.src=url;image.alt=`${detail?.driver?.display_name||'Driver'} custom avatar`;image.classList.remove('dv-avatar-hidden');if(!assignment.first_viewed_at&&access?.mode!=='VIEW'){badge.classList.remove('dv-avatar-hidden');try{const{error}=await client.rpc('mark_avatar_first_viewed_v1',{p_assignment_id:assignment.id});if(error)console.error('Unable to mark avatar first viewed',error);else assignment.first_viewed_at=new Date().toISOString()}catch(error){console.error('Unable to mark avatar first viewed',error)}}
+    const mine=++renderToken;
+    ensureUi();
+    const image=document.getElementById('driver-avatar'),badge=document.getElementById('driver-avatar-new');
+    if(!image||!badge)return;
+    image.classList.add('dv-avatar-hidden');badge.classList.add('dv-avatar-hidden');image.removeAttribute('src');image.alt='';
+    const model=detail?.model||{},driverId=detail?.driverId,access=getAccess(detail),assignment=(model.avatar_assignments||[]).find(a=>a.driver_id===driverId);
+    if(!assignment)return;
+    const app=window.DV_LOG_APP,client=app?.client;if(!client)return;
+    let url=cache.get(assignment.id);
+    if(!url){
+      const{data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(assignment.storage_path,3600);
+      if(error||!data?.signedUrl){console.error('Unable to resolve driver avatar',error);return}
+      url=data.signedUrl;cache.set(assignment.id,url);
+    }
+    if(mine!==renderToken||app.getDriverId()!==driverId)return;
+    image.src=url;image.alt=`${detail?.driver?.display_name||'Driver'} custom avatar`;image.classList.remove('dv-avatar-hidden');
+    if(!assignment.first_viewed_at&&access?.mode!=='VIEW'){
+      badge.classList.remove('dv-avatar-hidden');
+      try{const{error}=await client.rpc('mark_avatar_first_viewed_v1',{p_assignment_id:assignment.id});if(error)console.error('Unable to mark avatar first viewed',error);else assignment.first_viewed_at=new Date().toISOString()}catch(error){console.error('Unable to mark avatar first viewed',error)}
+    }
   }
 
   window.addEventListener('dv:driver-changing',clearAvatar);
-  window.addEventListener('dv:dashboard-rendered',event=>{applyOperatorView(event.detail);renderAvatar(event.detail).catch(error=>console.error('Avatar render failed',error));});
+  window.addEventListener('dv:drive-edit-mode',()=>applyOperatorView(lastDashboardDetail));
+  window.addEventListener('dv:dashboard-rendered',event=>{
+    applyOperatorView(event.detail);
+    renderAvatar(event.detail).catch(error=>console.error('Avatar render failed',error));
+  });
 })();
