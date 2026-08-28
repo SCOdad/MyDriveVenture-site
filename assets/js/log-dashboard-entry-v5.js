@@ -34,7 +34,7 @@
   const activeVehicles=()=>model.vehicles.filter(v=>v.driver_id===currentDriverId&&v.status!=='ARCHIVED');
   const currentDrives=()=>model.recent_drives.filter(d=>d.driver_id===currentDriverId);
   const currentAwards=()=>model.quest_awards.filter(q=>q.driver_id===currentDriverId);
-  const getAccessMode=driverId=>(model.driver_access||[]).find(a=>a.driver_id===driverId)?.mode||'MANAGE';
+  const getAccessMode=driverId=>(model.driver_access||[]).find(a=>a.driver_id===driverId)?.mode||(model.is_operator===true?'VIEW':'MANAGE');
   const currentLicenseStatus=()=>licenseStatusCache.get(currentDriverId)??model.license_statuses?.find(s=>s.driver_id===currentDriverId)?.status??null;
 
   function requirement(type,fallback){const s=currentLicenseStatus(),row=(s?.requirements||[]).find(r=>r.requirement_type===type);const n=Number(row?.value_text);return Number.isFinite(n)?n:fallback}
