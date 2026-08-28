@@ -21,17 +21,20 @@
     const rows=history.map(h=>{const who=h.actor_kind==='OPERATOR'?'Drive Venture administrator':h.actor_display_name||String(h.actor_kind||'Authorized user').toLowerCase(),changed=changedFields(h);return `<li><strong>${esc(who)}</strong> · ${esc(new Date(h.created_at).toLocaleString())}<br><small>${changed.length?`Changed: ${esc(changed.join(', '))}`:'Drive record updated'}${h.reason?` · Reason: ${esc(h.reason)}`:''}</small></li>`}).join('');
     return `${notice}<details class="drive-edit-history"><summary>Edit history (${history.length})</summary><ul>${rows}</ul></details>`;
   }
+  function isOperatorView(driverId){const model=app.getModel?.()||{};return model.is_operator===true&&(model.driver_access||[]).find(row=>row.driver_id===driverId)?.mode==='VIEW'}
 
   function render(detail) {
     const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [], history=detail.edit_history||[];
     app.detailDrives = app.detailDrives || {};
     app.detailDrives[drive.id] = drive;
     const weather = drive.weather?.conditions?.length ? drive.weather.conditions.join(', ') : null;
-    const driver = (app.getModel?.().drivers || []).find(row => row.id === drive.driver_id);
+    const model=app.getModel?.()||{};
+    const driver = (model.drivers || []).find(row => row.id === drive.driver_id);
     const zip = drive.classification_zip || driver?.home_zip;
     const home = driver?.home_city ? `Home: ${driver.home_city}${driver.home_state ? `, ${driver.home_state}` : ''}` : null;
     const locationBasis = [zip, home].filter(Boolean).join(' · ');
-    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2>${editHistoryMarkup(history)}<dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes || 'None')}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min`)}${optional('Night rule', 'v1 · Jul 2, 2026')}${optional('Location basis', locationBasis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section><div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">Edit this drive</button></div>`;
+    const editLabel=isOperatorView(drive.driver_id)?'Admin edit this drive':'Edit this drive';
+    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2>${editHistoryMarkup(history)}<dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes || 'None')}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min`)}${optional('Night rule', 'v1 · Jul 2, 2026')}${optional('Location basis', locationBasis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section><div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">${editLabel}</button></div>`;
   }
   document.addEventListener('click', async event => {
     if (event.target.closest('[data-edit-drive]') && dialog.open) dialog.close();
@@ -42,9 +45,11 @@
     if (!driverId) return;
     content.innerHTML = '<p class="drive-detail-loading">Loading drive details…</p>';
     dialog.showModal();
-    const {data, error} = await app.client.functions.invoke('drive-detail-api', {body:{driver_id:driverId, drive_id:trigger.dataset.driveDetailId}});
-    if (error || !data?.ok) { content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'; return; }
-    render(data);
+    try{
+      const {data, error} = await app.client.functions.invoke('drive-detail-api', {body:{driver_id:driverId, drive_id:trigger.dataset.driveDetailId}});
+      if (error || !data?.ok) { content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'; return; }
+      render(data);
+    }catch(_){content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'}
   });
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
