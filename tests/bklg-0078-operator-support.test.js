@@ -29,13 +29,19 @@ function architectureChecks(){
   assert(!header.includes("dv:dashboard-rendered',()=>hydrate"),'driver render must not trigger header dashboard hydration');
 
   assert(operator.includes('operator-support-host'),'operator support must use the stable operator host');
+  assert(operator.includes("name==='drive-ops'&&body.action==='edit_drive'"),'operator drive edit interception must remain active');
+  assert(operator.includes('Administrator edit: enter a brief reason'),'admin drive edit must still require a reason');
+  assert(operator.includes('Recompute progress'),'operator repair control must remain available');
   assert(operator.includes('app.selectDriver'),'operator search must select through the dashboard API');
   assert(!operator.includes('operatorBubble'),'operator support must not locate its host by page-wide text search');
   assert(!operator.includes('select.innerHTML=matches'),'operator search must not rebuild the driver selector');
 
   assert(!avatar.includes('sortDriverOptions'),'presentation code must not reorder the driver selector');
+  assert(avatar.includes('const readOnly=isOperator'),'missing operator access metadata must fail closed to read-only');
   assert(avatar.includes("addEventListener('dv:drive-edit-mode'"),'read-only controls must react to bounded admin edit mode');
   assert(driveRpc.includes("addEventListener('dv:driver-changing'"),'drive edit state must clear when the driver changes');
+  assert(driveRpc.includes("['drive-start','drive-end','drive-destination','drive-notes']"),'driver-specific draft values must clear on selection change');
+  assert(driveRpc.includes("if(app.getDriverId()!==driverId)return;enterEdit"),'saved edit must not reopen after switching drivers during refresh');
   assert(detail.includes('detailToken'),'drive-detail responses must be tokenized against stale renders');
   assert(shared.includes("addEventListener('dv:driver-changing'"),'shared async work must invalidate on driver change');
   assert(!shared.includes("rpc('get_authenticated_driver_status_v1'"),'shared actions must reuse the dashboard status instead of duplicating it');
