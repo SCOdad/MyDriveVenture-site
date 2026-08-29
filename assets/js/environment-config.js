@@ -14,7 +14,7 @@
   const productionHosts = new Set(['mydriveventure.com', 'www.mydriveventure.com', 'log.mydriveventure.com']);
   const developmentHosts = new Set(['localhost', '127.0.0.1', 'dev.mydriveventure.com']);
   const host = String(window.location.hostname || '').toLowerCase();
-  const cloudflareDevHost = host === 'drive-venture-dev.pages.dev' || host.endsWith('.drive-venture-dev.pages.dev');
+  const cloudflareDevHost = host === 'mydriveventure-dev.pages.dev' || host.endsWith('.mydriveventure-dev.pages.dev');
   const name = productionHosts.has(host) ? 'prod' : developmentHosts.has(host) || cloudflareDevHost ? 'dev' : null;
   if (!name) throw new Error(`Drive Venture refuses unknown deployment host: ${host || '(empty)'}`);
   const selected = environments[name];
