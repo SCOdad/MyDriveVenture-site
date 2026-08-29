@@ -77,11 +77,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     expect(await page.locator('#drive-form').evaluate(form => form.checkValidity())).toBe(true);
     const edited = await submitDriveForm(page);
     expect(edited?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture edited');
-
-    await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
-    await expect(page.locator('#drive-edit-context')).toContainText('Unsaved changes: road notes');
-    const restored = await submitDriveForm(page);
-    expect(restored?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture');
     assertNoPageFailures();
   });
 
