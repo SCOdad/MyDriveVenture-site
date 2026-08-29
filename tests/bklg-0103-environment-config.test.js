@@ -9,3 +9,4 @@ test('localhost is pinned to DEV', () => { const c=load('localhost'); assert.equ
 test('Cloudflare DEV project and branch previews are pinned to DEV', () => { for (const host of ['mydriveventure-dev.pages.dev','bklg-0103-dev-environment.mydriveventure-dev.pages.dev','abc123.mydriveventure-dev.pages.dev']) { const c=load(host); assert.equal(c.name,'dev'); assert.equal(c.projectRef,'safwylxxhywbsfxpmchd'); } });
 test('unknown hosts fail closed', () => assert.throws(() => load('example.com'), /refuses unknown deployment host/));
 test('invalid function slugs fail closed', () => assert.throws(() => load('localhost').functionUrl('../prod'), /Invalid Edge Function slug/));
+test('shared header loads environment config before app config', () => { const header=fs.readFileSync('assets/js/canonical-header.js','utf8'); assert.ok(header.indexOf('/assets/js/environment-config.js') < header.indexOf('/log/config.js')); });
