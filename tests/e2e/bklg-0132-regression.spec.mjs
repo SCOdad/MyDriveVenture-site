@@ -65,7 +65,8 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
     const row = page.locator('#drive-list .drive-item').filter({ hasText: 'BKLG-0132 CI Route' }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });
-    await row.getByRole('link', { name: /View details/i }).click();
+    await expect(row).toHaveAttribute('data-drive-detail-id', logged.drive.id);
+    await row.click();
     await expect(page.locator('.drive-detail-dialog')).toBeVisible();
     await page.locator('[data-edit-drive]').click();
     await expect(page.locator('#drive-edit-context')).toBeVisible();
