@@ -46,12 +46,15 @@ test.describe('BKLG-0132 critical browser regression', () => {
     assertNoPageFailures();
   });
 
-  test('ordinary guardian can create and edit a deterministic DEV drive', async ({ page }) => {
+  test('ordinary guardian can create and edit an isolated DEV drive', async ({ page }, testInfo) => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.guardianMulti);
     await selectDriverByName(page, 'Synthetic Driver One');
 
-    await page.evaluate(() => sessionStorage.setItem('dv:web-drive:submission-id', 'bklg-0132-playwright-log-drive-v1'));
+    const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
+    const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
+    const sourceEventId = `bklg-0132-playwright-${runId}-${runAttempt}-${testInfo.retry}`;
+    await page.evaluate(id => sessionStorage.setItem('dv:web-drive:submission-id', id), sourceEventId);
     await page.locator('#drive-date').fill('2026-08-29');
     await page.locator('#drive-start').fill('10:00');
     await page.locator('#drive-end').fill('10:10');
