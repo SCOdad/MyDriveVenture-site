@@ -1,5 +1,5 @@
 // Public configuration only. Never place Supabase secrets or service-role keys here.
-window.DV_ONBOARDING_ENDPOINT = 'https://cayoyqwrmouxuttloemc.supabase.co/functions/v1/public-onboarding-v2';
+window.DV_ONBOARDING_ENDPOINT = window.DV_ENVIRONMENT_CONFIG.functionUrl('public-onboarding-v2');
 
 // Driver email is the primary login identity for the Drive Venture experience.
 // Keep this guard here so the live /join form cannot create a driver with no
