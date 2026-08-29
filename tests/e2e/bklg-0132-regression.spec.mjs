@@ -1,13 +1,31 @@
 import { test, expect } from '@playwright/test';
 import { installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
 
+async function submitDriveForm(page) {
+  const responsePromise = page.waitForResponse(response =>
+    response.url().includes('/functions/v1/drive-ops') && response.request().method() === 'POST',
+    { timeout: 20_000 }
+  );
+  await page.locator('#drive-form button[type=submit]').click();
+  const response = await responsePromise;
+  let body = null;
+  try { body = await response.json(); } catch { body = null; }
+  expect(response.status(), `drive-ops response: ${JSON.stringify(body)}`).toBe(200);
+  expect(body?.ok, `drive-ops response: ${JSON.stringify(body)}`).toBe(true);
+  return body;
+}
+
 test.describe('BKLG-0132 critical browser regression', () => {
   test('DEV login surface loads without JavaScript failures', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
     await page.goto('/log/game/');
     await expect(page.locator('#login-form')).toBeVisible();
     await expect(page.locator('#login-email')).toBeVisible();
-    await expect(page.locator('html')).toHaveAttribute('data-dv-environment', 'dev');
+    const environment = await page.evaluate(() => ({
+      name: window.DV_ENVIRONMENT_CONFIG?.name || null,
+      projectRef: window.DV_ENVIRONMENT_CONFIG?.projectRef || null
+    }));
+    expect(environment).toEqual({ name: 'dev', projectRef: 'safwylxxhywbsfxpmchd' });
     assertNoPageFailures();
   });
 
@@ -39,22 +57,22 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await page.locator('#drive-end').fill('10:10');
     await page.locator('#drive-destination').fill('BKLG-0132 CI Route');
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
-    await page.locator('#drive-form button[type=submit]').click();
-    await expect(page.locator('#drive-status')).toContainText(/Drive logged|Drive updated|already/i, { timeout: 20_000 });
+    const logged = await submitDriveForm(page);
+    expect(logged?.drive?.id).toBeTruthy();
 
     const row = page.locator('#drive-list .drive-item').filter({ hasText: 'BKLG-0132 CI Route' }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });
-    await row.locator('[data-drive-detail-id]').click();
+    await row.getByRole('link', { name: /View details/i }).click();
     await expect(page.locator('.drive-detail-dialog')).toBeVisible();
     await page.locator('[data-edit-drive]').click();
     await expect(page.locator('#drive-edit-context')).toBeVisible();
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture edited');
-    await page.locator('#drive-form button[type=submit]').click();
-    await expect(page.locator('#drive-status')).toContainText('Drive updated', { timeout: 20_000 });
+    const edited = await submitDriveForm(page);
+    expect(edited?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture edited');
 
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
-    await page.locator('#drive-form button[type=submit]').click();
-    await expect(page.locator('#drive-status')).toContainText('Drive updated', { timeout: 20_000 });
+    const restored = await submitDriveForm(page);
+    expect(restored?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture');
     assertNoPageFailures();
   });
 
@@ -75,7 +93,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(page.getByRole('button', { name: 'Admin edit this drive' })).toBeVisible();
     await page.getByRole('button', { name: 'Admin edit this drive' }).click();
     await expect(page.locator('#drive-admin-reason-wrap')).toBeVisible();
-    await expect(page.locator('#drive-admin-reason')).toBeRequired();
+    await expect(page.locator('#drive-admin-reason')).toHaveJSProperty('required', true);
     assertNoPageFailures();
   });
 });
