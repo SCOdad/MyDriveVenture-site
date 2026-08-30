@@ -2,6 +2,36 @@ import { test, expect } from '@playwright/test';
 import { installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
 
 test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
+  test('unauthenticated mock preview uses synthetic read-only data without backend calls', async ({ page }) => {
+    const backendCalls=[];
+    page.on('request',request=>{
+      const url=request.url();
+      if(url.includes('safwylxxhywbsfxpmchd.supabase.co') && (/\/rest\/v1\//.test(url)||/\/functions\/v1\//.test(url)||/\/rpc\//.test(url))) backendCalls.push(url);
+    });
+
+    await page.goto('/log/game-v2/');
+    await expect(page.locator('#app-login')).toBeVisible();
+    await expect(page.locator('#dv-mock-preview')).toBeVisible();
+    backendCalls.length=0;
+
+    await page.locator('#dv-mock-preview').click();
+    await expect(page.locator('#app-main')).toBeVisible();
+    await expect(page.locator('#dv-mock-banner')).toBeVisible();
+    await expect(page.locator('#driver-heading')).toContainText('Riley Roadster');
+    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','teal');
+    await expect(page.locator('#dv-palette-preview')).toBeVisible();
+    await expect(page.locator('#drive-form button[type="submit"]')).toBeDisabled();
+    await expect(page.locator('#vehicle-form button[type="submit"]')).toBeDisabled();
+    await expect(page.locator('#drive-form .dv-mock-form-note')).toContainText('saving is disabled');
+
+    await page.locator('#dv-palette-preview [data-dv-scene-preview="PARK"]').click();
+    await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','park');
+    await page.locator('#dv-palette-preview [data-dv-scene-preview="CONSTRUCTION"]').click();
+    await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','construction');
+
+    await page.waitForTimeout(300);
+    expect(backendCalls).toEqual([]);
+  });
   test('operator can preview every driver palette inside the v2 windshield without persisting it', async ({ page }) => {
     const assertNoPageFailures=installPageGuards(page);
     await signIn(page,personas.operator);
