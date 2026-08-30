@@ -45,8 +45,7 @@
   function resetEditForDriverChange(){if(edit||form.dataset.editDrive)clearEditUi();['drive-start','drive-end','drive-destination','drive-notes'].forEach(id=>{const el=field(id);if(el)el.value=''});const date=field('drive-date');if(date)delete date.dataset.dvUserEdited;setStatus('')}
   document.addEventListener('click',e=>{if(e.target.id==='drive-edit-cancel'){cancelEdit();return}const trigger=e.target.closest?.('button[data-edit-drive]');if(!trigger)return;const d=app.detailDrives?.[trigger.dataset.editDrive]||app.getModel().recent_drives.find(x=>x.id===trigger.dataset.editDrive);if(d)enterEdit(d)});
   function captureEditField(target){if(!edit)return;const key=editField[target?.id];if(!key)return;edit.draft[key]=comparable({[key]:target.value})[key];context()}
-  document.addEventListener('input',e=>{if(e.target.closest?.('#drive-form'))captureEditField(e.target)},true);
-  document.addEventListener('change',e=>{if(e.target.closest?.('#drive-form'))captureEditField(e.target)},true);
+  form.addEventListener('input',e=>captureEditField(e.target,'input'));form.addEventListener('change',e=>captureEditField(e.target,'change'));
   window.addEventListener('dv:driver-changing',resetEditForDriverChange);
   form.addEventListener('submit',async e=>{
     e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId(),generation=app.getRenderGeneration?.();if(!driverId)return setStatus('No active driver is selected.','error');const requested=edit?{...edit.draft}:values();
