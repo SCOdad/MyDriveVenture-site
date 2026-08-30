@@ -22,6 +22,12 @@ test('standalone backlog creation remains available from Backlog Manager', () =>
   assert.match(backlogJs, /Created \$\{out\.backlog_code\}/);
 });
 
+test('canonical required backlog fields use the shared red required marker and native validation', () => {
+  for (const name of ['status', 'priority', 'category', 'title']) {
+    assert.match(backlogHtml, new RegExp(`field-label">[^<]*<span class="required-marker"[^>]*>\\*</span>[\\s\\S]*?name="${name}"[^>]*required`));
+  }
+});
+
 test('top and bottom Save changes controls submit the same detail form', () => {
   const form = backlogHtml.match(/<form id="detail-form"[\s\S]*?<\/form>/)?.[0] || '';
   const saveButtons = form.match(/<button[^>]*type="submit"[^>]*>Save changes<\/button>/g) || [];
