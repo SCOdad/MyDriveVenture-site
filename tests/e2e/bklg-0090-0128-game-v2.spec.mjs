@@ -19,6 +19,14 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     const after=await page.evaluate(()=>document.body.dataset.dvDriverColor||null);
     expect(after).toBeTruthy();
     expect(await page.evaluate(()=>window.DV_GAME_V2?.getPaletteOverride?.())).toBeNull();
+
+    await page.locator('#dv-palette-preview [data-dv-scene-preview="PARK"]').click();
+    await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','park');
+    await page.locator('#dv-palette-preview [data-dv-scene-preview="CONSTRUCTION"]').click();
+    await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','construction');
+    await page.locator('#dv-palette-preview [data-dv-scene-preview="AUTO"]').click();
+    expect(await page.evaluate(()=>window.DV_GAME_V2?.getSceneOverride?.())).toBeNull();
+
     expect(before).toBeTruthy();
     assertNoPageFailures();
   });
