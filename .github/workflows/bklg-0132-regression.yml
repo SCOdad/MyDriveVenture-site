@@ -22,7 +22,7 @@ jobs:
   playwright-dev:
     runs-on: ubuntu-latest
     env:
-      DV_E2E_BASE_URL: https://mydriveventure-dev.pages.dev
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
       DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +34,18 @@ jobs:
       - name: Require DEV test credential
         shell: bash
         run: test -n "$DV_DEV_TEST_PASSWORD" || (echo 'Repository secret DV_DEV_TEST_PASSWORD is required.' && exit 1)
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-e2e-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/log/game/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-e2e-http.log
+          exit 1
       - run: npm run test:e2e
       - name: Upload Playwright evidence
         if: always()
