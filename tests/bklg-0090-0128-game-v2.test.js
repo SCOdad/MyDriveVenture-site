@@ -14,6 +14,11 @@ function loadPalettes(){
 test('driver palette system exposes twelve canonical families',()=>{
   const api=loadPalettes();
   assert.deepEqual(Array.from(api.palettes,p=>p.id),['RED','ORANGE','YELLOW','GREEN','TEAL','BLUE','PURPLE','PINK','BROWN','GRAY','BLACK','WHITE']);
+  assert.deepEqual(Array.from(api.palettes,p=>p.label),['Red','Orange','Yellow','Green','Teal','Blue','Purple','Pink','Brown','Gray','Black','White']);
+  api.palettes.forEach(palette=>{
+    assert.match(palette.description,new RegExp(`^${palette.label} palette swatch`));
+    assert.match(api.swatchMarkup(palette),new RegExp(`aria-label="${palette.label} palette swatch`));
+  });
 });
 
 test('legacy favorite-color text normalizes without changing the stored source value',()=>{
@@ -56,6 +61,24 @@ test('game v2 includes DEV palette harness and scenery controller',()=>{
   assert.ok(v2.includes('class="dv-scene-base"'));
 });
 
+test('game v2 mounts an accessible in-console palette with production persistence safeguards',()=>{
+  const source=fs.readFileSync('assets/js/log-game-v2.js','utf8');
+  const css=fs.readFileSync('assets/css/log-game-v2.css','utf8');
+  assert.match(source,/id='dv-palette-toggle'/);
+  assert.match(source,/aria-label','Color palette settings'/);
+  assert.match(source,/aria-label="Close color palette">X/);
+  assert.match(source,/action:'update_basic'/);
+  assert.match(source,/name:lastDetail\.driver\.display_name/);
+  assert.match(source,/home_zip:lastDetail\.driver\.home_zip/);
+  assert.match(source,/favorite_color:id/);
+  assert.match(source,/mock_preview===true/);
+  assert.match(source,/access!=='VIEW'/);
+  assert.match(source,/event\.key==='Escape'/);
+  assert.match(source,/document\.addEventListener\('pointerdown'/);
+  assert.match(css,/\.game-v2 \.dv-palette-close/);
+  assert.match(css,/color:#f8ba20/);
+});
+
 test('v2 scenery registry starts with Park and Construction without quest schema coupling',()=>{
   const source=fs.readFileSync('assets/js/log-game-v2.js','utf8');
   assert.match(source,/Q000035:'PARK'/);
@@ -79,4 +102,7 @@ test('v2 preserves semantic road-sign and Night treatments',()=>{
   assert.match(css,/\.game-v2 \.night-gauge \.gauge-core strong\{color:var\(--blue\)\}/);
   assert.match(css,/\.game-v2 \.radio-display\{/);
   assert.match(css,/var\(--dv-driver-highlight\)/);
+  assert.match(css,/\.game-v2 \.dashboard-workbench \.panel-label\{color:var\(--dv-driver-highlight\)\}/);
+  assert.match(css,/\.game-v2 \.dashboard-workbench \.app-card\{border-top-color:var\(--dv-driver-base\)\}/);
+  assert.match(css,/\.game-v2 \.dashboard-workbench \.button\.primary\{background:var\(--dv-driver-highlight\)/);
 });

@@ -24,6 +24,20 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await expect(page.locator('#vehicle-form button[type="submit"]')).toBeDisabled();
     await expect(page.locator('#drive-form .dv-mock-form-note')).toContainText('saving is disabled');
 
+    const gear=page.getByRole('button',{name:'Color palette settings'});
+    await gear.click();
+    await expect(page.locator('#dv-driver-palette')).toBeVisible();
+    await expect(page.locator('#dv-driver-palette [data-dv-palette-id]')).toHaveCount(12);
+    await expect(page.locator('#dv-driver-palette').getByRole('button',{name:/^Red palette swatch/})).toBeVisible();
+    await page.locator('#dv-driver-palette [data-dv-palette-id="PURPLE"]').click();
+    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
+    await expect(page.locator('#dv-palette-status')).toContainText('not saved');
+    await page.getByRole('button',{name:'Close color palette'}).click();
+    await expect(page.locator('#dv-driver-palette')).toBeHidden();
+    await gear.click();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#dv-driver-palette')).toBeHidden();
+
     await page.locator('#dv-palette-preview [data-dv-scene-preview="PARK"]').click();
     await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','park');
     await page.locator('#dv-palette-preview [data-dv-scene-preview="CONSTRUCTION"]').click();
@@ -92,6 +106,13 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
     await selectDriverByName(page,'Synthetic Driver One');
     await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','green');
+
+    await page.getByRole('button',{name:'Color palette settings'}).click();
+    const consoleSave=page.waitForResponse(response=>response.url().includes('/functions/v1/profile-api')&&response.request().method()==='POST'&&response.status()===200);
+    await page.locator('#dv-driver-palette [data-dv-palette-id="PURPLE"]').click();
+    await consoleSave;
+    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
+    await expect(page.locator('#dv-palette-status')).toContainText('Purple saved');
 
     await page.goto('/profile/');
     await expect(page.locator('#profile-app')).toBeVisible({timeout:20_000});
