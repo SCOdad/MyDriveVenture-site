@@ -129,6 +129,17 @@
   window.DV_GAME_V2=Object.freeze({
     sceneRecencyDays:SCENE_RECENCY_DAYS,
     sceneRules:SCENE_RULES,
+    renderMockPreview(detail){
+      lastDetail=detail;
+      const resolved=applyTheme(detail);
+      renderScene(detail);
+      renderPaletteHarness(detail,resolved);
+      return {palette:resolved.id,scene:document.getElementById('dv-scene-layer')?.dataset.dvScene||null};
+    },
+    scenePreview(scene){
+      overrideScene=scene||null;
+      if(lastDetail)renderScene(lastDetail);
+    },
     getActiveScene:()=>document.getElementById('dv-scene-layer')?.dataset.dvScene||null,
     getPaletteOverride:()=>overridePalette,
     getSceneOverride:()=>overrideScene
