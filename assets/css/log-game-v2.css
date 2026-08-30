@@ -99,6 +99,19 @@
   border-color:var(--dv-driver-highlight);
   color:var(--dv-driver-highlight);
 }
+.game-v2 .dv-scene-preview{
+  flex:1 0 100%;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding-top:6px;
+  margin-top:1px;
+  border-top:1px solid #465153;
+}
+.game-v2 .dv-scene-preview .dv-palette-auto.selected{
+  border-color:#f8ba20;
+  color:#ffe37a;
+}
 
 /* DEV proof-of-concept achievement scenery. These shapes establish the layering
    contract; canonical art assets can replace them without changing selection logic. */
