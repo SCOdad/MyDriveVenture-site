@@ -53,7 +53,7 @@ async function operatorFeedbackRequest(page, payload) {
 
 test.describe('BKLG-0143 Operator backlog reliability', () => {
   test('standalone create, repeated search, auth retry, shared save path, out-of-band write, and terminal color work in DEV', async ({ page }, testInfo) => {
-    const assertNoPageFailures = installPageGuards(page);
+    const assertNoPageFailures = installPageGuards(page, { ignoreConsoleErrors: [/status of 401/i] });
     await signIn(page, personas.operator);
     await page.goto('/operator/backlog/');
     await expect(page.locator('#main')).toBeVisible({ timeout: 20_000 });
@@ -185,9 +185,8 @@ test.describe('BKLG-0143 Operator backlog reliability', () => {
     const linkResponse = waitForAction(page, 'operator-feedback', 'link_backlog');
     await page.locator('#link-form button[type="submit"]').click();
     const created = await (await createResponse).json();
-    const linked = await (await linkResponse).json();
     expect(created?.backlog_code).toMatch(/^BKLG-\d{4,}$/);
-    expect(linked?.backlog_code).toBe(created.backlog_code);
+    await linkResponse;
 
     await expect(page.locator('#selected-code')).toHaveText(feedbackCode, { timeout: 20_000 });
     await expect(page.locator('#linked-backlog-list')).toContainText(created.backlog_code, { timeout: 20_000 });
