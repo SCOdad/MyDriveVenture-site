@@ -59,8 +59,8 @@
   }
 
   function swatchMarkup(p, compact=false) {
-    return `<button type="button" class="dv-palette-swatch${compact?' compact':''}" data-dv-palette-id="${p.id}" aria-pressed="false" title="${compact?'Preview ':''}${p.label}">
-      <span class="dv-palette-chips" aria-hidden="true" style="--swatch-shadow:${p.shadow};--swatch-base:${p.base};--swatch-bright:${p.bright};--swatch-highlight:${p.highlight}"><i></i><i></i><i></i><i></i></span>
+    return `<button type="button" class="dv-palette-swatch${compact?' compact':''}" data-dv-palette-id="${p.id}" aria-pressed="false" title="${compact?'Preview ':''}${p.label}" style="--swatch-shadow:${p.shadow};--swatch-base:${p.base};--swatch-bright:${p.bright};--swatch-highlight:${p.highlight}">
+      <span class="dv-palette-chips" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       ${compact?'':`<span class="dv-palette-label">${p.label}</span>`}
     </button>`;
   }
