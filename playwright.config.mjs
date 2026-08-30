@@ -1,7 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
 const baseURL = process.env.DV_E2E_BASE_URL || 'https://mydriveventure-dev.pages.dev';
-if (!/^https:\/\/([a-z0-9-]+\.)*mydriveventure-dev\.pages\.dev\/?$/i.test(baseURL)) {
+const isCloudflareDev = /^https:\/\/([a-z0-9-]+\.)*mydriveventure-dev\.pages\.dev\/?$/i.test(baseURL);
+const isLocalDev = /^http:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\/?$/i.test(baseURL);
+if (!isCloudflareDev && !isLocalDev) {
   throw new Error(`BKLG-0132 refuses non-DEV Playwright target: ${baseURL}`);
 }
 
