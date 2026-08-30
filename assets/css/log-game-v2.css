@@ -63,6 +63,24 @@
   outline:2px solid #f8f4e9;
   outline-offset:2px;
 }
+.game-v2 .dv-palette-coachmark{
+  position:absolute;
+  z-index:9;
+  right:38px;
+  bottom:28px;
+  width:min(210px,calc(100% - 28px));
+  padding:10px 28px 10px 11px;
+  border:3px solid #f8ba20;
+  background:#111719;
+  box-shadow:4px 4px 0 #050707;
+  color:#f8f4e9;
+  font:700 10px/1.3 Inter,Arial,sans-serif;
+}
+.game-v2 .dv-palette-coachmark strong,.game-v2 .dv-palette-coachmark span{display:block}
+.game-v2 .dv-palette-coachmark strong{margin-bottom:3px;color:#ffe37a;font:800 9px/1 Orbitron,Arial,sans-serif}
+.game-v2 .dv-palette-coachmark button{position:absolute;top:4px;right:5px;padding:2px;border:0;background:transparent;color:#f8ba20;font:900 12px/1 Orbitron,Arial,sans-serif;cursor:pointer}
+.game-v2 .dv-palette-coachmark button:focus-visible{outline:2px solid #ffe37a;outline-offset:2px}
+.game-v2 .dv-palette-coachmark i{position:absolute;right:-1px;bottom:-25px;color:#f8ba20;font:900 24px/1 Arial,sans-serif;font-style:normal}
 .game-v2 .dv-driver-palette{
   position:absolute;
   z-index:10;
@@ -122,19 +140,14 @@
 }
 .game-v2 .hours-sign{z-index:4}
 .game-v2 .dv-palette-preview{
-  position:absolute;
-  z-index:6;
-  left:10px;
-  bottom:10px;
   display:flex;
   flex-wrap:wrap;
   align-items:center;
   gap:5px;
-  max-width:min(520px,calc(100% - 20px));
-  padding:7px;
-  border:2px solid #596568;
-  background:rgba(7,11,13,.88);
-  box-shadow:3px 3px 0 #050707;
+  padding:8px 15px;
+  border-top:2px solid #596568;
+  border-bottom:2px solid #354143;
+  background:#080d0e;
 }
 .game-v2 .dv-palette-preview[hidden]{display:none!important}
 .game-v2 .dv-palette-preview-label{
@@ -156,16 +169,7 @@
   border-color:var(--dv-driver-highlight);
   color:var(--dv-driver-highlight);
 }
-.game-v2 .dv-scene-preview{
-  flex:1 0 100%;
-  display:flex;
-  align-items:center;
-  gap:5px;
-  padding-top:6px;
-  margin-top:1px;
-  border-top:1px solid #465153;
-}
-.game-v2 .dv-scene-preview .dv-palette-auto.selected{
+.game-v2 .dv-palette-preview .dv-palette-auto.selected{
   border-color:#f8ba20;
   color:#ffe37a;
 }
@@ -254,9 +258,7 @@
 }
 @media(max-width:760px){
   .game-v2 .dv-driver-avatar{width:72px;height:86px}
-  .game-v2 .dv-palette-preview{left:6px;bottom:6px;max-width:calc(100% - 12px);gap:3px;padding:5px}
-  .game-v2 .dv-palette-preview-label{display:none}
-  .game-v2 .dv-palette-swatch.compact{width:28px;height:25px}
+  .game-v2 .dv-palette-preview{gap:4px;padding:6px 10px}
   .game-v2 .dv-park-sign,.game-v2 .dv-roadwork-sign{transform:scale(.78);transform-origin:bottom right}
 }
 

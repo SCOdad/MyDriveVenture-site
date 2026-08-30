@@ -9,8 +9,6 @@
     {id:'PURPLE',label:'Purple',description:'Purple palette swatch — deep violet, medium purple, bright orchid, and pale lavender.',shadow:'#3f285f',base:'#6a4597',bright:'#9b68cf',highlight:'#d1a1f0'},
     {id:'PINK',label:'Pink',description:'Pink palette swatch — deep berry, rose pink, bright pink, and pale blush.',shadow:'#632844',base:'#a54169',bright:'#e76593',highlight:'#ffb0ca'},
     {id:'BROWN',label:'Brown',description:'Brown palette swatch — dark chocolate, medium brown, warm tan, and light caramel.',shadow:'#4d3524',base:'#795235',bright:'#a8784e',highlight:'#d4ab79'},
-    {id:'GRAY',label:'Gray',description:'Gray palette swatch — charcoal gray, medium gray, cool silver, and pale gray.',shadow:'#353d40',base:'#586468',bright:'#859195',highlight:'#c8d0d0'},
-    {id:'BLACK',label:'Black',description:'Black palette swatch — near black, soft black, charcoal, and cool gray.',shadow:'#0b0d0f',base:'#20272a',bright:'#414b4f',highlight:'#889397'},
     {id:'WHITE',label:'White',description:'White palette swatch — dark silver, medium silver, soft white, and warm white.',shadow:'#5b6160',base:'#8f9895',bright:'#d1d7d2',highlight:'#fffdf4'}
   ]);
   const byId = new Map(palettes.map(p => [p.id,p]));
@@ -24,8 +22,6 @@
     'VIOLET':'PURPLE','LAVENDER':'PURPLE','PLUM':'PURPLE','INDIGO':'PURPLE',
     'ROSE':'PINK','HOT PINK':'PINK','MAGENTA':'PINK','FUCHSIA':'PINK',
     'TAN':'BROWN','BEIGE':'BROWN','CHOCOLATE':'BROWN',
-    'GREY':'GRAY','SILVER':'GRAY','SLATE':'GRAY',
-    'CHARCOAL':'BLACK','JET BLACK':'BLACK',
     'CREAM':'WHITE','IVORY':'WHITE','OFF WHITE':'WHITE'
   });
 

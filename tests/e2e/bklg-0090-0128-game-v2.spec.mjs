@@ -27,7 +27,9 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     const gear=page.getByRole('button',{name:'Color palette settings'});
     await gear.click();
     await expect(page.locator('#dv-driver-palette')).toBeVisible();
-    await expect(page.locator('#dv-driver-palette [data-dv-palette-id]')).toHaveCount(12);
+    await expect(page.locator('#dv-driver-palette [data-dv-palette-id]')).toHaveCount(10);
+    await expect(page.locator('#dv-driver-palette [data-dv-palette-id="GRAY"]')).toHaveCount(0);
+    await expect(page.locator('#dv-driver-palette [data-dv-palette-id="BLACK"]')).toHaveCount(0);
     await expect(page.locator('#dv-driver-palette').getByRole('button',{name:/^Red palette swatch/})).toBeVisible();
     await page.locator('#dv-driver-palette [data-dv-palette-id="PURPLE"]').click();
     await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
@@ -46,23 +48,16 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await page.waitForTimeout(300);
     expect(backendCalls).toEqual([]);
   });
-  test('operator can preview every driver palette inside the v2 windshield without persisting it', async ({ page }) => {
+  test('operator can preview DEV scenes below the windshield without a color harness', async ({ page }) => {
     const assertNoPageFailures=installPageGuards(page);
     await signIn(page,personas.operator);
     await page.goto('/log/game-v2/');
     await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
     await expect(page.locator('#dv-palette-preview')).toBeVisible({timeout:20_000});
-    await expect(page.locator('#dv-palette-preview [data-dv-palette-id]')).toHaveCount(12);
-
-    const before=await page.evaluate(()=>document.body.dataset.dvDriverColor||null);
-    await page.locator('#dv-palette-preview [data-dv-palette-id="PURPLE"]').click();
-    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
-    await expect(page.locator('#dv-palette-preview [data-dv-palette-id="PURPLE"]')).toHaveAttribute('aria-pressed','true');
-
-    await page.locator('#dv-palette-preview [data-dv-palette-auto]').click();
-    const after=await page.evaluate(()=>document.body.dataset.dvDriverColor||null);
-    expect(after).toBeTruthy();
-    expect(await page.evaluate(()=>window.DV_GAME_V2?.getPaletteOverride?.())).toBeNull();
+    await expect(page.locator('#dv-palette-preview [data-dv-palette-id]')).toHaveCount(0);
+    await expect(page.locator('#dv-palette-preview')).toHaveAttribute('aria-label','DEV scene preview');
+    const sceneBeforeStatus=await page.evaluate(()=>document.querySelector('#dv-palette-preview')?.nextElementSibling?.classList.contains('dash-status'));
+    expect(sceneBeforeStatus).toBe(true);
 
     await page.locator('#dv-palette-preview [data-dv-scene-preview="PARK"]').click();
     await expect(page.locator('#dv-scene-layer')).toHaveAttribute('data-dv-scene','park');
@@ -81,6 +76,10 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await page.goto('/log/game-v2/');
     await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
     await expect(page.locator('#dv-palette-preview')).toBeHidden();
+    await expect(page.locator('#dv-palette-coachmark')).toBeVisible();
+    await page.getByRole('button',{name:'Color palette settings'}).click();
+    await expect(page.locator('#dv-palette-coachmark')).toHaveCount(0);
+    await expect(page.locator('#dv-driver-palette')).toBeVisible();
     assertNoPageFailures();
   });
 
@@ -113,6 +112,10 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await consoleSave;
     await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
     await expect(page.locator('#dv-palette-status')).toContainText('Purple saved');
+    await page.reload();
+    await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
+    await selectDriverByName(page,'Synthetic Driver One');
+    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','purple');
 
     await page.goto('/profile/');
     await expect(page.locator('#profile-app')).toBeVisible({timeout:20_000});

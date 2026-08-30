@@ -13,7 +13,6 @@
     CONSTRUCTION:'<div class="dv-scene-construction"><div class="dv-cone cone-a"></div><div class="dv-cone cone-b"></div><div class="dv-cone cone-c"></div><div class="dv-roadwork-sign">ROAD<br>WORK</div></div>'
   });
 
-  let overridePalette=null;
   let overrideScene=null;
   let lastDetail=null;
   let paletteOpen=false;
@@ -64,10 +63,34 @@
     return access!=='VIEW';
   }
 
+  function coachmarkKey(driverId){return `dv.game-v2.palette-coachmark.${driverId}`}
+
+  function dismissCoachmark({remember=true}={}){
+    const coachmark=document.getElementById('dv-palette-coachmark');
+    const driverId=coachmark?.dataset.driverId;
+    if(remember&&driverId){try{localStorage.setItem(coachmarkKey(driverId),'dismissed')}catch(_){}}
+    coachmark?.remove();
+  }
+
+  function showCoachmark(detail){
+    dismissCoachmark({remember:false});
+    if(detail?.model?.mock_preview===true||detail?.model?.is_operator===true||!canPersistPalette())return;
+    try{if(localStorage.getItem(coachmarkKey(detail.driverId))==='dismissed')return}catch(_){}
+    const radio=document.querySelector('.radio-panel');
+    if(!radio)return;
+    const coachmark=document.createElement('aside');
+    coachmark.id='dv-palette-coachmark';
+    coachmark.className='dv-palette-coachmark';
+    coachmark.dataset.driverId=detail.driverId;
+    coachmark.setAttribute('aria-label','Color palette tip');
+    coachmark.innerHTML='<button type="button" aria-label="Dismiss color palette tip">X</button><strong>MAKE IT YOURS</strong><span>Choose your dashboard colors with this gear.</span><i aria-hidden="true">↘</i>';
+    coachmark.querySelector('button')?.addEventListener('click',()=>dismissCoachmark());
+    radio.appendChild(coachmark);
+  }
+
   async function persistPalette(id){
     if(!lastDetail?.driver||paletteSaving)return;
     const previous=lastDetail.driver.favorite_color||'';
-    overridePalette=null;
     lastDetail.driver.favorite_color=id;
     applyTheme(lastDetail);
     renderConsoleSelection();
@@ -154,7 +177,7 @@
     const swatches=panel.querySelector('[data-dv-console-swatches]');
     swatches.innerHTML=paletteApi.palettes.map(p=>paletteApi.swatchMarkup(p,false)).join('');
     swatches.querySelectorAll('[data-dv-palette-id]').forEach(button=>button.addEventListener('click',()=>persistPalette(button.dataset.dvPaletteId)));
-    toggle.addEventListener('click',()=>setPaletteOpen(!paletteOpen,{returnFocus:paletteOpen}));
+    toggle.addEventListener('click',()=>{dismissCoachmark();setPaletteOpen(!paletteOpen,{returnFocus:paletteOpen})});
     panel.querySelector('#dv-palette-close')?.addEventListener('click',()=>setPaletteOpen(false,{returnFocus:true}));
     panel.addEventListener('keydown',event=>{
       const buttons=[...swatches.querySelectorAll('[data-dv-palette-id]')];
@@ -196,7 +219,7 @@
   }
 
   function resolvedPaletteValue(detail){
-    return overridePalette||detail?.driver?.favorite_color||'';
+    return detail?.driver?.favorite_color||'';
   }
 
   function applyTheme(detail){
@@ -206,22 +229,7 @@
     return resolved;
   }
 
-  function updateHarnessSelection(host,resolved){
-    host.querySelectorAll('[data-dv-palette-id]').forEach(button=>{
-      const active=overridePalette===button.dataset.dvPaletteId;
-      button.classList.toggle('selected',active);
-      button.setAttribute('aria-pressed',String(active));
-    });
-    const auto=host.querySelector('[data-dv-palette-auto]');
-    if(auto){
-      const active=!overridePalette;
-      auto.classList.toggle('selected',active);
-      auto.setAttribute('aria-pressed',String(active));
-      auto.title=`Use driver setting (${resolved.label})`;
-    }
-  }
-
-  function renderPaletteHarness(detail,resolved){
+  function renderSceneHarness(detail){
     const host=document.getElementById('dv-palette-preview');
     if(!host)return;
     const show=env?.name==='dev' && detail?.model?.is_operator===true;
@@ -231,22 +239,9 @@
       return;
     }
     host.hidden=false;
-    host.innerHTML='<span class="dv-palette-preview-label">DEV COLOR</span><button type="button" class="dv-palette-auto" data-dv-palette-auto aria-pressed="false">AUTO</button>'+
-      paletteApi.palettes.map(p=>paletteApi.swatchMarkup(p,true)).join('')+
-      '<div class="dv-scene-preview"><span class="dv-palette-preview-label">DEV SCENE</span><button type="button" class="dv-palette-auto" data-dv-scene-preview="AUTO" aria-pressed="false">AUTO</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="PARK" aria-pressed="false">PARK</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="CONSTRUCTION" aria-pressed="false">WORK</button></div>';
-
-    host.querySelector('[data-dv-palette-auto]')?.addEventListener('click',()=>{
-      overridePalette=null;
-      const current=applyTheme(lastDetail);
-      updateHarnessSelection(host,current);
-    });
-    host.querySelectorAll('[data-dv-palette-id]').forEach(button=>{
-      button.addEventListener('click',()=>{
-        overridePalette=button.dataset.dvPaletteId;
-        const current=applyTheme(lastDetail);
-        updateHarnessSelection(host,current);
-      });
-    });
+    host.setAttribute('aria-label','DEV scene preview');
+    document.querySelector('.dash-status')?.before(host);
+    host.innerHTML='<span class="dv-palette-preview-label">DEV SCENE</span><button type="button" class="dv-palette-auto" data-dv-scene-preview="AUTO" aria-pressed="false">AUTO</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="PARK" aria-pressed="false">PARK</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="CONSTRUCTION" aria-pressed="false">WORK</button>';
     host.querySelectorAll('[data-dv-scene-preview]').forEach(button=>{
       button.addEventListener('click',()=>{
         overrideScene=button.dataset.dvScenePreview==='AUTO'?null:button.dataset.dvScenePreview;
@@ -260,7 +255,6 @@
     });
     host.querySelector('[data-dv-scene-preview="AUTO"]')?.classList.add('selected');
     host.querySelector('[data-dv-scene-preview="AUTO"]')?.setAttribute('aria-pressed','true');
-    updateHarnessSelection(host,resolved);
   }
 
   function render(detail){
@@ -268,16 +262,16 @@
     lastDetail=detail;
     const resolved=applyTheme(detail);
     renderScene(detail);
-    renderPaletteHarness(detail,resolved);
+    renderSceneHarness(detail);
     renderConsoleSelection();
     const readonly=!detail.model?.mock_preview&&!canPersistPalette();
     paletteElements().swatches?.querySelectorAll('button').forEach(button=>button.disabled=readonly);
     if(readonly)setPaletteStatus('View-only driver: color changes are unavailable.');
     else setPaletteStatus('');
+    showCoachmark(detail);
   }
 
   window.addEventListener('dv:driver-changing',()=>{
-    overridePalette=null;
     overrideScene=null;
     clearScene();
     paletteApi.apply(document.body,'YELLOW');
@@ -285,6 +279,7 @@
     if(host){host.hidden=true;host.innerHTML=''}
     setPaletteOpen(false);
     setPaletteStatus('');
+    dismissCoachmark({remember:false});
   });
   window.addEventListener('dv:dashboard-rendered',event=>render(event.detail));
 
@@ -295,7 +290,7 @@
       lastDetail=detail;
       const resolved=applyTheme(detail);
       renderScene(detail);
-      renderPaletteHarness(detail,resolved);
+      renderSceneHarness(detail);
       renderConsoleSelection();
       setPaletteStatus('');
       return {palette:resolved.id,scene:document.getElementById('dv-scene-layer')?.dataset.dvScene||null};
@@ -305,7 +300,6 @@
       if(lastDetail)renderScene(lastDetail);
     },
     getActiveScene:()=>document.getElementById('dv-scene-layer')?.dataset.dvScene||null,
-    getPaletteOverride:()=>overridePalette,
     getSceneOverride:()=>overrideScene
   });
   mountConsolePalette();

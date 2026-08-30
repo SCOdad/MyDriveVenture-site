@@ -11,10 +11,10 @@ function loadPalettes(){
   return window.DV_DRIVER_PALETTES;
 }
 
-test('driver palette system exposes twelve canonical families',()=>{
+test('driver palette system exposes ten readable canonical families',()=>{
   const api=loadPalettes();
-  assert.deepEqual(Array.from(api.palettes,p=>p.id),['RED','ORANGE','YELLOW','GREEN','TEAL','BLUE','PURPLE','PINK','BROWN','GRAY','BLACK','WHITE']);
-  assert.deepEqual(Array.from(api.palettes,p=>p.label),['Red','Orange','Yellow','Green','Teal','Blue','Purple','Pink','Brown','Gray','Black','White']);
+  assert.deepEqual(Array.from(api.palettes,p=>p.id),['RED','ORANGE','YELLOW','GREEN','TEAL','BLUE','PURPLE','PINK','BROWN','WHITE']);
+  assert.deepEqual(Array.from(api.palettes,p=>p.label),['Red','Orange','Yellow','Green','Teal','Blue','Purple','Pink','Brown','White']);
   api.palettes.forEach(palette=>{
     assert.match(palette.description,new RegExp(`^${palette.label} palette swatch`));
     assert.match(api.swatchMarkup(palette),new RegExp(`aria-label="${palette.label} palette swatch`));
@@ -27,7 +27,8 @@ test('legacy favorite-color text normalizes without changing the stored source v
   assert.equal(api.normalize('Seafoam'),'TEAL');
   assert.equal(api.normalize('navy blue'),'BLUE');
   assert.equal(api.normalize('lavender'),'PURPLE');
-  assert.equal(api.normalize('grey'),'GRAY');
+  assert.equal(api.normalize('grey'),null);
+  assert.equal(api.normalize('black'),null);
   assert.equal(api.normalize('unknown cosmic color'),null);
 });
 
@@ -52,13 +53,18 @@ test('game v2 includes DEV-only unauthenticated mock preview entry point',()=>{
   assert.ok(!preview.includes('fetch('));
 });
 
-test('game v2 includes DEV palette harness and scenery controller',()=>{
+test('game v2 includes scene-only DEV harness below the windshield',()=>{
   const v2=fs.readFileSync('log/game-v2/index.html','utf8');
+  const source=fs.readFileSync('assets/js/log-game-v2.js','utf8');
   assert.ok(v2.includes('DV-02 / DRIVER CONSOLE V2 · DEV'));
   assert.ok(v2.includes('id="dv-palette-preview"'));
   assert.ok(v2.includes('/assets/js/driver-palettes.js'));
   assert.ok(v2.includes('/assets/js/log-game-v2.js'));
   assert.ok(v2.includes('class="dv-scene-base"'));
+  assert.match(source,/setAttribute\('aria-label','DEV scene preview'\)/);
+  assert.match(source,/querySelector\('\.dash-status'\)\?\.before\(host\)/);
+  assert.doesNotMatch(source,/DEV COLOR/);
+  assert.doesNotMatch(source,/data-dv-palette-auto/);
 });
 
 test('game v2 mounts an accessible in-console palette with production persistence safeguards',()=>{
@@ -75,6 +81,8 @@ test('game v2 mounts an accessible in-console palette with production persistenc
   assert.match(source,/access!=='VIEW'/);
   assert.match(source,/event\.key==='Escape'/);
   assert.match(source,/document\.addEventListener\('pointerdown'/);
+  assert.match(source,/dv\.game-v2\.palette-coachmark/);
+  assert.match(source,/MAKE IT YOURS/);
   assert.match(css,/\.game-v2 \.dv-palette-close/);
   assert.match(css,/color:#f8ba20/);
 });
@@ -86,14 +94,32 @@ test('v2 scenery registry starts with Park and Construction without quest schema
   assert.match(source,/SCENE_RECENCY_DAYS=14/);
 });
 
-test('onboarding and Profile use the approved reusable palette UI',()=>{
+test('registration omits favorite color while Profile retains the reusable palette UI',()=>{
   const join=fs.readFileSync('join/index.html','utf8');
+  const joinJs=fs.readFileSync('assets/js/join.js','utf8');
   const profile=fs.readFileSync('profile/index.html','utf8');
   const copy='Customize your driver’s experience with their favorite color. Don’t worry—they can change it at any time.';
-  assert.ok(join.includes(copy));
   assert.ok(profile.includes(copy));
-  assert.ok(join.includes('name="favoriteColor" data-dv-palette-value'));
+  assert.ok(!join.includes('favoriteColor'));
+  assert.ok(!join.includes('/assets/js/driver-palettes.js'));
+  assert.ok(!join.includes('/assets/css/driver-palettes.css'));
+  assert.ok(!joinJs.includes('favoriteColor'));
+  assert.ok(!joinJs.includes('favorite_color'));
   assert.ok(profile.includes('id="profile-favorite-color" data-dv-palette-value'));
+});
+
+test('migration guards preserve Night XP and true full gauge fill',()=>{
+  const polish=fs.readFileSync('assets/js/log-game-polish.js','utf8');
+  const dashboard=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
+  const css=fs.readFileSync('assets/css/log-game-v2.css','utf8');
+  assert.match(polish,/NIGHT XP BEGINS <b id="night-xp-start">Loading…<\/b>/);
+  assert.match(polish,/functions\.invoke\('night-xp-start'/);
+  assert.match(polish,/Math\.min\(100,Number\(progress\?\.total_minutes/);
+  assert.match(polish,/Math\.min\(100,Number\(progress\?\.night_minutes/);
+  assert.match(dashboard,/Math\.min\(100,Math\.max\(0,Number\(progress\.total_minutes/);
+  assert.match(dashboard,/Math\.min\(100,Math\.max\(0,Number\(progress\.night_minutes/);
+  assert.match(css,/calc\(var\(--practice-p\)\*1\.8deg\)/);
+  assert.match(css,/calc\(var\(--night-p\)\*1\.8deg\)/);
 });
 
 test('v2 preserves semantic road-sign and Night treatments',()=>{
