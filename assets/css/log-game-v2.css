@@ -1,0 +1,191 @@
+.game-v2{
+  --dv-driver-shadow:#6b5516;
+  --dv-driver-base:#b88e1d;
+  --dv-driver-bright:#f8ba20;
+  --dv-driver-highlight:#ffe37a;
+}
+.game-v2 .dashboard-console{
+  box-shadow:7px 7px 0 #050707,inset 0 3px 0 var(--dv-driver-base);
+}
+.game-v2 .dv-driver-identity{
+  align-items:flex-end;
+  gap:16px;
+  padding-bottom:8px;
+  border-bottom:3px solid var(--dv-driver-base);
+}
+.game-v2 .dv-driver-avatar{
+  width:92px;
+  height:108px;
+  object-fit:contain;
+  object-position:center bottom;
+  border:3px solid var(--dv-driver-bright);
+  border-radius:0;
+  background:linear-gradient(180deg,#182124,#0b1011);
+  box-shadow:4px 4px 0 var(--dv-driver-shadow),6px 6px 0 #050707;
+}
+.game-v2 .journey-gauge .gauge-arc{
+  background:
+    repeating-conic-gradient(from 270deg,#c7d0d0 0deg 2deg,transparent 2deg 12deg),
+    conic-gradient(from 270deg,var(--dv-driver-bright) 0deg calc(var(--practice-p)*1.8deg),#283337 calc(var(--practice-p)*1.8deg) 180deg,transparent 180deg);
+}
+.game-v2 .journey-gauge .gauge-core strong{color:var(--dv-driver-highlight)}
+.game-v2 .night-gauge .gauge-arc{
+  background:
+    repeating-conic-gradient(from 270deg,#c7d0d0 0deg 2deg,transparent 2deg 12deg),
+    conic-gradient(from 270deg,var(--blue) 0deg calc(var(--night-p)*1.8deg),#283337 calc(var(--night-p)*1.8deg) 180deg,transparent 180deg);
+}
+.game-v2 .night-gauge .gauge-core strong{color:var(--blue)}
+.game-v2 .radio-head b{color:var(--dv-driver-highlight)}
+.game-v2 .radio-display{
+  border-color:var(--dv-driver-base);
+  background:radial-gradient(circle at 20% 15%,var(--dv-driver-shadow),#0a1212 72%);
+  box-shadow:inset 0 0 22px var(--dv-driver-shadow),0 0 0 1px var(--dv-driver-base);
+  color:var(--dv-driver-highlight);
+}
+.game-v2 .radio-controls i{border-color:var(--dv-driver-base)}
+.game-v2 .radio-controls em{color:var(--dv-driver-bright)}
+.game-v2 .cockpit-title{
+  box-shadow:inset 0 -2px 0 var(--dv-driver-shadow);
+}
+.game-v2 .windshield>img.dv-scene-base{
+  position:relative;
+  z-index:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.game-v2 .windshield:after{z-index:2;pointer-events:none}
+.game-v2 .dv-scene-layer{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+  image-rendering:pixelated;
+}
+.game-v2 .hours-sign{z-index:4}
+.game-v2 .dv-palette-preview{
+  position:absolute;
+  z-index:6;
+  left:10px;
+  bottom:10px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:5px;
+  max-width:min(520px,calc(100% - 20px));
+  padding:7px;
+  border:2px solid #596568;
+  background:rgba(7,11,13,.88);
+  box-shadow:3px 3px 0 #050707;
+}
+.game-v2 .dv-palette-preview[hidden]{display:none!important}
+.game-v2 .dv-palette-preview-label{
+  margin-right:3px;
+  color:#d3dcda;
+  font:700 9px/1 Orbitron,Arial,sans-serif;
+  letter-spacing:.04em;
+}
+.game-v2 .dv-palette-auto{
+  height:28px;
+  padding:3px 7px;
+  border:2px solid #718084;
+  background:#101719;
+  color:#f8f4e9;
+  font:800 8px/1 Orbitron,Arial,sans-serif;
+  cursor:pointer;
+}
+.game-v2 .dv-palette-auto.selected{
+  border-color:var(--dv-driver-highlight);
+  color:var(--dv-driver-highlight);
+}
+
+/* DEV proof-of-concept achievement scenery. These shapes establish the layering
+   contract; canonical art assets can replace them without changing selection logic. */
+.game-v2 .dv-scene-park .dv-park-tree{
+  position:absolute;
+  bottom:19%;
+  width:44px;
+  height:84px;
+}
+.game-v2 .dv-scene-park .dv-park-tree:before{
+  content:"";
+  position:absolute;
+  left:16px;
+  bottom:0;
+  width:12px;
+  height:38px;
+  background:#5c3821;
+  box-shadow:6px 0 #744929;
+}
+.game-v2 .dv-scene-park .dv-park-tree:after{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  width:44px;
+  height:48px;
+  background:#27552d;
+  box-shadow:8px 8px 0 #377640,16px 17px 0 #27552d;
+}
+.game-v2 .dv-scene-park .tree-a{left:6%;transform:scale(.88)}
+.game-v2 .dv-scene-park .tree-b{right:7%;transform:scale(1.05)}
+.game-v2 .dv-scene-park .tree-c{right:16%;bottom:22%;transform:scale(.66)}
+.game-v2 .dv-park-sign{
+  position:absolute;
+  right:19%;
+  bottom:25%;
+  min-width:74px;
+  padding:8px 8px 7px;
+  border:4px solid #e2dfbe;
+  background:#245b35;
+  color:#f4fae9;
+  box-shadow:4px 4px 0 #122b1a;
+  text-align:center;
+  font:800 10px/1 Orbitron,Arial,sans-serif;
+}
+.game-v2 .dv-scene-construction .dv-cone{
+  position:absolute;
+  bottom:12%;
+  width:16px;
+  height:31px;
+  background:linear-gradient(90deg,transparent 0 3px,#f27c24 3px 13px,transparent 13px);
+  border-bottom:6px solid #f4f0df;
+  filter:drop-shadow(3px 3px 0 #4c2b17);
+}
+.game-v2 .dv-scene-construction .cone-a{left:13%}
+.game-v2 .dv-scene-construction .cone-b{left:23%;bottom:15%;transform:scale(.8)}
+.game-v2 .dv-scene-construction .cone-c{right:13%;transform:scale(1.1)}
+.game-v2 .dv-roadwork-sign{
+  position:absolute;
+  right:20%;
+  bottom:25%;
+  width:78px;
+  min-height:56px;
+  display:grid;
+  place-items:center;
+  padding:6px;
+  transform:rotate(-5deg);
+  border:4px solid #171717;
+  background:#ef8428;
+  color:#171717;
+  box-shadow:5px 5px 0 #503018;
+  text-align:center;
+  font:900 10px/1.15 Orbitron,Arial,sans-serif;
+}
+.game-v2 .dv-roadwork-sign:after{
+  content:"";
+  position:absolute;
+  top:100%;
+  left:33px;
+  width:8px;
+  height:45px;
+  background:#5a5a55;
+}
+@media(max-width:760px){
+  .game-v2 .dv-driver-avatar{width:72px;height:86px}
+  .game-v2 .dv-palette-preview{left:6px;bottom:6px;max-width:calc(100% - 12px);gap:3px;padding:5px}
+  .game-v2 .dv-palette-preview-label{display:none}
+  .game-v2 .dv-palette-swatch.compact{width:28px;height:25px}
+  .game-v2 .dv-park-sign,.game-v2 .dv-roadwork-sign{transform:scale(.78);transform-origin:bottom right}
+}
