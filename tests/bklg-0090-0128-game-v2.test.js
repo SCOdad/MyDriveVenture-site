@@ -33,6 +33,20 @@ test('game v1 remains isolated from v2 assets',()=>{
   assert.ok(!v1.includes('dv-palette-preview'));
 });
 
+test('game v2 includes DEV-only unauthenticated mock preview entry point',()=>{
+  const v2=fs.readFileSync('log/game-v2/index.html','utf8');
+  const preview=fs.readFileSync('assets/js/log-game-v2-preview.js','utf8');
+  assert.ok(v2.includes('id="dv-mock-preview"'));
+  assert.ok(v2.includes('id="dv-mock-banner"'));
+  assert.ok(v2.includes('/assets/js/log-game-v2-preview.js'));
+  assert.match(preview,/env\?\.name!=='dev'/);
+  assert.match(preview,/mock_preview:true/);
+  assert.match(preview,/Mock preview — saving is disabled/);
+  assert.ok(!preview.includes('client.rpc('));
+  assert.ok(!preview.includes('functions.invoke('));
+  assert.ok(!preview.includes('fetch('));
+});
+
 test('game v2 includes DEV palette harness and scenery controller',()=>{
   const v2=fs.readFileSync('log/game-v2/index.html','utf8');
   assert.ok(v2.includes('DV-02 / DRIVER CONSOLE V2 · DEV'));
