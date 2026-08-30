@@ -66,7 +66,11 @@ test.describe('BKLG-0143 Operator backlog reliability', () => {
     await page.locator('#new-item').click();
     await expect(page.locator('#detail-code')).toHaveText('New backlog item');
     await page.locator('#detail-form [name="title"]').fill(marker);
+    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(false);
+    await expect(page.locator('#detail-form [name="category"]')).toHaveJSProperty('required', true);
+    expect(await page.locator('#detail-form [name="category"]').evaluate(input => input.validationMessage.length > 0)).toBe(true);
     await page.locator('#detail-form [name="category"]').fill('Operator / Backlog');
+    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(true);
     await page.locator('#detail-form [name="priority"]').selectOption('P1');
     await page.locator('#detail-form [name="description"]').fill('Synthetic DEV regression item for BKLG-0143.');
     await page.locator('#detail-form [name="acceptance_criteria"]').fill('Created from the top Save changes control and searchable without reload.');
