@@ -14,6 +14,7 @@ from pathlib import Path
 
 CENSUS_ZIP = "https://www2.census.gov/geo/tiger/GENZ2025/shp/cb_2025_us_state_20m.zip"
 CSV_PATH = Path(__file__).resolve().parents[1] / "staging" / "state-requirements.csv"
+PILOT_STATES = {"MI", "KS"}
 VALID = {"AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"}
 
 
@@ -91,7 +92,7 @@ def main() -> None:
         abbr = record.get("STUSPS", "")
         if abbr not in VALID: continue
         row = data[abbr]
-        category = "supported" if row["CurrentSupport"].lower()=="true" else "exact50" if row["Exactly50Hours"].lower()=="true" else "other" if row["TotalHours"] else "no-minimum"
+        category = "supported" if abbr in PILOT_STATES else "exact50" if row["Exactly50Hours"].lower()=="true" else "other" if row["TotalHours"] else "no-minimum"
         hours = row["TotalHours"] or "no verified statewide minimum"
         night = f"; {row['NightHours']} night" if row["NightHours"] not in ("","0") else ""
         title = f"{row['State']} — {hours} supervised hours{night}; {row['DocumentationCategory']}."
@@ -102,7 +103,7 @@ def main() -> None:
     dcx,dcy = project("DC",-77.02,38.91)
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="mapTitle mapDesc">
 <title id="mapTitle">Drive Venture supervised-driving requirements political map</title>
-<desc id="mapDesc">A geographic United States political map using Census Bureau state boundaries. Michigan is bright yellow as currently supported. Other exact-50-hour states are light yellow. States with a different supervised-hours requirement use transparent light-yellow hatching over the dark map background. Arkansas and Mississippi are gray because no statewide accumulated-hours minimum was verified. Detailed documentation requirements remain available in the accompanying table. Alaska and Hawaii appear as insets.</desc>
+<desc id="mapDesc">A geographic United States political map using Census Bureau state boundaries. Michigan and Kansas are bright yellow where the Drive Venture pilot is currently available. Other exact-50-hour states are light yellow. States with a different supervised-hours requirement use transparent light-yellow hatching over the dark map background. Arkansas and Mississippi are gray because no statewide accumulated-hours minimum was verified. Detailed documentation requirements remain available in the accompanying table. Alaska and Hawaii appear as insets.</desc>
 <defs><pattern id="otherHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#2b343d"/><rect width="3" height="10" fill="#dfcc7a" opacity=".48"/></pattern></defs>
 <style>.state-shape{{stroke:#080b0e;stroke-width:2.4;vector-effect:non-scaling-stroke;stroke-linejoin:round}}.state:hover .state-shape{{stroke:#f7f3e8;stroke-width:5}}.inset{{fill:none;stroke:#aeb8c2;stroke-width:1.5;stroke-dasharray:7 6}}.label{{fill:#aeb8c2;font:700 15px Inter,Arial,sans-serif;letter-spacing:.08em}}.dc-marker{{fill:url(#otherHatch);stroke:#080b0e;stroke-width:2}}.dc-line{{stroke:#f7f3e8;stroke-width:1.5}}</style>
 <rect width="1200" height="720" rx="18" fill="#111820"/>
