@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installPageGuards, personas, signIn } from './helpers.mjs';
+import { installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
 
 test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
   test('operator can preview every driver palette inside the v2 windshield without persisting it', async ({ page }) => {
@@ -29,6 +29,41 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await page.goto('/log/game-v2/');
     await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
     await expect(page.locator('#dv-palette-preview')).toBeHidden();
+    assertNoPageFailures();
+  });
+
+  test('favorite color can be changed in Profile and is reflected by Game v2, then restored', async ({ page }) => {
+    const assertNoPageFailures=installPageGuards(page);
+    await signIn(page,personas.guardianMulti);
+
+    await page.goto('/profile/');
+    await expect(page.locator('#profile-app')).toBeVisible({timeout:20_000});
+    const option=page.locator('#profile-subject option').filter({hasText:'Synthetic Driver One'}).first();
+    const personId=await option.getAttribute('value');
+    expect(personId).toBeTruthy();
+    await page.locator('#profile-subject').selectOption(personId);
+    await expect(page.locator('#profile-color-wrap')).toBeVisible();
+
+    const saveResponse=page.waitForResponse(response=>response.url().includes('/functions/v1/profile-api')&&response.request().method()==='POST'&&response.status()===200);
+    await page.locator('#profile-color-wrap [data-dv-palette-id="GREEN"]').click();
+    await page.locator('#profile-form button[type="submit"]').click();
+    await saveResponse;
+    await expect(page.locator('#profile-status')).toContainText('Profile saved');
+
+    await page.goto('/log/game-v2/');
+    await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
+    await selectDriverByName(page,'Synthetic Driver One');
+    await expect(page.locator('body')).toHaveAttribute('data-dv-driver-color','green');
+
+    await page.goto('/profile/');
+    await expect(page.locator('#profile-app')).toBeVisible({timeout:20_000});
+    await page.locator('#profile-subject').selectOption(personId);
+    await expect(page.locator('#profile-color-wrap')).toBeVisible();
+    const restoreResponse=page.waitForResponse(response=>response.url().includes('/functions/v1/profile-api')&&response.request().method()==='POST'&&response.status()===200);
+    await page.locator('#profile-color-wrap [data-dv-palette-clear]').click();
+    await page.locator('#profile-form button[type="submit"]').click();
+    await restoreResponse;
+    await expect(page.locator('#profile-status')).toContainText('Profile saved');
     assertNoPageFailures();
   });
 
