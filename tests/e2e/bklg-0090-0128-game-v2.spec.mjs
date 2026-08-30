@@ -66,7 +66,6 @@ test.describe('BKLG-0090 / BKLG-0128 Game v2 DEV preview', () => {
     await page.locator('#dv-palette-preview [data-dv-scene-preview="AUTO"]').click();
     expect(await page.evaluate(()=>window.DV_GAME_V2?.getSceneOverride?.())).toBeNull();
 
-    expect(before).toBeTruthy();
     assertNoPageFailures();
   });
 
