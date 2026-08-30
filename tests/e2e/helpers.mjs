@@ -13,11 +13,13 @@ export function requireTestPassword() {
   return password;
 }
 
-export function installPageGuards(page) {
+export function installPageGuards(page, { ignoreConsoleErrors = [] } = {}) {
   const failures = [];
   page.on('pageerror', error => failures.push(`pageerror: ${error.message}`));
   page.on('console', message => {
-    if (message.type() === 'error') failures.push(`console.error: ${message.text()}`);
+    const value = message.text();
+    const ignored = ignoreConsoleErrors.some(pattern => pattern instanceof RegExp ? pattern.test(value) : value.includes(String(pattern)));
+    if (message.type() === 'error' && !ignored) failures.push(`console.error: ${value}`);
   });
   page.on('requestfailed', request => {
     const url = request.url();
