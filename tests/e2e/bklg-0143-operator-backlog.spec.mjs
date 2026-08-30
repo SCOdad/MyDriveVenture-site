@@ -1,1 +1,153 @@
-import { test, expect } from '@playwright/test';\nimport { personas, signIn } from './helpers.mjs';\n\nfunction requestAction(response) {\n  try { return response.request().postDataJSON()?.action || null; } catch { return null; }\n}\n\nfunction waitForAction(page, action, status = 200) {\n  return page.waitForResponse(response =>\n    response.url().includes('/functions/v1/operator-backlog') &&\n    response.request().method() === 'POST' &&\n    requestAction(response) === action &&\n    response.status() === status,\n    { timeout: 20_000 }\n  );\n}\n\nasync function backlogRequest(page, payload) {\n  return page.evaluate(async body => {\n    const cfg = window.DV_APP_CONFIG;\n    const client = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, { auth: { persistSession: true, autoRefreshToken: true } });\n    const { data: { session }, error } = await client.auth.getSession();\n    if (error || !session?.access_token) return { ok: false, status: 0, error: error?.message || 'no session' };\n    const response = await fetch(window.DV_OPERATOR_BACKLOG_ENDPOINT, {\n      method: 'POST',\n      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },\n      body: JSON.stringify(body)\n    });\n    const result = await response.json().catch(() => ({}));\n    return { ok: response.ok && result?.ok === true, status: response.status, result };\n  }, payload);\n}\n\ntest.describe('BKLG-0143 focused Operator backlog regression', () => {\n  test('required fields, canonical Category, both Save controls, and terminal precedence work in DEV', async ({ page }, testInfo) => {\n    await signIn(page, personas.operator);\n    await page.goto('/operator/backlog/');\n    await expect(page.locator('#main')).toBeVisible({ timeout: 20_000 });\n\n    const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;\n    const marker = `BKLG-0143 focused CI ${runId}-${testInfo.retry}`;\n\n    await page.locator('#new-item').click();\n    await expect(page.locator('#detail-code')).toHaveText('New backlog item');\n    await expect(page.locator('#save-item-top')).toBeVisible();\n    await expect(page.locator('#save-item')).toBeVisible();\n\n    const category = page.locator('#detail-form [name="category"]');\n    await expect(category).toHaveJSProperty('required', true);\n    await expect(category.locator('option')).toHaveCount(12);\n    await expect(category.locator('option')).toHaveText([\n      'Choose category', 'Product', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data',\n      'Platform / Infrastructure', 'Technical Debt', 'Operations', 'Operator',\n      'Communications / Text Parker', 'Documentation'\n    ]);\n\n    await page.locator('#detail-form [name="title"]').fill(marker);\n    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(false);\n    expect(await category.evaluate(input => input.validationMessage.length > 0)).toBe(true);\n\n    await category.selectOption('Operator');\n    await page.locator('#detail-form [name="priority"]').selectOption('P1');\n    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(true);\n\n    const createdResponse = waitForAction(page, 'create');\n    await page.locator('#save-item-top').click();\n    const created = await (await createdResponse).json();\n    expect(created?.backlog_code).toMatch(/^BKLG-\d{4,}$/);\n    const code = created.backlog_code;\n    await expect(page.locator('#detail-code')).toHaveText(code);\n\n    await page.locator('#detail-form [name="notes"]').fill('Saved through the bottom control.');\n    const updatedResponse = waitForAction(page, 'update');\n    await page.locator('#save-item').click();\n    await updatedResponse;\n    await expect(page.locator('#operator-message')).toContainText(`Saved ${code}`);\n\n    const closed = await backlogRequest(page, {\n      action: 'close', backlog_code: code, status: 'CANCELLED',\n      outcome: 'Synthetic regression cleanup', notes: 'BKLG-0143 focused browser fixture cleanup.'\n    });\n    expect(closed, JSON.stringify(closed)).toMatchObject({ ok: true, status: 200 });\n\n    const listResponse = waitForAction(page, 'list');\n    await page.locator('#filter-search').fill(code);\n    await listResponse;\n    const row = page.locator(`#backlog-list [data-code="${code}"]`);\n    await expect(row).toHaveClass(/terminal/);\n    await expect(row).toHaveClass(/priority-p1/);\n    const colors = await row.evaluate(element => {\n      const style = getComputedStyle(element);\n      return { backgroundColor: style.backgroundColor, borderLeftColor: style.borderLeftColor };\n    });\n    expect(colors.backgroundColor).not.toBe('rgb(90, 17, 24)');\n    expect(colors.backgroundColor).not.toBe('rgb(243, 196, 196)');\n    expect(colors.borderLeftColor).toBe('rgb(69, 165, 101)');\n  });\n\n  test('historical Category survives unrelated edits and a stale-token response is refreshed once', async ({ page }, testInfo) => {\n    const pageErrors = [];\n    page.on('pageerror', error => pageErrors.push(error.message));\n    await signIn(page, personas.operator);\n    await page.goto('/operator/backlog/');\n    await expect(page.locator('#main')).toBeVisible({ timeout: 20_000 });\n\n    const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;\n    const marker = `BKLG-0143 historical CI ${runId}-${testInfo.retry}`;\n    const created = await backlogRequest(page, {\n      action: 'create', title: marker, category: 'Legacy Regression Category', status: 'BACKLOG', priority: 'P3'\n    });\n    expect(created, JSON.stringify(created)).toMatchObject({ ok: true, status: 200 });\n    const code = created.result.backlog_code;\n\n    await page.goto(`/operator/backlog/?bklg=${encodeURIComponent(code)}`);\n    await expect(page.locator('#detail-code')).toHaveText(code, { timeout: 20_000 });\n    const category = page.locator('#detail-form [name="category"]');\n    await expect(category).toHaveValue('Legacy Regression Category');\n    await expect(category.locator('option:checked')).toHaveText('Legacy Regression Category (historical)');\n\n    await page.locator('#detail-form [name="notes"]').fill('Unrelated edit preserving historical Category.');\n    const updateResponse = waitForAction(page, 'update');\n    await page.locator('#save-item-top').click();\n    await updateResponse;\n    const fetched = await backlogRequest(page, { action: 'get', backlog_code: code });\n    expect(fetched.result?.item?.category).toBe('Legacy Regression Category');\n\n    let failNextList = true;\n    await page.route('**/functions/v1/operator-backlog', async route => {\n      let action = null;\n      try { action = route.request().postDataJSON()?.action || null; } catch {}\n      if (failNextList && action === 'list') {\n        failNextList = false;\n        await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'Authentication required' }) });\n        return;\n      }\n      await route.continue();\n    });\n\n    const retryResponse = waitForAction(page, 'list');\n    await page.locator('#filter-search').fill(code);\n    await retryResponse;\n    await expect(page.locator(`#backlog-list [data-code="${code}"]`)).toBeVisible();\n    expect(failNextList).toBe(false);\n    await page.unroute('**/functions/v1/operator-backlog');\n\n    const closed = await backlogRequest(page, {\n      action: 'close', backlog_code: code, status: 'CANCELLED',\n      outcome: 'Synthetic regression cleanup', notes: 'BKLG-0143 historical-category fixture cleanup.'\n    });\n    expect(closed, JSON.stringify(closed)).toMatchObject({ ok: true, status: 200 });\n    expect(pageErrors).toEqual([]);\n  });\n});\n
+import { test, expect } from '@playwright/test';
+import { personas, signIn } from './helpers.mjs';
+
+function requestAction(response) {
+  try { return response.request().postDataJSON()?.action || null; } catch { return null; }
+}
+
+function waitForAction(page, action, status = 200) {
+  return page.waitForResponse(response =>
+    response.url().includes('/functions/v1/operator-backlog') &&
+    response.request().method() === 'POST' &&
+    requestAction(response) === action &&
+    response.status() === status,
+    { timeout: 20_000 }
+  );
+}
+
+async function backlogRequest(page, payload) {
+  return page.evaluate(async body => {
+    const cfg = window.DV_APP_CONFIG;
+    const client = window.supabase.createClient(cfg.supabaseUrl, cfg.publishableKey, { auth: { persistSession: true, autoRefreshToken: true } });
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error || !session?.access_token) return { ok: false, status: 0, error: error?.message || 'no session' };
+    const response = await fetch(window.DV_OPERATOR_BACKLOG_ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify(body)
+    });
+    const result = await response.json().catch(() => ({}));
+    return { ok: response.ok && result?.ok === true, status: response.status, result };
+  }, payload);
+}
+
+test.describe('BKLG-0143 focused Operator backlog regression', () => {
+  test('required fields, canonical Category, both Save controls, and terminal precedence work in DEV', async ({ page }, testInfo) => {
+    await signIn(page, personas.operator);
+    await page.goto('/operator/backlog/');
+    await expect(page.locator('#main')).toBeVisible({ timeout: 20_000 });
+
+    const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
+    const marker = `BKLG-0143 focused CI ${runId}-${testInfo.retry}`;
+
+    await page.locator('#new-item').click();
+    await expect(page.locator('#detail-code')).toHaveText('New backlog item');
+    await expect(page.locator('#save-item-top')).toBeVisible();
+    await expect(page.locator('#save-item')).toBeVisible();
+
+    const category = page.locator('#detail-form [name="category"]');
+    await expect(category).toHaveJSProperty('required', true);
+    await expect(category.locator('option')).toHaveCount(12);
+    await expect(category.locator('option')).toHaveText([
+      'Choose category', 'Product', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data',
+      'Platform / Infrastructure', 'Technical Debt', 'Operations', 'Operator',
+      'Communications / Text Parker', 'Documentation'
+    ]);
+
+    await page.locator('#detail-form [name="title"]').fill(marker);
+    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(false);
+    expect(await category.evaluate(input => input.validationMessage.length > 0)).toBe(true);
+
+    await category.selectOption('Operator');
+    await page.locator('#detail-form [name="priority"]').selectOption('P1');
+    expect(await page.locator('#detail-form').evaluate(form => form.checkValidity())).toBe(true);
+
+    const createdResponse = waitForAction(page, 'create');
+    await page.locator('#save-item-top').click();
+    const created = await (await createdResponse).json();
+    expect(created?.backlog_code).toMatch(/^BKLG-\d{4,}$/);
+    const code = created.backlog_code;
+    await expect(page.locator('#detail-code')).toHaveText(code);
+
+    await page.locator('#detail-form [name="notes"]').fill('Saved through the bottom control.');
+    const updatedResponse = waitForAction(page, 'update');
+    await page.locator('#save-item').click();
+    await updatedResponse;
+    await expect(page.locator('#operator-message')).toContainText(`Saved ${code}`);
+
+    const closed = await backlogRequest(page, {
+      action: 'close', backlog_code: code, status: 'CANCELLED',
+      outcome: 'Synthetic regression cleanup', notes: 'BKLG-0143 focused browser fixture cleanup.'
+    });
+    expect(closed, JSON.stringify(closed)).toMatchObject({ ok: true, status: 200 });
+
+    const listResponse = waitForAction(page, 'list');
+    await page.locator('#filter-search').fill(code);
+    await listResponse;
+    const row = page.locator(`#backlog-list [data-code="${code}"]`);
+    await expect(row).toHaveClass(/terminal/);
+    await expect(row).toHaveClass(/priority-p1/);
+    const colors = await row.evaluate(element => {
+      const style = getComputedStyle(element);
+      return { backgroundColor: style.backgroundColor, borderLeftColor: style.borderLeftColor };
+    });
+    expect(colors.backgroundColor).not.toBe('rgb(90, 17, 24)');
+    expect(colors.backgroundColor).not.toBe('rgb(243, 196, 196)');
+    expect(colors.borderLeftColor).toBe('rgb(69, 165, 101)');
+  });
+
+  test('historical Category survives unrelated edits and a stale-token response is refreshed once', async ({ page }, testInfo) => {
+    const pageErrors = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+    await signIn(page, personas.operator);
+    await page.goto('/operator/backlog/');
+    await expect(page.locator('#main')).toBeVisible({ timeout: 20_000 });
+
+    const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
+    const marker = `BKLG-0143 historical CI ${runId}-${testInfo.retry}`;
+    const created = await backlogRequest(page, {
+      action: 'create', title: marker, category: 'Legacy Regression Category', status: 'BACKLOG', priority: 'P3'
+    });
+    expect(created, JSON.stringify(created)).toMatchObject({ ok: true, status: 200 });
+    const code = created.result.backlog_code;
+
+    await page.goto(`/operator/backlog/?bklg=${encodeURIComponent(code)}`);
+    await expect(page.locator('#detail-code')).toHaveText(code, { timeout: 20_000 });
+    const category = page.locator('#detail-form [name="category"]');
+    await expect(category).toHaveValue('Legacy Regression Category');
+    await expect(category.locator('option:checked')).toHaveText('Legacy Regression Category (historical)');
+
+    await page.locator('#detail-form [name="notes"]').fill('Unrelated edit preserving historical Category.');
+    const updateResponse = waitForAction(page, 'update');
+    await page.locator('#save-item-top').click();
+    await updateResponse;
+    const fetched = await backlogRequest(page, { action: 'get', backlog_code: code });
+    expect(fetched.result?.item?.category).toBe('Legacy Regression Category');
+
+    let failNextList = true;
+    await page.route('**/functions/v1/operator-backlog', async route => {
+      let action = null;
+      try { action = route.request().postDataJSON()?.action || null; } catch {}
+      if (failNextList && action === 'list') {
+        failNextList = false;
+        await route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'Authentication required' }) });
+        return;
+      }
+      await route.continue();
+    });
+
+    const retryResponse = waitForAction(page, 'list');
+    await page.locator('#filter-search').fill(code);
+    await retryResponse;
+    await expect(page.locator(`#backlog-list [data-code="${code}"]`)).toBeVisible();
+    expect(failNextList).toBe(false);
+    await page.unroute('**/functions/v1/operator-backlog');
+
+    const closed = await backlogRequest(page, {
+      action: 'close', backlog_code: code, status: 'CANCELLED',
+      outcome: 'Synthetic regression cleanup', notes: 'BKLG-0143 historical-category fixture cleanup.'
+    });
+    expect(closed, JSON.stringify(closed)).toMatchObject({ ok: true, status: 200 });
+    expect(pageErrors).toEqual([]);
+  });
+});
