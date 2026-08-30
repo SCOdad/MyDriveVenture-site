@@ -14,6 +14,7 @@
   });
 
   let overridePalette=null;
+  let overrideScene=null;
   let lastDetail=null;
 
   function clearScene(){
@@ -34,7 +35,7 @@
     const layer=document.getElementById('dv-scene-layer');
     if(!layer)return;
     const award=latestEligibleAward(detail);
-    const scene=award?SCENE_RULES[award.quest_key]:null;
+    const scene=overrideScene||(award?SCENE_RULES[award.quest_key]:null);
     layer.innerHTML=scene?SCENE_MARKUP[scene]:'';
     if(scene)layer.dataset.dvScene=scene.toLowerCase();else delete layer.dataset.dvScene;
   }
@@ -76,7 +77,8 @@
     }
     host.hidden=false;
     host.innerHTML='<span class="dv-palette-preview-label">DEV COLOR</span><button type="button" class="dv-palette-auto" data-dv-palette-auto aria-pressed="false">AUTO</button>'+
-      paletteApi.palettes.map(p=>paletteApi.swatchMarkup(p,true)).join('');
+      paletteApi.palettes.map(p=>paletteApi.swatchMarkup(p,true)).join('')+
+      '<div class="dv-scene-preview"><span class="dv-palette-preview-label">DEV SCENE</span><button type="button" class="dv-palette-auto" data-dv-scene-preview="AUTO" aria-pressed="false">AUTO</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="PARK" aria-pressed="false">PARK</button><button type="button" class="dv-palette-auto" data-dv-scene-preview="CONSTRUCTION" aria-pressed="false">WORK</button></div>';
 
     host.querySelector('[data-dv-palette-auto]')?.addEventListener('click',()=>{
       overridePalette=null;
@@ -90,6 +92,19 @@
         updateHarnessSelection(host,current);
       });
     });
+    host.querySelectorAll('[data-dv-scene-preview]').forEach(button=>{
+      button.addEventListener('click',()=>{
+        overrideScene=button.dataset.dvScenePreview==='AUTO'?null:button.dataset.dvScenePreview;
+        host.querySelectorAll('[data-dv-scene-preview]').forEach(candidate=>{
+          const active=(candidate.dataset.dvScenePreview==='AUTO'&&!overrideScene)||candidate.dataset.dvScenePreview===overrideScene;
+          candidate.classList.toggle('selected',active);
+          candidate.setAttribute('aria-pressed',String(active));
+        });
+        renderScene(lastDetail);
+      });
+    });
+    host.querySelector('[data-dv-scene-preview="AUTO"]')?.classList.add('selected');
+    host.querySelector('[data-dv-scene-preview="AUTO"]')?.setAttribute('aria-pressed','true');
     updateHarnessSelection(host,resolved);
   }
 
@@ -103,6 +118,7 @@
 
   window.addEventListener('dv:driver-changing',()=>{
     overridePalette=null;
+    overrideScene=null;
     clearScene();
     paletteApi.apply(document.body,'YELLOW');
     const host=document.getElementById('dv-palette-preview');
@@ -114,6 +130,7 @@
     sceneRecencyDays:SCENE_RECENCY_DAYS,
     sceneRules:SCENE_RULES,
     getActiveScene:()=>document.getElementById('dv-scene-layer')?.dataset.dvScene||null,
-    getPaletteOverride:()=>overridePalette
+    getPaletteOverride:()=>overridePalette,
+    getSceneOverride:()=>overrideScene
   });
 })();
