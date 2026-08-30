@@ -52,7 +52,8 @@ map_path.write_text(svg, encoding="utf-8")
 # Keep the map generator aligned with the checked-in artifact without changing
 # the licensing-research dataset's meaning.
 generator_path = root / "tools" / "build-state-requirements-map.py"
-generator = generator_path.read_text(encoding="utf-8")ngenerator = replace_once(generator, 'VALID = {', 'PILOT_STATES = {"MI", "KS"}\nVALID = {', "pilot state constant")
+generator = generator_path.read_text(encoding="utf-8")
+generator = replace_once(generator, 'VALID = {', 'PILOT_STATES = {"MI", "KS"}\nVALID = {', "pilot state constant")
 generator = replace_once(generator, 'category = "supported" if row["CurrentSupport"].lower()=="true" else "exact50"', 'category = "supported" if abbr in PILOT_STATES else "exact50"', "map category logic")
 generator = replace_once(generator, 'Michigan is bright yellow as currently supported. Other exact-50-hour states are light yellow.', 'Michigan and Kansas are bright yellow where the Drive Venture pilot is currently available. Other exact-50-hour states are light yellow.', "generator description")
 generator_path.write_text(generator, encoding="utf-8")
