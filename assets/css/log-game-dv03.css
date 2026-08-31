@@ -57,7 +57,8 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
 .dv03-parking-pad::after{content:"";position:absolute;left:54%;top:8%;bottom:4%;width:5px;background:#ece9d9;transform:skewX(16deg)}
 
 .dv03-hero-layer{z-index:5}
-.dv03-hero{position:absolute;left:-1.5%;bottom:-2.5%;width:47%;height:auto;image-rendering:pixelated;filter:drop-shadow(4px 5px 0 rgb(0 0 0 / .16))}
+.dv03-hero-canvas{position:absolute;left:0;bottom:0;height:100%;aspect-ratio:2/3;overflow:visible}
+.dv03-hero{position:absolute;left:2%;top:40%;width:68%;height:auto;image-rendering:pixelated;filter:drop-shadow(4px 5px 0 rgb(0 0 0 / .16))}
 
 .dv03-cockpit-mask{z-index:6}
 .dv03-dash-lip{position:absolute;left:24%;right:-7%;bottom:-8%;height:16%;background:#151b22;border-top:5px solid #28333f;transform:skewX(-8deg);box-shadow:0 -3px 0 #090d12}
@@ -104,7 +105,6 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
   .dv03-preview-banner{margin-bottom:.7rem;font-size:.58rem}
   .dv03-topline{align-items:center}.dv03-chip{font-size:.55rem;padding:.4rem .5rem}
   .dv03-windshield{aspect-ratio:4/3;min-height:245px}
-  .dv03-hero{width:54%;left:-4%;bottom:-3.5%}
   .dv03-milestone-sign{right:3.5%;top:7%;width:38%;padding:.36rem .4rem;border-width:2px;box-shadow:3px 3px 0 rgb(0 0 0 / .25)}
   .dv03-horizon{bottom:44%;height:21%}.dv03-landscape::after{height:45%}
   .dv03-road{bottom:12%;height:25%}.dv03-parking-pad{width:58%;height:24%}
@@ -117,7 +117,6 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
 
 @media (max-width:400px){
   .dv03-windshield{min-height:230px}
-  .dv03-hero{width:57%;left:-5%;bottom:-4%}
   .dv03-milestone-sign{width:40%;right:2.5%}
   .dv03-statusbar{font-size:.5rem}
   .dv03-controls{grid-template-columns:1fr 1.18fr 1fr}
@@ -126,7 +125,6 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
 
 @media (min-width:900px){
   .dv03-windshield{aspect-ratio:16/8.5;min-height:420px}
-  .dv03-hero{width:40%;left:1%;bottom:-4%}
   .dv03-milestone-sign{right:8%;top:13%}
   .dv03-controls{padding:.8rem 1.1rem;gap:1rem}
 }
