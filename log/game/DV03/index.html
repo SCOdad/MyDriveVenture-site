@@ -9,9 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260831-dv03-1">
+  <link rel="stylesheet" href="/assets/css/log-dashboard-v3.css?v=20260820-2052">
+  <link rel="stylesheet" href="/assets/css/log-game-v2.css?v=20260830-bklg0090">
+  <link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260831-dv03-2">
 </head>
-<body class="dv03-body">
+<body class="dash-body game-v2 dv03-body">
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="racing-stripe"></div>
 
@@ -22,7 +24,7 @@
     </div>
   </header>
 
-  <main id="main" class="dv03-shell">
+  <main id="main" class="dash-shell dv03-shell">
     <div class="dv03-preview-banner" role="note">
       <strong>DV03 VISUAL STUDY</strong>
       <span>Unauthenticated · synthetic data · read-only · not a production dashboard</span>
@@ -36,13 +38,13 @@
       <div class="dv03-chip">PARKED / READY</div>
     </div>
 
-    <section class="dv03-console" aria-label="DV03 layered cockpit preview">
-      <div class="dv03-console-head">
+    <section class="dashboard-console dv03-console" aria-label="DV03 layered cockpit preview">
+      <div class="cockpit-title dv03-console-head">
         <span>DRIVE VENTURE / ON THE ROAD</span>
         <b>DV03</b>
       </div>
 
-      <div class="dv03-windshield" aria-label="Layered cockpit scene with synthetic data">
+      <div class="windshield dv03-windshield" aria-label="Layered cockpit scene with synthetic data">
         <div class="dv03-layer dv03-sky" aria-hidden="true">
           <span class="dv03-cloud cloud-a"></span>
           <span class="dv03-cloud cloud-b"></span>
@@ -73,37 +75,51 @@
           <div class="dv03-a-pillar"></div>
         </div>
 
-        <div class="dv03-milestone-sign">
+        <div class="hours-sign dv03-milestone-sign">
           <span>NEXT LICENSE MILESTONE</span>
           <strong>11.8 HOURS TO GO</strong>
         </div>
       </div>
 
-      <div class="dv03-statusbar">
+      <div class="dash-status dv03-statusbar">
         <span>● PARKED / READY TO LOG</span>
         <span>LOCAL TIME <b>08:57</b></span>
       </div>
 
-      <div class="dv03-controls">
-        <article class="dv03-gauge-card">
-          <div class="dv03-gauge journey"><div class="dv03-gauge-core"><span>JOURNEY</span><strong>38.2 h</strong><small>HOURS</small></div></div>
-          <div class="dv03-gauge-caption"><span>DRIVES LOGGED</span><b>64</b></div>
+      <div class="cockpit-controls dv03-controls">
+        <div class="cockpit-stack">
+          <article class="gauge journey-gauge">
+            <div class="gauge-arc"><div class="gauge-core"><span>JOURNEY</span><strong>38.2 h</strong><small>HOURS</small></div></div>
+            <div class="gauge-caption"><span>DRIVES LOGGED</span><b>64</b></div>
+          </article>
+          <section class="cockpit-info license-info" aria-label="Synthetic license status">
+            <div><span>LICENSE STAGE</span><strong>LEVEL 1</strong></div>
+            <div><span>STAGE SINCE</span><strong>APR 18</strong></div>
+            <div><span>NEXT TIME MILESTONE</span><strong>11.8 H</strong></div>
+            <div><span>XP</span><strong>1,260</strong></div>
+          </section>
+        </div>
+
+        <article class="radio-panel">
+          <div class="radio-head"><span>GPS / INFOTAINMENT</span><b>MISSION CONTROL</b></div>
+          <div class="radio-display"><span>NEXT QUEST</span><strong>Night Owl</strong><small>Log 1.8 more night hours</small></div>
+          <div class="radio-controls"><i></i><i></i><i></i><em>DV 50.0</em></div>
         </article>
 
-        <article class="dv03-radio">
-          <div class="dv03-radio-head"><span>GPS / INFOTAINMENT</span><b>MISSION CONTROL</b></div>
-          <div class="dv03-radio-screen"><span>NEXT QUEST</span><strong>Night Owl</strong><small>Log 1.8 more night hours</small></div>
-          <div class="dv03-radio-controls"><i></i><i></i><i></i><em>DV 50.0</em></div>
-        </article>
-
-        <article class="dv03-gauge-card">
-          <div class="dv03-gauge night"><div class="dv03-gauge-core"><span>NIGHT</span><strong>8.2 h</strong><small>HOURS</small></div></div>
-          <div class="dv03-gauge-caption"><span>NIGHT GOAL</span><b>8.2 / 10 h</b></div>
-        </article>
+        <div class="cockpit-stack">
+          <article class="gauge night-gauge">
+            <div class="gauge-arc"><div class="gauge-core"><span>NIGHT</span><strong>8.2 h</strong><small>HOURS</small></div></div>
+            <div class="gauge-caption"><span>NIGHT GOAL</span><b>8.2 / 10 h</b></div>
+          </article>
+          <section class="cockpit-info weather-info" aria-label="Synthetic road conditions">
+            <div class="weather-heading"><span>ROAD CONDITIONS</span><strong>Clear</strong></div>
+            <div><span>DRIVING SURFACE</span><strong>Dry</strong></div>
+          </section>
+        </div>
       </div>
     </section>
 
-    <div class="dv03-divider">SCROLL FOR SYNTHETIC CONSOLE CONTEXT</div>
+    <div class="dashboard-divider dv03-divider">SCROLL FOR SYNTHETIC CONSOLE CONTEXT</div>
 
     <section class="dv03-grid" aria-label="Synthetic dashboard data">
       <article class="dv03-card">
