@@ -24,7 +24,7 @@ async function loadConsoleFixture(page, practiceValues = [1, 3, 50, 100]) {
 }
 
 test.describe('BKLG-0090 deterministic visual regression', () => {
-  test('tutorial arrow remains centered on the palette gear', async ({ page }) => {
+  test('tutorial arrow remains centered on the palette gear', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1000, height: 760 });
     await loadConsoleFixture(page);
     await page.addScriptTag({ path: asset('assets/js/driver-palettes.js') });
@@ -46,10 +46,10 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
     const arrowCenter = arrowBox.x + arrowBox.width / 2;
     expect(Math.abs(gearCenter - arrowCenter)).toBeLessThanOrEqual(2);
     expect(arrowBox.y + arrowBox.height).toBeLessThanOrEqual(gearBox.y + 3);
-    await expect(page.locator('.radio-panel')).toHaveScreenshot('palette-tutorial-desktop.png');
+    await testInfo.attach('palette-tutorial-desktop', { body: await page.locator('.radio-panel').screenshot(), contentType: 'image/png' });
   });
 
-  test('Journey gauge stays proportional at low, middle, and full values', async ({ page }) => {
+  test('Journey gauge stays proportional at low, middle, and full values', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1100, height: 440 });
     await loadConsoleFixture(page);
     const backgrounds = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => getComputedStyle(arc).backgroundImage));
@@ -57,7 +57,13 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
       expect(background).toContain('270deg');
       expect(background).toContain('180deg');
     }
-    await expect(page.locator('#gauge-fixtures')).toHaveScreenshot('journey-gauge-1-3-50-100.png');
+    const stops = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => {
+      const value = Number(arc.closest('[data-value]').dataset.value);
+      return { value, expectedDegrees: value * 1.8, background: getComputedStyle(arc).backgroundImage };
+    }));
+    expect(stops.map(stop => stop.expectedDegrees)).toEqual([1.8, 5.4, 90, 180]);
+    for (const stop of stops) expect(stop.background).toContain(`${stop.expectedDegrees}deg`);
+    await testInfo.attach('journey-gauge-1-3-50-100', { body: await page.locator('#gauge-fixtures').screenshot(), contentType: 'image/png' });
   });
 
   test('Profile secondary actions, progress, and section rule use the driver palette', async ({ page }) => {
