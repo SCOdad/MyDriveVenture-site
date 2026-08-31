@@ -63,7 +63,7 @@
         </div>
 
         <div class="dv03-layer dv03-hero-layer">
-          <img class="dv03-hero" id="dv03-hero" src="/assets/images/DV.CHAR-PARKER-KEYS.png" data-dv03-hero-parts="4" alt="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel">
+          <img class="dv03-hero" id="dv03-hero" src="/assets/images/DV.CHAR-PARKER-KEYS.png" data-dv03-hero-parts="3" alt="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel">
         </div>
 
         <div class="dv03-layer dv03-cockpit-mask" aria-hidden="true">
@@ -130,9 +130,8 @@
     if (!r.ok) throw new Error(`Hero part ${i} unavailable`);
     return r.text();
   }))).then(parts => {
-    const url = URL.createObjectURL(new Blob([parts.join('')], {type: 'image/svg+xml'}));
-    hero.addEventListener('load', () => URL.revokeObjectURL(url), {once:true});
-    hero.src = url;
+    hero.src = `data:image/png;base64,${parts.join('')}`;
+    hero.dataset.dv03HeroLoaded = 'true';
   }).catch(() => {
     hero.dataset.dv03HeroFallback = 'true';
   });
