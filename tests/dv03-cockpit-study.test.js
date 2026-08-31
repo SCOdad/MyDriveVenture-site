@@ -7,6 +7,12 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   const css=fs.readFileSync('assets/css/log-game-dv03.css','utf8');
 
   assert.match(html,/DV03 VISUAL STUDY/);
+  assert.match(html,/log-dashboard-v3\.css/);
+  assert.match(html,/log-game-v2\.css/);
+  assert.match(html,/class="dashboard-console dv03-console"/);
+  assert.match(html,/class="cockpit-title dv03-console-head"/);
+  assert.match(html,/class="windshield dv03-windshield"/);
+  assert.match(html,/class="cockpit-controls dv03-controls"/);
   assert.match(html,/Unauthenticated · synthetic data · read-only/);
   assert.ok(!html.includes('@supabase/supabase-js'));
   assert.ok(!html.includes('/log/config.js'));
@@ -34,8 +40,10 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(css,/\.dv03-sky\{z-index:1/);
   assert.match(css,/\.dv03-landscape\{z-index:2/);
   assert.match(css,/\.dv03-hero-layer\{z-index:5/);
-  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:0;bottom:0;height:100%;aspect-ratio:2\/3/);
-  assert.match(css,/\.dv03-hero\{position:absolute;left:2%;top:40%;width:68%;height:auto/);
+  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:0;bottom:-2%;height:132%;aspect-ratio:2\/3/);
+  assert.match(css,/\.dv03-windshield img\.dv03-hero\{position:absolute;left:2%;top:40%;width:68%;height:auto/);
+  assert.match(css,/\.dv03-windshield\{position:relative;isolation:isolate;height:clamp\(220px,32vw,375px\)/);
+  assert.match(css,/@media \(max-width:760px\)[\s\S]*\.dv03-windshield\{height:190px/);
   assert.match(css,/\.dv03-cockpit-mask\{z-index:6/);
   assert.match(css,/\.dv03-milestone-sign\{position:absolute;z-index:7/);
   assert.match(css,/image-rendering:pixelated/);
