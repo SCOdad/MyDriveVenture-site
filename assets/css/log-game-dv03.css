@@ -105,7 +105,7 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
   .dv03-preview-banner{margin-bottom:.7rem;font-size:.58rem}
   .dv03-topline{align-items:center}.dv03-chip{font-size:.55rem;padding:.4rem .5rem}
   .dv03-windshield{aspect-ratio:4/3;min-height:245px}
-  .dv03-milestone-sign{right:3.5%;top:7%;width:38%;padding:.36rem .4rem;border-width:2px;box-shadow:3px 3px 0 rgb(0 0 0 / .25)}
+  .dv03-milestone-sign{right:3.5%;top:7%;width:34%;padding:.36rem .4rem;border-width:2px;box-shadow:3px 3px 0 rgb(0 0 0 / .25)}
   .dv03-horizon{bottom:44%;height:21%}.dv03-landscape::after{height:45%}
   .dv03-road{bottom:12%;height:25%}.dv03-parking-pad{width:58%;height:24%}
   .dv03-dash-lip{left:22%;height:13%}
@@ -117,7 +117,7 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
 
 @media (max-width:400px){
   .dv03-windshield{min-height:230px}
-  .dv03-milestone-sign{width:40%;right:2.5%}
+  .dv03-milestone-sign{width:35%;right:2.5%}
   .dv03-statusbar{font-size:.5rem}
   .dv03-controls{grid-template-columns:1fr 1.18fr 1fr}
   .dv03-gauge-card{padding:.28rem}.dv03-gauge{border-width:4px}.dv03-gauge-core span,.dv03-gauge-core small,.dv03-gauge-caption,.dv03-radio-head,.dv03-radio-screen span,.dv03-radio-screen small,.dv03-radio-controls{font-size:.4rem}
