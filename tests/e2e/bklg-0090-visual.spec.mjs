@@ -54,7 +54,7 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
     await loadConsoleFixture(page);
     const backgrounds = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => getComputedStyle(arc).backgroundImage));
     for (const background of backgrounds) {
-      expect(background).toContain('246deg');
+      expect(background).toContain('from 270deg at 50% 100%');
       expect(background).toContain('180deg');
     }
     const stops = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => {
@@ -65,7 +65,9 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
     for (const stop of stops) expect(stop.background).toContain(`${stop.expectedDegrees}deg`);
     const progressColor = await page.locator('.radio-display .mission-progress i').evaluate(element => getComputedStyle(element).backgroundColor);
     expect(progressColor).toBe('rgb(228, 91, 91)');
-    await testInfo.attach('journey-gauge-1-3-50-100', { body: await page.locator('#gauge-fixtures').screenshot(), contentType: 'image/png' });
+    const gaugeEvidence = testInfo.outputPath('journey-gauge-1-3-50-100.png');
+    await page.locator('#gauge-fixtures').screenshot({ path: gaugeEvidence });
+    await testInfo.attach('journey-gauge-1-3-50-100', { path: gaugeEvidence, contentType: 'image/png' });
   });
 
   test('Profile secondary actions, progress, and section rule use the driver palette', async ({ page }) => {

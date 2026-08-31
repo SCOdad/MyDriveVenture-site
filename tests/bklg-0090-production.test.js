@@ -41,7 +41,7 @@ test('semantic gauge behavior remains canonical',()=>{
   assert.match(polish,/renderNightXpStart\(driver\)/);
   assert.match(css,/--practice-p\)\*1\.8deg/);
   assert.match(css,/--night-p\)\*1\.8deg/);
-  assert.match(css,/conic-gradient\(from 246deg,var\(--dv-driver-bright\)/);
+  assert.match(css,/conic-gradient\(from 270deg at 50% 100%,var\(--dv-driver-bright\)/);
   assert.match(css,/180deg,transparent 180deg\)!important/);
   assert.match(css,/radio-display/);
   assert.match(css,/radio-display \.mission-progress i\{background:var\(--dv-driver-bright\)\}/);
