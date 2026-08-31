@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260831-dv03-2">
+  <link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260831-dv03-3">
 </head>
 <body class="dv03-body">
   <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe"></div>
@@ -22,7 +22,7 @@
       <div class="dv03-windshield" aria-label="Layered cockpit scene with synthetic data">
         <div class="dv03-layer dv03-sky" aria-hidden="true"><span class="dv03-cloud cloud-a"></span><span class="dv03-cloud cloud-b"></span></div>
         <div class="dv03-layer dv03-landscape" aria-hidden="true"><div class="dv03-horizon"></div><div class="dv03-tree-line tree-line-a"></div><div class="dv03-tree-line tree-line-b"></div><div class="dv03-road"><span class="dv03-road-edge edge-top"></span><span class="dv03-road-edge edge-bottom"></span><span class="dv03-road-dash dash-a"></span><span class="dv03-road-dash dash-b"></span><span class="dv03-road-dash dash-c"></span></div><div class="dv03-parking-pad"></div></div>
-        <div class="dv03-layer dv03-hero-layer"><img class="dv03-hero" id="dv03-hero" src="/assets/images/DV.CHAR-PARKER-KEYS.png" data-dv03-hero-parts="1" alt="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel"></div>
+        <div class="dv03-layer dv03-hero-layer"><div class="dv03-hero" id="dv03-hero" role="img" aria-label="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel"></div></div>
         <div class="dv03-layer dv03-cockpit-mask" aria-hidden="true"><div class="dv03-dash-lip"></div><div class="dv03-a-pillar"></div></div>
         <div class="dv03-milestone-sign"><span>NEXT LICENSE MILESTONE</span><strong>11.8 HOURS TO GO</strong></div>
       </div>
@@ -44,12 +44,38 @@
 (() => {
   const hero = document.getElementById('dv03-hero');
   if (!hero) return;
-  const count = Number(hero.dataset.dv03HeroParts || 0);
-  Promise.all(Array.from({length: count}, (_, i) => fetch(`/assets/images/dv03/hero/part-${i}.txt`).then(r => { if (!r.ok) throw new Error(`Hero part ${i} unavailable`); return r.text(); }))).then(parts => {
-    const url = URL.createObjectURL(new Blob([parts.join('')], {type:'image/svg+xml'}));
-    hero.addEventListener('load', () => URL.revokeObjectURL(url), {once:true});
-    hero.src = url;
-  }).catch(() => { hero.dataset.dv03HeroFallback = 'true'; });
+
+  const renderFallback = () => {
+    hero.dataset.dv03HeroFallback = 'true';
+    hero.innerHTML = '<img src="/assets/images/DV.CHAR-PARKER-KEYS.png" alt="" aria-hidden="true">';
+    const img = hero.querySelector('img');
+    if (img) {
+      img.style.display = 'block';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.imageRendering = 'pixelated';
+    }
+  };
+
+  fetch('/assets/images/dv03/hero/part-0.txt', {cache:'no-store'})
+    .then(response => {
+      if (!response.ok) throw new Error(`Hero asset unavailable (${response.status})`);
+      return response.text();
+    })
+    .then(svgText => {
+      if (!/^\s*<svg[\s>]/i.test(svgText)) throw new Error('Hero asset is not valid SVG markup');
+      hero.innerHTML = svgText;
+      const svg = hero.querySelector('svg');
+      if (!svg) throw new Error('Hero SVG root missing');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      svg.style.display = 'block';
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+      svg.style.imageRendering = 'pixelated';
+      hero.dataset.dv03HeroLoaded = 'true';
+    })
+    .catch(renderFallback);
 })();
 </script>
 </body>
