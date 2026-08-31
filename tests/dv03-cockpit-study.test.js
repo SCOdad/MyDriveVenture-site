@@ -45,7 +45,7 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(css,/\.dv03-windshield\{position:relative;isolation:isolate;height:clamp\(220px,32vw,375px\)/);
   assert.match(css,/@media \(max-width:760px\)[\s\S]*\.dv03-windshield\{height:190px/);
   assert.match(css,/\.dv03-cockpit-mask\{z-index:6/);
-  assert.match(css,/\.dv03-milestone-sign\{position:absolute;z-index:7;left:auto;right:7%;top:11%;transform:none/);
+  assert.match(css,/\.dv03-milestone-sign\{position:absolute;z-index:7;left:auto;right:5%;top:10%;transform:none/);
   assert.match(css,/image-rendering:pixelated/);
 });
 
