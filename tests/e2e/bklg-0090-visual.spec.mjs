@@ -7,10 +7,10 @@ const asset = relative => path.join(root, relative);
 
 async function loadConsoleFixture(page, practiceValues = [1, 3, 50, 100]) {
   await page.setContent(`<!doctype html><html data-experience="game"><body class="game-v2" style="margin:0;background:#101719">
-    <main class="dashboard-console" style="width:760px;margin:180px auto 20px">
+    <main class="dashboard-console" style="--dv-driver-shadow:#5f1b1b;--dv-driver-base:#a43a3a;--dv-driver-bright:#e45b5b;--dv-driver-highlight:#ff9a8b;width:760px;margin:180px auto 20px">
       <article class="radio-panel" style="width:520px;margin:auto">
         <div class="radio-head"><span>GPS / INFOTAINMENT</span><b>MISSION CONTROL</b></div>
-        <div class="radio-display">TEST ROUTE</div>
+        <div class="radio-display">TEST ROUTE<div class="mission-progress"><i style="width:50%"></i></div></div>
         <div class="radio-controls"><i></i><i></i><i></i><em>DV 50.0</em></div>
       </article>
     </main>
@@ -54,7 +54,7 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
     await loadConsoleFixture(page);
     const backgrounds = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => getComputedStyle(arc).backgroundImage));
     for (const background of backgrounds) {
-      expect(background).toContain('270deg');
+      expect(background).toContain('246deg');
       expect(background).toContain('180deg');
     }
     const stops = await page.locator('.journey-gauge .gauge-arc').evaluateAll(arcs => arcs.map(arc => {
@@ -63,6 +63,8 @@ test.describe('BKLG-0090 deterministic visual regression', () => {
     }));
     expect(stops.map(stop => stop.expectedDegrees)).toEqual([1.8, 5.4, 90, 180]);
     for (const stop of stops) expect(stop.background).toContain(`${stop.expectedDegrees}deg`);
+    const progressColor = await page.locator('.radio-display .mission-progress i').evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(progressColor).toBe('rgb(228, 91, 91)');
     await testInfo.attach('journey-gauge-1-3-50-100', { body: await page.locator('#gauge-fixtures').screenshot(), contentType: 'image/png' });
   });
 
