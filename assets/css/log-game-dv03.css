@@ -64,7 +64,7 @@ body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);
 .dv03-dash-lip{position:absolute;left:24%;right:-7%;bottom:-8%;height:16%;background:#151b22;border-top:5px solid #28333f;transform:skewX(-8deg);box-shadow:0 -3px 0 #090d12}
 .dv03-a-pillar{position:absolute;left:-2%;top:-3%;bottom:8%;width:5.5%;background:linear-gradient(90deg,#111820,#25303d 55%,#10161d);clip-path:polygon(0 0,100% 0,55% 100%,0 100%);opacity:.94}
 
-.dv03-milestone-sign{position:absolute;z-index:7;right:5%;top:10%;width:min(35%,250px);padding:.48rem .55rem;border:3px solid #d5d4c7;background:#2b633d;box-shadow:5px 5px 0 rgb(0 0 0 / .28);text-align:center;font-family:Orbitron,monospace;text-shadow:1px 1px 0 #183321}
+.dv03-milestone-sign{position:absolute;z-index:7;left:auto;right:5%;top:10%;transform:none;width:min(35%,250px);padding:.48rem .55rem;border:3px solid #d5d4c7;background:#2b633d;box-shadow:5px 5px 0 rgb(0 0 0 / .28);text-align:center;font-family:Orbitron,monospace;text-shadow:1px 1px 0 #183321}
 .dv03-milestone-sign span{display:block;font-size:clamp(.38rem,1.6vw,.6rem);letter-spacing:.04em;color:#d9efe0}
 .dv03-milestone-sign strong{display:block;margin-top:.2rem;font-size:clamp(.6rem,2.3vw,1rem);line-height:1.2;color:#fff}
 
