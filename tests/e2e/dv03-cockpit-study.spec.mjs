@@ -103,8 +103,8 @@ test.describe('DV03 unauthenticated cockpit study', () => {
         fullPage:true,
         animations:'disabled'
       });
-      await page.locator('.dv03-stage').screenshot({
-        path:`${evidenceDir}/${viewport.name}-stage.png`,
+      await page.locator('.dv03-windshield').screenshot({
+        path:`${evidenceDir}/${viewport.name}-windshield.png`,
         animations:'disabled'
       });
     });
