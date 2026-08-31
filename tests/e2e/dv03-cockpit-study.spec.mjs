@@ -52,6 +52,7 @@ test.describe('DV03 unauthenticated cockpit study', () => {
           heroNaturalWidth:document.querySelector('#dv03-hero')?.naturalWidth||0,
           heroNaturalHeight:document.querySelector('#dv03-hero')?.naturalHeight||0,
           canvasRatio:c?c.width/c.height:null,
+          windshieldHeight:w?w.height:null,
           heroWithinCanvas: h&&c
             ? h.left >= c.left-1 && h.top >= c.top-1 && h.right <= c.right+1 && h.bottom <= c.bottom+1
             : false,
@@ -74,17 +75,23 @@ test.describe('DV03 unauthenticated cockpit study', () => {
       expect(metrics.heroNaturalHeight).toBeGreaterThan(0);
       expect(metrics.canvasRatio).toBeCloseTo(2/3,2);
       expect(metrics.heroWithinCanvas).toBe(true);
+      if(viewport.width<=760){
+        expect(metrics.windshieldHeight).toBeCloseTo(190,0);
+      }else{
+        expect(metrics.windshieldHeight).toBeGreaterThanOrEqual(220);
+        expect(metrics.windshieldHeight).toBeLessThanOrEqual(376);
+      }
 
       // Rendered-composition guardrails. These are intentionally windshield-relative,
       // not assertions that simply mirror CSS declarations.
       expect(metrics.heroLeftPct).toBeGreaterThanOrEqual(-2);
       expect(metrics.heroLeftPct).toBeLessThanOrEqual(8);
-      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(28);
-      expect(metrics.heroTopPct).toBeLessThanOrEqual(55);
-      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(15);
-      expect(metrics.heroWidthPct).toBeLessThanOrEqual(35);
-      expect(metrics.heroHeightPct).toBeGreaterThanOrEqual(40);
-      expect(metrics.heroHeightPct).toBeLessThanOrEqual(70);
+      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(18);
+      expect(metrics.heroTopPct).toBeLessThanOrEqual(30);
+      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(viewport.width<=760?25:18);
+      expect(metrics.heroWidthPct).toBeLessThanOrEqual(viewport.width<=760?38:26);
+      expect(metrics.heroHeightPct).toBeGreaterThanOrEqual(68);
+      expect(metrics.heroHeightPct).toBeLessThanOrEqual(78);
       expect(metrics.heroBottomGapPct).toBeGreaterThanOrEqual(-2);
       expect(metrics.heroBottomGapPct).toBeLessThanOrEqual(8);
 
