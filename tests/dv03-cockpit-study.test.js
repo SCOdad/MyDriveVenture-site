@@ -17,6 +17,7 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(html,/class="dv03-layer dv03-sky"/);
   assert.match(html,/class="dv03-layer dv03-landscape"/);
   assert.match(html,/class="dv03-layer dv03-hero-layer"/);
+  assert.match(html,/class="dv03-hero-canvas"/);
   assert.match(html,/class="dv03-layer dv03-cockpit-mask"/);
   assert.match(html,/class="dv03-milestone-sign"/);
 
@@ -33,6 +34,8 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(css,/\.dv03-sky\{z-index:1/);
   assert.match(css,/\.dv03-landscape\{z-index:2/);
   assert.match(css,/\.dv03-hero-layer\{z-index:5/);
+  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:0;bottom:0;height:100%;aspect-ratio:2\/3/);
+  assert.match(css,/\.dv03-hero\{position:absolute;left:2%;top:40%;width:68%;height:auto/);
   assert.match(css,/\.dv03-cockpit-mask\{z-index:6/);
   assert.match(css,/\.dv03-milestone-sign\{position:absolute;z-index:7/);
   assert.match(css,/image-rendering:pixelated/);
