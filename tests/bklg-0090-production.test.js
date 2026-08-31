@@ -23,6 +23,7 @@ test('production palette is accessible, persistent, and contains only ten approv
   assert.match(consoleJs,/event\.key==='Escape'/);
   assert.match(consoleJs,/pointerdown/);
   assert.match(consoleJs,/localStorage\.setItem\(coachKey/);
+  assert.doesNotMatch(consoleJs,/model\?\.is_operator\|\|!canSave/);
 });
 
 test('registration no longer asks or submits favorite color',()=>{
@@ -32,10 +33,13 @@ test('registration no longer asks or submits favorite color',()=>{
 
 test('semantic gauge behavior remains canonical',()=>{
   const css=read('assets/css/log-game-v2-color.css'),entry=read('assets/js/log-dashboard-entry-v5.js'),polish=read('assets/js/log-game-polish.js');
-  assert.doesNotMatch(css,/night-gauge/);
+  assert.match(css,/night-gauge[^}]+var\(--blue\)/);
   assert.match(entry,/Math\.min\(100/);
   assert.match(entry,/--night-p/);
   assert.match(polish,/renderNightXpStart\(driver\)/);
+  assert.match(css,/--practice-p\)\*3\.6deg/);
+  assert.match(css,/--night-p\)\*3\.6deg/);
+  assert.match(css,/radio-display/);
 });
 
 test('production release excludes DEV scene and mock-preview code',()=>{
