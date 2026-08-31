@@ -24,6 +24,8 @@ test('production palette is accessible, persistent, and contains only ten approv
   assert.match(consoleJs,/pointerdown/);
   assert.match(consoleJs,/localStorage\.setItem\(coachKey/);
   assert.doesNotMatch(consoleJs,/model\?\.is_operator\|\|!canSave/);
+  assert.match(consoleJs,/getBoundingClientRect\(\)/);
+  assert.match(consoleJs,/positionCoach\(\)/);
 });
 
 test('registration no longer asks or submits favorite color',()=>{
@@ -39,7 +41,15 @@ test('semantic gauge behavior remains canonical',()=>{
   assert.match(polish,/renderNightXpStart\(driver\)/);
   assert.match(css,/--practice-p\)\*3\.6deg/);
   assert.match(css,/--night-p\)\*3\.6deg/);
+  assert.match(css,/3\.6deg[\s\S]+!important/);
   assert.match(css,/radio-display/);
+});
+
+test('Profile applies the driver palette to confirmation controls and progress bars',()=>{
+  const css=read('assets/css/driver-palettes.css'),profile=read('assets/js/profile.js');
+  assert.match(css,/\.license-confirm/);
+  assert.match(css,/\.license-progress>span/);
+  assert.match(profile,/DV_DRIVER_PALETTES\?\.apply\(document\.body/);
 });
 
 test('production release excludes DEV scene and mock-preview code',()=>{
