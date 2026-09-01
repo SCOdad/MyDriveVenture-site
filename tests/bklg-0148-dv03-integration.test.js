@@ -34,6 +34,7 @@ test('DV03 Hero resolver uses a private sibling derivative and Parker fallback',
   assert.equal(api.derivativePath({storage_path:'avatar.png'}),'avatar-dv03.png');
   assert.equal(api.derivativePath({storage_path:'old.png',dv03_storage_path:'custom/dv03.png'}),'custom/dv03.png');
   assert.equal(api.FALLBACK_URL,'/assets/images/dv03/hero/parker-seated.png');
+  assert.match(source,/functions\.invoke\('driver-hero-url'/);
   assert.ok(listeners['dv:driver-changing']);
   assert.ok(listeners['dv:dashboard-rendered']);
 });
@@ -46,8 +47,8 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(preview,/entry\.hidden=false/);
   assert.match(html,/class="dv-mock-entry" hidden/);
   assert.match(css,/\.dv-mock-entry\[hidden\]\{display:none!important\}/);
-  assert.match(html,/log-game-dv03\.css\?v=20260901-acceptance1/);
-  assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance1/);
+  assert.match(html,/log-game-dv03\.css\?v=20260901-acceptance2/);
+  assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance2/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
 });
@@ -64,9 +65,11 @@ test('DV03 reuses the proven DV02 palette, gauge, clock, and night XP runtime',(
   const shared=read('assets/js/log-shared-actions.js');
   assert.match(html,/data-experience="game"/);
   assert.match(polish,/\['game','dv03'\]\.includes/);
-  assert.match(polish,/id="night-xp-end"/);
+  assert.match(polish,/id="night-time-phase"/);
+  assert.match(polish,/night\?'ENDS':'BEGINS'/);
   assert.match(polish,/threshold\?\.endLocalTime/);
-  assert.match(polish,/c\.textContent='Unavailable'/);
+  assert.match(html,/class="dash-status-meta"/);
+  assert.match(html,/NEXT TIME<br>MILESTONE/);
   assert.match(shared,/!\['game','dv03'\]\.includes/);
 });
 
