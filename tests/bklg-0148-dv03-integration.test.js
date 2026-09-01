@@ -64,3 +64,12 @@ test('DV03 Hero validator keeps candidate art private and checks the locked cont
   assert.match(contract,/Candidate masters remain outside the public repository/);
   assert.match(contract,/validate:dv03-hero/);
 });
+
+test('DV03 production Playwright is separately authorized and read-only scoped',()=>{
+  const config=read('playwright.production.config.mjs');
+  const spec=read('tests/e2e/bklg-0148-dv03-production.spec.mjs');
+  assert.match(config,/DV_E2E_PRODUCTION!==['"]1['"]/);
+  assert.match(config,/baseURL:['"]https:\/\/mydriveventure\.com['"]/);
+  assert.match(config,/testMatch:['"]bklg-0148-dv03-production\.spec\.mjs['"]/);
+  assert.doesNotMatch(spec,/\.click\(|\.fill\(|\.type\(|\.check\(|\.selectOption\(/);
+});
