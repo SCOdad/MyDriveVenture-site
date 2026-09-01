@@ -20,6 +20,10 @@ test('DV03 mock preview uses Parker fallback and remains read-only',async({page}
   expect(layout.signBackground).not.toBe('rgba(0, 0, 0, 0)');
   expect(layout.signZ).toBeLessThan(layout.frameZ);
   expect(Math.abs(layout.statusRight-layout.metaRight)).toBeLessThan(20);
+  const colors=await page.evaluate(()=>({local:getComputedStyle(document.querySelector('.local-time-status')).color,localValue:getComputedStyle(document.querySelector('#dash-clock')).color,night:getComputedStyle(document.querySelector('#night-time-value')).color,driver:getComputedStyle(document.body).getPropertyValue('--dv-driver-highlight').trim()}));
+  expect(colors.local).toBe(colors.localValue);
+  expect(colors.local).not.toBe(colors.night);
+  expect(colors.driver).not.toBe('');
 });
 
 test('DV03 remains coherent at the mobile breakpoint',async({page})=>{
