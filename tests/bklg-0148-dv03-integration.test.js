@@ -93,6 +93,8 @@ test('DV03 keeps the canonical headshot while coloring only Local Time with the 
   assert.match(html,/log-avatar\.js/);
   assert.match(avatar,/image\.id = 'driver-avatar'/);
   assert.match(avatar,/assignment\.storage_path/);
+  assert.match(avatar,/functions\.invoke\('driver-hero-url'/);
+  assert.match(avatar,/headshot_signed_url/);
   assert.match(css,/\.local-time-status b\{color:var\(--dv-driver-highlight/);
   assert.match(css,/\.night-xp-status b\{color:var\(--blue\)\}/);
 });
