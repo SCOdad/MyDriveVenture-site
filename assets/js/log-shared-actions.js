@@ -1,6 +1,6 @@
 (() => {
  const app=window.DV_LOG_APP;if(!app?.client)return;const client=app.client;
- if(document.documentElement.dataset.experience!=='game'&&!document.querySelector('script[data-dv-night-xp]')){const s=document.createElement('script');s.src='/assets/js/log-night-xp.js?v=20260827-0118';s.dataset.dvNightXp='true';document.body.appendChild(s)}
+ if(!['game','dv03'].includes(document.documentElement.dataset.experience)&&!document.querySelector('script[data-dv-night-xp]')){const s=document.createElement('script');s.src='/assets/js/log-night-xp.js?v=20260827-0118';s.dataset.dvNightXp='true';document.body.appendChild(s)}
  if(!document.querySelector('link[data-dv-shared-log-fixes]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-shared-fixes.css?v=20260820-2255';l.dataset.dvSharedLogFixes='true';document.head.appendChild(l)}
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt','"':'&quot;',"'":'&#39;'}[c]));
  const setStatus=(t,k='')=>{const e=document.getElementById('vehicle-status');if(e){e.textContent=t||'';e.className=`app-status${k?` ${k}`:''}`}};

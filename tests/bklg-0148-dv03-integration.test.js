@@ -18,6 +18,7 @@ test('DV02 remains the default while DV03 is an explicit preview route',()=>{
 
 test('DV03 uses the shared authenticated console contract',()=>{
   const html=read('log/game/DV03/index.html');
+  assert.match(html,/<html[^>]+data-experience="game"[^>]+data-dv-route="dv03"/);
   for(const id of ['app-login','app-main','driver-heading','driver-select','hours-sign','drive-form','vehicle-form','quest-list','drive-list','dv03-hero'])assert.match(html,new RegExp(`id="${id}"`));
   for(const script of ['log-dashboard-entry-v5.js','log-prepilot-v2.js','log-avatar.js','log-drive-rpc.js','log-shared-actions.js','log-game-polish.js','log-operator-support.js','log-game-dv03.js'])assert.match(html,new RegExp(script.replaceAll('.','\\.')));
 });
@@ -45,16 +46,28 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(preview,/entry\.hidden=false/);
   assert.match(html,/class="dv-mock-entry" hidden/);
   assert.match(css,/\.dv-mock-entry\[hidden\]\{display:none!important\}/);
-  assert.match(html,/log-game-dv03\.css\?v=20260901-production2/);
-  assert.match(html,/log-game-dv03-preview\.js\?v=20260901-production2/);
+  assert.match(html,/log-game-dv03\.css\?v=20260901-acceptance1/);
+  assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance1/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
 });
 
 test('magic-link return preserves the explicit DV03 route',()=>{
   const entry=read('assets/js/log-dashboard-entry-v5.js');
-  assert.match(entry,/experience==='dv03'\?'\/log\/game\/DV03\/'/);
+  assert.match(entry,/root\.dataset\.dvRoute==='dv03'\?'\/log\/game\/DV03\/'/);
   assert.match(entry,/experience==='game'\?'\/log\/game\/'/);
+});
+
+test('DV03 reuses the proven DV02 palette, gauge, clock, and night XP runtime',()=>{
+  const html=read('log/game/DV03/index.html');
+  const polish=read('assets/js/log-game-polish.js');
+  const shared=read('assets/js/log-shared-actions.js');
+  assert.match(html,/data-experience="game"/);
+  assert.match(polish,/\['game','dv03'\]\.includes/);
+  assert.match(polish,/id="night-xp-end"/);
+  assert.match(polish,/threshold\?\.endLocalTime/);
+  assert.match(polish,/c\.textContent='Unavailable'/);
+  assert.match(shared,/!\['game','dv03'\]\.includes/);
 });
 
 test('DV03 Hero validator keeps candidate art private and checks the locked contract',()=>{
