@@ -26,7 +26,12 @@ test.describe('DV03 unauthenticated cockpit study', () => {
       await expect(page.locator('.dv03-windshield')).toBeVisible();
       await expect(page.locator('.dv03-sky')).toBeVisible();
       await expect(page.locator('.dv03-landscape')).toBeVisible();
+      await expect(page.locator('.dv03-world')).toBeVisible();
       await expect(page.locator('.dv03-cockpit-mask')).toBeVisible();
+      await expect(page.locator('.dv03-a-pillar-left')).toBeVisible();
+      await expect(page.locator('.dv03-a-pillar-right')).toBeVisible();
+      await expect(page.locator('.dv03-roof-edge')).toBeVisible();
+      await expect(page.locator('.dv03-rearview')).toBeVisible();
       await expect(page.locator('.dv03-hero-canvas')).toBeVisible();
       await expect(page.locator('.dv03-milestone-sign')).toBeVisible();
 
@@ -53,9 +58,7 @@ test.describe('DV03 unauthenticated cockpit study', () => {
           heroNaturalHeight:document.querySelector('#dv03-hero')?.naturalHeight||0,
           canvasRatio:c?c.width/c.height:null,
           windshieldHeight:w?w.height:null,
-          heroWithinCanvas: h&&c
-            ? h.left >= c.left-1 && h.top >= c.top-1 && h.right <= c.right+1 && h.bottom <= c.bottom+1
-            : false,
+          heroAnchoredInCanvas:h&&c?Math.abs(h.left-c.left)<=1&&Math.abs(h.top-c.top)<=1&&Math.abs(h.width-c.width)<=1&&h.height<=c.height+1:false,
           heroLeftPct:w&&h?pct(h.left-w.left,w.width):null,
           heroTopPct:w&&h?pct(h.top-w.top,w.height):null,
           heroWidthPct:w&&h?pct(h.width,w.width):null,
@@ -74,7 +77,7 @@ test.describe('DV03 unauthenticated cockpit study', () => {
       expect(metrics.heroNaturalWidth).toBeGreaterThan(0);
       expect(metrics.heroNaturalHeight).toBeGreaterThan(0);
       expect(metrics.canvasRatio).toBeCloseTo(2/3,2);
-      expect(metrics.heroWithinCanvas).toBe(true);
+      expect(metrics.heroAnchoredInCanvas).toBe(true);
       if(viewport.width<=760){
         expect(metrics.windshieldHeight).toBeCloseTo(190,0);
       }else{
@@ -84,16 +87,14 @@ test.describe('DV03 unauthenticated cockpit study', () => {
 
       // Rendered-composition guardrails. These are intentionally windshield-relative,
       // not assertions that simply mirror CSS declarations.
-      expect(metrics.heroLeftPct).toBeGreaterThanOrEqual(-2);
-      expect(metrics.heroLeftPct).toBeLessThanOrEqual(8);
-      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(18);
-      expect(metrics.heroTopPct).toBeLessThanOrEqual(30);
-      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(viewport.width<=760?25:18);
-      expect(metrics.heroWidthPct).toBeLessThanOrEqual(viewport.width<=760?38:26);
-      expect(metrics.heroHeightPct).toBeGreaterThanOrEqual(68);
-      expect(metrics.heroHeightPct).toBeLessThanOrEqual(78);
-      expect(metrics.heroBottomGapPct).toBeGreaterThanOrEqual(-2);
-      expect(metrics.heroBottomGapPct).toBeLessThanOrEqual(8);
+      expect(metrics.heroLeftPct).toBeGreaterThanOrEqual(1);
+      expect(metrics.heroLeftPct).toBeLessThanOrEqual(6);
+      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(4);
+      expect(metrics.heroTopPct).toBeLessThanOrEqual(6);
+      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(viewport.width<=760?44:33);
+      expect(metrics.heroWidthPct).toBeLessThanOrEqual(viewport.width<=760?46:40);
+      expect(metrics.heroHeightPct).toBeGreaterThan(95);
+      expect(metrics.heroBottomGapPct).toBeLessThan(1);
 
       expect(metrics.milestoneLeftPct).toBeGreaterThanOrEqual(55);
       expect(metrics.milestoneTopPct).toBeGreaterThanOrEqual(5);
