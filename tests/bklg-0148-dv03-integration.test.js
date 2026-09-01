@@ -49,3 +49,13 @@ test('magic-link return preserves the explicit DV03 route',()=>{
   assert.match(entry,/experience==='dv03'\?'\/log\/game\/DV03\/'/);
   assert.match(entry,/experience==='game'\?'\/log\/game\/'/);
 });
+
+test('DV03 Hero validator keeps candidate art private and checks the locked contract',()=>{
+  const validator=read('scripts/validate-dv03-hero.mjs');
+  const contract=read('assets/images/dv03/hero/README.md');
+  assert.match(validator,/width!==1536\|\|height!==1024/);
+  assert.match(validator,/colorType!==6/);
+  assert.match(validator,/alphaThreshold:8/);
+  assert.match(contract,/Candidate masters remain outside the public repository/);
+  assert.match(contract,/validate:dv03-hero/);
+});
