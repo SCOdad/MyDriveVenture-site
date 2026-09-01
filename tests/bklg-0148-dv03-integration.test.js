@@ -47,7 +47,7 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(preview,/entry\.hidden=false/);
   assert.match(html,/class="dv-mock-entry" hidden/);
   assert.match(css,/\.dv-mock-entry\[hidden\]\{display:none!important\}/);
-  assert.match(html,/log-game-dv03\.css\?v=20260901-acceptance2/);
+  assert.match(html,/log-game-dv03\.css\?v=20260901-acceptance3/);
   assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance2/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
@@ -80,7 +80,21 @@ test('DV03 Hero validator keeps candidate art private and checks the locked cont
   assert.match(validator,/colorType!==6/);
   assert.match(validator,/alphaThreshold:8/);
   assert.match(contract,/Candidate masters remain outside the public repository/);
+  assert.match(contract,/separate required outputs derived from one private submitted photograph/);
+  assert.match(contract,/compact canonical headshot/);
+  assert.match(contract,/driver switch must update both the headshot and seated Hero/);
   assert.match(contract,/validate:dv03-hero/);
+});
+
+test('DV03 keeps the canonical headshot while coloring only Local Time with the driver palette',()=>{
+  const html=read('log/game/DV03/index.html');
+  const avatar=read('assets/js/log-avatar.js');
+  const css=read('assets/css/log-game-dv03.css');
+  assert.match(html,/log-avatar\.js/);
+  assert.match(avatar,/image\.id = 'driver-avatar'/);
+  assert.match(avatar,/assignment\.storage_path/);
+  assert.match(css,/\.local-time-status b\{color:var\(--dv-driver-highlight/);
+  assert.match(css,/\.night-xp-status b\{color:var\(--blue\)\}/);
 });
 
 test('DV03 production Playwright is separately authorized and read-only scoped',()=>{
