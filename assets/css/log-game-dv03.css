@@ -1,144 +1,16 @@
-:root{
-  --dv03-ink:#131924;
-  --dv03-panel:#18202c;
-  --dv03-panel-2:#242f3e;
-  --dv03-line:#566273;
-  --dv03-yellow:#ffc800;
-  --dv03-sky-top:#77c8ef;
-  --dv03-sky-bottom:#d8f1ff;
-  --dv03-grass-far:#789552;
-  --dv03-grass-near:#58753e;
-  --dv03-road:#62676b;
-  --dv03-road-edge:#b5b0a1;
-  --dv03-white:#f8fbff;
-  --dv03-muted:#b8c2ce;
-}
-
-*{box-sizing:border-box}
-html{background:#0d131b}
-body.dv03-body{margin:0;background:linear-gradient(#121923,#0c1118 55%,#080c11);color:var(--dv03-white);font-family:Inter,system-ui,sans-serif;min-height:100vh}
-.dv03-body .site-header{background:#111822;border-bottom:1px solid #2e3947}
-.dv03-body .nav{max-width:1180px}
-.dv03-body .nav ul{gap:1rem}
-.dv03-body .nav a{color:#e8eef5}
-
-.dv03-shell{width:min(1180px,100%);margin:0 auto}
-.dv03-preview-banner{display:flex;gap:.55rem 1rem;align-items:center;justify-content:center;flex-wrap:wrap;padding:.65rem .8rem;margin:0 0 1rem;border:1px dashed #8f9cad;background:#141d28;color:#cad4df;font-family:Orbitron,monospace;font-size:.68rem;letter-spacing:.04em;text-align:center}
-.dv03-preview-banner strong{color:var(--dv03-yellow);font-size:.75rem}
-.dv03-topline{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:.65rem}
-.dv03-eyebrow{margin:0 0 .15rem;text-transform:uppercase;letter-spacing:.13em;color:#aab5c3;font:600 .66rem Orbitron,monospace}
-.dv03-topline h1{margin:0;font:800 clamp(1.55rem,6vw,2.45rem) Orbitron,monospace;letter-spacing:.02em}
-.dv03-chip{border:1px solid #435366;background:#101720;padding:.45rem .65rem;font:700 .65rem Orbitron,monospace;color:#b9e4a4;white-space:nowrap}
-
-.dv03-console{overflow:hidden}
-.dv03-console-head{gap:1rem}
-.dv03-console-head b{color:var(--dv03-yellow)}
-
-.dv03-windshield{position:relative;isolation:isolate;height:clamp(220px,32vw,375px);min-height:0;aspect-ratio:auto;overflow:hidden;background:#8dd4f3}
+/* DV03 is intentionally a windshield/world study layered onto the existing DV02 dashboard. */
+.dv03-body .dv03-preview-banner b{color:var(--yellow)}
+.dv03-chip{border:2px solid #354144;background:#111719;padding:10px 14px;color:var(--green);font:700 10px Orbitron,sans-serif;white-space:nowrap}
+.dv03-windshield{isolation:isolate;background:#8dd4f3}
+.dv03-windshield:after{z-index:8}
 .dv03-layer{position:absolute;inset:0;pointer-events:none}
-.dv03-sky{z-index:1;background:linear-gradient(to bottom,var(--dv03-sky-top) 0%,#9edcf6 48%,var(--dv03-sky-bottom) 100%)}
-.dv03-sky::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:#dff6ff;opacity:.75}
-.dv03-cloud{position:absolute;height:4.5%;width:14%;background:#f4fbff;box-shadow:8px 0 0 #f4fbff,16px 0 0 #eef9ff,8px -7px 0 #f8fdff;opacity:.75}
-.cloud-a{top:17%;right:16%;transform:scale(.8)}
-.cloud-b{top:29%;left:41%;transform:scale(.55);opacity:.48}
-
-.dv03-landscape{z-index:2}
-.dv03-horizon{position:absolute;left:-2%;right:-2%;bottom:42%;height:23%;background:linear-gradient(to bottom,#7da35c,#668b49 55%,#577940);clip-path:polygon(0 42%,10% 30%,19% 42%,31% 24%,42% 39%,54% 18%,68% 40%,80% 27%,91% 38%,100% 25%,100% 100%,0 100%)}
-.dv03-tree-line{position:absolute;bottom:39%;height:10%;background:#315c35;clip-path:polygon(0 100%,0 55%,4% 18%,8% 62%,13% 28%,17% 64%,22% 12%,27% 60%,33% 24%,39% 63%,45% 17%,50% 64%,56% 30%,61% 65%,67% 13%,72% 62%,78% 26%,84% 61%,90% 17%,95% 64%,100% 33%,100% 100%)}
-.tree-line-a{left:0;width:58%;opacity:.8}
-.tree-line-b{right:0;width:54%;transform:scaleX(-1);opacity:.68}
-.dv03-landscape::after{content:"";position:absolute;left:0;right:0;bottom:0;height:43%;background:linear-gradient(#6b8b49,#526d3b)}
-.dv03-road{position:absolute;z-index:2;left:-7%;right:-7%;bottom:12%;height:26%;background:var(--dv03-road);transform:skewY(-1deg);box-shadow:0 -5px 0 #a4aa97,0 5px 0 #444a49}
-.dv03-road-edge{position:absolute;left:0;right:0;height:3px;background:var(--dv03-road-edge)}
-.edge-top{top:11%}.edge-bottom{bottom:11%}
-.dv03-road-dash{position:absolute;top:48%;height:4px;width:15%;background:#eee9c8;transform:skewX(-18deg)}
-.dash-a{left:8%}.dash-b{left:42%}.dash-c{right:7%}
-.dv03-parking-pad{position:absolute;z-index:3;left:-5%;bottom:-7%;width:51%;height:24%;background:#767a79;transform:skewX(-16deg);box-shadow:inset 0 5px 0 #aeb2aa}
-.dv03-parking-pad::after{content:"";position:absolute;left:54%;top:8%;bottom:4%;width:5px;background:#ece9d9;transform:skewX(16deg)}
-
-.dv03-world{z-index:3;font-family:Orbitron,monospace;color:#f8fbff;text-shadow:1px 1px #17202a}
-.dv03-world-stop{position:absolute;bottom:39%;display:grid;place-items:end center;width:9%;min-width:42px;height:20%;filter:drop-shadow(3px 3px 0 rgb(0 0 0/.22))}
-.dv03-world-stop span{position:absolute;inset:auto 8% 0;width:84%;height:76%;border:3px solid #e7e2cc;background:#b64b42;clip-path:polygon(50% 0,100% 28%,92% 28%,92% 100%,8% 100%,8% 28%,0 28%)}
-.dv03-world-stop b{position:relative;margin-bottom:5%;padding:2px 3px;background:#233544;font-size:clamp(.28rem,.72vw,.48rem);letter-spacing:.04em}
-.dv03-school{right:25%}.dv03-park{right:8%;transform:scale(.83);transform-origin:bottom}
-.dv03-park span{border:0;background:#2f6b3b;clip-path:polygon(48% 0,63% 28%,78% 20%,75% 45%,100% 53%,76% 63%,82% 91%,57% 77%,50% 100%,42% 77%,17% 91%,23% 63%,0 53%,25% 45%,22% 20%,38% 28%)}
-.dv03-roundabout{position:absolute;right:40%;bottom:22%;width:9%;aspect-ratio:1;border:4px solid #d8d3bd;border-radius:50%;background:#4e8150;box-shadow:0 0 0 5px #616669,3px 3px 0 6px rgb(0 0 0/.2)}
-.dv03-roundabout i{position:absolute;left:50%;top:-12%;width:10%;height:124%;transform:translateX(-50%);background:#d8d3bd;clip-path:polygon(0 0,100% 0,100% 36%,0 36%,0 64%,100% 64%,100% 100%,0 100%)}
-.dv03-achievement-marker{position:absolute;right:13%;bottom:17%;display:flex;align-items:center;gap:4px;padding:4px;border:3px solid #eee7c9;background:#73529a;box-shadow:3px 3px 0 #272032;transform:rotate(-2deg)}
-.dv03-achievement-marker span{color:#ffd84a;font-size:clamp(.55rem,1.4vw,.9rem)}.dv03-achievement-marker b{font-size:clamp(.25rem,.62vw,.42rem);line-height:1.05}
-
-.dv03-hero-layer{z-index:5}
-.dv03-hero-canvas{position:absolute;left:3%;top:5%;width:39%;aspect-ratio:2/3;overflow:visible}
-.dv03-windshield img.dv03-hero{position:absolute;left:0;top:0;width:100%;height:auto;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(4px 5px 0 rgb(0 0 0 / .16))}
-
-.dv03-cockpit-mask{z-index:6}
-.dv03-roof-edge{position:absolute;left:-2%;right:-2%;top:-1%;height:10%;background:linear-gradient(#090d12 0 22%,#222d39 24% 65%,#10161d 68%);border-bottom:3px solid #080b0f;clip-path:polygon(0 0,100% 0,100% 66%,83% 78%,67% 64%,33% 64%,17% 78%,0 66%);box-shadow:0 4px 0 rgb(0 0 0/.3)}
-.dv03-a-pillar{position:absolute;top:5%;bottom:0;width:9%;background:linear-gradient(90deg,#0d131a,#293542 52%,#111820);opacity:.98;filter:drop-shadow(3px 2px 0 rgb(0 0 0/.35))}
-.dv03-a-pillar-left{left:-1%;clip-path:polygon(0 0,70% 0,100% 100%,0 100%)}
-.dv03-a-pillar-right{right:-1%;clip-path:polygon(30% 0,100% 0,100% 100%,0 100%);background:linear-gradient(90deg,#111820,#293542 48%,#0d131a)}
-.dv03-rearview{position:absolute;z-index:2;left:50%;top:4%;width:18%;height:13%;transform:translateX(-50%);border:4px solid #111820;border-radius:3px;background:linear-gradient(145deg,#536878,#16212a 65%);box-shadow:3px 4px 0 rgb(0 0 0/.35)}
-.dv03-rearview::before{content:"";position:absolute;left:43%;bottom:100%;width:14%;height:45%;background:#141c24}
-.dv03-rearview span{position:absolute;inset:18% 12%;background:linear-gradient(155deg,#92b1c4,#344b5a 56%,#192831);clip-path:polygon(0 10%,100% 0,92% 100%,7% 88%)}
-.dv03-dash-lip{position:absolute;left:-3%;right:-3%;bottom:-7%;height:18%;background:linear-gradient(#313d49 0 16%,#171e26 18% 62%,#0c1117 64%);border-top:5px solid #0a0e13;clip-path:polygon(0 28%,18% 18%,38% 29%,56% 9%,77% 20%,100% 8%,100% 100%,0 100%);box-shadow:0 -3px 0 rgb(0 0 0/.35)}
-
-.dv03-milestone-sign{position:absolute;z-index:7;left:auto;right:5%;top:10%;transform:none;width:min(35%,250px);padding:.48rem .55rem;border:3px solid #d5d4c7;background:#2b633d;box-shadow:5px 5px 0 rgb(0 0 0 / .28);text-align:center;font-family:Orbitron,monospace;text-shadow:1px 1px 0 #183321}
-.dv03-milestone-sign span{display:block;font-size:clamp(.38rem,1.6vw,.6rem);letter-spacing:.04em;color:#d9efe0}
-.dv03-milestone-sign strong{display:block;margin-top:.2rem;font-size:clamp(.6rem,2.3vw,1rem);line-height:1.2;color:#fff}
-
-.dv03-statusbar{}
-
-
-.dv03-controls{}
-.dv03-gauge-card,.dv03-radio{min-width:0;border:1px solid #3d4a59;background:#121a23}
-.dv03-gauge-card{padding:.52rem;text-align:center}
-.dv03-gauge{width:min(112px,100%);aspect-ratio:1;margin:0 auto;border:7px solid #2d3844;border-top-color:var(--dv03-yellow);border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#18222d 0 55%,#0d1218 56%);box-shadow:inset 0 0 0 2px #54606d}
-.dv03-gauge.night{border-top-color:#8ab8ff}
-.dv03-gauge-core span,.dv03-gauge-core small{display:block;font:600 .48rem Orbitron,monospace;color:#aab7c5}
-.dv03-gauge-core strong{display:block;margin:.12rem 0;font:800 clamp(.72rem,3vw,1.05rem) Orbitron,monospace}
-.dv03-gauge-caption{display:flex;justify-content:space-between;gap:.5rem;margin-top:.45rem;font:600 .48rem Orbitron,monospace;color:#9aa8b7}
-.dv03-gauge-caption b{color:#fff}
-.dv03-radio{display:flex;flex-direction:column;min-height:128px}
-.dv03-radio-head{display:flex;justify-content:space-between;gap:.5rem;padding:.42rem .5rem;border-bottom:1px solid #42505e;font:600 .46rem Orbitron,monospace;color:#9eabb8}
-.dv03-radio-head b{color:var(--dv03-yellow)}
-.dv03-radio-screen{flex:1;margin:.45rem;background:#071513;border:2px inset #445359;padding:.55rem;text-align:center;color:#79dca6;font-family:Orbitron,monospace}
-.dv03-radio-screen span,.dv03-radio-screen small{display:block;font-size:.48rem;color:#58a97a}
-.dv03-radio-screen strong{display:block;margin:.18rem 0;font-size:clamp(.7rem,2.8vw,1.05rem)}
-.dv03-radio-controls{display:flex;align-items:center;gap:.42rem;padding:.2rem .48rem .45rem;color:#84919e;font:600 .48rem Orbitron,monospace}
-.dv03-radio-controls i{width:10px;height:10px;border-radius:50%;background:#2c3947;border:1px solid #637080}.dv03-radio-controls em{margin-left:auto;font-style:normal;color:#d3dce5}
-
-.dv03-divider{margin:.85rem 0;text-align:center;color:#6e7d8c;font:600 .55rem Orbitron,monospace;letter-spacing:.09em}
-.dv03-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
-.dv03-card{border:1px solid #344250;background:#121923;padding:.85rem;color:#d7e0e8}
-.dv03-card-label{font:700 .52rem Orbitron,monospace;letter-spacing:.08em;color:var(--dv03-yellow)}
-.dv03-card h2{margin:.35rem 0 .55rem;font:700 1rem Orbitron,monospace;color:#fff}
-.dv03-card p,.dv03-card li,.dv03-card dt,.dv03-card dd{font-size:.78rem;color:#b8c4cf}
-.dv03-card ul{margin:.2rem 0 0;padding-left:1.2rem}.dv03-card li+li{margin-top:.3rem}
-.dv03-card dl{margin:0}.dv03-card dl div{display:flex;justify-content:space-between;gap:1rem;padding:.25rem 0;border-bottom:1px solid #26323e}.dv03-card dt,.dv03-card dd{margin:0}.dv03-card dd{color:#eef4fa;font-weight:700}
-
-@media (max-width:760px){
-  .dv03-body .site-header .nav{padding-inline:.7rem}
-  .dv03-body .site-header nav li:not(:last-child){display:none}
-  .dv03-preview-banner{margin-bottom:.7rem;font-size:.58rem}
-  .dv03-topline{align-items:center}.dv03-chip{font-size:.55rem;padding:.4rem .5rem}
-  .dv03-windshield{height:190px;min-height:0;aspect-ratio:auto}
-  .dv03-hero-canvas{left:2%;top:5%;width:45%}
-  .dv03-milestone-sign{right:3.5%;top:7%;width:34%;padding:.36rem .4rem;border-width:2px;box-shadow:3px 3px 0 rgb(0 0 0 / .25)}
-  .dv03-horizon{bottom:44%;height:21%}.dv03-landscape::after{height:45%}
-  .dv03-road{bottom:12%;height:25%}.dv03-parking-pad{width:58%;height:24%}
-  .dv03-world-stop{bottom:40%;height:18%}.dv03-school{right:25%}.dv03-park{right:7%}
-  .dv03-achievement-marker{right:12%;bottom:15%;padding:2px;border-width:2px}
-  .dv03-roundabout{right:39%;bottom:23%;border-width:2px;box-shadow:0 0 0 3px #616669,2px 2px 0 4px rgb(0 0 0/.2)}
-  .dv03-roof-edge{height:12%}.dv03-a-pillar{width:10.5%;top:6%}
-  .dv03-rearview{top:5%;width:21%;height:14%;border-width:3px}
-  .dv03-dash-lip{height:18%}
-  .dv03-grid{grid-template-columns:1fr}
-}
-
-@media (max-width:400px){
-  .dv03-milestone-sign{width:35%;right:2.5%}
-}
-
-@media (min-width:900px){
-  .dv03-milestone-sign{right:8%;top:13%}
-  .dv03-hero-canvas{left:4%;top:5%;width:34%}
-}
+.dv03-sky{z-index:0;background:linear-gradient(#77c8ef 0%,#9edcf6 52%,#d8f1ff 100%)}
+.dv03-cloud{position:absolute;height:4.5%;width:14%;background:#f4fbff;box-shadow:8px 0 0 #f4fbff,16px 0 0 #eef9ff,8px -7px 0 #f8fdff;opacity:.62}.cloud-a{top:17%;right:16%;transform:scale(.8)}.cloud-b{top:29%;left:41%;transform:scale(.55);opacity:.42}
+.dv03-landscape{z-index:1}.dv03-horizon{position:absolute;left:-2%;right:-2%;bottom:42%;height:23%;background:linear-gradient(#7da35c,#668b49 55%,#577940);clip-path:polygon(0 42%,10% 30%,19% 42%,31% 24%,42% 39%,54% 18%,68% 40%,80% 27%,91% 38%,100% 25%,100% 100%,0 100%)}
+.dv03-tree-line{position:absolute;bottom:39%;height:10%;background:#315c35;clip-path:polygon(0 100%,0 55%,4% 18%,8% 62%,13% 28%,17% 64%,22% 12%,27% 60%,33% 24%,39% 63%,45% 17%,50% 64%,56% 30%,61% 65%,67% 13%,72% 62%,78% 26%,84% 61%,90% 17%,95% 64%,100% 33%,100% 100%)}.tree-line-a{left:0;width:58%;opacity:.8}.tree-line-b{right:0;width:54%;transform:scaleX(-1);opacity:.68}.dv03-landscape:after{content:"";position:absolute;left:0;right:0;bottom:0;height:43%;background:linear-gradient(#6b8b49,#526d3b)}
+.dv03-road{position:absolute;z-index:2;left:-7%;right:-7%;bottom:12%;height:26%;background:#62676b;transform:skewY(-1deg);box-shadow:0 -5px 0 #a4aa97,0 5px 0 #444a49}.dv03-road-edge{position:absolute;left:0;right:0;height:3px;background:#b5b0a1}.edge-top{top:11%}.edge-bottom{bottom:11%}.dv03-road-dash{position:absolute;top:48%;height:4px;width:15%;background:#eee9c8;transform:skewX(-18deg)}.dash-a{left:8%}.dash-b{left:42%}.dash-c{right:7%}
+.dv03-parking-pad{position:absolute;z-index:3;left:-5%;bottom:-7%;width:51%;height:24%;background:#767a79;transform:skewX(-16deg);box-shadow:inset 0 5px 0 #aeb2aa}.dv03-parking-pad:after{content:"";position:absolute;left:54%;top:8%;bottom:4%;width:5px;background:#ece9d9;transform:skewX(16deg)}
+.dv03-hero-layer{z-index:4;overflow:hidden}.dv03-hero{position:absolute;display:block;height:72%;width:auto;left:1.5%;bottom:-2%;object-fit:contain;object-position:left bottom;image-rendering:auto;filter:drop-shadow(4px 5px 0 rgb(0 0 0/.16))}
+.dv03-cockpit-mask{z-index:5}.dv03-dash-lip{position:absolute;left:24%;right:-7%;bottom:-8%;height:16%;background:#151b22;border-top:5px solid #28333f;transform:skewX(-8deg);box-shadow:0 -3px 0 #090d12}.dv03-a-pillar{position:absolute;left:-2%;top:-3%;bottom:8%;width:5.5%;background:linear-gradient(90deg,#111820,#25303d 55%,#10161d);clip-path:polygon(0 0,100% 0,55% 100%,0 100%);opacity:.94}
+.dv03-windshield .hours-sign{z-index:7;left:auto;right:7%;top:12%;transform:none;width:min(330px,38%);border:3px solid #d5d4c7;background:#2b633d;box-shadow:5px 5px 0 rgb(0 0 0/.28)}.dv03-body .radio-display h2{margin:8px 0 5px;color:var(--green);font:700 22px Orbitron,sans-serif}
+@media(max-width:760px){.dv03-chip{padding:8px 10px}.dv03-hero{height:80%;left:-2%;bottom:-3%}.dv03-windshield .hours-sign{right:3%;top:8%;width:40%;padding:7px 8px}.dv03-dash-lip{left:22%;height:13%}}

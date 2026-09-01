@@ -9,10 +9,10 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(html,/DV03 VISUAL STUDY/);
   assert.match(html,/log-dashboard-v3\.css/);
   assert.match(html,/log-game-v2\.css/);
-  assert.match(html,/class="dashboard-console dv03-console"/);
-  assert.match(html,/class="cockpit-title dv03-console-head"/);
+  assert.match(html,/class="dashboard-console"/);
+  assert.match(html,/class="cockpit-title"/);
   assert.match(html,/class="windshield dv03-windshield"/);
-  assert.match(html,/class="cockpit-controls dv03-controls"/);
+  assert.match(html,/class="cockpit-controls"/);
   assert.match(html,/Unauthenticated · synthetic data · read-only/);
   assert.ok(!html.includes('@supabase/supabase-js'));
   assert.ok(!html.includes('/log/config.js'));
@@ -22,36 +22,22 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
 
   assert.match(html,/class="dv03-layer dv03-sky"/);
   assert.match(html,/class="dv03-layer dv03-landscape"/);
-  assert.match(html,/class="dv03-layer dv03-world"/);
   assert.match(html,/class="dv03-layer dv03-hero-layer"/);
-  assert.match(html,/class="dv03-hero-canvas"/);
   assert.match(html,/class="dv03-layer dv03-cockpit-mask"/);
-  assert.match(html,/class="hours-sign dv03-milestone-sign"/);
+  assert.match(html,/class="hours-sign"/);
 
-  assert.match(html,/data-dv03-hero-parts="3"/);
-  assert.match(html,/data:image\/png;base64/);
-  assert.match(html,/\/assets\/images\/dv03\/hero\/part-\$\{i\}\.txt/);
+  assert.match(html,/src="\/assets\/images\/dv03\/hero\/parker-seated\.png"/);
+  assert.ok(fs.statSync('assets/images/dv03/hero/parker-seated.png').size>250000);
+  assert.ok(!html.includes('data-dv03-hero-parts'));
+  assert.ok(!html.includes('/assets/images/dv03/hero/part-'));
 
-  for(let i=0;i<3;i++){
-    const part=fs.readFileSync(`assets/images/dv03/hero/part-${i}.txt`,'utf8').trim();
-    assert.match(part,/^[A-Za-z0-9+/=]+$/);
-    assert.ok(part.length>2500);
-  }
-
-  assert.match(css,/\.dv03-sky\{z-index:1/);
-  assert.match(css,/\.dv03-landscape\{z-index:2/);
-  assert.match(css,/\.dv03-hero-layer\{z-index:5/);
-  assert.match(html,/dv03-a-pillar-left/);
-  assert.match(html,/dv03-a-pillar-right/);
-  assert.match(html,/dv03-roof-edge/);
-  assert.match(html,/dv03-rearview/);
-  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:3%;top:5%;width:39%;aspect-ratio:2\/3/);
-  assert.match(css,/\.dv03-windshield img\.dv03-hero\{position:absolute;left:0;top:0;width:100%;height:auto/);
-  assert.match(css,/\.dv03-windshield\{position:relative;isolation:isolate;height:clamp\(220px,32vw,375px\)/);
-  assert.match(css,/@media \(max-width:760px\)[\s\S]*\.dv03-windshield\{height:190px/);
-  assert.match(css,/\.dv03-cockpit-mask\{z-index:6/);
-  assert.match(css,/\.dv03-milestone-sign\{position:absolute;z-index:7;left:auto;right:5%;top:10%;transform:none/);
-  assert.match(css,/image-rendering:pixelated/);
+  assert.match(css,/\.dv03-sky\{z-index:0/);
+  assert.match(css,/\.dv03-landscape\{z-index:1/);
+  assert.match(css,/\.dv03-hero-layer\{z-index:4;overflow:hidden\}/);
+  assert.match(css,/\.dv03-hero\{position:absolute;display:block;height:72%;/);
+  assert.match(css,/image-rendering:auto/);
+  assert.match(css,/\.dv03-cockpit-mask\{z-index:5/);
+  assert.match(css,/\.dv03-windshield \.hours-sign\{z-index:7/);
 });
 
 test('DV03 does not alter authenticated Game v1 or DV02 entry points',()=>{

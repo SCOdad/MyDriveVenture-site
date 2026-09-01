@@ -18,11 +18,20 @@ export default defineConfig({
   use: {
     baseURL,
     browserName: 'chromium',
+    launchOptions: process.env.DV_PLAYWRIGHT_EXECUTABLE_PATH
+      ? { executablePath: process.env.DV_PLAYWRIGHT_EXECUTABLE_PATH }
+      : {},
     headless: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     ignoreHTTPSErrors: false
   },
-  outputDir: 'test-results'
+  outputDir: 'test-results',
+  webServer: isLocalDev ? {
+    command: 'python3 -m http.server 4173',
+    url: baseURL,
+    reuseExistingServer: true,
+    timeout: 10_000
+  } : undefined
 });

@@ -1,169 +1,29 @@
 <!doctype html>
 <html lang="en" data-experience="dv03">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Drive Venture — DV03 Cockpit Study</title>
-  <link rel="icon" href="/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/assets/css/log-dashboard-v3.css?v=20260820-2052">
-  <link rel="stylesheet" href="/assets/css/log-game-v2.css?v=20260830-bklg0090">
-  <link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260901-dv03-3">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Drive Venture — DV03 Cockpit Study</title><link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/log-dashboard-v3.css?v=20260820-2052"><link rel="stylesheet" href="/assets/css/log-game-v2.css?v=20260830-bklg0090"><link rel="stylesheet" href="/assets/css/log-game-dv03.css?v=20260901-dv03-6">
 </head>
 <body class="dash-body game-v2 dv03-body">
-  <a class="skip-link" href="#main">Skip to content</a>
-  <div class="racing-stripe"></div>
-
-  <header class="site-header">
-    <div class="nav">
-      <a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
-      <nav aria-label="Primary"><ul><li><a href="/feedback/">Feedback</a></li><li><a href="/log/game-v2/">DV02</a></li></ul></nav>
-    </div>
-  </header>
-
-  <main id="main" class="dash-shell dv03-shell">
-    <div class="dv03-preview-banner" role="note">
-      <strong>DV03 VISUAL STUDY</strong>
-      <span>Unauthenticated · synthetic data · read-only · not a production dashboard</span>
-    </div>
-
-    <div class="dv03-topline">
-      <div>
-        <p class="dv03-eyebrow">Driver console</p>
-        <h1>Sir Simon</h1>
-      </div>
-      <div class="dv03-chip">PARKED / READY</div>
-    </div>
-
-    <section class="dashboard-console dv03-console" aria-label="DV03 layered cockpit preview">
-      <div class="cockpit-title dv03-console-head">
-        <span>DRIVE VENTURE / ON THE ROAD</span>
-        <b>DV03</b>
-      </div>
-
-      <div class="windshield dv03-windshield" aria-label="Layered cockpit scene with synthetic data">
-        <div class="dv03-layer dv03-sky" aria-hidden="true">
-          <span class="dv03-cloud cloud-a"></span>
-          <span class="dv03-cloud cloud-b"></span>
-        </div>
-
-        <div class="dv03-layer dv03-landscape" aria-hidden="true">
-          <div class="dv03-horizon"></div>
-          <div class="dv03-tree-line tree-line-a"></div>
-          <div class="dv03-tree-line tree-line-b"></div>
-          <div class="dv03-road">
-            <span class="dv03-road-edge edge-top"></span>
-            <span class="dv03-road-edge edge-bottom"></span>
-            <span class="dv03-road-dash dash-a"></span>
-            <span class="dv03-road-dash dash-b"></span>
-            <span class="dv03-road-dash dash-c"></span>
-          </div>
-          <div class="dv03-parking-pad"></div>
-        </div>
-
-        <div class="dv03-layer dv03-world" aria-hidden="true">
-          <div class="dv03-world-stop dv03-school"><span></span><b>SCHOOL</b></div>
-          <div class="dv03-world-stop dv03-park"><span></span><b>PARK</b></div>
-          <div class="dv03-roundabout"><i></i></div>
-          <div class="dv03-achievement-marker"><span>★</span><b>5 DAY<br>STREAK</b></div>
-        </div>
-
-        <div class="dv03-layer dv03-hero-layer">
-          <div class="dv03-hero-canvas" aria-label="DV03 locked 1024 by 1536 Hero composition canvas">
-            <img class="dv03-hero" id="dv03-hero" src="/assets/images/DV.CHAR-PARKER-KEYS.png" data-dv03-hero-parts="3" alt="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel">
-          </div>
-        </div>
-
-        <div class="dv03-layer dv03-cockpit-mask" aria-hidden="true">
-          <div class="dv03-roof-edge"></div>
-          <div class="dv03-rearview"><span></span></div>
-          <div class="dv03-a-pillar dv03-a-pillar-left"></div>
-          <div class="dv03-a-pillar dv03-a-pillar-right"></div>
-          <div class="dv03-dash-lip"></div>
-        </div>
-
-        <div class="hours-sign dv03-milestone-sign">
-          <span>NEXT LICENSE MILESTONE</span>
-          <strong>11.8 HOURS TO GO</strong>
-        </div>
-      </div>
-
-      <div class="dash-status dv03-statusbar">
-        <span>● PARKED / READY TO LOG</span>
-        <span>LOCAL TIME <b>08:57</b></span>
-      </div>
-
-      <div class="cockpit-controls dv03-controls">
-        <div class="cockpit-stack">
-          <article class="gauge journey-gauge">
-            <div class="gauge-arc"><div class="gauge-core"><span>JOURNEY</span><strong>38.2 h</strong><small>HOURS</small></div></div>
-            <div class="gauge-caption"><span>DRIVES LOGGED</span><b>64</b></div>
-          </article>
-          <section class="cockpit-info license-info" aria-label="Synthetic license status">
-            <div><span>LICENSE STAGE</span><strong>LEVEL 1</strong></div>
-            <div><span>STAGE SINCE</span><strong>APR 18</strong></div>
-            <div><span>NEXT TIME MILESTONE</span><strong>11.8 H</strong></div>
-            <div><span>XP</span><strong>1,260</strong></div>
-          </section>
-        </div>
-
-        <article class="radio-panel">
-          <div class="radio-head"><span>GPS / INFOTAINMENT</span><b>MISSION CONTROL</b></div>
-          <div class="radio-display"><span>NEXT QUEST</span><strong>Night Owl</strong><small>Log 1.8 more night hours</small></div>
-          <div class="radio-controls"><i></i><i></i><i></i><em>DV 50.0</em></div>
-        </article>
-
-        <div class="cockpit-stack">
-          <article class="gauge night-gauge">
-            <div class="gauge-arc"><div class="gauge-core"><span>NIGHT</span><strong>8.2 h</strong><small>HOURS</small></div></div>
-            <div class="gauge-caption"><span>NIGHT GOAL</span><b>8.2 / 10 h</b></div>
-          </article>
-          <section class="cockpit-info weather-info" aria-label="Synthetic road conditions">
-            <div class="weather-heading"><span>ROAD CONDITIONS</span><strong>Clear</strong></div>
-            <div><span>DRIVING SURFACE</span><strong>Dry</strong></div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <div class="dashboard-divider dv03-divider">SCROLL FOR SYNTHETIC CONSOLE CONTEXT</div>
-
-    <section class="dv03-grid" aria-label="Synthetic dashboard data">
-      <article class="dv03-card">
-        <span class="dv03-card-label">LICENSE STATUS</span>
-        <h2>Level 1 Learner</h2>
-        <dl><div><dt>Stage since</dt><dd>Apr 18, 2026</dd></div><div><dt>XP</dt><dd>1,260</dd></div><div><dt>Hours remaining</dt><dd>11.8</dd></div></dl>
-      </article>
-      <article class="dv03-card">
-        <span class="dv03-card-label">RECENT ACHIEVEMENTS</span>
-        <h2>Roadside markers come later</h2>
-        <ul><li>Ten Hours</li><li>Night Driver</li><li>Five-Day Streak</li></ul>
-      </article>
-      <article class="dv03-card">
-        <span class="dv03-card-label">GARAGE</span>
-        <h2>Regal</h2>
-        <p>Gray Sedan · default vehicle</p>
-      </article>
-    </section>
-  </main>
-<script>
-(() => {
-  const hero = document.getElementById('dv03-hero');
-  if (!hero) return;
-  const count = Number(hero.dataset.dv03HeroParts || 0);
-  Promise.all(Array.from({length: count}, (_, i) => fetch(`/assets/images/dv03/hero/part-${i}.txt`).then(r => {
-    if (!r.ok) throw new Error(`Hero part ${i} unavailable`);
-    return r.text();
-  }))).then(parts => {
-    hero.src = `data:image/png;base64,${parts.join('')}`;
-    hero.dataset.dv03HeroLoaded = 'true';
-  }).catch(() => {
-    hero.dataset.dv03HeroFallback = 'true';
-  });
-})();
-</script>
-</body>
-</html>
+<a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe"></div>
+<header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/feedback/">Feedback</a></li><li><a href="/log/game-v2/">DV02</a></li></ul></nav></div></header>
+<main id="main" class="app-shell dash-shell">
+<div class="experience-bar dv03-preview-banner"><span><b>DV03 VISUAL STUDY</b> · Unauthenticated · synthetic data · read-only</span><a href="/log/game-v2/">DV02</a></div>
+<div class="app-topline"><div><p class="eyebrow">Driver console</p><h1>Sir Simon</h1></div><div class="dv03-chip">PARKED / READY</div></div>
+<section class="dashboard-console" aria-label="DV03 layered cockpit preview">
+<div class="cockpit-title"><span>DRIVE VENTURE / ON THE ROAD</span><b>DV03</b></div>
+<div class="windshield dv03-windshield" aria-label="Layered cockpit scene with synthetic data">
+<div class="dv03-layer dv03-sky" aria-hidden="true"><span class="dv03-cloud cloud-a"></span><span class="dv03-cloud cloud-b"></span></div>
+<div class="dv03-layer dv03-landscape" aria-hidden="true"><div class="dv03-horizon"></div><div class="dv03-tree-line tree-line-a"></div><div class="dv03-tree-line tree-line-b"></div><div class="dv03-road"><span class="dv03-road-edge edge-top"></span><span class="dv03-road-edge edge-bottom"></span><span class="dv03-road-dash dash-a"></span><span class="dv03-road-dash dash-b"></span><span class="dv03-road-dash dash-c"></span></div><div class="dv03-parking-pad"></div></div>
+<div class="dv03-layer dv03-hero-layer"><img class="dv03-hero" id="dv03-hero" src="/assets/images/dv03/hero/parker-seated.png" alt="Parker seated in the driver's seat, turned toward the viewer with an arm resting on the steering wheel"></div>
+<div class="dv03-layer dv03-cockpit-mask" aria-hidden="true"><div class="dv03-dash-lip"></div><div class="dv03-a-pillar"></div></div>
+<div class="hours-sign"><span>NEXT LICENSE MILESTONE</span><strong>11.8 HOURS TO GO</strong></div></div>
+<div class="dash-status"><span>● PARKED / READY TO LOG</span><span>LOCAL TIME <b>08:57</b></span></div>
+<div class="cockpit-controls">
+<div class="cockpit-stack"><article class="gauge journey-gauge"><div class="gauge-arc"><div class="gauge-core"><span>JOURNEY</span><strong>38.2 h</strong><small>HOURS</small></div></div><div class="gauge-caption"><span>DRIVES LOGGED</span><b>64</b></div></article><section class="cockpit-info license-info"><div><span>LICENSE STAGE</span><strong>Level 1</strong></div><div><span>STAGE SINCE</span><strong>Apr 18</strong></div><div><span>NEXT TIME MILESTONE</span><strong>11.8 h</strong></div><div><span>XP</span><strong>1,260</strong></div></section></div>
+<article class="radio-panel"><div class="radio-head"><span>GPS / INFOTAINMENT</span><b>MISSION CONTROL</b></div><div class="radio-display"><span>NEXT QUEST</span><h2>Night Owl</h2><small>Log 1.8 more night hours</small></div><div class="radio-controls"><i></i><i></i><i></i><em>DV 50.0</em></div></article>
+<div class="cockpit-stack"><article class="gauge night-gauge"><div class="gauge-arc"><div class="gauge-core"><span>NIGHT</span><strong>8.2 h</strong><small>HOURS</small></div></div><div class="gauge-caption"><span>NIGHT GOAL</span><b>8.2 / 10 h</b></div></article><section class="cockpit-info weather-info"><div class="weather-heading"><span>ROAD CONDITIONS</span><strong>Clear</strong></div><div><span>DRIVING SURFACE</span><strong>Dry</strong></div></section></div>
+</div></section><div class="dashboard-divider">SYNTHETIC VISUAL STUDY · NO PRODUCTION DATA</div></main>
+</body></html>

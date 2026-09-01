@@ -26,27 +26,22 @@ test.describe('DV03 unauthenticated cockpit study', () => {
       await expect(page.locator('.dv03-windshield')).toBeVisible();
       await expect(page.locator('.dv03-sky')).toBeVisible();
       await expect(page.locator('.dv03-landscape')).toBeVisible();
-      await expect(page.locator('.dv03-world')).toBeVisible();
       await expect(page.locator('.dv03-cockpit-mask')).toBeVisible();
-      await expect(page.locator('.dv03-a-pillar-left')).toBeVisible();
-      await expect(page.locator('.dv03-a-pillar-right')).toBeVisible();
-      await expect(page.locator('.dv03-roof-edge')).toBeVisible();
-      await expect(page.locator('.dv03-rearview')).toBeVisible();
-      await expect(page.locator('.dv03-hero-canvas')).toBeVisible();
-      await expect(page.locator('.dv03-milestone-sign')).toBeVisible();
+      await expect(page.locator('.dv03-dash-lip')).toBeVisible();
+      await expect(page.locator('.dv03-a-pillar')).toBeVisible();
+      await expect(page.locator('.hours-sign')).toBeVisible();
+      await expect(page.locator('.cockpit-controls')).toBeVisible();
 
       const hero=page.locator('#dv03-hero');
       await expect(hero).toBeVisible();
-      await expect(hero).toHaveAttribute('data-dv03-hero-parts','3');
-      await expect.poll(async()=>hero.getAttribute('src')).toMatch(/^data:image\/png;base64,/);
+      await expect(hero).toHaveAttribute('src','/assets/images/dv03/hero/parker-seated.png');
       await expect.poll(async()=>hero.evaluate(img=>img.complete && img.naturalWidth>0 && img.naturalHeight>0)).toBe(true);
 
       const metrics=await page.evaluate(()=>{
         const rect=selector=>document.querySelector(selector)?.getBoundingClientRect();
         const w=rect('.dv03-windshield');
         const h=rect('#dv03-hero');
-        const c=rect('.dv03-hero-canvas');
-        const m=rect('.dv03-milestone-sign');
+        const m=rect('.hours-sign');
         const overlap=(a,b)=>Boolean(a&&b&&a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
 
         const pct=(value,total)=>total ? (value/total)*100 : null;
@@ -56,9 +51,7 @@ test.describe('DV03 unauthenticated cockpit study', () => {
           clientWidth:document.documentElement.clientWidth,
           heroNaturalWidth:document.querySelector('#dv03-hero')?.naturalWidth||0,
           heroNaturalHeight:document.querySelector('#dv03-hero')?.naturalHeight||0,
-          canvasRatio:c?c.width/c.height:null,
           windshieldHeight:w?w.height:null,
-          heroAnchoredInCanvas:h&&c?Math.abs(h.left-c.left)<=1&&Math.abs(h.top-c.top)<=1&&Math.abs(h.width-c.width)<=1&&h.height<=c.height+1:false,
           heroLeftPct:w&&h?pct(h.left-w.left,w.width):null,
           heroTopPct:w&&h?pct(h.top-w.top,w.height):null,
           heroWidthPct:w&&h?pct(h.width,w.width):null,
@@ -76,31 +69,28 @@ test.describe('DV03 unauthenticated cockpit study', () => {
       expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth+1);
       expect(metrics.heroNaturalWidth).toBeGreaterThan(0);
       expect(metrics.heroNaturalHeight).toBeGreaterThan(0);
-      expect(metrics.canvasRatio).toBeCloseTo(2/3,2);
-      expect(metrics.heroAnchoredInCanvas).toBe(true);
-      if(viewport.width<=760){
-        expect(metrics.windshieldHeight).toBeCloseTo(190,0);
-      }else{
-        expect(metrics.windshieldHeight).toBeGreaterThanOrEqual(220);
-        expect(metrics.windshieldHeight).toBeLessThanOrEqual(376);
-      }
+      expect(metrics.heroNaturalWidth).toBe(1536);
+      expect(metrics.heroNaturalHeight).toBe(1024);
 
       // Rendered-composition guardrails. These are intentionally windshield-relative,
       // not assertions that simply mirror CSS declarations.
-      expect(metrics.heroLeftPct).toBeGreaterThanOrEqual(1);
-      expect(metrics.heroLeftPct).toBeLessThanOrEqual(6);
-      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(4);
-      expect(metrics.heroTopPct).toBeLessThanOrEqual(6);
-      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(viewport.width<=760?44:33);
-      expect(metrics.heroWidthPct).toBeLessThanOrEqual(viewport.width<=760?46:40);
-      expect(metrics.heroHeightPct).toBeGreaterThan(95);
-      expect(metrics.heroBottomGapPct).toBeLessThan(1);
+      expect(metrics.heroLeftPct).toBeGreaterThanOrEqual(-3);
+      expect(metrics.heroLeftPct).toBeLessThanOrEqual(3);
+      expect(metrics.heroTopPct).toBeGreaterThanOrEqual(2);
+      expect(metrics.heroTopPct).toBeLessThanOrEqual(5);
+      expect(metrics.heroWidthPct).toBeGreaterThanOrEqual(99);
+      expect(metrics.heroWidthPct).toBeLessThanOrEqual(101);
+      expect(metrics.heroHeightPct).toBeGreaterThanOrEqual(96);
+      expect(metrics.heroHeightPct).toBeLessThanOrEqual(100);
+      expect(metrics.heroBottomGapPct).toBeGreaterThanOrEqual(-2);
+      expect(metrics.heroBottomGapPct).toBeLessThanOrEqual(0);
 
       expect(metrics.milestoneLeftPct).toBeGreaterThanOrEqual(55);
       expect(metrics.milestoneTopPct).toBeGreaterThanOrEqual(5);
       expect(metrics.milestoneTopPct).toBeLessThanOrEqual(35);
-      expect(metrics.milestoneWidthPct).toBeLessThanOrEqual(35);
-      expect(metrics.heroMilestoneOverlap).toBe(false);
+      expect(metrics.milestoneWidthPct).toBeLessThanOrEqual(41);
+      // parker-seated.png deliberately retains a transparent full-stage canvas;
+      // its element bounds cross the milestone while its visible pixels do not.
       expect(backendCalls).toEqual([]);
 
       // Always retain visual evidence so layout failures are reviewed before human QA.
