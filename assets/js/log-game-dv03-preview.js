@@ -1,7 +1,7 @@
 (() => {
   const button=document.getElementById('dv-mock-preview');
   if(!button||window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
-  button.hidden=false;
+  const entry=button.closest('.dv-mock-entry');if(entry)entry.hidden=false;
   const DRIVER_ID='mock-dv03-driver';
   const detail={model:{mock_preview:true,is_operator:false,avatar_assignments:[],driver_access:[{driver_id:DRIVER_ID,mode:'VIEW'}],quest_awards:[]},driverId:DRIVER_ID,driver:{id:DRIVER_ID,display_name:'Riley Roadster',favorite_color:'TEAL',timezone:'America/Detroit'},progress:{total_minutes:1110,night_minutes:205,total_drives:34,xp:4850},license:{next_stage_display:'LEVEL 2'}};
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
