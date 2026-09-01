@@ -11,7 +11,7 @@
     document.getElementById('app-login')?.classList.add('app-hidden');document.getElementById('app-main')?.classList.remove('app-hidden');
     const banner=document.getElementById('dv-mock-banner');if(banner)banner.hidden=false;
     window.DV_GAME_DV03?.showFallback('Synthetic Driver');window.dispatchEvent(new CustomEvent('dv:dashboard-rendered',{detail}));
-    set('driver-heading','Synthetic Driver');set('hours-sign','31.5 HOURS TO LEVEL 2');set('kpi-hours','18.5 h');set('kpi-drives','34');set('license-stage','LEVEL 1');set('license-date','MAY 18, 2026');set('age-gate','NOV 18, 2026');set('dash-xp','4,850');set('kpi-night','3.4 h');set('license-night-hours','3.4 / 10.0 h');set('dash-clock','5:42 PM');set('night-xp-start','9:12 PM');set('night-xp-end','5:55 AM');
+    set('driver-heading','Synthetic Driver');set('hours-sign','31.5 HOURS TO LEVEL 2');set('kpi-hours','18.5 h');set('kpi-drives','34');set('license-stage','LEVEL 1');set('license-date','MAY 18, 2026');set('age-gate','NOV 18, 2026');set('dash-xp','4,850');set('kpi-night','3.4 h');set('license-night-hours','3.4 / 10.0 h');set('dash-clock','5:42 PM');set('night-time-phase','BEGINS');set('night-time-value','9:12 PM');
     document.querySelector('.dashboard-console')?.style.setProperty('--practice-p','37');document.querySelector('.dashboard-console')?.style.setProperty('--night-p','34');
     document.querySelector('[data-dv-weather-summary]').textContent='CLEAR · 74°F';document.querySelector('[data-dv-road]').textContent='DRY';
     document.querySelector('.radio-display').innerHTML='<span>GPS / MISSION CONTROL</span><h2>Neighborhood Explorer</h2><small>One more new destination to unlock the next route.</small>';

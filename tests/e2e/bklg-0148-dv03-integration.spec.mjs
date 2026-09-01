@@ -12,8 +12,14 @@ test('DV03 mock preview uses Parker fallback and remains read-only',async({page}
   await expect(page.locator('#vehicle-form button[type="submit"]')).toBeDisabled();
   await expect(page.locator('.dv03-cockpit-frame')).toBeVisible();
   await expect(page.locator('#dash-clock')).toHaveText('5:42 PM');
-  await expect(page.locator('#night-xp-start')).toHaveText('9:12 PM');
-  await expect(page.locator('#night-xp-end')).toHaveText('5:55 AM');
+  await expect(page.locator('#night-time-phase')).toHaveText('BEGINS');
+  await expect(page.locator('#night-time-value')).toHaveText('9:12 PM');
+  const layout=await page.evaluate(()=>{const sign=document.querySelector('.hours-sign').getBoundingClientRect(),frame=document.querySelector('.dv03-cockpit-frame-layer'),meta=document.querySelector('.dash-status-meta').getBoundingClientRect(),status=document.querySelector('.dash-status').getBoundingClientRect();return{signRight:sign.right,signWidth:sign.width,signBackground:getComputedStyle(document.querySelector('.hours-sign')).backgroundColor,signZ:Number(getComputedStyle(document.querySelector('.dv03-sign-layer')).zIndex),frameZ:Number(getComputedStyle(frame).zIndex),metaRight:meta.right,statusRight:status.right}});
+  expect(layout.signWidth).toBeGreaterThan(250);
+  expect(layout.signRight).toBeGreaterThan(850);
+  expect(layout.signBackground).not.toBe('rgba(0, 0, 0, 0)');
+  expect(layout.signZ).toBeLessThan(layout.frameZ);
+  expect(Math.abs(layout.statusRight-layout.metaRight)).toBeLessThan(20);
 });
 
 test('DV03 remains coherent at the mobile breakpoint',async({page})=>{

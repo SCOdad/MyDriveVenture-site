@@ -31,6 +31,10 @@
     probe.onerror=()=>{if(token===renderToken)showFallback(driverName)};
     probe.src=url;
   }
+  async function resolveThroughApi(client,driverId){
+    const{data,error}=await client.functions.invoke('driver-hero-url',{body:{driver_id:driverId}});
+    return !error&&data?.ok&&data?.signed_url?data.signed_url:null;
+  }
   async function resolveHero(detail){
     const token=++renderToken,driverId=detail?.driverId,driverName=detail?.driver?.display_name||'Driver';
     showFallback(driverName);
@@ -42,9 +46,10 @@
     const path=derivativePath(assignment),key=`${assignment.storage_bucket}:${path}`;
     let url=signedUrlCache.get(key);
     if(!url){
-      const {data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(path,3600);
-      if(error||!data?.signedUrl){showFallback(driverName);return}
-      url=data.signedUrl;signedUrlCache.set(key,url);
+      url=await resolveThroughApi(client,driverId);
+      if(!url){const {data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(path,3600);url=!error&&data?.signedUrl?data.signedUrl:null}
+      if(!url){showFallback(driverName);return}
+      signedUrlCache.set(key,url);
     }
     applyResolved(url,driverName,driverId,token);
   }
