@@ -38,7 +38,8 @@ test('semantic gauge behavior remains canonical',()=>{
   assert.match(css,/night-gauge[^}]+var\(--blue\)/);
   assert.match(entry,/Math\.min\(100/);
   assert.match(entry,/--night-p/);
-  assert.match(polish,/renderNightXpStart\(driver\)/);
+  assert.match(polish,/renderNightXpWindow\(driver\)/);
+  assert.match(polish,/endLocalTime/);
   assert.match(css,/--practice-p\)\*1\.8deg/);
   assert.match(css,/--night-p\)\*1\.8deg/);
   assert.match(css,/conic-gradient\(from 270deg at 50% 100%,var\(--dv-driver-bright\)/);

@@ -4,13 +4,16 @@ test('DV03 mock preview uses Parker fallback and remains read-only',async({page}
   await page.goto('/log/game/DV03/');
   await expect(page.locator('.experience-bar')).toContainText('DV02 remains default');
   await page.getByRole('button',{name:'Preview DV03 with synthetic data'}).click();
-  await expect(page.getByRole('heading',{name:'Riley Roadster'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Synthetic Driver'})).toBeVisible();
   const hero=page.locator('#dv03-hero');
   await expect(hero).toHaveAttribute('data-dv-hero-source','parker');
   await expect(hero).toHaveAttribute('src','/assets/images/dv03/hero/parker-seated.png');
   await expect(page.locator('#drive-form button[type="submit"]')).toBeDisabled();
   await expect(page.locator('#vehicle-form button[type="submit"]')).toBeDisabled();
   await expect(page.locator('.dv03-cockpit-frame')).toBeVisible();
+  await expect(page.locator('#dash-clock')).toHaveText('5:42 PM');
+  await expect(page.locator('#night-xp-start')).toHaveText('9:12 PM');
+  await expect(page.locator('#night-xp-end')).toHaveText('5:55 AM');
 });
 
 test('DV03 remains coherent at the mobile breakpoint',async({page})=>{
