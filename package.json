@@ -5,6 +5,7 @@
   "scripts": {
     "test:unit": "node --test tests/*.test.js",
     "test:js": "node tests/check-js-syntax.mjs",
+    "validate:dv03-hero": "node scripts/validate-dv03-hero.mjs",
     "test:e2e": "playwright test",
     "test": "npm run test:unit && npm run test:js && npm run test:e2e"
   },
