@@ -7,17 +7,21 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 
-test('DV02 remains the default while DV03 is an explicit preview route',()=>{
-  const defaultConsole=read('log/game/index.html');
-  const dv03=read('log/game/DV03/index.html');
-  assert.match(defaultConsole,/DV-02 \/ DRIVER CONSOLE/);
-  assert.doesNotMatch(defaultConsole,/location\.replace\(['"]\/log\/game\/DV03/);
-  assert.match(dv03,/DV02 remains default/);
-  assert.match(dv03,/href="\/log\/game\/">DV02/);
+test('DV03 is the default and every released console version has a stable route',()=>{
+  const defaultConsole=read('log/index.html');
+  assert.match(defaultConsole,/DV03 \/ DRIVER CONSOLE/);
+  assert.match(defaultConsole,/href="\/log\/DV02\/">DV02/);
+  assert.match(read('log/DV00/index.html'),/data-dv-route="dv00"/);
+  assert.match(read('log/DV01/index.html'),/data-dv-route="dv01"/);
+  assert.match(read('log/DV02/index.html'),/data-dv-route="dv02"/);
+  assert.match(read('log/DV03/index.html'),/location\.replace\('\/log\//);
+  assert.match(read('log/game/index.html'),/location\.replace\('\/log\//);
+  assert.match(read('log/game/DV01/index.html'),/\/log\/DV01\//);
+  assert.match(read('log/game/DV03/index.html'),/\/log\/DV03\//);
 });
 
 test('DV03 uses the shared authenticated console contract',()=>{
-  const html=read('log/game/DV03/index.html');
+  const html=read('log/index.html');
   assert.match(html,/<html[^>]+data-experience="game"[^>]+data-dv-route="dv03"/);
   for(const id of ['app-login','app-main','driver-heading','driver-select','hours-sign','drive-form','vehicle-form','quest-list','drive-list','dv03-hero'])assert.match(html,new RegExp(`id="${id}"`));
   for(const script of ['log-dashboard-entry-v5.js','log-prepilot-v2.js','log-avatar.js','log-drive-rpc.js','log-shared-actions.js','log-game-polish.js','log-operator-support.js','log-game-dv03.js'])assert.match(html,new RegExp(script.replaceAll('.','\\.')));
@@ -41,7 +45,7 @@ test('DV03 Hero resolver uses a private sibling derivative and Parker fallback',
 
 test('DV03 mock mode is DEV-only and disables write controls',()=>{
   const preview=read('assets/js/log-game-dv03-preview.js');
-  const html=read('log/game/DV03/index.html');
+  const html=read('log/index.html');
   const css=read('assets/css/log-game-dv03.css');
   assert.match(preview,/DV_ENVIRONMENT_CONFIG\?\.name!=='dev'/);
   assert.match(preview,/entry\.hidden=false/);
@@ -53,14 +57,16 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(preview,/el\.disabled=true/);
 });
 
-test('magic-link return preserves the explicit DV03 route',()=>{
+test('magic-link return preserves each explicit console route',()=>{
   const entry=read('assets/js/log-dashboard-entry-v5.js');
-  assert.match(entry,/root\.dataset\.dvRoute==='dv03'\?'\/log\/game\/DV03\/'/);
-  assert.match(entry,/experience==='game'\?'\/log\/game\/'/);
+  assert.match(entry,/dv00:'\/log\/DV00\//);
+  assert.match(entry,/dv01:'\/log\/DV01\//);
+  assert.match(entry,/dv02:'\/log\/DV02\//);
+  assert.match(entry,/dv03:'\/log\//);
 });
 
 test('DV03 reuses the proven DV02 palette, gauge, clock, and night XP runtime',()=>{
-  const html=read('log/game/DV03/index.html');
+  const html=read('log/index.html');
   const polish=read('assets/js/log-game-polish.js');
   const shared=read('assets/js/log-shared-actions.js');
   assert.match(html,/data-experience="game"/);
@@ -87,7 +93,7 @@ test('DV03 Hero validator keeps candidate art private and checks the locked cont
 });
 
 test('DV03 keeps the canonical headshot while coloring only Local Time with the driver palette',()=>{
-  const html=read('log/game/DV03/index.html');
+  const html=read('log/index.html');
   const avatar=read('assets/js/log-avatar.js');
   const css=read('assets/css/log-game-dv03.css');
   assert.match(html,/log-avatar\.js/);

@@ -25,7 +25,7 @@ async function expectEditRefreshComplete(page) {
 test.describe('BKLG-0132 critical browser regression', () => {
   test('DEV login surface loads without JavaScript failures', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
-    await page.goto('/log/game/');
+    await page.goto('/log/');
     await expect(page.locator('#login-form')).toBeVisible();
     await expect(page.locator('#login-email')).toBeVisible();
     const environment = await page.evaluate(() => ({

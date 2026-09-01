@@ -17,7 +17,7 @@
     if(status){status.textContent='Sending sign-in link…';status.className='app-status'}
     button.disabled=true;
     try{
-      const redirect=`${location.origin}/log/game/?return=${encodeURIComponent(target)}`;
+      const redirect=`${location.origin}/log/?return=${encodeURIComponent(target)}`;
       const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:redirect,shouldCreateUser:false}});
       if(error)throw error;
       if(status){status.textContent='Check your email for a secure sign-in link. After sign-in, we’ll return you to the family invitation.';status.className='app-status success'}
