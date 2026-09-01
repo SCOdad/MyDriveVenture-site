@@ -22,6 +22,7 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
 
   assert.match(html,/class="dv03-layer dv03-sky"/);
   assert.match(html,/class="dv03-layer dv03-landscape"/);
+  assert.match(html,/class="dv03-layer dv03-world"/);
   assert.match(html,/class="dv03-layer dv03-hero-layer"/);
   assert.match(html,/class="dv03-hero-canvas"/);
   assert.match(html,/class="dv03-layer dv03-cockpit-mask"/);
@@ -40,8 +41,12 @@ test('DV03 is an unauthenticated synthetic visual study with an isolated layered
   assert.match(css,/\.dv03-sky\{z-index:1/);
   assert.match(css,/\.dv03-landscape\{z-index:2/);
   assert.match(css,/\.dv03-hero-layer\{z-index:5/);
-  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:0;bottom:-2%;height:132%;aspect-ratio:2\/3/);
-  assert.match(css,/\.dv03-windshield img\.dv03-hero\{position:absolute;left:2%;top:40%;width:68%;height:auto/);
+  assert.match(html,/dv03-a-pillar-left/);
+  assert.match(html,/dv03-a-pillar-right/);
+  assert.match(html,/dv03-roof-edge/);
+  assert.match(html,/dv03-rearview/);
+  assert.match(css,/\.dv03-hero-canvas\{position:absolute;left:3%;top:5%;width:39%;aspect-ratio:2\/3/);
+  assert.match(css,/\.dv03-windshield img\.dv03-hero\{position:absolute;left:0;top:0;width:100%;height:auto/);
   assert.match(css,/\.dv03-windshield\{position:relative;isolation:isolate;height:clamp\(220px,32vw,375px\)/);
   assert.match(css,/@media \(max-width:760px\)[\s\S]*\.dv03-windshield\{height:190px/);
   assert.match(css,/\.dv03-cockpit-mask\{z-index:6/);
