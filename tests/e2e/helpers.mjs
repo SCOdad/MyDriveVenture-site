@@ -30,7 +30,7 @@ export function installPageGuards(page) {
 
 export async function signIn(page, email) {
   const password = requireTestPassword();
-  await page.goto('/log/game/');
+  await page.goto('/log/');
   await page.waitForFunction(() => Boolean(window.DV_APP_CONFIG?.supabaseUrl && window.supabase?.createClient));
   const result = await page.evaluate(async ({ email, password }) => {
     const cfg = window.DV_APP_CONFIG;

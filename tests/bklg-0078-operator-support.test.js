@@ -28,8 +28,8 @@ function architectureChecks(){
   const shared=source('assets/js/log-shared-actions.js');
   const prepilot=source('assets/js/log-prepilot-v2.js');
   const header=source('assets/js/canonical-header.js');
-  const game=source('log/game/index.html');
-  const classic=source('log/index.html');
+  const game=source('log/index.html');
+  const classic=source('log/DV00/index.html');
   const config=source('log/config.js');
 
   const operatorScript=/log-operator-support\.js/g;

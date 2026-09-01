@@ -6,7 +6,7 @@
   const link=authBox.querySelector('a[href^="/log/"]');
   if(link){
     const returnTo=`/family/?invite=${encodeURIComponent(invite)}`;
-    link.href=`/log/game/?return=${encodeURIComponent(returnTo)}`;
+    link.href=`/log/?return=${encodeURIComponent(returnTo)}`;
     link.textContent='Sign in to accept invitation';
   }
   const p=authBox.querySelector('p');

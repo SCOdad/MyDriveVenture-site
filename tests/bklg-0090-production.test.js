@@ -3,11 +3,11 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('DV-02 production route and isolated DV-01 route are present',()=>{
-  const v2=read('log/game/index.html'),v1=read('log/game/DV01/index.html');
+test('DV-02 and isolated DV-01 version routes are present',()=>{
+  const v2=read('log/DV02/index.html'),v1=read('log/DV01/index.html');
   assert.match(v2,/DV-02 \/ DRIVER CONSOLE/);
   assert.match(v2,/log-game-v2-color\.js/);
-  assert.match(v2,/href="\/log\/game\/DV01\/"/);
+  assert.match(v2,/href="\/log\/DV01\/"/);
   assert.match(v1,/DV-01 \/ DRIVER CONSOLE/);
   assert.doesNotMatch(v1,/log-game-v2-color|driver-palettes/);
 });
@@ -58,6 +58,6 @@ test('Profile applies the driver palette to confirmation controls and progress b
 });
 
 test('production release excludes DEV scene and mock-preview code',()=>{
-  const html=read('log/game/index.html'),js=read('assets/js/log-game-v2-color.js');
+  const html=read('log/DV02/index.html'),js=read('assets/js/log-game-v2-color.js');
   assert.doesNotMatch(html+js,/dv-scene-layer|mock.preview|DEV SCENE|data-dv-scene-preview/);
 });
