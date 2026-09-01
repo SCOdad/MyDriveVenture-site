@@ -39,7 +39,12 @@ test('DV03 Hero resolver uses a private sibling derivative and Parker fallback',
 
 test('DV03 mock mode is DEV-only and disables write controls',()=>{
   const preview=read('assets/js/log-game-dv03-preview.js');
+  const html=read('log/game/DV03/index.html');
+  const css=read('assets/css/log-game-dv03.css');
   assert.match(preview,/DV_ENVIRONMENT_CONFIG\?\.name!=='dev'/);
+  assert.match(preview,/entry\.hidden=false/);
+  assert.match(html,/class="dv-mock-entry" hidden/);
+  assert.match(css,/\.dv-mock-entry\[hidden\]\{display:none!important\}/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
 });
