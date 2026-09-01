@@ -39,6 +39,10 @@
 
   function getAccess(detail) { return (detail?.model?.driver_access || []).find(a => a.driver_id === detail?.driverId) || null; }
   function getContact(detail) { return (detail?.model?.operator_contacts || []).find(a => a.driver_id === detail?.driverId) || null; }
+  async function resolveHeadshot(client,driverId){
+    const{data,error}=await client.functions.invoke('driver-hero-url',{body:{driver_id:driverId}});
+    return !error&&data?.ok&&data?.headshot_signed_url?data.headshot_signed_url:null;
+  }
 
   function ensureAccessBadge() {
     const host = document.getElementById('driver-switcher'); if (!host) return null;
@@ -135,9 +139,9 @@
     const app=window.DV_LOG_APP,client=app?.client;if(!client)return;
     let url=cache.get(assignment.id);
     if(!url){
-      const{data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(assignment.storage_path,3600);
-      if(error||!data?.signedUrl){console.error('Unable to resolve driver avatar',error);return}
-      url=data.signedUrl;cache.set(assignment.id,url);
+      url=await resolveHeadshot(client,driverId);
+      if(!url){const{data,error}=await client.storage.from(assignment.storage_bucket).createSignedUrl(assignment.storage_path,3600);if(error||!data?.signedUrl){console.error('Unable to resolve driver avatar',error);return}url=data.signedUrl}
+      cache.set(assignment.id,url);
     }
     if(mine!==renderToken||app.getDriverId()!==driverId)return;
     image.src=url;image.alt=`${detail?.driver?.display_name||'Driver'} custom avatar`;image.classList.remove('dv-avatar-hidden');
