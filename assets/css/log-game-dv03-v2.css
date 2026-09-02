@@ -1,0 +1,21 @@
+/* BKLG-0128: DV03 v2 scene lab. This file is isolated to /log/DV03/v2/. */
+.dv03-scene-harness{display:flex;flex-direction:column;align-items:flex-end;margin:0 0 12px}
+.dv03-harness-toggle{min-width:68px;padding:7px 9px;border:2px solid #566164;border-radius:3px;background:#111719;color:#9be46d;font:800 9px Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer}
+.dv03-harness-toggle[aria-expanded=true]{border-color:var(--yellow);color:var(--yellow)}
+.dv03-harness-panel{box-sizing:border-box;width:100%;margin-top:8px;padding:12px;border:2px solid #354144;background:#111719;color:#dce6e8}
+.dv03-harness-panel[hidden]{display:none!important}
+.dv03-harness-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px}
+.dv03-harness-head>div{display:grid;gap:4px}.dv03-harness-head strong{color:var(--yellow);font:800 11px Orbitron,sans-serif}.dv03-harness-head span{color:#a7b6ba;font-size:12px}
+.dv03-harness-head>button{border:0;background:transparent;color:#dce6e8;font:700 22px/1 sans-serif;cursor:pointer}
+.dv03-harness-fields{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px}
+.dv03-harness-fields label{display:grid;gap:4px}.dv03-harness-fields label>span{color:#71d2ff;font:700 9px Orbitron,sans-serif;letter-spacing:.04em}
+.dv03-harness-fields select{min-width:0;padding:7px;border:1px solid #566164;background:#091012;color:#f1f5f5;font:600 12px Inter,sans-serif}
+.dv03-harness-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 7px}.dv03-harness-panel>small{color:#829094}
+.dv03-windshield .dv03-world-asset{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:fill;image-rendering:pixelated}
+.dv03-sky-treatment-layer{z-index:1}.dv03-landscape{z-index:2}.dv03-road-treatment-layer{z-index:3;overflow:hidden}.dv03-accent-layer{z-index:4;overflow:hidden}
+.dv03-destination-layer{z-index:4;overflow:hidden}.dv03-billboard-layer{z-index:5;overflow:hidden}.dv03-scene-layer{z-index:5;overflow:hidden}
+.dv03-sign-layer{z-index:6}.dv03-weather-layer{z-index:7;overflow:hidden}.dv03-cockpit-frame-layer{z-index:8}.dv03-hero-layer{z-index:9}
+.dv03-windshield:after{z-index:10}
+.dv03-billboard-copy{position:absolute;z-index:1;right:14.5%;top:32%;width:20%;color:#fff7d6;font:800 clamp(5px,1vw,12px)/1.15 Orbitron,sans-serif;text-align:center;text-transform:uppercase;text-shadow:1px 1px 0 #111;transform:rotate(-1deg)}
+@media(max-width:760px){.dv03-harness-fields{grid-template-columns:repeat(2,minmax(120px,1fr))}.dv03-billboard-copy{font-size:5px}}
+@media(max-width:430px){.dv03-harness-panel{padding:10px}.dv03-harness-fields{grid-template-columns:1fr}.dv03-harness-actions{display:grid}.dv03-harness-actions .button{width:100%}}

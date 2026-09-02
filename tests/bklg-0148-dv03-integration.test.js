@@ -63,6 +63,7 @@ test('magic-link return preserves each explicit console route',()=>{
   assert.match(entry,/dv01:'\/log\/DV01\//);
   assert.match(entry,/dv02:'\/log\/DV02\//);
   assert.match(entry,/dv03:'\/log\//);
+  assert.match(entry,/dv03v2:'\/log\/DV03\/v2\//);
 });
 
 test('DV03 reuses the proven DV02 palette, gauge, clock, and night XP runtime',()=>{

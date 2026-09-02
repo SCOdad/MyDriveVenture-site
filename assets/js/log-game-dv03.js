@@ -55,6 +55,7 @@
   }
   function clearScene(){const layer=document.getElementById('dv03-scene-layer');if(layer){layer.innerHTML='';delete layer.dataset.dvScene}}
   function renderScene(detail){
+    if(document.documentElement.dataset.dvRoute==='dv03v2')return;
     const layer=document.getElementById('dv03-scene-layer');if(!layer)return;
     const cutoff=Date.now()-SCENE_RECENCY_DAYS*86400000;
     const award=(detail?.model?.quest_awards||[]).filter(row=>row.driver_id===detail.driverId&&SCENE_RULES[row.quest_key]&&Date.parse(row.awarded_at)>=cutoff).sort((a,b)=>Date.parse(b.awarded_at)-Date.parse(a.awarded_at))[0];
