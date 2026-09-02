@@ -1,0 +1,1 @@
+Regression coverage for the Operator analytics tabs, drive-time basis toggle, logging-delay scatter, and persisted reporting horizon is implemented in `operator-analytics-ui-regression.test.mjs` and runs in GitHub Actions.
