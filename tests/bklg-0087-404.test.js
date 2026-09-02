@@ -9,7 +9,12 @@ test('BKLG-0087 uses the approved canonical Parker road-closed artwork',()=>{
   assert.ok(html.includes('src="/assets/images/DV-CHAR-PARKER-404-ROAD-CLOSED.png"'));
   assert.ok(!html.includes('dv-char-parker-guide.webp'));
   assert.ok(fs.existsSync(asset),`${asset} must be published with the 404 page`);
-  assert.ok(fs.statSync(asset).size>0,`${asset} must not be empty`);
+
+  const png=fs.readFileSync(asset);
+  assert.ok(png.length>24,`${asset} must contain a valid PNG header`);
+  assert.equal(png.toString('ascii',1,4),'PNG',`${asset} must be a PNG`);
+  assert.equal(png.readUInt32BE(16),1535,`${asset} must preserve the approved 1535px width`);
+  assert.equal(png.readUInt32BE(20),1024,`${asset} must preserve the approved 1024px height`);
 });
 
 test('BKLG-0087 exposes semantic 404 copy and all approved recovery routes',()=>{
