@@ -1,0 +1,26 @@
+name: Operator analytics regression
+
+on:
+  pull_request:
+    paths:
+      - 'operator/**'
+      - 'assets/css/operator-dashboard.css'
+      - 'tests/operator-analytics-ui-regression.test.mjs'
+      - '.github/workflows/operator-analytics-regression.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'operator/**'
+      - 'assets/css/operator-dashboard.css'
+      - 'tests/operator-analytics-ui-regression.test.mjs'
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check operator/dashboard.js
+      - run: node tests/operator-analytics-ui-regression.test.mjs
