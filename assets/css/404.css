@@ -1,0 +1,31 @@
+.detour-404{background:#111820}
+.detour-content{max-width:76rem;padding-top:clamp(1.5rem,4vw,3rem);padding-bottom:clamp(3rem,7vw,5.5rem)}
+.detour-card{overflow:hidden;border:4px solid var(--true-black);border-top-color:#ef8428;background:#0c1217;box-shadow:.7rem .7rem 0 var(--true-black)}
+.detour-art{margin:0;background:#eef2f0}
+.detour-art img{display:block;width:100%;height:auto;aspect-ratio:1535/1024;object-fit:contain}
+.detour-copy{position:relative;padding:clamp(1.4rem,4vw,2.6rem)}
+.detour-copy::before{content:"";position:absolute;inset:0 0 auto;height:.72rem;background:repeating-linear-gradient(135deg,#ef8428 0 1.35rem,#f7f3e8 1.35rem 2.7rem);border-bottom:3px solid var(--true-black)}
+.detour-copy .eyebrow{margin-top:.65rem;color:#f19a4f}
+.detour-copy h1{max-width:17ch;margin-bottom:1rem;font-size:clamp(2rem,5.5vw,4rem)}
+.detour-lede{max-width:54rem;margin:0;color:#dce3e8;font-size:clamp(1.05rem,2vw,1.2rem)}
+.detour-prompt{margin:1rem 0 0;color:var(--silver);font-weight:700}
+.detour-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin-top:1.6rem}
+.detour-actions .button{display:flex;min-height:3.25rem;align-items:center;justify-content:center;padding:.8rem .65rem;text-align:center}
+.detour-primary{border-color:var(--dv-yellow);background:var(--dv-yellow)}
+.detour-secondary{border-color:#6d7a81;color:var(--warm-white);background:#202b35;box-shadow:.3rem .3rem 0 var(--true-black)}
+.detour-secondary:hover,.detour-secondary:focus-visible{color:var(--warm-white);background:#2a3741;box-shadow:.2rem .2rem 0 var(--true-black)}
+.detour-code{display:inline-block;margin:1.5rem 0 0;padding:.45rem .6rem;border:2px solid #4e5a61;color:#b9c4c9;background:#080b0e;font:800 .68rem/1.2 var(--heading-font);letter-spacing:.08em}
+@media(max-width:760px){
+  .detour-content{padding-inline:.8rem}
+  .detour-card{box-shadow:.45rem .45rem 0 var(--true-black)}
+  .detour-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:430px){
+  .detour-actions{grid-template-columns:1fr}
+  .detour-actions .button{width:100%}
+  .detour-copy{padding-inline:1rem}
+}
+@media print{
+  .detour-card{border:0;box-shadow:none}
+  .detour-copy::before,.detour-actions,.detour-code{display:none}
+}
