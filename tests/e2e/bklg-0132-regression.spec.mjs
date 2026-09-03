@@ -2,10 +2,15 @@ import { test, expect } from '@playwright/test';
 import { installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
 
 async function submitDriveForm(page) {
-  const responsePromise = page.waitForResponse(response =>
-    response.url().includes('/functions/v1/drive-ops') && response.request().method() === 'POST',
-    { timeout: 20_000 }
-  );
+  const responsePromise = page.waitForResponse(response => {
+    if (!response.url().includes('/functions/v1/drive-ops') || response.request().method() !== 'POST') return false;
+    try {
+      const action = response.request().postDataJSON()?.action;
+      return action === 'log_drive' || action === 'edit_drive';
+    } catch {
+      return false;
+    }
+  }, { timeout: 20_000 });
   await page.locator('#drive-form button[type=submit]').click();
   const response = await responsePromise;
   let body = null;
