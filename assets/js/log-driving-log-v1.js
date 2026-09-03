@@ -65,10 +65,12 @@
     const permit=window.prompt('Permit / license number for this PDF (optional; Drive Venture will not store it):','');
     if(permit===null)return;
     setExportStatus('Building driving log…');
-    const {data,error}=await client.functions.invoke('driving-log-renderer',{body:{driver_id:driverId,permit_number:permit.trim()||null}});
-    if(error||!data){setExportStatus('Driving log could not be generated.','error');return}
+    const {data:sessionData}=await client.auth.getSession(),session=sessionData?.session,cfg=window.DV_APP_CONFIG||{};
+    if(!session?.access_token||!cfg.supabaseUrl||!cfg.publishableKey){setExportStatus('Please sign in again before exporting.','error');return}
+    const response=await fetch(`${cfg.supabaseUrl.replace(/\/$/,'')}/functions/v1/driving-log-renderer`,{method:'POST',headers:{authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey,'content-type':'application/json'},body:JSON.stringify({driver_id:driverId,permit_number:permit.trim()||null})});
+    if(!response.ok){setExportStatus('Driving log could not be generated.','error');return}
     try{
-      const blob=data instanceof Blob?data:new Blob([data],{type:'application/pdf'});
+      const blob=await response.blob();
       const url=URL.createObjectURL(blob),a=document.createElement('a');
       a.href=url;a.download='drive-venture-driving-log.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
       setExportStatus('Driving log downloaded.','success');
