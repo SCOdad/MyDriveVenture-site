@@ -75,7 +75,12 @@
       type: 'email',
     });
     if (error) throw error;
+
+    // verifyOtp persists the DEV session, but its SIGNED_IN event can race the
+    // dashboard's access-claim bootstrap on mobile Safari/Chrome. Reload once
+    // so the normal bootstrap starts with the fully persisted DEV session.
     setStatus('Staging session opened. Loading DEV data…', 'success');
+    location.reload();
   }
 
   bridgeFromProd().catch(() => {
