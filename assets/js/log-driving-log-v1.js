@@ -32,7 +32,7 @@
     if(supervisor){
       supervisor.innerHTML='<option value="">Choose a grown-up</option>'+data.supervisors.map(g=>`<option value="${esc(g.person_id)}">${esc(g.display_name)}${g.is_primary?' · Primary':''}</option>`).join('')+'<option value="OTHER">Other</option>';
       if(previousSupervisor&&[...supervisor.options].some(o=>o.value===previousSupervisor))supervisor.value=previousSupervisor;
-      else supervisor.value=data.primary_supervisor_person_id||'';
+      else supervisor.value=data.default_supervisor_person_id||data.primary_supervisor_person_id||'';
       toggleOther();
     }
     const mode=data.lesson_set?.selection_mode||null;
