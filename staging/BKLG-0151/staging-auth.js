@@ -4,7 +4,6 @@
     supabaseUrl: 'https://cayoyqwrmouxuttloemc.supabase.co',
     publishableKey: 'sb_publishable_7RzACdnPmj_QiYSqzJRlfw_YaXyMws6',
   });
-  const STAGING_PATH = '/staging/BKLG-0151/';
   const loginForm = document.getElementById('login-form');
   const loginStatus = document.getElementById('login-status');
   const loginEmail = document.getElementById('login-email');
@@ -26,10 +25,6 @@
   window.DV_SUPABASE_CLIENT = devClient;
 
   async function bridgeFromProd() {
-    // If this is the return from the DEV magic-link exchange, let the normal
-    // Supabase client finish consuming the URL rather than starting a new bridge.
-    if (location.search.includes('code=') || location.hash.includes('access_token=')) return;
-
     const { data: devData } = await devClient.auth.getSession();
     if (devData.session) return;
 
@@ -63,7 +58,7 @@
       body: '{}',
     });
     const body = await response.json().catch(() => ({}));
-    if (!response.ok || body?.ok !== true || !body?.action_link) {
+    if (!response.ok || body?.ok !== true || !body?.token_hash) {
       if (loginEmail) loginEmail.disabled = false;
       if (button) button.disabled = false;
       setStatus(
@@ -74,7 +69,13 @@
       );
       return;
     }
-    location.replace(String(body.action_link));
+
+    const { error } = await devClient.auth.verifyOtp({
+      token_hash: String(body.token_hash),
+      type: 'email',
+    });
+    if (error) throw error;
+    setStatus('Staging session opened. Loading DEV data…', 'success');
   }
 
   bridgeFromProd().catch(() => {
