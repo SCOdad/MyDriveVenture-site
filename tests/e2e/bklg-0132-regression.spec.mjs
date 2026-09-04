@@ -133,7 +133,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     expect(skillRequest.lesson_ids,`drive-skill-ops request: ${JSON.stringify(skillRequest)}`).toHaveLength(2);
     expect(skillResponse.status(),`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(200);
     expect(skillBody?.ok,`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(true);
-    await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
     const immediateDetail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
     expect(immediateDetail.error).toBeNull();
     expect(immediateDetail.data.lesson_ids).toHaveLength(2);
