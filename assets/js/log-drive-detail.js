@@ -1,4 +1,6 @@
 (() => {
+  if(window.__DV_DRIVE_DETAIL_INIT)return;
+  window.__DV_DRIVE_DETAIL_INIT=true;
   const app = window.DV_LOG_APP;
   if (!app?.client) return;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt','"':'&quot;',"'":'&#39;'}[c]));
