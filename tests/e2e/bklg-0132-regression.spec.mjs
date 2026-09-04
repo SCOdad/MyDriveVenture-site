@@ -50,12 +50,10 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.guardianMulti);
     await expect(page.locator('#driver-select option')).toHaveCount(2);
-
     await selectDriverByName(page, 'Synthetic Driver One');
     await waitForDriveFormContext(page);
     expect(await currentAccessMode(page)).toBe('MANAGE');
     await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
-
     await selectDriverByName(page, 'Synthetic Driver Two');
     await waitForDriveFormContext(page);
     expect(await currentAccessMode(page)).toBe('MANAGE');
@@ -73,7 +71,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await signIn(page, personas.guardianMulti);
     await selectDriverByName(page, 'Synthetic Driver One');
     await waitForDriveFormContext(page);
-
     const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
     const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
     const route = `BKLG-0132 CI Route ${runId}-${runAttempt}-${testInfo.retry}`;
@@ -87,7 +84,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const logged = await submitDriveForm(page);
     expect(logged?.drive?.id).toBeTruthy();
     await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
-
     const row = page.locator('#drive-list .drive-item').filter({ hasText: route }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });
     await expect(row).toHaveAttribute('data-drive-detail-id', logged.drive.id);
@@ -103,7 +99,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const edited = await submitDriveForm(page);
     expect(edited?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture edited');
     await expectEditRefreshComplete(page);
-
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
     await expect(page.locator('#drive-edit-context')).toContainText('Unsaved changes: road notes');
     const restored = await submitDriveForm(page);
@@ -123,7 +118,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await skills.nth(0).check();
     await skills.nth(7).check();
     expect(await page.evaluate(() => window.DV_DRIVING_LOG.getSelectedLessonIds())).toHaveLength(2);
-
     const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,route=`BKLG-0151 skills ${runId}-${testInfo.retry}`;
     await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${testInfo.retry}`);
     await page.locator('#drive-date').fill('2026-08-29');
@@ -131,7 +125,14 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await page.locator('#drive-end').fill('14:15');
     await page.locator('#drive-destination').fill(route);
     await page.locator('#drive-notes').fill('Skills detail fixture');
+    const skillResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-skill-ops')&&r.request().method()==='POST',{timeout:20_000});
     const logged=await submitDriveForm(page);
+    const skillResponse=await skillResponsePromise;
+    const skillRequest=skillResponse.request().postDataJSON();
+    let skillBody=null;try{skillBody=await skillResponse.json()}catch{}
+    expect(skillRequest.lesson_ids,`drive-skill-ops request: ${JSON.stringify(skillRequest)}`).toHaveLength(2);
+    expect(skillResponse.status(),`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(200);
+    expect(skillBody?.ok,`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(true);
     await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
     const immediateDetail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
     expect(immediateDetail.error).toBeNull();
@@ -161,11 +162,9 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(page.locator('#operator-driver-search')).toBeVisible({ timeout: 20_000 });
     await selectDriverByName(page, 'Synthetic Driver One');
     expect(await currentAccessMode(page)).toBe('VIEW');
-
     await selectDriverByName(page, 'Synthetic Driver Two');
     expect(await currentAccessMode(page)).toBe('VIEW');
     await selectDriverByName(page, 'Synthetic Driver One');
-
     const firstDrive = page.locator('#drive-list [data-drive-detail-id]').first();
     await expect(firstDrive).toBeVisible({ timeout: 20_000 });
     await firstDrive.click();
