@@ -22,7 +22,15 @@
   function toggleOther(){const active=supervisor?.value==='OTHER';if(otherWrap){otherWrap.hidden=!active;otherWrap.style.display=active?'grid':'none'}if(other){other.required=active;other.disabled=!active;if(!active)other.value=''}}
   supervisor?.addEventListener('change',toggleOther);toggleOther();
 
-  function ensureStyle(){if(document.getElementById('dv-driving-log-v1-style'))return;const style=document.createElement('style');style.id='dv-driving-log-v1-style';style.textContent='.drive-skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem .6rem;margin-top:.3rem}.drive-skill-option{display:flex!important;align-items:flex-start;gap:.45rem;padding:.38rem .45rem;border:1px solid rgba(0,0,0,.16);border-radius:.3rem;background:rgba(255,255,255,.5);font-size:.82rem;line-height:1.2}.drive-skill-option input{flex:0 0 auto;margin:.12rem 0 0}.drive-note-meta{display:flex;justify-content:space-between;gap:.75rem;margin-top:.2rem;font-size:.72rem;opacity:.78}.drive-note-meta [data-limit=true]{font-weight:700}@media(max-width:620px){.drive-skill-grid{grid-template-columns:1fr}}';document.head.appendChild(style)}
+  function ensureStyle(){if(document.getElementById('dv-driving-log-v1-style'))return;const style=document.createElement('style');style.id='dv-driving-log-v1-style';style.textContent=`
+    .drive-skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem .6rem;margin-top:.35rem;width:100%;min-width:0}
+    .drive-skill-option{box-sizing:border-box;display:flex!important;align-items:flex-start!important;gap:.55rem!important;width:100%!important;min-width:0!important;min-height:0!important;padding:.55rem .65rem!important;border:1px solid rgba(160,170,176,.55)!important;border-radius:.35rem!important;background:rgba(255,255,255,.07)!important;font-size:.82rem!important;line-height:1.25!important;overflow:hidden!important}
+    .drive-skill-option>input[type=checkbox]{appearance:auto!important;-webkit-appearance:checkbox!important;display:block!important;flex:0 0 auto!important;width:1rem!important;height:1rem!important;min-width:1rem!important;margin:.08rem 0 0!important;padding:0!important;position:static!important;opacity:1!important}
+    .drive-skill-option>span{box-sizing:border-box!important;display:block!important;position:static!important;flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:100%!important;margin:0!important;padding:0!important;white-space:normal!important;overflow:visible!important;overflow-wrap:anywhere!important;text-align:left!important;color:inherit!important;background:transparent!important}
+    .drive-note-meta{display:flex;justify-content:space-between;gap:.75rem;margin-top:.25rem;font-size:.72rem;opacity:.82}
+    .drive-note-meta [data-limit=true]{font-weight:700}
+    @media(max-width:620px){.drive-skill-grid{grid-template-columns:1fr}}
+  `;document.head.appendChild(style)}
   ensureStyle();
 
   function renderLessonGrid(rows){if(!lesson||!lessonWrap)return;lesson.hidden=true;lesson.style.display='none';let grid=document.getElementById('drive-lesson-options');if(!grid){grid=document.createElement('div');grid.id='drive-lesson-options';grid.className='drive-skill-grid';lesson.after(grid)}const selected=new Set(selectedLessonIds());grid.hidden=false;grid.innerHTML=(rows||[]).map(x=>`<label class="drive-skill-option"><input type="checkbox" value="${esc(x.id)}"><span><strong>${esc(x.lesson_code)}</strong> · ${esc(x.title)}</span></label>`).join('');grid.querySelectorAll('input[type=checkbox]').forEach(box=>{box.checked=selected.has(box.value);box.addEventListener('change',()=>{const option=[...lesson.options].find(o=>o.value===box.value);if(option)option.selected=box.checked;lesson.dispatchEvent(new Event('change',{bubbles:true}))})})}
@@ -41,7 +49,7 @@
       return result;
     }
     if(slug==='drive-ops'&&['log_drive','edit_drive'].includes(options?.body?.action)){
-      const requestedLessonIds=selectedLessonIds(),result=await originalInvoke(slug,options),drive=result?.data?.drive,driverId=options?.body?.driver_id;
+      const requestedLessonIds=Array.isArray(options?.body?.lesson_ids)?[...new Set(options.body.lesson_ids.filter(Boolean).map(String))]:selectedLessonIds(),result=await originalInvoke(slug,options),drive=result?.data?.drive,driverId=options?.body?.driver_id;
       if(result?.error||!result?.data?.ok||!drive?.id||!driverId)return result;
       const synced=await originalInvoke('drive-skill-ops',{body:{action:'set',driver_id:driverId,drive_id:drive.id,lesson_ids:requestedLessonIds,...(options?.body?.reason?{reason:options.body.reason}:{})}});
       if(synced.error||!synced.data?.ok){result.data.ok=false;result.data.error='Drive details changed, but Skills Practiced could not be saved. Reopen the drive before trying again.';return result}

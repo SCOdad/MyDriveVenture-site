@@ -12,12 +12,27 @@ window.DV_APP_CONFIG = Object.freeze({
   const originalAppend = Element.prototype.appendChild;
   Element.prototype.appendChild = function(node) {
     if (node?.tagName === 'SCRIPT' && String(node.src || '').includes('/assets/js/log-drive-detail-v4.js')) {
-      node.src = '/staging/BKLG-0151/assets/js/log-drive-detail-v4.js?v=20260904-0151-uat3';
+      node.src = '/staging/BKLG-0151/assets/js/log-drive-detail-v4.js?v=20260904-0151-uat4';
       Element.prototype.appendChild = originalAppend;
     }
     return originalAppend.call(this, node);
   };
 })();
+
+// BKLG-0151: visible Michigan skill checkboxes are authoritative. Preserve the
+// checked UI values even if a late form-context refresh updates the hidden
+// compatibility select before submit.
+window.addEventListener('load', () => {
+  const api = window.DV_DRIVING_LOG;
+  if (!api || api.__checkboxSelectionAuthoritative) return;
+  const fallback = api.getSelectedLessonIds?.bind(api);
+  api.getSelectedLessonIds = () => {
+    const grid = document.getElementById('drive-lesson-options');
+    if (grid) return [...grid.querySelectorAll('input[type=checkbox]:checked')].map(box => box.value).filter(Boolean);
+    return fallback ? fallback() : [];
+  };
+  api.__checkboxSelectionAuthoritative = true;
+});
 
 // BKLG-0081: accept the onboarding handoff email, prefill the shared login
 // form used by both skins, then remove the email from the visible URL so it is
