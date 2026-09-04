@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Drive Venture — BKLG-0151 UAT4</title></head><body><p>Loading Default Experience with DEV data…</p><script>
+fetch('/staging/BKLG-0151/',{cache:'no-store'}).then(r=>r.text()).then(html=>{
+ html=html.replace(/log-driving-log-v1\.js\?v=[^\"]+/,'log-driving-log-v1.js?v=20260904-0151-uat4').replace(/log-drive-rpc\.js\?v=[^\"]+/,'log-drive-rpc.js?v=20260904-0151-uat4');
+ html=html.replace('<span><b>STAGING / BKLG-0151</b> · DEV DATA ONLY · NOT PRODUCTION</span><a href="/log/DV02/">DV02</a>','<span><b>Default Experience</b> · BKLG-0151 UAT4 · DEV DATA ONLY</span><a href="/staging/BKLG-0151/Prior/">Prior Experience</a><a href="/staging/BKLG-0151/Classic/">Classic</a>');
+ document.open();document.write(html);document.close();
+}).catch(e=>document.body.textContent='Could not load BKLG-0151 UAT4: '+e.message);
+</script></body></html>
