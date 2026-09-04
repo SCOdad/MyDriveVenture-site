@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 
 test('DV03 mock preview uses Parker fallback and remains read-only',async({page})=>{
   await page.goto('/log/');
-  await expect(page.locator('.experience-bar')).toContainText('Current default');
+  await expect(page.locator('.experience-bar')).toContainText('Default Experience');
   await page.getByRole('button',{name:'Preview DV03 with synthetic data'}).click();
   await expect(page.getByRole('heading',{name:'Synthetic Driver'})).toBeVisible();
   const hero=page.locator('#dv03-hero');
@@ -36,16 +36,17 @@ test('DV03 remains coherent at the mobile breakpoint',async({page})=>{
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
 });
 
-test('DV02 remains available at its versioned route',async({page})=>{
+test('Prior Experience remains available at its versioned route',async({page})=>{
   await page.goto('/log/DV02/');
-  await expect(page.getByText('DV-02 / DRIVER CONSOLE')).toBeVisible();
+  await expect(page.locator('.experience-bar')).toContainText('Prior Experience');
+  await expect(page.locator('html')).toHaveAttribute('data-dv-route','dv02');
 });
 
-test('legacy console URLs preserve their destinations and query strings',async({page})=>{
+test('legacy console URLs preserve query strings while retired DV01 lands on Default Experience',async({page})=>{
   await page.goto('/log/game/?return=%2Ffamily%2F');
   await expect(page).toHaveURL(/\/log\/\?return=%2Ffamily%2F$/);
   await page.goto('/log/game/DV01/?return=driver');
-  await expect(page).toHaveURL(/\/log\/DV01\/\?return=driver$/);
+  await expect(page).toHaveURL(/\/log\/\?return=driver$/);
   await page.goto('/log/game/DV03/?return=driver');
   await expect(page).toHaveURL(/\/log\/\?return=driver$/);
 });
