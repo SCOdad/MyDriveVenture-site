@@ -3,13 +3,13 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 
-test('DV-02 and isolated DV-01 version routes are present',()=>{
+test('Prior Experience remains stable and DV01 retires to Default Experience',()=>{
   const v2=read('log/DV02/index.html'),v1=read('log/DV01/index.html');
   assert.match(v2,/DV-02 \/ DRIVER CONSOLE/);
   assert.match(v2,/log-game-v2-color\.js/);
-  assert.match(v2,/href="\/log\/DV01\/"/);
-  assert.match(v1,/DV-01 \/ DRIVER CONSOLE/);
-  assert.doesNotMatch(v1,/log-game-v2-color|driver-palettes/);
+  assert.match(v1,/Opening Default Experience/);
+  assert.match(v1,/location\.replace\('\/log\/' \+ location\.search \+ location\.hash\)/);
+  assert.doesNotMatch(v1,/data-dv-route="dv01"|DV-01 \/ DRIVER CONSOLE|log-game-v2-color|driver-palettes/);
 });
 
 test('production palette is accessible, persistent, and contains only ten approved colors',()=>{
