@@ -179,7 +179,7 @@
       return result;
     }
     if (slug === 'drive-ops' && ['log_drive', 'edit_drive'].includes(options?.body?.action)) {
-      const requestedLessonIds = selectedLessonIds();
+      const requestedLessonIds = Array.isArray(options?.body?.lesson_ids) ? [...new Set(options.body.lesson_ids.filter(Boolean).map(String))] : selectedLessonIds();
       const result = await originalInvoke(slug, options), drive = result?.data?.drive, driverId = options?.body?.driver_id;
       if (result?.error || !result?.data?.ok || !drive?.id || !driverId) return result;
       const synced = await originalInvoke('drive-skill-ops', { body: { action: 'set', driver_id: driverId, drive_id: drive.id, lesson_ids: requestedLessonIds, ...(options?.body?.reason ? { reason: options.body.reason } : {}) } });
