@@ -35,31 +35,41 @@ test('DV01 direct route retires to Default Experience and preserves query/hash',
   expect(new URL(page.url()).pathname).toBe('/log/');
 });
 
-test('Skills Practiced cards contain their checkbox and full label on desktop', async ({ page }) => {
-  await page.setViewportSize({ width: 1100, height: 900 });
-  await openAuthenticatedExperience(page, '/log/');
+async function expectSkillCheckboxPresentation(page, expectedColumns) {
   const cards = page.locator('.drive-skill-option');
   await expect(cards).toHaveCount(13);
+  const gridColumns = await page.locator('#drive-lesson-options').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+  expect(gridColumns).toBe(expectedColumns);
+  const compatibilitySelect = await page.locator('#drive-lesson').evaluate(el => {
+    const style = getComputedStyle(el);
+    const box = el.getBoundingClientRect();
+    return { display: style.display, visibility: style.visibility, width: box.width, height: box.height };
+  });
+  expect(compatibilitySelect.display).toBe('none');
   const result = await cards.evaluateAll(nodes => nodes.map(card => {
     const box = card.getBoundingClientRect();
-    const input = card.querySelector('input').getBoundingClientRect();
-    const label = card.querySelector('span').getBoundingClientRect();
+    const label = card.querySelector('span');
+    const labelBox = label.getBoundingClientRect();
+    const check = getComputedStyle(label, '::before');
     return {
-      inputInside: input.left >= box.left && input.right <= box.right && input.top >= box.top && input.bottom <= box.bottom,
-      labelInside: label.left >= box.left && label.right <= box.right + 1 && label.top >= box.top && label.bottom <= box.bottom + 1,
-      overflowX: card.scrollWidth > card.clientWidth + 1
+      labelInside: labelBox.left >= box.left && labelBox.right <= box.right + 1 && labelBox.top >= box.top && labelBox.bottom <= box.bottom + 1,
+      overflowX: card.scrollWidth > card.clientWidth + 1,
+      checkWidth: parseFloat(check.width),
+      checkHeight: parseFloat(check.height),
+      checkBorder: parseFloat(check.borderLeftWidth)
     };
   }));
-  expect(result.every(x => x.inputInside && x.labelInside && !x.overflowX)).toBe(true);
-  const gridColumns = await page.locator('#drive-lesson-options').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
-  expect(gridColumns).toBe(2);
+  expect(result.every(x => x.labelInside && !x.overflowX && x.checkWidth >= 14 && x.checkHeight >= 14 && x.checkBorder >= 1)).toBe(true);
+}
+
+test('Skills Practiced cards contain visible checkbox and full label on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await openAuthenticatedExperience(page, '/log/');
+  await expectSkillCheckboxPresentation(page, 2);
 });
 
-test('Skills Practiced cards collapse to one column on narrow screens', async ({ page }) => {
+test('Skills Practiced cards show visible checkboxes in one column on narrow screens', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await openAuthenticatedExperience(page, '/log/');
-  const gridColumns = await page.locator('#drive-lesson-options').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
-  expect(gridColumns).toBe(1);
-  const overflow = await page.locator('.drive-skill-option').evaluateAll(nodes => nodes.some(card => card.scrollWidth > card.clientWidth + 1));
-  expect(overflow).toBe(false);
+  await expectSkillCheckboxPresentation(page, 1);
 });
