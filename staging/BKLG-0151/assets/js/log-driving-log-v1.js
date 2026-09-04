@@ -53,14 +53,15 @@
   };
 
   async function loadContext(driverId){
-    const mine=++contextToken,previousSupervisor=supervisor?.value||'',previousLessons=selectedLessonIds(),{data,error}=await client.functions.invoke('drive-ops',{body:{action:'form_context',driver_id:driverId}});
+    const mine=++contextToken,previousSupervisor=supervisor?.value||'',{data,error}=await client.functions.invoke('drive-ops',{body:{action:'form_context',driver_id:driverId}});
     if(mine!==contextToken||app.getDriverId()!==driverId||error||!data?.ok)return;
+    const liveLessons=selectedLessonIds();
     if(supervisor){supervisor.innerHTML='<option value="">Choose a grown-up</option>'+data.supervisors.map(g=>`<option value="${esc(g.person_id)}">${esc(g.display_name)}${g.is_primary?' · Primary':''}</option>`).join('')+'<option value="OTHER">Other</option>';if(previousSupervisor&&[...supervisor.options].some(o=>o.value===previousSupervisor))supervisor.value=previousSupervisor;else supervisor.value=data.default_supervisor_person_id||data.primary_supervisor_person_id||'';toggleOther()}
     const mode=data.lesson_set?.selection_mode||null;
     if(mode==='ENUMERATED'){
       if(lessonWrap){lessonWrap.hidden=false;lessonWrap.style.display='grid';const label=lessonWrap.querySelector('span');if(label)label.textContent='Skills Practiced'}
       if(lessonNotesWrap){lessonNotesWrap.hidden=true;lessonNotesWrap.style.display='none'}
-      if(lesson){lesson.multiple=true;lesson.innerHTML=data.lessons.map(x=>`<option value="${esc(x.id)}">${esc(x.lesson_code)} · ${esc(x.title)}</option>`).join('');setLessonSelection(previousLessons);renderLessonGrid(data.lessons);setLessonSelection(previousLessons)}
+      if(lesson){lesson.multiple=true;lesson.innerHTML=data.lessons.map(x=>`<option value="${esc(x.id)}">${esc(x.lesson_code)} · ${esc(x.title)}</option>`).join('');setLessonSelection(liveLessons);renderLessonGrid(data.lessons);setLessonSelection(liveLessons)}
       if(lessonNotes)lessonNotes.required=false;
     }else if(mode==='FREE_TEXT'){
       if(lessonWrap){lessonWrap.hidden=true;lessonWrap.style.display='none'}hideLessonGrid();if(lessonNotesWrap){lessonNotesWrap.hidden=false;lessonNotesWrap.style.display='grid'}if(lesson){lesson.multiple=false;lesson.value=''}if(lessonNotes)lessonNotes.required=false;
