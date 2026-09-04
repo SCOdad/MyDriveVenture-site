@@ -76,18 +76,19 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
     const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
     const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
+    const route = `BKLG-0132 CI Route ${runId}-${runAttempt}-${testInfo.retry}`;
     const sourceEventId = `bklg-0132-playwright-${runId}-${runAttempt}-${testInfo.retry}`;
     await page.evaluate(id => sessionStorage.setItem('dv:web-drive:submission-id', id), sourceEventId);
     await page.locator('#drive-date').fill('2026-08-29');
     await page.locator('#drive-start').fill('10:00');
     await page.locator('#drive-end').fill('10:10');
-    await page.locator('#drive-destination').fill('BKLG-0132 CI Route');
+    await page.locator('#drive-destination').fill(route);
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
     const logged = await submitDriveForm(page);
     expect(logged?.drive?.id).toBeTruthy();
     await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
 
-    const row = page.locator('#drive-list .drive-item').filter({ hasText: 'BKLG-0132 CI Route' }).first();
+    const row = page.locator('#drive-list .drive-item').filter({ hasText: route }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });
     await expect(row).toHaveAttribute('data-drive-detail-id', logged.drive.id);
     await row.click();
@@ -121,6 +122,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(page.locator('#drive-lesson')).toBeHidden();
     await skills.nth(0).check();
     await skills.nth(7).check();
+    expect(await page.evaluate(() => window.DV_DRIVING_LOG.getSelectedLessonIds())).toHaveLength(2);
 
     const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,route=`BKLG-0151 skills ${runId}-${testInfo.retry}`;
     await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${testInfo.retry}`);
