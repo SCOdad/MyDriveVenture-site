@@ -22,7 +22,7 @@ async function submitDriveForm(page) {
 
 async function expectEditRefreshComplete(page) {
   await expect(page.locator('#drive-status')).toHaveClass(/success/);
-  await expect(page.locator('#drive-status')).toContainText('Drive updated:');
+  await expect(page.locator('#drive-status')).toContainText('Drive updated and verified:');
   await expect(page.locator('#drive-edit-context')).toBeVisible();
   await expect(page.locator('#drive-form button[type=submit]')).toHaveText('Save changes');
 }
@@ -74,6 +74,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
     const logged = await submitDriveForm(page);
     expect(logged?.drive?.id).toBeTruthy();
+    await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
 
     const row = page.locator('#drive-list .drive-item').filter({ hasText: 'BKLG-0132 CI Route' }).first();
     await expect(row).toBeVisible({ timeout: 20_000 });
@@ -99,6 +100,43 @@ test.describe('BKLG-0132 critical browser regression', () => {
     assertNoPageFailures();
   });
 
+  test('Michigan skills use compact checkboxes, persist edits, and appear in trip detail', async ({ page }, testInfo) => {
+    const assertNoPageFailures = installPageGuards(page);
+    await signIn(page, personas.guardianMulti);
+    await selectDriverByName(page, 'Synthetic Driver One');
+    const skills=page.locator('#drive-lesson-options input[type=checkbox]');
+    await expect(skills).toHaveCount(13, { timeout: 20_000 });
+    await expect(page.locator('#drive-lesson')).toBeHidden();
+    await skills.nth(0).check();
+    await skills.nth(7).check();
+
+    const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,route=`BKLG-0151 skills ${runId}-${testInfo.retry}`;
+    await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${testInfo.retry}`);
+    await page.locator('#drive-date').fill('2026-08-29');
+    await page.locator('#drive-start').fill('14:00');
+    await page.locator('#drive-end').fill('14:15');
+    await page.locator('#drive-destination').fill(route);
+    await page.locator('#drive-notes').fill('Skills detail fixture');
+    const logged=await submitDriveForm(page);
+    await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.');
+    const row=page.locator('#drive-list .drive-item').filter({hasText:route}).first();await expect(row).toBeVisible({timeout:20_000});await row.click();
+    await expect(page.locator('.drive-detail-dialog')).toContainText('Supervisor');
+    await expect(page.locator('.drive-detail-dialog')).toContainText('Skills Practiced');
+    await expect(page.locator('.drive-detail-dialog')).toContainText('1 · Before you start the engine');
+    await expect(page.locator('.drive-detail-dialog')).toContainText('8 · Parking');
+    await page.locator('[data-edit-drive]').click();
+    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(2);
+    await skills.nth(11).check();
+    const longNote='N'.repeat(500);await page.locator('#drive-notes').fill(longNote);
+    await expect(page.locator('#drive-notes-meta')).toContainText('500 / 500 · maximum reached');
+    await submitDriveForm(page);await expectEditRefreshComplete(page);
+    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(3);
+    await expect(page.locator('#drive-notes')).toHaveValue(longNote);
+    const detail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
+    expect(detail.error).toBeNull();expect(detail.data.lesson_ids).toHaveLength(3);expect(detail.data.drive.notes).toHaveLength(500);expect(detail.data.supervisor?.display_name).toBeTruthy();
+    assertNoPageFailures();
+  });
+
   test('operator authenticates, sees VIEW-only drivers, and gets bounded admin edit controls', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.operator);
@@ -117,6 +155,29 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await page.getByRole('button', { name: 'Admin edit this drive' }).click();
     await expect(page.locator('#drive-admin-reason-wrap')).toBeVisible();
     await expect(page.locator('#drive-admin-reason')).toHaveJSProperty('required', true);
+    assertNoPageFailures();
+  });
+
+  test('administrator content and skill edits never certify a drive', async ({ page }) => {
+    const assertNoPageFailures=installPageGuards(page);
+    await signIn(page,personas.operator);await selectDriverByName(page,'Synthetic Driver One');
+    const result=await page.evaluate(async()=>{
+      const app=window.DV_LOG_APP,driverId=app.getDriverId(),ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId).map(d=>d.id);
+      let detail=null;
+      for(const id of ids){const r=await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:id}});if(r.data?.drive?.certification_status==='CERTIFIED'){detail=r.data;break}}
+      if(!detail)return{error:'No certified synthetic drive available'};
+      const cfg=window.DV_APP_CONFIG,{data:sessionData}=await app.client.auth.getSession(),token=sessionData?.session?.access_token;
+      const direct=async(slug,body)=>{const r=await fetch(`${cfg.supabaseUrl.replace(/\/$/,'')}/functions/v1/${slug}`,{method:'POST',headers:{authorization:`Bearer ${token}`,apikey:cfg.publishableKey,'content-type':'application/json'},body:JSON.stringify(body)});return{status:r.status,body:await r.json()}};
+      const d=detail.drive,stamp=Date.now(),edit=await direct('drive-ops',{action:'edit_drive',driver_id:driverId,drive_id:d.id,drive_date:d.drive_date,start_time:d.start_time,end_time:d.end_time,vehicle_id:d.vehicle_id,lesson_id:d.lesson_id,lesson_notes:d.lesson_notes,supervisor_person_id:d.supervisor_person_id,external_supervisor_name:d.external_supervisor_name,destination:d.destination,notes:`Operator UAT ${stamp}`,reason:`BKLG-0151 admin certification regression ${stamp}`});
+      const afterEdit=(await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:d.id}})).data;
+      const currentIds=afterEdit.lesson_ids||[],all=(await app.client.functions.invoke('drive-ops',{body:{action:'form_context',driver_id:driverId}})).data?.lessons||[],alternate=currentIds.length>1?[currentIds[0]]:[currentIds[0]||all[0]?.id,all.find(x=>x.id!==(currentIds[0]||all[0]?.id))?.id].filter(Boolean);
+      const skill=await direct('drive-skill-ops',{action:'set',driver_id:driverId,drive_id:d.id,lesson_ids:alternate,reason:`BKLG-0151 operator skill regression ${stamp}`});
+      const afterSkill=(await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:d.id}})).data;
+      return{edit,afterEdit:afterEdit?.drive,skill,afterSkill:afterSkill?.drive,lessonIds:afterSkill?.lesson_ids};
+    });
+    expect(result.error).toBeUndefined();expect(result.edit.status).toBe(200);expect(result.edit.body.ok).toBe(true);
+    expect(result.afterEdit.certification_status).toBe('PENDING');expect(result.afterEdit.certified_by_person_id).toBeNull();expect(result.afterEdit.certification_method).toBeNull();
+    expect(result.skill.status).toBe(200);expect(result.skill.body.ok).toBe(true);expect(result.afterSkill.certification_status).toBe('PENDING');expect(result.afterSkill.certified_by_person_id).toBeNull();expect(result.afterSkill.certification_method).toBeNull();expect(result.lessonIds.length).toBeGreaterThan(0);
     assertNoPageFailures();
   });
 });
