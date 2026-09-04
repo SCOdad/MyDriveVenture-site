@@ -24,14 +24,33 @@ window.DV_APP_CONFIG = Object.freeze({
 // compatibility select before submit.
 window.addEventListener('load', () => {
   const api = window.DV_DRIVING_LOG;
-  if (!api || api.__checkboxSelectionAuthoritative) return;
-  const fallback = api.getSelectedLessonIds?.bind(api);
-  api.getSelectedLessonIds = () => {
-    const grid = document.getElementById('drive-lesson-options');
-    if (grid) return [...grid.querySelectorAll('input[type=checkbox]:checked')].map(box => box.value).filter(Boolean);
-    return fallback ? fallback() : [];
-  };
-  api.__checkboxSelectionAuthoritative = true;
+  if (api && !api.__checkboxSelectionAuthoritative) {
+    const fallback = api.getSelectedLessonIds?.bind(api);
+    api.getSelectedLessonIds = () => {
+      const grid = document.getElementById('drive-lesson-options');
+      if (grid) return [...grid.querySelectorAll('input[type=checkbox]:checked')].map(box => box.value).filter(Boolean);
+      return fallback ? fallback() : [];
+    };
+    api.__checkboxSelectionAuthoritative = true;
+  }
+
+  // Narrow/Safari UAT repair: keep the compatibility <select multiple> fully
+  // non-visual and draw the checkbox indicator ourselves so it remains visible
+  // even when the browser suppresses native checkbox chrome.
+  if (!document.getElementById('bklg-0151-skill-visibility-guard')) {
+    const style = document.createElement('style');
+    style.id = 'bklg-0151-skill-visibility-guard';
+    style.textContent = `
+      #drive-lesson{display:none!important;visibility:hidden!important;position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important}
+      .drive-skill-option{position:relative!important}
+      .drive-skill-option>input[type=checkbox]{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important}
+      .drive-skill-option>span{position:relative!important;padding-left:1.65rem!important;min-height:1.15rem!important}
+      .drive-skill-option>span::before{content:"";box-sizing:border-box;position:absolute;left:0;top:.02rem;width:1.05rem;height:1.05rem;border:2px solid currentColor;background:#f8f4e9}
+      .drive-skill-option>input[type=checkbox]:checked+span::after{content:"✓";position:absolute;left:.12rem;top:-.14rem;color:#101416;font-weight:900;font-size:1rem;line-height:1.2}
+      .drive-skill-option>input[type=checkbox]:focus-visible+span::before{outline:3px solid #f8ba20;outline-offset:2px}
+    `;
+    document.head.appendChild(style);
+  }
 });
 
 // BKLG-0081: accept the onboarding handoff email, prefill the shared login
