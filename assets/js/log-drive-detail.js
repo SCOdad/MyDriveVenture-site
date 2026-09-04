@@ -1,6 +1,4 @@
 (() => {
-  if(window.__DV_DRIVE_DETAIL_INIT)return;
-  window.__DV_DRIVE_DETAIL_INIT=true;
   const app = window.DV_LOG_APP;
   if (!app?.client) return;
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,12 +12,10 @@
   dialog.querySelector('.drive-detail-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   function render(detail) {
-    const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [], lessons=detail.lessons||drive.lessons||[];
+    const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [];
     const nightStatus = drive.night_classification_status ? String(drive.night_classification_status).replaceAll('_', ' ') : null;
-    const weather = drive.weather?.conditions?.length ? drive.weather.conditions.map(v=>String(v).replaceAll('_',' ')).join(', ') : null;
-    const skillText=lessons.length?lessons.map(x=>`${x.lesson_code} · ${x.title}`).join('; '):(drive.lesson_notes||null);
-    const supervisor=detail.supervisor?.display_name||drive.external_supervisor_name||null;
-    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2><dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Supervisor', supervisor)}${optional('Skills Practiced', skillText)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes)}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min${nightStatus ? ` · ${nightStatus}` : ''}`)}${optional('Night rule', drive.night_rule_version)}${optional('Classification basis', drive.classification_basis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section>`;
+    const weather = drive.weather?.conditions?.length ? drive.weather.conditions.join(', ') : null;
+    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2><dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes)}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min${nightStatus ? ` · ${nightStatus}` : ''}`)}${optional('Night rule', drive.night_rule_version)}${optional('Classification basis', drive.classification_basis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section>`;
   }
   document.addEventListener('click', async event => {
     const trigger = event.target.closest('[data-drive-detail-id]');
@@ -31,7 +27,6 @@
     dialog.showModal();
     const {data, error} = await app.client.functions.invoke('drive-detail-api', {body:{driver_id:driverId, drive_id:trigger.dataset.driveDetailId}});
     if (error || !data?.ok) { content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'; return; }
-    app.detailDrives=app.detailDrives||{};app.detailDrives[data.drive.id]=data.drive;
     render(data);
   });
 })();
