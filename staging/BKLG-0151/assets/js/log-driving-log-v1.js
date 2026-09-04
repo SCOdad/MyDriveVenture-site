@@ -20,6 +20,7 @@
   const lessonSetEqual=(a,b)=>JSON.stringify([...(a||[])].sort())===JSON.stringify([...(b||[])].sort());
   function setLessonSelection(ids){if(!lesson)return;const wanted=new Set((ids||[]).map(String));[...lesson.options].forEach(o=>{o.selected=!!o.value&&wanted.has(o.value)})}
   function setExportStatus(text,kind=''){if(exportStatus){exportStatus.textContent=text||'';exportStatus.className=`app-status${kind?` ${kind}`:''}`}}
+  function setDriveWarning(text){if(!driveStatus)return;queueMicrotask(()=>{driveStatus.textContent=text;driveStatus.className='app-status error'})}
   function toggleOther(){
     const active=supervisor?.value==='OTHER';
     if(otherWrap){otherWrap.hidden=!active;otherWrap.style.display=active?'grid':'none'}
@@ -45,7 +46,7 @@
       if(!result?.error&&result?.data?.ok&&drive?.id&&driverId){
         const synced=await originalInvoke('drive-skill-ops',{body:{action:'set',driver_id:driverId,drive_id:drive.id,lesson_ids:requestedLessonIds}});
         if(!synced.error&&synced.data?.ok){drive.lesson_ids=synced.data.lesson_ids||requestedLessonIds;drive.lesson_id=drive.lesson_ids[0]||null}
-        else result.data.skill_sync_warning='Drive saved, but skills could not be updated. Please reopen the drive and try again.';
+        else{result.data.skill_sync_warning='Drive saved, but skills could not be updated. Please reopen the drive and try again.';setDriveWarning(result.data.skill_sync_warning)}
       }
       return result;
     }
@@ -69,11 +70,7 @@
     if(mode==='ENUMERATED'){
       if(lessonWrap){lessonWrap.hidden=false;lessonWrap.style.display='grid';const label=lessonWrap.querySelector('span');if(label)label.textContent='Skills Practiced (choose all that apply)'}
       if(lessonNotesWrap){lessonNotesWrap.hidden=true;lessonNotesWrap.style.display='none'}
-      if(lesson){
-        lesson.multiple=true;lesson.size=Math.min(6,Math.max(3,data.lessons.length));
-        lesson.innerHTML=data.lessons.map(x=>`<option value="${esc(x.id)}">${esc(x.lesson_code)} · ${esc(x.title)}</option>`).join('');
-        setLessonSelection(previousLessons);
-      }
+      if(lesson){lesson.multiple=true;lesson.size=Math.min(6,Math.max(3,data.lessons.length));lesson.innerHTML=data.lessons.map(x=>`<option value="${esc(x.id)}">${esc(x.lesson_code)} · ${esc(x.title)}</option>`).join('');setLessonSelection(previousLessons)}
       if(lessonNotes)lessonNotes.required=false;
     }else if(mode==='FREE_TEXT'){
       if(lessonWrap){lessonWrap.hidden=true;lessonWrap.style.display='none'}
@@ -97,15 +94,7 @@
     const original=app.detailDrives?.[driveId];if(!original)return;
     const currentIds=selectedLessonIds(),originalIds=original.lesson_ids||(original.lesson_id?[original.lesson_id]:[]);if(lessonSetEqual(currentIds,originalIds))return;
     const clean=v=>String(v??'').trim(),time=v=>clean(v).slice(0,5),sup=supervisor?.value||'';
-    const unchanged=
-      clean(document.getElementById('drive-date')?.value)===clean(original.drive_date)&&
-      time(document.getElementById('drive-start')?.value)===time(original.start_time)&&
-      time(document.getElementById('drive-end')?.value)===time(original.end_time)&&
-      (document.getElementById('drive-vehicle')?.value||null)===(original.vehicle_id||null)&&
-      (sup&&sup!=='OTHER'?sup:null)===(original.supervisor_person_id||null)&&
-      (sup==='OTHER'?clean(other?.value)||null:null)===(clean(original.external_supervisor_name)||null)&&
-      (clean(document.getElementById('drive-destination')?.value)||null)===(clean(original.destination)||null)&&
-      (clean(document.getElementById('drive-notes')?.value)||null)===(clean(original.notes)||null);
+    const unchanged=clean(document.getElementById('drive-date')?.value)===clean(original.drive_date)&&time(document.getElementById('drive-start')?.value)===time(original.start_time)&&time(document.getElementById('drive-end')?.value)===time(original.end_time)&&(document.getElementById('drive-vehicle')?.value||null)===(original.vehicle_id||null)&&(sup&&sup!=='OTHER'?sup:null)===(original.supervisor_person_id||null)&&(sup==='OTHER'?clean(other?.value)||null:null)===(clean(original.external_supervisor_name)||null)&&(clean(document.getElementById('drive-destination')?.value)||null)===(clean(original.destination)||null)&&(clean(document.getElementById('drive-notes')?.value)||null)===(clean(original.notes)||null);
     if(!unchanged)return;
     e.preventDefault();e.stopImmediatePropagation();
     if(driveStatus){driveStatus.textContent='Saving skills…';driveStatus.className='app-status'}
