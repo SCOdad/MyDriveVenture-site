@@ -5,15 +5,19 @@ window.DV_APP_CONFIG = Object.freeze({
   publishableKey: window.DV_ENVIRONMENT_CONFIG.publishableKey,
 });
 
-// BKLG-0151 staging only: the dashboard bootstrap dynamically appends the
-// production trip-detail asset. Rewrite that single script request to the
-// staged UAT implementation without changing production /log behavior.
+// BKLG-0151 staging only: supported experiences dynamically append shared
+// production assets. Route those requests to this UAT package while leaving
+// production /log behavior untouched.
 (() => {
   const originalAppend = Element.prototype.appendChild;
   Element.prototype.appendChild = function(node) {
-    if (node?.tagName === 'SCRIPT' && String(node.src || '').includes('/assets/js/log-drive-detail-v4.js')) {
-      node.src = '/staging/BKLG-0151/assets/js/log-drive-detail-v4.js?v=20260904-0151-uat3';
-      Element.prototype.appendChild = originalAppend;
+    if (node?.tagName === 'SCRIPT') {
+      const src = String(node.src || '');
+      if (src.includes('/assets/js/log-drive-detail-v4.js')) {
+        node.src = '/staging/BKLG-0151/assets/js/log-drive-detail-v4.js?v=20260904-0151-uat4';
+      } else if (src.includes('/assets/js/log-driving-log-v1.js')) {
+        node.src = '/staging/BKLG-0151/assets/js/log-driving-log-v1.js?v=20260904-0151-uat4';
+      }
     }
     return originalAppend.call(this, node);
   };
@@ -34,4 +38,3 @@ window.DV_APP_CONFIG = Object.freeze({
   const next = `${url.pathname}${url.search}${url.hash}`;
   window.history.replaceState({}, '', next);
 })();
-
