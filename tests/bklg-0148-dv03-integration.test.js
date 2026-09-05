@@ -7,12 +7,15 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 
-test('DV03 is the default and every released console version has a stable route',()=>{
+test('DV03 is the default, supported experiences stay stable, and DV01 redirects',()=>{
   const defaultConsole=read('log/index.html');
   assert.match(defaultConsole,/DV03 \/ DRIVER CONSOLE/);
   assert.match(defaultConsole,/href="\/log\/DV02\/">DV02/);
   assert.match(read('log/DV00/index.html'),/data-dv-route="dv00"/);
-  assert.match(read('log/DV01/index.html'),/data-dv-route="dv01"/);
+  const dv01=read('log/DV01/index.html');
+  assert.match(dv01,/Opening Default Experience/);
+  assert.match(dv01,/location\.replace\('\/log\/' \+ location\.search \+ location\.hash\)/);
+  assert.doesNotMatch(dv01,/data-dv-route="dv01"/);
   assert.match(read('log/DV02/index.html'),/data-dv-route="dv02"/);
   assert.match(read('log/DV03/index.html'),/location\.replace\('\/log\//);
   assert.match(read('log/game/index.html'),/location\.replace\('\/log\//);
