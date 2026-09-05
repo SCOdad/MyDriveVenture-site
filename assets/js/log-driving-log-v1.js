@@ -62,9 +62,9 @@
     const route = document.documentElement.dataset.dvRoute || '';
     const bar = document.querySelector('.experience-bar');
     const classicSwitch = document.querySelector('.concept-switch');
-    if (route === 'dv03' && bar) bar.innerHTML = '<span><b>Default Experience</b> · DV03</span><a href="/log/DV02/">Prior Experience</a>';
-    if (route === 'dv02' && bar) bar.innerHTML = '<span><b>Prior Experience</b> · DV02</span><a href="/log/">Default Experience</a>';
-    if (route === 'dv00' && classicSwitch) classicSwitch.innerHTML = '<strong>Classic</strong> · No-frills base experience <a href="/log/">Default Experience →</a>';
+    if (route === 'dv03' && bar) bar.innerHTML = '<span><b>Current Experience</b> · DV03</span><a href="/log/DV02/">Old Experience</a>';
+    if (route === 'dv02' && bar) bar.innerHTML = '<span><b>Old Experience</b> · DV02</span><a href="/log/">Current Experience</a>';
+    if (route === 'dv00' && classicSwitch) classicSwitch.innerHTML = '<strong>Classic</strong> · No-frills base experience <a href="/log/">Current Experience →</a>';
   }
 
   ensureControls();
