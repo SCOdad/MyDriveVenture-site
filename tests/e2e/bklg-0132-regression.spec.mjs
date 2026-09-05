@@ -32,6 +32,16 @@ async function expectEditRefreshComplete(page) {
   await expect(page.locator('#drive-form button[type=submit]')).toHaveText('Save changes');
 }
 
+async function currentFixtureDate(page) {
+  return page.evaluate(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
+}
+
 test.describe('BKLG-0132 critical browser regression', () => {
   test('DEV login surface loads without JavaScript failures', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
@@ -76,7 +86,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const route = `BKLG-0132 CI Route ${runId}-${runAttempt}-${testInfo.retry}`;
     const sourceEventId = `bklg-0132-playwright-${runId}-${runAttempt}-${testInfo.retry}`;
     await page.evaluate(id => sessionStorage.setItem('dv:web-drive:submission-id', id), sourceEventId);
-    await page.locator('#drive-date').fill('2026-08-29');
+    await page.locator('#drive-date').fill(await currentFixtureDate(page));
     await page.locator('#drive-start').fill('10:00');
     await page.locator('#drive-end').fill('10:10');
     await page.locator('#drive-destination').fill(route);
@@ -120,7 +130,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     expect(await page.evaluate(() => window.DV_DRIVING_LOG.getSelectedLessonIds())).toHaveLength(2);
     const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,route=`BKLG-0151 skills ${runId}-${testInfo.retry}`;
     await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${testInfo.retry}`);
-    await page.locator('#drive-date').fill('2026-08-29');
+    await page.locator('#drive-date').fill(await currentFixtureDate(page));
     await page.locator('#drive-start').fill('14:00');
     await page.locator('#drive-end').fill('14:15');
     await page.locator('#drive-destination').fill(route);
