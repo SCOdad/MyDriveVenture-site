@@ -12,7 +12,7 @@ test('DV01 is retired to the current default experience', () => {
 
 test('shared drive RPC loads the BKLG-0151 contract for legacy supported views', () => {
   const source = read('assets/js/log-drive-rpc.js');
-  assert.match(source, /log-driving-log-v1\.js\?v=20260904-0151-uat4/);
+  assert.match(source, /log-driving-log-v1\.js\?v=20260905-0151-cleanup/);
   assert.match(source, /sameChanged\(requested,data\.drive,edit\.original\)/);
   assert.match(source, /if\(edit\)edit\.draft=values\(\)/);
 });
@@ -41,4 +41,17 @@ test('Classic receives missing supervisor skills notes and export controls dynam
     assert.match(source, new RegExp(id));
   }
   assert.match(source, /notes\.maxLength = 500/);
+});
+
+test('PDF export state clears when the selected driver changes', () => {
+  const source = read('assets/js/log-driving-log-v1.js');
+  assert.match(source, /window\.addEventListener\('dv:driver-changing',[\s\S]*setExportStatus\(''\)[\s\S]*showBuild\(false\)/);
+  assert.match(source, /exportController\?\.abort\(\)/);
+});
+
+test('PDF download filename uses backend content disposition with driver-date fallback', () => {
+  const source = read('assets/js/log-driving-log-v1.js');
+  assert.match(source, /response\.headers\?\.get\?\.\('content-disposition'\)/);
+  assert.match(source, /drive-venture-\$\{safeDownloadPart\(driver\?\.display_name \|\| 'driver'\)\}-driving-log-\$\{localDownloadDate\(\)\}\.pdf/);
+  assert.match(source, /a\.download = responseDownloadFilename\(response, driverId\)/);
 });
