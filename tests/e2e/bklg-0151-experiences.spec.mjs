@@ -73,3 +73,46 @@ test('Skills Practiced cards show visible checkboxes in one column on narrow scr
   await openAuthenticatedExperience(page, '/log/');
   await expectSkillCheckboxPresentation(page, 1);
 });
+
+async function renderTemplateForDriver(page, driverName) {
+  await signIn(page, personas.guardianMulti);
+  await selectDriverByName(page, driverName);
+  return page.evaluate(async () => {
+    const app = window.DV_LOG_APP;
+    const cfg = window.DV_APP_CONFIG || {};
+    const driverId = app?.getDriverId?.();
+    const { data } = await app.client.auth.getSession();
+    const response = await fetch(`${cfg.supabaseUrl.replace(/\/$/, '')}/functions/v1/driving-log-renderer`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${data.session.access_token}`,
+        apikey: cfg.publishableKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ driver_id: driverId, permit_number: null })
+    });
+    const bytes = await response.arrayBuffer();
+    return {
+      status: response.status,
+      template: response.headers.get('x-drive-venture-template'),
+      contentType: response.headers.get('content-type'),
+      bytes: bytes.byteLength
+    };
+  });
+}
+
+test('Michigan driver receives the Michigan driving-log template', async ({ page }) => {
+  const result = await renderTemplateForDriver(page, 'Synthetic Driver One');
+  expect(result.status).toBe(200);
+  expect(result.template).toBe('DV-LOG-MI-v202609');
+  expect(result.contentType).toContain('application/pdf');
+  expect(result.bytes).toBeGreaterThan(1000);
+});
+
+test('Kansas driver receives the Drive Venture US fallback template', async ({ page }) => {
+  const result = await renderTemplateForDriver(page, 'Synthetic Driver Two');
+  expect(result.status).toBe(200);
+  expect(result.template).toBe('DV-LOG-US-v202609');
+  expect(result.contentType).toContain('application/pdf');
+  expect(result.bytes).toBeGreaterThan(1000);
+});
