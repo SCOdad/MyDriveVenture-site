@@ -52,14 +52,16 @@ window.DV_APP_CONFIG = Object.freeze({
     }
 
     // Narrow/Safari repair: draw the checkbox indicator ourselves so it remains
-    // visible even when the browser suppresses native checkbox chrome.
+    // visible even when the browser suppresses native checkbox chrome. The
+    // transparent real input stays on top of that indicator so mouse/touch,
+    // keyboard, and automated interaction all target the actual form control.
     if (!document.getElementById('bklg-0151-skill-visibility-guard')) {
       const style = document.createElement('style');
       style.id = 'bklg-0151-skill-visibility-guard';
       style.textContent = `
         #drive-lesson{display:none!important;visibility:hidden!important;position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important}
         .drive-skill-option{position:relative!important}
-        .drive-skill-option>input[type=checkbox]{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important}
+        .drive-skill-option>input[type=checkbox]{position:absolute!important;left:0!important;top:.02rem!important;opacity:0!important;width:1.05rem!important;height:1.05rem!important;margin:0!important;z-index:1!important;cursor:pointer!important}
         .drive-skill-option>span{position:relative!important;padding-left:1.65rem!important;min-height:1.15rem!important}
         .drive-skill-option>span::before{content:"";box-sizing:border-box;position:absolute;left:0;top:.02rem;width:1.05rem;height:1.05rem;border:2px solid currentColor;background:#f8f4e9}
         .drive-skill-option>input[type=checkbox]:checked+span::after{content:"✓";position:absolute;left:.12rem;top:-.14rem;color:#101416;font-weight:900;font-size:1rem;line-height:1.2}
