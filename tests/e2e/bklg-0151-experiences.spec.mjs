@@ -16,8 +16,8 @@ async function openAuthenticatedExperience(page, path) {
 
 for (const experience of [
   { name: 'Classic', path: '/log/DV00/', route: 'dv00' },
-  { name: 'Prior Experience', path: '/log/DV02/', route: 'dv02' },
-  { name: 'Default Experience', path: '/log/', route: 'dv03' }
+  { name: 'Old Experience', path: '/log/DV02/', route: 'dv02' },
+  { name: 'Current Experience', path: '/log/', route: 'dv03' }
 ]) {
   test(`${experience.name} exposes the shared BKLG-0151 drive contract`, async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
@@ -29,7 +29,7 @@ for (const experience of [
   });
 }
 
-test('DV01 direct route retires to Default Experience and preserves query/hash', async ({ page }) => {
+test('DV01 direct route retires to Current Experience and preserves query/hash', async ({ page }) => {
   await page.goto('/log/DV01/?driver=test#trip');
   await page.waitForURL(/\/log\/\?driver=test#trip$/);
   expect(new URL(page.url()).pathname).toBe('/log/');
@@ -72,4 +72,47 @@ test('Skills Practiced cards show visible checkboxes in one column on narrow scr
   await page.setViewportSize({ width: 390, height: 844 });
   await openAuthenticatedExperience(page, '/log/');
   await expectSkillCheckboxPresentation(page, 1);
+});
+
+async function renderTemplateForDriver(page, driverName) {
+  await signIn(page, personas.guardianMulti);
+  await selectDriverByName(page, driverName);
+  return page.evaluate(async () => {
+    const app = window.DV_LOG_APP;
+    const cfg = window.DV_APP_CONFIG || {};
+    const driverId = app?.getDriverId?.();
+    const { data } = await app.client.auth.getSession();
+    const response = await fetch(`${cfg.supabaseUrl.replace(/\/$/, '')}/functions/v1/driving-log-renderer`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${data.session.access_token}`,
+        apikey: cfg.publishableKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ driver_id: driverId, permit_number: null })
+    });
+    const bytes = await response.arrayBuffer();
+    return {
+      status: response.status,
+      template: response.headers.get('x-drive-venture-template'),
+      contentType: response.headers.get('content-type'),
+      bytes: bytes.byteLength
+    };
+  });
+}
+
+test('Michigan driver receives the Michigan driving-log template', async ({ page }) => {
+  const result = await renderTemplateForDriver(page, 'Synthetic Driver One');
+  expect(result.status).toBe(200);
+  expect(result.template).toBe('DV-LOG-MI-v202609');
+  expect(result.contentType).toContain('application/pdf');
+  expect(result.bytes).toBeGreaterThan(1000);
+});
+
+test('Kansas driver receives the Drive Venture US fallback template', async ({ page }) => {
+  const result = await renderTemplateForDriver(page, 'Synthetic Driver Two');
+  expect(result.status).toBe(200);
+  expect(result.template).toBe('DV-LOG-US-v202609');
+  expect(result.contentType).toContain('application/pdf');
+  expect(result.bytes).toBeGreaterThan(1000);
 });

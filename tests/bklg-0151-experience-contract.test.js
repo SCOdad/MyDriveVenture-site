@@ -4,7 +4,7 @@ const fs = require('node:fs');
 
 const read = path => fs.readFileSync(path, 'utf8');
 
-test('DV01 is retired to the current default experience', () => {
+test('DV01 is retired to the current experience', () => {
   const source = read('log/DV01/index.html');
   assert.match(source, /location\.replace\('\/log\/' \+ location\.search \+ location\.hash\)/);
   assert.doesNotMatch(source, /dv\.log\.skin','dv01/);
@@ -26,10 +26,12 @@ test('supported experiences load the current PDF cleanup contract directly', () 
 
 test('shared driving-log controls define the durable supported experience taxonomy', () => {
   const source = read('assets/js/log-driving-log-v1.js');
-  assert.match(source, /Default Experience/);
-  assert.match(source, /Prior Experience/);
+  assert.match(source, /Current Experience/);
+  assert.match(source, /Old Experience/);
   assert.match(source, /Classic/);
   assert.match(source, /No-frills base experience/);
+  assert.doesNotMatch(source, /Default Experience/);
+  assert.doesNotMatch(source, /Prior Experience/);
   assert.doesNotMatch(source, /New Experience[^\n]*href/);
 });
 
