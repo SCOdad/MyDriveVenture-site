@@ -16,8 +16,8 @@ async function openAuthenticatedExperience(page, path) {
 
 for (const experience of [
   { name: 'Classic', path: '/log/DV00/', route: 'dv00' },
-  { name: 'Prior Experience', path: '/log/DV02/', route: 'dv02' },
-  { name: 'Default Experience', path: '/log/', route: 'dv03' }
+  { name: 'Old Experience', path: '/log/DV02/', route: 'dv02' },
+  { name: 'Current Experience', path: '/log/', route: 'dv03' }
 ]) {
   test(`${experience.name} exposes the shared BKLG-0151 drive contract`, async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
@@ -29,7 +29,7 @@ for (const experience of [
   });
 }
 
-test('DV01 direct route retires to Default Experience and preserves query/hash', async ({ page }) => {
+test('DV01 direct route retires to Current Experience and preserves query/hash', async ({ page }) => {
   await page.goto('/log/DV01/?driver=test#trip');
   await page.waitForURL(/\/log\/\?driver=test#trip$/);
   expect(new URL(page.url()).pathname).toBe('/log/');
