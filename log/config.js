@@ -12,16 +12,21 @@ window.DV_APP_CONFIG = Object.freeze({
   const hideCompatibilitySelect = () => {
     const lesson = document.getElementById('drive-lesson');
     if (!lesson) return;
-    lesson.hidden = true;
-    lesson.setAttribute('aria-hidden', 'true');
-    lesson.tabIndex = -1;
-    lesson.style.setProperty('display', 'none', 'important');
-    lesson.style.setProperty('visibility', 'hidden', 'important');
-    lesson.style.setProperty('position', 'absolute', 'important');
-    lesson.style.setProperty('width', '1px', 'important');
-    lesson.style.setProperty('height', '1px', 'important');
-    lesson.style.setProperty('overflow', 'hidden', 'important');
-    lesson.style.setProperty('clip-path', 'inset(50%)', 'important');
+    const setStyle = (name, value) => {
+      if (lesson.style.getPropertyValue(name) !== value || lesson.style.getPropertyPriority(name) !== 'important') {
+        lesson.style.setProperty(name, value, 'important');
+      }
+    };
+    if (!lesson.hidden) lesson.hidden = true;
+    if (lesson.getAttribute('aria-hidden') !== 'true') lesson.setAttribute('aria-hidden', 'true');
+    if (lesson.tabIndex !== -1) lesson.tabIndex = -1;
+    setStyle('display', 'none');
+    setStyle('visibility', 'hidden');
+    setStyle('position', 'absolute');
+    setStyle('width', '1px');
+    setStyle('height', '1px');
+    setStyle('overflow', 'hidden');
+    setStyle('clip-path', 'inset(50%)');
   };
 
   const installGuard = () => {
