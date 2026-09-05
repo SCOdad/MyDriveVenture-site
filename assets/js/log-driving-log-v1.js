@@ -81,6 +81,7 @@
   const exportButton = document.getElementById('drive-log-export');
   const exportStatus = document.getElementById('drive-log-export-status');
   let contextToken = 0;
+  let exportController = null;
 
   const lessonSetEqual = (a, b) => JSON.stringify([...(a || [])].map(String).sort()) === JSON.stringify([...(b || [])].map(String).sort());
   const selectedLessonIds = () => lesson?.multiple ? [...lesson.options].filter(o => o.selected && o.value).map(o => o.value) : (lesson?.value ? [lesson.value] : []);
@@ -94,6 +95,27 @@
     if (!exportStatus) return;
     exportStatus.textContent = text || '';
     exportStatus.className = `app-status${kind ? ` ${kind}` : ''}`;
+  }
+  function safeDownloadPart(value) {
+    return String(value || 'driver').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'driver';
+  }
+  function localDownloadDate(now = new Date()) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  }
+  function fallbackDownloadFilename(driverId) {
+    const model = app.getModel?.() || {};
+    const driver = (model.drivers || []).find(row => row.id === driverId);
+    return `drive-venture-${safeDownloadPart(driver?.display_name || 'driver')}-driving-log-${localDownloadDate()}.pdf`;
+  }
+  function responseDownloadFilename(response, driverId) {
+    const disposition = response?.headers?.get?.('content-disposition') || '';
+    const extended = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    if (extended?.[1]) {
+      try { return decodeURIComponent(extended[1].trim()); } catch (_) {}
+    }
+    const basic = disposition.match(/filename="([^"]+)"|filename=([^;]+)/i);
+    return (basic?.[1] || basic?.[2] || '').trim() || fallbackDownloadFilename(driverId);
   }
   function toggleOther() {
     const active = supervisor?.value === 'OTHER';
@@ -243,11 +265,6 @@
     window.dispatchEvent(new CustomEvent('dv:driving-log-context', { detail: { driverId, ...data } }));
   }
 
-  window.addEventListener('dv:driver-changing', () => { contextToken += 1; });
-  window.addEventListener('dv:dashboard-rendered', e => { const driverId = e.detail?.driverId || app.getDriverId?.(); if (driverId) loadContext(driverId); });
-  window.addEventListener('dv:drive-edit-mode', e => { if (!e.detail?.active) return; const drive = app.detailDrives?.[e.detail.driveId]; if (drive?.lesson_ids) queueMicrotask(() => setLessonSelection(drive.lesson_ids)); queueMicrotask(updateNoteCount); });
-  window.addEventListener('dv:driving-log-context', () => { const id = document.getElementById('drive-form')?.dataset?.editDrive, drive = id ? app.detailDrives?.[id] : null; if (drive?.lesson_ids) setLessonSelection(drive.lesson_ids); updateNoteCount(); });
-
   function buildOverlay() {
     let overlay = document.getElementById('drive-log-building-overlay');
     if (overlay) return overlay;
@@ -275,6 +292,17 @@
     overlay.style.pointerEvents = 'auto';
   }
 
+  window.addEventListener('dv:driver-changing', () => {
+    contextToken += 1;
+    exportController?.abort();
+    exportController = null;
+    setExportStatus('');
+    showBuild(false);
+  });
+  window.addEventListener('dv:dashboard-rendered', e => { const driverId = e.detail?.driverId || app.getDriverId?.(); if (driverId) loadContext(driverId); });
+  window.addEventListener('dv:drive-edit-mode', e => { if (!e.detail?.active) return; const drive = app.detailDrives?.[e.detail.driveId]; if (drive?.lesson_ids) queueMicrotask(() => setLessonSelection(drive.lesson_ids)); queueMicrotask(updateNoteCount); });
+  window.addEventListener('dv:driving-log-context', () => { const id = document.getElementById('drive-form')?.dataset?.editDrive, drive = id ? app.detailDrives?.[id] : null; if (drive?.lesson_ids) setLessonSelection(drive.lesson_ids); updateNoteCount(); });
+
   exportButton?.addEventListener('click', async () => {
     const driverId = app.getDriverId?.();
     if (!driverId) return;
@@ -284,7 +312,9 @@
     showBuild(true);
     const { data: sessionData } = await client.auth.getSession(), session = sessionData?.session, cfg = window.DV_APP_CONFIG || {};
     if (!session?.access_token || !cfg.supabaseUrl || !cfg.publishableKey) { showBuild(false); setExportStatus('Please sign in again before exporting.', 'error'); return; }
-    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 20000);
+    const controller = new AbortController();
+    exportController = controller;
+    const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const response = await fetch(`${cfg.supabaseUrl.replace(/\/$/, '')}/functions/v1/driving-log-renderer`, { method: 'POST', headers: { authorization: `Bearer ${session.access_token}`, apikey: cfg.publishableKey, 'content-type': 'application/json' }, body: JSON.stringify({ driver_id: driverId, permit_number: permit.trim() || null }), signal: controller.signal });
       if (!response.ok) {
@@ -295,17 +325,21 @@
       }
       const blob = await response.blob(), url = URL.createObjectURL(blob), a = document.createElement('a');
       a.href = url;
-      a.download = 'drive-venture-driving-log.pdf';
+      a.download = responseDownloadFilename(response, driverId);
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setExportStatus('Driving log downloaded.', 'success');
     } catch (error) {
+      if (controller.signal.aborted && exportController !== controller) return;
       setExportStatus(error?.name === 'AbortError' ? 'Driving log generation timed out. Please try again.' : 'Driving log could not be generated. Please try again.', 'error');
     } finally {
       clearTimeout(timeout);
-      showBuild(false);
+      if (exportController === controller) {
+        exportController = null;
+        showBuild(false);
+      }
     }
   });
 })();
