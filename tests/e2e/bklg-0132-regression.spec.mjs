@@ -34,10 +34,11 @@ async function expectEditRefreshComplete(page) {
 
 async function currentFixtureDate(page) {
   return page.evaluate(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const fixture = new Date();
+    fixture.setDate(fixture.getDate() - 1);
+    const year = fixture.getFullYear();
+    const month = String(fixture.getMonth() + 1).padStart(2, '0');
+    const day = String(fixture.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   });
 }
