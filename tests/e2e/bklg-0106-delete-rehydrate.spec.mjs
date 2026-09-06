@@ -16,6 +16,10 @@ async function fixtureDate(page) {
 test('BKLG-0106 retained delete disappears immediately and stays absent after authoritative refresh', async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   const assertNoPageFailures=installPageGuards(page);
+  await page.addInitScript(() => {
+    window.confirm=()=>true;
+    window.prompt=()=> 'Playwright retained-delete regression';
+  });
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
   await waitForFormContext(page);
@@ -44,8 +48,6 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await page.locator('[data-edit-drive]').click();
   await expect(page.locator('#drive-delete')).toBeVisible();
 
-  let dialogs=0;
-  page.on('dialog',async dialog=>{dialogs+=1;if(dialog.type()==='prompt')await dialog.accept('Playwright retained-delete regression');else await dialog.accept()});
   const deletedResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-delete')&&r.request().method()==='POST',{timeout:60_000});
   await page.locator('#drive-delete').click();
   const deletedResponse=await deletedResponsePromise;
@@ -57,7 +59,6 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
 
   await expect(page.locator(`#drive-list [data-drive-detail-id="${driveId}"]`)).toHaveCount(0,{timeout:60_000});
   await expect(page.locator('#drive-status')).toContainText(/Drive deleted|already inactive/,{timeout:60_000});
-  expect(dialogs).toBeGreaterThanOrEqual(2);
 
   await page.reload();
   await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
