@@ -12,4 +12,10 @@
     const heading=questCard?.querySelector('h2');
     if(heading)heading.textContent='Achievements';
   }
+  if(!window.DV_DRIVER_SWITCH_SYNC_BOUND&&!document.querySelector('script[data-dv-driver-switch-sync]')){
+    const script=document.createElement('script');
+    script.src='/assets/js/log-driver-switch-sync.js?v=20260906-bklg0089-1';
+    script.dataset.dvDriverSwitchSync='true';
+    document.body.appendChild(script);
+  }
 })();
