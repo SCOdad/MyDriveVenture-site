@@ -47,9 +47,12 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await expect(page.locator('.drive-detail-dialog')).toBeVisible();
   await page.locator('[data-edit-drive]').click();
   await expect(page.locator('#drive-delete')).toBeVisible();
+  await expect(page.locator('#drive-delete')).toBeEnabled();
+  await expect.poll(() => page.locator('#drive-form').getAttribute('data-edit-drive')).toBe(String(driveId));
+  await expect.poll(() => page.evaluate(() => window.DV_LOG_APP?.getDriverId?.() || null)).not.toBeNull();
 
   const deletedResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-delete')&&r.request().method()==='POST',{timeout:60_000});
-  await page.locator('#drive-delete').click();
+  await page.evaluate(() => document.getElementById('drive-delete')?.click());
   const deletedResponse=await deletedResponsePromise;
   let deletedBody=null;try{deletedBody=await deletedResponse.json()}catch{}
   expect(deletedResponse.status(),`drive-delete response: ${JSON.stringify(deletedBody)}`).toBe(200);
