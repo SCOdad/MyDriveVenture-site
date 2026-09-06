@@ -5,6 +5,24 @@ window.DV_APP_CONFIG = Object.freeze({
   publishableKey: window.DV_ENVIRONMENT_CONFIG.publishableKey,
 });
 
+// BKLG-0089: a driver deep link is authoritative for the initial dashboard
+// selection. Seed the existing dashboard preference before the dashboard entry
+// script loads, then keep the visible URL aligned with later driver changes.
+(() => {
+  const requested = new URLSearchParams(window.location.search).get('driver');
+  if (requested) {
+    try { window.localStorage.setItem('dv.log.driver', requested); } catch (_) {}
+  }
+  window.addEventListener('dv:driver-changing', event => {
+    const driverId = String(event.detail?.driverId || '').trim();
+    if (!driverId) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('driver') === driverId) return;
+    url.searchParams.set('driver', driverId);
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+  });
+})();
+
 // BKLG-0151: visible Michigan skill checkboxes are authoritative. Preserve the
 // checked UI values even if a late form-context refresh updates the hidden
 // compatibility select before submit.
@@ -92,4 +110,3 @@ window.DV_APP_CONFIG = Object.freeze({
   const next = `${url.pathname}${url.search}${url.hash}`;
   window.history.replaceState({}, '', next);
 })();
-
