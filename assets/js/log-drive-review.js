@@ -2,9 +2,10 @@
   const app=window.DV_LOG_APP,form=document.getElementById('drive-form'),status=document.getElementById('drive-status');
   if(!app?.client||!form||form.dataset.dvDriveReviewBound==='true')return;
   form.dataset.dvDriveReviewBound='true';
+  if(!document.querySelector('link[data-dv-drive-review-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-edit.css?v=20260906-soft-delete1';l.dataset.dvDriveReviewCss='true';document.head.appendChild(l)}
   let current={active:false,driverId:null,driveId:null};
   const clean=v=>v==null?'':String(v).trim();
-  function setReviewMode(active){document.body.classList.toggle('dv-drive-review-active',!!active);if(active){setTimeout(()=>{const card=form.closest('.app-card');card?.scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('drive-edit-context')?.setAttribute('tabindex','-1');document.getElementById('drive-edit-context')?.focus({preventScroll:true})},80)}}
+  function setReviewMode(active){document.body.classList.toggle('dv-drive-review-active',!!active);if(active){setTimeout(()=>{const card=form.closest('.app-card');card?.scrollIntoView({behavior:'smooth',block:'center'});const context=document.getElementById('drive-edit-context');context?.setAttribute('tabindex','-1');context?.focus({preventScroll:true})},80)}}
   function ensureDeleteButton(){let b=document.getElementById('drive-delete');if(b)return b;b=document.createElement('button');b.id='drive-delete';b.type='button';b.className='button subtle-button button-small drive-delete-button';b.textContent='Delete drive';b.hidden=true;const cancel=document.getElementById('drive-edit-cancel');(cancel||form.querySelector('button[type=submit]'))?.after(b);return b}
   const del=ensureDeleteButton();
   window.addEventListener('dv:drive-edit-mode',e=>{current={active:!!e.detail?.active,driverId:e.detail?.driverId||null,driveId:e.detail?.driveId||null};setReviewMode(current.active);del.hidden=!current.active});
