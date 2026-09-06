@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#080b0e">
+  <title>Drive review | Drive Venture</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <style>
+    body{background:#080b0e;color:#f4f1e7}.cert-wrap{max-width:760px;margin:0 auto;padding:72px 24px}.cert-card{background:#182126;border:1px solid #38474d;border-top:8px solid #f7b91f;padding:36px;box-shadow:10px 10px 0 #101417}.cert-card h1{font-family:Orbitron,sans-serif;font-size:clamp(2rem,7vw,3.4rem);line-height:1.06;margin:.2em 0}.cert-eyebrow{font-family:Orbitron,sans-serif;color:#f7b91f;text-transform:uppercase;letter-spacing:.08em}.cert-message{font-size:1.15rem;line-height:1.6;color:#d7dfe2}.cert-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.cert-actions a{display:inline-block;text-decoration:none}.cert-primary{background:#f7b91f;color:#080b0e;padding:14px 20px;font-weight:800}.cert-secondary{border:1px solid #718189;color:#f4f1e7;padding:13px 20px;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="cert-wrap">
+    <section class="cert-card" aria-labelledby="cert-title">
+      <p class="cert-eyebrow">Drive review</p>
+      <h1 id="cert-title">Link unavailable</h1>
+      <p id="cert-message" class="cert-message">This secure Drive Venture link is no longer available.</p>
+      <div class="cert-actions">
+        <a class="cert-primary" href="/log/">Open Drive Venture</a>
+        <a class="cert-secondary" href="/help/">Help</a>
+      </div>
+    </section>
+  </main>
+  <script>
+    (()=>{
+      const outcomes={
+        DELETED:['Drive no longer active','This drive was removed after the review email was created, so there is nothing you need to certify.'],
+        NOT_FOUND:['Drive unavailable','This drive record can no longer be found. Nothing will be recreated or certified from this link.'],
+        INACTIVE:['Drive no longer active','This drive is no longer active, so there is nothing you need to certify.'],
+        ALREADY_USED:['Link already used','This secure edit link has already been used. Open Drive Venture normally to review the drive.'],
+        EXPIRED:['Link expired','This secure edit link has expired. Open Drive Venture normally to review the drive.'],
+        ACCESS_CHANGED:['Access changed','This grown-up no longer has access to that driver.'],
+        EMAIL_UNAVAILABLE:['Email unavailable','This grown-up does not have an active Drive Venture email address.'],
+        INCOMPLETE:['Link unavailable','This secure link is incomplete.'],
+        ERROR:['Link unavailable','Drive Venture could not open this secure edit link. Please open Drive Venture normally and choose the drive from Recent drives.']
+      };
+      const code=(new URLSearchParams(location.search).get('outcome')||'').toUpperCase();
+      const [title,message]=outcomes[code]||['Link unavailable','This secure Drive Venture link is no longer available.'];
+      document.title=`${title} | Drive Venture`;
+      document.getElementById('cert-title').textContent=title;
+      document.getElementById('cert-message').textContent=message;
+    })();
+  </script>
+</body>
+</html>
