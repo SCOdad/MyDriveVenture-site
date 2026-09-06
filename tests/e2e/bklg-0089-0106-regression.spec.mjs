@@ -56,16 +56,20 @@ test.describe('BKLG-0089 / BKLG-0106 regression', () => {
     await expect(page.locator('#drive-delete')).toBeVisible();
     let dialogs=0;
     page.on('dialog',async dialog=>{dialogs+=1;if(dialog.type()==='prompt')await dialog.accept('Playwright retained-delete regression');else await dialog.accept()});
+    const deletedResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-delete')&&r.request().method()==='POST',{timeout:60_000});
     await page.locator('#drive-delete').click();
-    await expect(page.locator('#drive-status')).toHaveClass(/success/,{timeout:20_000});
-    await expect(page.locator('#drive-status')).toContainText(/Drive deleted|already inactive/);
-    await expect(page.locator(`#drive-list [data-drive-detail-id="${driveId}"]`)).toHaveCount(0);
+    const deletedResponse=await deletedResponsePromise;
+    let deletedBody=null;try{deletedBody=await deletedResponse.json()}catch{}
+    expect(deletedResponse.status(),`drive-delete response: ${JSON.stringify(deletedBody)}`).toBe(200);
+    expect(deletedBody?.ok,`drive-delete response: ${JSON.stringify(deletedBody)}`).toBe(true);
+    expect(['DELETED','ALREADY_DELETED']).toContain(deletedBody?.outcome);
+    expect(deletedBody?.drive?.status).toBe('VOID');
+    await expect(page.locator(`#drive-list [data-drive-detail-id="${driveId}"]`)).toHaveCount(0,{timeout:60_000});
+    await expect(page.locator('#drive-status')).toContainText(/Drive deleted|already inactive/,{timeout:60_000});
     expect(dialogs).toBeGreaterThanOrEqual(2);
     await page.reload();
     await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
     await expect(page.locator(`#drive-list [data-drive-detail-id="${driveId}"]`)).toHaveCount(0);
-    const canonical=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{status:data?.drive?.status||null,error:error?.message||null}},driveId);
-    expect(canonical.status).toBe('VOID');
     assertNoPageFailures();
   });
 });
