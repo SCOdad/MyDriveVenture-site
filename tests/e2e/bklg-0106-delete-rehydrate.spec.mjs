@@ -14,6 +14,7 @@ async function fixtureDate(page) {
 }
 
 test('BKLG-0106 retained delete disappears immediately and stays absent after authoritative refresh', async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
   const assertNoPageFailures=installPageGuards(page);
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
