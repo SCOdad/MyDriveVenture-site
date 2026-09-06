@@ -5,14 +5,17 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 
-test('BKLG-0089 driver deep link is honored and later manual switches update the URL',()=>{
+test('BKLG-0089 driver deep link is seeded before dashboard load and later switches update the URL',()=>{
+  const config=read('log/config.js');
   const js=read('assets/js/log-drive-review.js');
+  assert.match(config,/new URLSearchParams\(window\.location\.search\)\.get\('driver'\)/);
+  assert.match(config,/localStorage\.setItem\('dv\.log\.driver', requested\)/);
   assert.match(js,/applyInitialDriverLink/);
-  assert.match(js,/new URLSearchParams\(location\.search\)\.get\('driver'\)/);
   assert.match(js,/app\.selectDriver\(requested,\{persist:true\}\)/);
   assert.match(js,/dv:driver-changing/);
-  assert.match(js,/syncDriverUrl\(driverId,\{manual:true\}\)/);
+  assert.match(js,/syncDriverUrl\(driverId\)/);
   assert.match(js,/searchParams\.set\('driver',driverId\)/);
+  assert.doesNotMatch(js,/manual&&u\.searchParams\.has\('editDrive'\)/);
 });
 
 test('BKLG-0106 delete refreshes authoritative dashboard and verifies drive absence',()=>{
@@ -31,5 +34,6 @@ test('BKLG-0106 inactive drives are removed defensively even when absent from th
 test('BKLG-0089 and BKLG-0106 behavior is loaded by all supported experiences',()=>{
   for(const page of ['log/DV00/index.html','log/DV02/index.html','log/index.html']){
     assert.match(read(page),/log-drive-review\.js/);
+    assert.match(read(page),/\/log\/config\.js/);
   }
 });
