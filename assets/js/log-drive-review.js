@@ -6,8 +6,10 @@
   let current={active:false,driverId:null,driveId:null};
   const clean=v=>v==null?'':String(v).trim();
   function setReviewMode(active){document.body.classList.toggle('dv-drive-review-active',!!active);if(active){setTimeout(()=>{const card=form.closest('.app-card');card?.scrollIntoView({behavior:'smooth',block:'center'});const context=document.getElementById('drive-edit-context');context?.setAttribute('tabindex','-1');context?.focus({preventScroll:true})},80)}}
+  function removeInactiveDrives(model){const byId=new Map((model?.recent_drives||[]).map(d=>[String(d.id),d]));document.querySelectorAll('#drive-list [data-drive-detail-id]').forEach(link=>{const drive=byId.get(String(link.dataset.driveDetailId));if(drive&&drive.status!=='COMPLETE')link.closest('li')?.remove()});const list=document.getElementById('drive-list');if(list&&!list.children.length)list.innerHTML='<li class="empty-state">No drives logged yet.</li>'}
   function ensureDeleteButton(){let b=document.getElementById('drive-delete');if(b)return b;b=document.createElement('button');b.id='drive-delete';b.type='button';b.className='button subtle-button button-small drive-delete-button';b.textContent='Delete drive';b.hidden=true;const cancel=document.getElementById('drive-edit-cancel');(cancel||form.querySelector('button[type=submit]'))?.after(b);return b}
   const del=ensureDeleteButton();
+  window.addEventListener('dv:dashboard-rendered',e=>removeInactiveDrives(e.detail?.model));
   window.addEventListener('dv:drive-edit-mode',e=>{current={active:!!e.detail?.active,driverId:e.detail?.driverId||null,driveId:e.detail?.driveId||null};setReviewMode(current.active);del.hidden=!current.active});
   if(form.dataset.editDrive){current={active:true,driverId:app.getDriverId?.()||null,driveId:form.dataset.editDrive};setReviewMode(true);del.hidden=false}
   del.addEventListener('click',async()=>{
