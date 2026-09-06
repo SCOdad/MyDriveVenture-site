@@ -24,6 +24,13 @@ test('BKLG-0151 review mode dims page and exposes retained Delete Drive action',
   assert.match(css,/rgba\(0,0,0,\.68\)/);
 });
 
+test('BKLG-0151 retained VOID drives are removed from the operational trip list',()=>{
+  const js=read('assets/js/log-drive-review.js');
+  assert.match(js,/dv:dashboard-rendered/);
+  assert.match(js,/drive\.status!==['"]COMPLETE['"]/);
+  assert.match(js,/data-drive-detail-id/);
+});
+
 test('BKLG-0151 delete copy explains retained audit behavior',()=>{
   const js=read('assets/js/log-drive-review.js');
   assert.match(js,/retain an audit record/);
