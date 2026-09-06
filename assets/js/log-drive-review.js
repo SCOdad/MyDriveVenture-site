@@ -15,7 +15,7 @@
   const del=ensureDeleteButton();
   window.addEventListener('dv:dashboard-rendered',e=>{removeInactiveDrives(e.detail?.model);applyInitialDriverLink().catch(error=>console.error('Driver deep-link selection failed',error))});
   window.addEventListener('dv:driver-changing',e=>{const driverId=e.detail?.driverId;if(validDriver(driverId)&&initialDriverHandled)syncDriverUrl(driverId)});
-  window.addEventListener('dv:drive-edit-mode',e=>{current={active:!!e.detail?.active,driverId:e.detail?.driverId||null,driveId:e.detail?.driveId||null};setReviewMode(current.active);del.hidden=!current.active});
+  window.addEventListener('dv:drive-edit-mode',e=>{const active=!!form.dataset.editDrive||!!e.detail?.active;current={active,driverId:e.detail?.driverId||app.getDriverId?.()||null,driveId:form.dataset.editDrive||e.detail?.driveId||null};setReviewMode(active);del.hidden=!active});
   if(form.dataset.editDrive){current={active:true,driverId:app.getDriverId?.()||null,driveId:form.dataset.editDrive};setReviewMode(true);del.hidden=false}
   setTimeout(()=>applyInitialDriverLink().catch(error=>console.error('Driver deep-link selection failed',error)),0);
   del.addEventListener('click',async()=>{
