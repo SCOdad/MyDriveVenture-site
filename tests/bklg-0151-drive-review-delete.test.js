@@ -18,10 +18,15 @@ test('BKLG-0151 review mode dims page and exposes retained Delete Drive action',
   assert.match(js,/dv-drive-review-active/);
   assert.match(js,/Delete drive/);
   assert.match(js,/functions\.invoke\('drive-delete'/);
-  assert.match(js,/drive-detail-api/);
-  assert.match(js,/drive-notes/);
   assert.match(css,/body\.dv-drive-review-active::before/);
   assert.match(css,/rgba\(0,0,0,\.68\)/);
+});
+
+test('BKLG-0151 review controls never overwrite a newly started follow-up edit after save success',()=>{
+  const js=read('assets/js/log-drive-review.js');
+  assert.doesNotMatch(js,/MutationObserver/);
+  assert.doesNotMatch(js,/drive-detail-api/);
+  assert.doesNotMatch(js,/drive-notes/);
 });
 
 test('BKLG-0151 retained VOID drives are removed from the operational trip list',()=>{

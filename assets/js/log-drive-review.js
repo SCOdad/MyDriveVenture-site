@@ -30,11 +30,4 @@
     const cancel=document.getElementById('drive-edit-cancel');if(cancel&&!cancel.hidden)cancel.click();else{delete form.dataset.editDrive;current={active:false,driverId:null,driveId:null};setReviewMode(false);del.hidden=true}
     del.disabled=false;if(status){status.textContent=data.outcome==='ALREADY_DELETED'?'This drive was already inactive. Dashboard data has been refreshed.':'Drive deleted. Dashboard totals, progress, achievements, and drive history have been refreshed.';status.className='app-status success'}
   });
-  if(status){new MutationObserver(async()=>{
-    if(!form.dataset.editDrive||!status.textContent?.startsWith('Drive updated and verified'))return;
-    const driverId=app.getDriverId?.(),driveId=form.dataset.editDrive;if(!driverId||!driveId)return;
-    const {data,error}=await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}});if(error||!data?.drive)return;
-    const notes=document.getElementById('drive-notes');if(notes&&notes.value!==clean(data.drive.notes)){notes.value=clean(data.drive.notes);notes.dispatchEvent(new Event('input',{bubbles:true}))}
-    app.detailDrives=app.detailDrives||{};app.detailDrives[driveId]=data.drive;
-  }).observe(status,{childList:true,subtree:true,characterData:true})}
 })();
