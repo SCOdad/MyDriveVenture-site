@@ -102,7 +102,7 @@ async function renderTemplateForDriver(page, driverName) {
 }
 
 test('Michigan driver receives the Michigan driving-log template', async ({ page }) => {
-  const result = await renderTemplateForDriver(page, 'Synthetic Driver One');
+  const result = await renderTemplateForDriver(page, 'Synthetic Driver Three');
   expect(result.status).toBe(200);
   expect(result.template).toBe('DV-LOG-MI-v202609');
   expect(result.contentType).toContain('application/pdf');
