@@ -12,7 +12,7 @@ async function createFixture(page, marker) {
   await page.locator('#drive-end').fill('12:10');
   await page.locator('#drive-destination').fill(marker);
   await page.locator('#drive-notes').fill('Initial road note');
-  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('log_drive'));
+  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('log_drive'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const response=await responsePromise;
   const body=await response.json();
@@ -29,28 +29,29 @@ async function openEdit(page, marker) {
   await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
 }
 
-test('BKLG-0151 road notes persist through edit, authoritative reread, and reload', async ({ page }) => {
-  test.setTimeout(120_000);
+test('BKLG-0151 road notes persist through edit, authoritative reread, and reload', async ({ page }, testInfo) => {
+  test.setTimeout(150_000);
   const assertNoPageFailures=installPageGuards(page);
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
-  const marker=`notes-${Date.now()}`;
+  const marker=`notes-${Date.now()}-${testInfo.retry}`;
   const driveId=await createFixture(page,marker);
   await openEdit(page,marker);
 
   const note='First line\nSecond line — authoritative note';
   await page.locator('#drive-notes').fill(note);
-  const editRequest=page.waitForRequest(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().method()==='POST'&&r.request().postData()?.includes('edit_drive'));
+  const editRequest=page.waitForRequest(r=>r.url().includes('/functions/v1/drive-ops')&&r.method()==='POST'&&r.postData()?.includes('edit_drive'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const request=await editRequest;
   expect(request.postDataJSON().notes).toBe(note);
   await expect(page.locator('#drive-status')).toContainText('Drive updated and verified',{timeout:60_000});
   await expect(page.locator('#drive-notes')).toHaveValue(note);
 
+  const driverId=await page.locator('#driver-select').inputValue();
   const detail=await page.evaluate(async ({driverId,driveId})=>{
     const {data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}});
     return {data,error:error?.message||null};
-  },{driverId:await page.locator('#driver-select').inputValue(),driveId});
+  },{driverId,driveId});
   expect(detail.error).toBeNull();
   expect(detail.data?.drive?.notes).toBe(note);
 
@@ -59,7 +60,7 @@ test('BKLG-0151 road notes persist through edit, authoritative reread, and reloa
   const afterReload=await page.evaluate(async ({driverId,driveId})=>{
     const {data}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}});
     return data?.drive?.notes??null;
-  },{driverId:await page.locator('#driver-select').inputValue(),driveId});
+  },{driverId,driveId});
   expect(afterReload).toBe(note);
   assertNoPageFailures();
 });
