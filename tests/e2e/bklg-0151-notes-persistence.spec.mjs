@@ -5,6 +5,13 @@ async function yesterday(page) {
   return page.evaluate(() => { const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
 }
 
+async function waitForDriveFormContext(page) {
+  await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
+  await expect.poll(async () => page.locator('#drive-supervisor').inputValue(), { timeout: 20_000 }).not.toBe('');
+  await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
+  await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive', /.+/);
+}
+
 async function createFixture(page, marker) {
   await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-notes-${marker}`);
   await page.locator('#drive-date').fill(await yesterday(page));
@@ -12,6 +19,7 @@ async function createFixture(page, marker) {
   await page.locator('#drive-end').fill('12:10');
   await page.locator('#drive-destination').fill(marker);
   await page.locator('#drive-notes').fill('Initial road note');
+  expect(await page.locator('#drive-form').evaluate(form=>form.checkValidity())).toBe(true);
   const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('log_drive'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const response=await responsePromise;
@@ -54,6 +62,7 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
   const assertNoPageFailures=installPageGuards(page);
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
+  await waitForDriveFormContext(page);
   const marker=`notes-${Date.now()}-${testInfo.retry}`;
   const driveId=await createFixture(page,marker);
   await openEdit(page,marker);
@@ -95,6 +104,7 @@ test('BKLG-0151 Road Notes profanity is rejected without overwriting the canonic
   test.setTimeout(150_000);
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
+  await waitForDriveFormContext(page);
   const marker=`profanity-${Date.now()}-${testInfo.retry}`;
   const driveId=await createFixture(page,marker);
   await openEdit(page,marker);
