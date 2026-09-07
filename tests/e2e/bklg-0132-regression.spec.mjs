@@ -189,10 +189,10 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const assertNoPageFailures=installPageGuards(page);
     await signIn(page,personas.operator);await selectDriverByName(page,'Synthetic Driver One');
     const result=await page.evaluate(async()=>{
-      const app=window.DV_LOG_APP,driverId=app.getDriverId(),ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId).map(d=>d.id);
+      const app=window.DV_LOG_APP,driverId=app.getDriverId(),cutoff=Date.now()-120000,ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId&&new Date(d.created_at).getTime()<cutoff).map(d=>d.id);
       let detail=null;
       for(const id of ids){const r=await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:id}});if(r.data?.drive?.certification_status==='CERTIFIED'){detail=r.data;break}}
-      if(!detail)return{error:'No certified synthetic drive available'};
+      if(!detail)return{error:'No stable certified synthetic drive available'};
       const cfg=window.DV_APP_CONFIG,{data:sessionData}=await app.client.auth.getSession(),token=sessionData?.session?.access_token;
       const direct=async(slug,body)=>{const r=await fetch(`${cfg.supabaseUrl.replace(/\/$/,'')}/functions/v1/${slug}`,{method:'POST',headers:{authorization:`Bearer ${token}`,apikey:cfg.publishableKey,'content-type':'application/json'},body:JSON.stringify(body)});return{status:r.status,body:await r.json()}};
       const d=detail.drive,stamp=Date.now(),edit=await direct('drive-ops',{action:'edit_drive',driver_id:driverId,drive_id:d.id,drive_date:d.drive_date,start_time:d.start_time,end_time:d.end_time,vehicle_id:d.vehicle_id,lesson_id:d.lesson_id,lesson_notes:d.lesson_notes,supervisor_person_id:d.supervisor_person_id,external_supervisor_name:d.external_supervisor_name,destination:d.destination,notes:`Operator UAT ${stamp}`,reason:`BKLG-0151 admin certification regression ${stamp}`});
