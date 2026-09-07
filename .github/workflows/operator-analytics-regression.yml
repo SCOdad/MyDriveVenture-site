@@ -5,14 +5,18 @@ on:
     paths:
       - 'operator/**'
       - 'assets/css/operator-dashboard.css'
+      - 'assets/css/operator-leads.css'
       - 'tests/operator-analytics-ui-regression.test.mjs'
+      - 'tests/operator-leads-ui-regression.test.mjs'
       - '.github/workflows/operator-analytics-regression.yml'
   push:
     branches: [main]
     paths:
       - 'operator/**'
       - 'assets/css/operator-dashboard.css'
+      - 'assets/css/operator-leads.css'
       - 'tests/operator-analytics-ui-regression.test.mjs'
+      - 'tests/operator-leads-ui-regression.test.mjs'
 
 jobs:
   regression:
@@ -23,4 +27,6 @@ jobs:
         with:
           node-version: '22'
       - run: node --check operator/dashboard.js
+      - run: node --check operator/leads.js
       - run: node tests/operator-analytics-ui-regression.test.mjs
+      - run: node tests/operator-leads-ui-regression.test.mjs
