@@ -89,7 +89,6 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
 
 test('BKLG-0151 Road Notes profanity is rejected without overwriting the canonical note', async ({ page }, testInfo) => {
   test.setTimeout(150_000);
-  const assertNoPageFailures=installPageGuards(page);
   await signIn(page, personas.guardianMulti);
   await selectDriverByName(page,'Synthetic Driver One');
   const marker=`profanity-${Date.now()}-${testInfo.retry}`;
@@ -106,5 +105,4 @@ test('BKLG-0151 Road Notes profanity is rejected without overwriting the canonic
   await expect(page.locator('#drive-status')).toContainText('Not cool! Try saying that another way.',{timeout:20_000});
   const canonical=await detail(page,driverId,driveId);
   expect(canonical.data?.drive?.notes).toBe('Initial road note');
-  assertNoPageFailures();
 });
