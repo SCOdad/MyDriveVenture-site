@@ -37,6 +37,9 @@ async function saveEdit(page, expectedNotes, expectedDestination) {
   expect(body.notes??null).toBe(expectedNotes||null);
   if(expectedDestination!==undefined)expect(body.destination??null).toBe(expectedDestination||null);
   await expect(page.locator('#drive-status')).toContainText('Drive updated and verified',{timeout:60_000});
+  await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
+  await expect(page.locator('#drive-notes')).toHaveValue(expectedNotes||'',{timeout:20_000});
+  if(expectedDestination!==undefined)await expect(page.locator('#drive-destination')).toHaveValue(expectedDestination||'',{timeout:20_000});
 }
 
 async function detail(page, driverId, driveId) {
@@ -78,6 +81,7 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
   await saveEdit(page,null,changedDestination);
   canonical=await detail(page,driverId,driveId);
   expect(canonical.data?.drive?.notes).toBeNull();
+  expect(canonical.data?.drive?.destination).toBe(changedDestination);
 
   await page.reload();
   await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
