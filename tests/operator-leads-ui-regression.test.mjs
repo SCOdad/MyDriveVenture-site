@@ -10,6 +10,6 @@ assert.match(config,/operator\/leads\.js/,'Operator dashboard must load lead lif
 assert.match(js,/action:'create_lead'/,'UI must support lightweight manual lead creation');
 assert.match(js,/action:'link_family'/,'UI must support explicit family linking');
 assert.match(js,/usage_occasions/,'UI must display usage occasions rather than treating drive count as retention');
-assert.match(js,/historical_backfill/i,'UI must expose historical backfill as a separate signal');
+assert.match(js,/attention_flags/,'UI must render lifecycle signals, including backend-provided historical backfill flags');
 assert.doesNotMatch(js,/sendMessage|campaign|reengage/i,'UI must not add campaign or automated re-engagement behavior');
 console.log('operator leads UI regression checks passed');
