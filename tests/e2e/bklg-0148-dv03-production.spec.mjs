@@ -11,7 +11,7 @@ for(const viewport of [
   await page.setViewportSize(viewport);
   await page.goto('/log/');
   await expect(page).toHaveTitle('Drive Venture — DV03 Driver Console');
-  await expect(page.getByText('Current default').first()).toBeVisible();
+  await expect(page.getByText('Current Experience · DV03', {exact:true})).toBeVisible();
   await expect(page.getByRole('textbox',{name:'Player email'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Preview DV03 with synthetic data'})).toBeHidden();
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
@@ -20,5 +20,6 @@ for(const viewport of [
 
 test('production DV02 remains available',async({page})=>{
   await page.goto('/log/DV02/');
-  await expect(page.getByText('DV-02 / DRIVER CONSOLE')).toBeVisible();
+  await expect(page.getByText('Old Experience · DV02', {exact:true})).toBeVisible();
+  await expect(page.getByRole('textbox',{name:'Player email'})).toBeVisible();
 });
