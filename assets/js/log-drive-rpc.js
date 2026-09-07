@@ -75,7 +75,7 @@
       const verified=await ensureVerifiedSkills(data,driverId,requested.lesson_ids,reason);
       if(!verified.ok)return setStatus(`Drive edit: ${verified.error}`,'error');
       data.drive=verified.drive;data.lesson_ids=verified.lesson_ids;data.supervisor=verified.supervisor;
-      if(!data.drive||!sameChanged(requested,data.drive,original)){keepRequestedLoaded(requested);return setStatus('Drive edit could not be verified. Your requested values are still loaded; please reopen the drive before trying again.','error')}
+      if(!data.drive||!sameChanged(requested,data.drive,edit.original)){keepRequestedLoaded(requested);return setStatus('Drive edit could not be verified. Your requested values are still loaded; please reopen the drive before trying again.','error')}
       const adminReason=field('drive-admin-reason');if(adminReason)adminReason.value='';
       app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;
       try{await app.refreshDashboard()}catch(_){}
@@ -84,7 +84,7 @@
       if(!reread.ok){keepRequestedLoaded(requested);return setStatus(`Drive edit: ${reread.error}`,'error')}
       if(!sameChanged(requested,reread.drive,original)){keepRequestedLoaded(requested);return setStatus('Drive edit could not be verified after dashboard refresh. Your requested values are still loaded; please reopen the drive before trying again.','error')}
       app.detailDrives[id]=reread.drive;
-      enterEdit(reread.drive,{scroll:false,preservePriorDraft:false});
+      if(app.getDriverId()!==driverId)return;enterEdit(reread.drive,{scroll:false,preservePriorDraft:false});
       if(!sameChanged(requested,values(),original)){keepRequestedLoaded(requested);return setStatus('Drive edit was saved, but the edit form did not reload the authoritative values. Please reopen the drive before making another change.','error')}
       return setStatus(`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated.${nightMessage(data.night_classification)}`,'success')
     }
