@@ -15,7 +15,10 @@ async function submitDriveForm(page) {
     } catch {
       return false;
     }
-  }, { timeout: 20_000 });
+  // Run 34155339859 captured a sent edit that committed after ~27 seconds.
+  // Match the notes regression's bounded response allowance; keep HTTP/body
+  // and authoritative post-refresh assertions strict.
+  }, { timeout: 30_000 });
   await page.locator('#drive-form button[type=submit]').click();
   const response = await responsePromise;
   let body = null;
@@ -78,6 +81,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
   });
 
   test('ordinary guardian can create and edit an isolated DEV drive', async ({ page }, testInfo) => {
+    test.setTimeout(120_000); // One create, two edits, and authoritative refreshes.
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.guardianMulti);
     await selectDriverByName(page, 'Synthetic Driver One');
