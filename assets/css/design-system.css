@@ -1,0 +1,66 @@
+:root {
+  /* Canonical palette — Central Configuration / WebsitePalette */
+  --dv-color-asphalt: #111820;
+  --dv-color-night-road: #17324d;
+  --dv-color-yellow: #f4b820;
+  --dv-color-warm-white: #f7f3e8;
+  --dv-color-silver: #aeb8c2;
+  --dv-color-highway-green: #2f7d4a;
+  --dv-color-panel: #202b35;
+  --dv-color-true-black: #080b0e;
+
+  /* Semantic color layer */
+  --dv-bg-canvas: var(--dv-color-asphalt);
+  --dv-bg-atmospheric: var(--dv-color-night-road);
+  --dv-surface-default: var(--dv-color-panel);
+  --dv-text-primary: var(--dv-color-warm-white);
+  --dv-text-secondary: var(--dv-color-silver);
+  --dv-accent-primary: var(--dv-color-yellow);
+  --dv-status-success: var(--dv-color-highway-green);
+  --dv-border-strong: var(--dv-color-true-black);
+
+  /* Typography */
+  --dv-font-display: Orbitron, "Arial Narrow", sans-serif;
+  --dv-font-body: Inter, Aptos, "Segoe UI", system-ui, sans-serif;
+  --dv-weight-regular: 400;
+  --dv-weight-semibold: 600;
+  --dv-weight-bold: 700;
+  --dv-weight-heavy: 800;
+
+  /* Spacing */
+  --dv-space-1: 0.25rem;
+  --dv-space-2: 0.5rem;
+  --dv-space-3: 0.75rem;
+  --dv-space-4: 1rem;
+  --dv-space-5: 1.25rem;
+  --dv-space-6: 1.5rem;
+  --dv-space-8: 2rem;
+  --dv-space-10: 2.5rem;
+  --dv-space-12: 3rem;
+  --dv-space-16: 4rem;
+
+  /* Shape, borders, elevation */
+  --dv-radius-small: 0.25rem;
+  --dv-radius-medium: 0.5rem;
+  --dv-radius-round: 999px;
+  --dv-border-hairline: 1px;
+  --dv-border-control: 2px;
+  --dv-border-pixel: 4px;
+  --dv-shadow-pixel-small: 0.2rem 0.2rem 0 var(--dv-border-strong);
+  --dv-shadow-pixel-medium: 0.4rem 0.4rem 0 var(--dv-border-strong);
+  --dv-shadow-pixel-large: 0.65rem 0.65rem 0 var(--dv-border-strong);
+
+  /* Motion and responsive sizing */
+  --dv-motion-fast: 150ms;
+  --dv-motion-standard: 200ms;
+  --dv-content-max: 76rem;
+  --dv-touch-target-min: 44px;
+  --dv-breakpoint-compact: 760px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dv-motion-fast: 0ms;
+    --dv-motion-standard: 0ms;
+  }
+}
