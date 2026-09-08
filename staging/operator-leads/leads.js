@@ -28,10 +28,11 @@
     const {data}=await client.auth.getSession();token=data.session?.access_token||'';return token;
   }
   async function api(body,retried=false){
-    if(!token)await auth();
+    await auth();
+    if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});
     const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});
-    if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw new Error('Operator session expired.');token=data.session.access_token;return api(body,true)}
-    const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw new Error(out.error||`Lead request failed (${r.status})`);return out;
+    if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}
+    const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Lead request failed (${r.status})`),{status:r.status});return out;
   }
   function familySelect(row){
     const opts=(payload.family_options||[]).map(f=>`<option value="${esc(f.id)}" ${row.converted_family_id===f.id?'selected':''}>${esc(f.label)}</option>`).join('');
@@ -48,7 +49,7 @@
     document.querySelectorAll('.lead-link').forEach(b=>b.addEventListener('click',linkFamily));
   }
   async function load(){
-    const err=document.getElementById('lead-error');err.hidden=true;try{payload=await api({action:'list'});render()}catch(e){err.textContent=e.message;err.hidden=false}
+    const err=document.getElementById('lead-error');err.hidden=true;try{payload=await api({action:'list'});render();document.getElementById('operator-dashboard').hidden=false;document.getElementById('lead-access-status').textContent='';document.getElementById('lead-signin').hidden=true}catch(e){document.getElementById('lead-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('operator-dashboard').hidden=true;document.getElementById('lead-signin').hidden=false;document.getElementById('lead-rows').replaceChildren();payload=null}else{err.textContent=e.message;err.hidden=false}}
   }
   async function createLead(ev){
     ev.preventDefault();const form=ev.currentTarget,status=document.getElementById('lead-save-status'),body=Object.fromEntries(new FormData(form).entries());status.textContent='Saving…';try{await api({action:'create_lead',...body});form.reset();status.textContent='Lead added.';await load()}catch(e){status.textContent=e.message}
@@ -57,5 +58,5 @@
     const id=ev.currentTarget.dataset.id,select=document.querySelector(`.lead-family[data-id="${CSS.escape(id)}"]`);ev.currentTarget.disabled=true;try{await api({action:'link_family',id,family_id:select.value||null});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}
   }
   install();
-  const wait=()=>{const app=document.getElementById('operator-dashboard');if(app&&!app.hidden)load();else setTimeout(wait,250)};wait();
+  auth().then(()=>{client.auth.onAuthStateChange((_event,session)=>{if(!session){token='';payload=null;document.getElementById('operator-dashboard').hidden=true;document.getElementById('lead-rows').replaceChildren();document.getElementById('lead-signin').hidden=false;document.getElementById('lead-access-status').textContent='Sign in with an Operator account to continue.'}});load()}).catch(e=>{document.getElementById('lead-access-status').textContent=e.message});
 })();
