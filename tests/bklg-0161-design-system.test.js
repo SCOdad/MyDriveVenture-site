@@ -7,6 +7,7 @@ const root=path.resolve(__dirname,'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const tokens=JSON.parse(read('assets/design-system/tokens.json'));
 const css=read('assets/css/design-system.css');
+const header=read('assets/css/canonical-header.css');
 const docs=read('docs/design-system-foundation.md');
 
 const canonicalPalette={
@@ -48,6 +49,13 @@ test('web mapping exposes semantic variables and reduced-motion behavior',()=>{
   ])assert.match(css,new RegExp(variable));
   assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);
   assert.match(css,/--dv-motion-fast:\s*0ms/);
+});
+
+test('shared header is the low-risk semantic-token adoption canary',()=>{
+  assert.match(header,/^@import url\("\.\/design-system\.css"\);/);
+  for(const variable of ['--dv-text-primary','--dv-accent-primary','--dv-surface-default','--dv-text-secondary','--dv-font-display','--dv-font-body'])assert.match(header,new RegExp(`var\\(${variable}\\)`));
+  assert.match(header,/background:#21894a!important/);
+  assert.match(header,/background:#2a9a55!important/);
 });
 
 test('foundation documents platform boundary, accessibility, and DV03 skin rule',()=>{
