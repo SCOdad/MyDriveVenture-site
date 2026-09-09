@@ -25,6 +25,12 @@ test('BKLG-0128 exposes the seven canonical layer rows with OFF controls',()=>{
   assert.match(js,/DV-UX-DV03-BACKGROUND-PARK/);
 });
 
+test('BKLG-0128 canonical layer images are same-origin runtime assets',()=>{
+  assert.match(js,/\/assets\/images\/dv03\/layers\/DV-UX-DV03-SKY-NIGHT\.png/);
+  assert.match(js,/\/assets\/images\/dv03\/layers\/DV-UX-DV03-BACKGROUND-PARK\.png/);
+  assert.doesNotMatch(js,/drive\.google\.com/);
+});
+
 test('BKLG-0128 layer harness is floating over the live DV03 wrapper',()=>{
   assert.match(html,/LAYER HARNESS/);
   assert.match(html,/Reset to Base/);
