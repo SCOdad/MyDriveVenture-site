@@ -21,7 +21,13 @@
     {key:'02',id:'background',label:'Background',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base World',sortKey:'02-BACKGROUND-BASE'},
-      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/park.png'}]},
+      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/park.png'},
+      {value:'school',label:'School',sortKey:'02-BACKGROUND-SCHOOL',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'grocery-store',label:'Grocery Store',sortKey:'02-BACKGROUND-GROCERY-STORE',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'library',label:'Library',sortKey:'02-BACKGROUND-LIBRARY',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'snack-run',label:'Snack Run',sortKey:'02-BACKGROUND-SNACK-RUN',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'car-wash',label:'Car Wash',sortKey:'02-BACKGROUND-CAR-WASH',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'gas-station',label:'Gas Station',sortKey:'02-BACKGROUND-GAS-STATION',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',draft:true}]},
     {key:'03',id:'road',label:'Road',options:[{value:'off',label:'OFF'},{value:'base',label:'Base Road',sortKey:'03-ROAD-BASE'}]},
     {key:'04',id:'sign',label:'Sign',options:[{value:'off',label:'OFF'},{value:'base',label:'Milestone',sortKey:'04-SIGN-MILESTONE',assetId:'DV-UX-DV03-MILESTONE-SIGN'}]},
     {key:'05',id:'cockpit',label:'Cockpit',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'05-COCKPIT-STANDARD',assetId:'DV-UX-DV03-COCKPIT-FRAME'}]},
@@ -57,7 +63,7 @@
   }
 
   function renderHarness(){
-    rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}</button>`).join('')}</div></section>`).join('');
+    rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}${option.draft?' · DRAFT':''}</button>`).join('')}</div></section>`).join('');
     rows.querySelectorAll('.uat-option').forEach(button=>button.addEventListener('click',()=>{mode='manual';state[button.dataset.layer]=button.dataset.value;applyLayers();renderHarness()}));
     syncHarnessToUX();
   }
@@ -119,7 +125,8 @@
     if(landscape)landscape.style.display=backgroundValue==='base'?'block':'none';
     if(scene){
       scene.style.display=backgroundValue==='off'?'none':'block';
-      setLayerBackground(scene,backgroundValue==='park'?optionFor('background','park'):null);
+      const selectedBackground=backgroundValue==='base'||backgroundValue==='off'?null:optionFor('background',backgroundValue);
+      setLayerBackground(scene,selectedBackground);
     }
     if(roadLayer)roadLayer.style.display=state.road==='base'?'block':'none';
     if(sign)sign.style.display=state.sign==='base'?'block':'none';
