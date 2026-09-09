@@ -16,11 +16,11 @@
     {key:'01',id:'sky',label:'Sky / Atmosphere',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base Sky',sortKey:'01-SKY-BASE'},
-      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'https://drive.google.com/thumbnail?id=17svkQt92fqVB1tvRMc3USpu7KrHHvBs1&sz=w2000'}]},
+      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'/assets/images/dv03/layers/DV-UX-DV03-SKY-NIGHT.png'}]},
     {key:'02',id:'background',label:'Background',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base World',sortKey:'02-BACKGROUND-BASE'},
-      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'https://drive.google.com/thumbnail?id=1ktH7L_qISGnepcOaDeSp-G-U_bPXJDEc&sz=w2000'}]},
+      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/DV-UX-DV03-BACKGROUND-PARK.png'}]},
     {key:'03',id:'road',label:'Road',options:[{value:'off',label:'OFF'},{value:'base',label:'Base Road',sortKey:'03-ROAD-BASE'}]},
     {key:'04',id:'sign',label:'Sign',options:[{value:'off',label:'OFF'},{value:'base',label:'Milestone',sortKey:'04-SIGN-MILESTONE',assetId:'DV-UX-DV03-MILESTONE-SIGN'}]},
     {key:'05',id:'cockpit',label:'Cockpit',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'05-COCKPIT-STANDARD',assetId:'DV-UX-DV03-COCKPIT-FRAME'}]},
