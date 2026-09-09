@@ -31,12 +31,19 @@ test('BKLG-0128 canonical layer images are same-origin runtime assets',()=>{
   assert.doesNotMatch(js,/drive\.google\.com/);
 });
 
-test('BKLG-0128 layer harness is floating over the live DV03 wrapper',()=>{
+test('BKLG-0128 layer harness is anchored to the DV03 windshield UX',()=>{
   assert.match(html,/LAYER HARNESS/);
   assert.match(html,/Reset to Base/);
   assert.match(html,/Driver \/ Live/);
   assert.match(css,/position:fixed/);
-  assert.match(css,/z-index:50/);
+  assert.match(css,/\.uat-harness\.is-ux-anchored\{visibility:visible\}/);
+  assert.doesNotMatch(css,/\.uat-harness\{[^}]*top:116px/);
+  assert.doesNotMatch(css,/\.uat-harness\{[^}]*right:12px/);
+  assert.match(js,/function syncHarnessToUX/);
+  assert.match(js,/querySelector\('\.dv03-windshield'\)/);
+  assert.match(js,/uxRect=windshield\.getBoundingClientRect\(\)/);
+  assert.match(js,/win\.addEventListener\('scroll',syncHarnessToUX/);
+  assert.match(js,/ResizeObserver/);
   assert.match(js,/ensureRoadLayer/);
   assert.match(js,/state\.sky/);
   assert.match(js,/state\.background/);
