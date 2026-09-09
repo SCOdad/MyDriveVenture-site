@@ -25,10 +25,17 @@ test('BKLG-0128 exposes the seven canonical layer rows with OFF controls',()=>{
   assert.match(js,/DV-UX-DV03-BACKGROUND-PARK/);
 });
 
-test('BKLG-0128 canonical layer images are same-origin runtime assets',()=>{
-  assert.match(js,/\/assets\/images\/dv03\/layers\/DV-UX-DV03-SKY-NIGHT\.png/);
-  assert.match(js,/\/assets\/images\/dv03\/layers\/DV-UX-DV03-BACKGROUND-PARK\.png/);
+test('BKLG-0128 canonical layers use simple same-origin runtime aliases',()=>{
+  assert.match(js,/\/assets\/images\/dv03\/layers\/night\.png/);
+  assert.match(js,/\/assets\/images\/dv03\/layers\/park\.png/);
   assert.doesNotMatch(js,/drive\.google\.com/);
+});
+
+test('BKLG-0128 canonical sky and background render as layer backgrounds, not windshield img elements',()=>{
+  assert.match(js,/function setLayerBackground/);
+  assert.match(js,/container\.style\.backgroundImage/);
+  assert.doesNotMatch(js,/doc\.createElement\('img'\)/);
+  assert.match(js,/background-size:100% 100%/);
 });
 
 test('BKLG-0128 layer harness is anchored to the DV03 windshield UX',()=>{
