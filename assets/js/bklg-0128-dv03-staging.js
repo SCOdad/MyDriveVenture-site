@@ -11,16 +11,17 @@
   const collapse=document.getElementById('uat-collapse');
   let frameReady=false;
   let mode='manual';
+  let anchorRaf=0;
 
   const LAYERS=Object.freeze([
     {key:'01',id:'sky',label:'Sky / Atmosphere',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base Sky',sortKey:'01-SKY-BASE'},
-      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'https://drive.google.com/thumbnail?id=17svkQt92fqVB1tvRMc3USpu7KrHHvBs1&sz=w2000'}]},
+      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'/assets/images/dv03/layers/DV-UX-DV03-SKY-NIGHT.png'}]},
     {key:'02',id:'background',label:'Background',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base World',sortKey:'02-BACKGROUND-BASE'},
-      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'https://drive.google.com/thumbnail?id=1ktH7L_qISGnepcOaDeSp-G-U_bPXJDEc&sz=w2000'}]},
+      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/DV-UX-DV03-BACKGROUND-PARK.png'}]},
     {key:'03',id:'road',label:'Road',options:[{value:'off',label:'OFF'},{value:'base',label:'Base Road',sortKey:'03-ROAD-BASE'}]},
     {key:'04',id:'sign',label:'Sign',options:[{value:'off',label:'OFF'},{value:'base',label:'Milestone',sortKey:'04-SIGN-MILESTONE',assetId:'DV-UX-DV03-MILESTONE-SIGN'}]},
     {key:'05',id:'cockpit',label:'Cockpit',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'05-COCKPIT-STANDARD',assetId:'DV-UX-DV03-COCKPIT-FRAME'}]},
@@ -34,9 +35,32 @@
   const currentDriverId=()=>frame?.contentWindow?.DV_LOG_APP?.getDriverId?.()||'';
   const optionFor=(layerId,value)=>LAYERS.find(layer=>layer.id===layerId)?.options.find(option=>option.value===value)||null;
 
+  function syncHarnessToUX(){
+    if(!frameReady||!harness||!frame?.contentDocument)return;
+    cancelAnimationFrame(anchorRaf);
+    anchorRaf=requestAnimationFrame(()=>{
+      const windshield=frame.contentDocument.querySelector('.dv03-windshield');
+      if(!windshield){harness.classList.remove('is-ux-anchored');return}
+      const frameRect=frame.getBoundingClientRect();
+      const uxRect=windshield.getBoundingClientRect();
+      const visible=uxRect.bottom>0&&uxRect.top<frameRect.height;
+      harness.classList.toggle('is-ux-anchored',visible);
+      if(!visible)return;
+      const margin=window.innerWidth<=760?6:12;
+      const preferredTop=frameRect.top+uxRect.top+margin;
+      const uxRight=frameRect.left+uxRect.right-margin;
+      const harnessWidth=harness.offsetWidth||Math.min(390,window.innerWidth-2*margin);
+      const maxLeft=Math.max(margin,window.innerWidth-harnessWidth-margin);
+      const left=Math.max(margin,Math.min(maxLeft,uxRight-harnessWidth));
+      harness.style.top=`${Math.max(margin,preferredTop)}px`;
+      harness.style.left=`${left}px`;
+    });
+  }
+
   function renderHarness(){
     rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}</button>`).join('')}</div></section>`).join('');
     rows.querySelectorAll('.uat-option').forEach(button=>button.addEventListener('click',()=>{mode='manual';state[button.dataset.layer]=button.dataset.value;applyLayers();renderHarness()}));
+    syncHarnessToUX();
   }
   function ensureFrameSafety(doc){
     if(doc.getElementById('bklg-0128-uat-style'))return;
@@ -98,12 +122,27 @@
     const driver=currentFrameModel()?.drivers?.find(row=>row.id===currentDriverId());
     const selected=LAYERS.map(layer=>`${layer.key}:${state[layer.id]}`).join(' · ');
     setStatus(`${driver?.display_name||'Driver'} · ${mode==='live'?'Driver/live':'manual'} · ${selected}`);
+    syncHarnessToUX();
   }
   function resetBase(live=false){LAYERS.forEach(layer=>state[layer.id]='base');mode=live?'live':'manual';applyLayers();renderHarness()}
-  function bindFrame(){frameReady=true;ensureFrameSafety(frame.contentDocument);ensureRoadLayer(frame.contentDocument);const win=frame.contentWindow;win.addEventListener('dv:dashboard-rendered',()=>applyLayers());win.addEventListener('dv:driver-changing',()=>setTimeout(applyLayers,0));applyLayers()}
+  function bindFrame(){
+    frameReady=true;
+    ensureFrameSafety(frame.contentDocument);
+    ensureRoadLayer(frame.contentDocument);
+    const win=frame.contentWindow;
+    win.addEventListener('dv:dashboard-rendered',()=>{applyLayers();syncHarnessToUX()});
+    win.addEventListener('dv:driver-changing',()=>setTimeout(()=>{applyLayers();syncHarnessToUX()},0));
+    win.addEventListener('scroll',syncHarnessToUX,{passive:true});
+    win.addEventListener('resize',syncHarnessToUX,{passive:true});
+    window.addEventListener('resize',syncHarnessToUX,{passive:true});
+    const windshield=frame.contentDocument.querySelector('.dv03-windshield');
+    if(windshield&&window.ResizeObserver)new ResizeObserver(syncHarnessToUX).observe(windshield);
+    applyLayers();
+    syncHarnessToUX();
+  }
 
   document.querySelectorAll('[data-uat-preset]').forEach(button=>button.addEventListener('click',()=>resetBase(button.dataset.uatPreset==='live')));
-  collapse?.addEventListener('click',()=>{const collapsed=harness.classList.toggle('is-collapsed');collapse.textContent=collapsed?'+':'−';collapse.setAttribute('aria-expanded',String(!collapsed))});
+  collapse?.addEventListener('click',()=>{const collapsed=harness.classList.toggle('is-collapsed');collapse.textContent=collapsed?'+':'−';collapse.setAttribute('aria-expanded',String(!collapsed));syncHarnessToUX()});
   frame.addEventListener('load',bindFrame);
   renderHarness();
 
@@ -118,5 +157,5 @@
     document.documentElement.dataset.bklg0128Authorized='true';show(checking,false);show(denied,false);show(shell,true);frame.src='/log/';
   }
   authorize().catch(error=>{show(checking,false);show(denied,true);document.getElementById('uat-denied-detail').textContent=error.message||'Unable to verify operator access.'});
-  window.DV_BKLG_0128_UAT=Object.freeze({LAYERS,state,applyLayers,resetBase});
+  window.DV_BKLG_0128_UAT=Object.freeze({LAYERS,state,applyLayers,resetBase,syncHarnessToUX});
 })();

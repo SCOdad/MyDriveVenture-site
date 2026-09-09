@@ -1,6 +1,6 @@
 (() => {if(document.documentElement.dataset.dvRoute!=='bklg0128gallery')return;const cfg=window.DV_APP_CONFIG||{},checking=document.getElementById('gallery-checking'),denied=document.getElementById('gallery-denied'),shell=document.getElementById('gallery-shell'),grid=document.getElementById('gallery-grid');const ASSETS=Object.freeze([
-{sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',id:'S1-CANON',name:'Night Sky',file:'Drive master',src:'https://drive.google.com/thumbnail?id=17svkQt92fqVB1tvRMc3USpu7KrHHvBs1&sz=w2000',status:'Canonical / Approved'},
-{sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',id:'L1-CANON',name:'Park Background',file:'Drive master',src:'https://drive.google.com/thumbnail?id=1ktH7L_qISGnepcOaDeSp-G-U_bPXJDEc&sz=w2000',status:'Canonical / Approved'},
+{sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',id:'S1-CANON',name:'Night Sky',file:'DV-UX-DV03-SKY-NIGHT.png',src:'/assets/images/dv03/layers/DV-UX-DV03-SKY-NIGHT.png',status:'Canonical / Approved'},
+{sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',id:'L1-CANON',name:'Park Background',file:'DV-UX-DV03-BACKGROUND-PARK.png',src:'/assets/images/dv03/layers/DV-UX-DV03-BACKGROUND-PARK.png',status:'Canonical / Approved'},
 {sortKey:'90-RECOVERED-L1-PARK',id:'L1',name:'Park',file:'l1-park.png',status:'Recovered legacy'},
 {sortKey:'90-RECOVERED-L2-SCHOOL',id:'L2',name:'School',file:'l2-school.png',status:'Recovered legacy'},
 {sortKey:'90-RECOVERED-L3-GRANDMAS-HOUSE',id:'L3',name:"Grandma's house",file:'l3-grandmas-house.png',status:'Recovered legacy'},
