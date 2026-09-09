@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260909-prod4';
+const marker = '20260909-prod5';
 const assets = [
   '/assets/images/dv03/layers/night.png',
   '/assets/images/dv03/layers/park.png',
@@ -22,6 +22,14 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   }
   expect(fresh, 'production staging HTML never published the new cache-buster').toBe(true);
 
+  const harnessSource=await (await page.request.get(`/assets/js/bklg-0128-dv03-staging.js?prodcheck=${Date.now()}`)).text();
+  expect(harnessSource).toContain("{key:'02',id:'road',label:'Road / Ground'");
+  expect(harnessSource).toContain("{key:'03',id:'background',label:'Background'");
+  expect(harnessSource).toContain('02-ROAD-GROUND-BASE');
+  expect(harnessSource).toContain('03-BACKGROUND-CAR-WASH');
+  expect(harnessSource).toContain('z-index:2!important');
+  expect(harnessSource).toContain('z-index:3!important');
+
   for (const src of assets) {
     const dimensions = await page.evaluate(async (src) => {
       const img = new Image();
@@ -37,33 +45,39 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   }
 });
 
-test('BKLG-0128 production DV03 can visibly compose Night and Park backgrounds', async ({ page }) => {
+test('BKLG-0128 production DV03 can visibly compose Night, Ground, and destination backgrounds in the new order', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(`/log/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
     document.querySelector('#app-main')?.classList.remove('app-hidden');
     const login = document.querySelector('#app-login');
     if (login) login.style.display = 'none';
+    const windshield=document.querySelector('.dv03-windshield');
     const sky = document.querySelector('.dv03-sky');
     const landscape = document.querySelector('.dv03-landscape');
     const scene = document.querySelector('#dv03-scene-layer');
-    if (!sky || !landscape || !scene) throw new Error('DV03 layer DOM is missing in production');
+    const sourceRoad=document.querySelector('.dv03-road');
+    if (!windshield || !sky || !landscape || !scene || !sourceRoad) throw new Error('DV03 layer DOM is missing in production');
     sky.querySelectorAll('.dv03-cloud').forEach(node => node.style.display = 'none');
     sky.style.backgroundImage = 'url("/assets/images/dv03/layers/night.png")';
-    sky.style.backgroundRepeat = 'no-repeat';
-    sky.style.backgroundPosition = 'center';
-    sky.style.backgroundSize = '100% 100%';
+    sky.style.zIndex='1';
+    let ground=document.querySelector('#prod-bklg0128-ground');
+    if(!ground){ground=document.createElement('div');ground.id='prod-bklg0128-ground';ground.style.cssText='position:absolute;inset:0;z-index:2;pointer-events:none';ground.appendChild(sourceRoad.cloneNode(true));windshield.insertBefore(ground,scene);}
     landscape.style.display = 'none';
     scene.style.display = 'block';
-    scene.style.backgroundImage = 'url("/assets/images/dv03/layers/park.png")';
+    scene.style.zIndex='3';
+    scene.style.backgroundImage = 'url("/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png")';
     scene.style.backgroundRepeat = 'no-repeat';
     scene.style.backgroundPosition = 'center';
     scene.style.backgroundSize = '100% 100%';
   });
-  const skyBackground = await page.locator('.dv03-sky').evaluate(el => getComputedStyle(el).backgroundImage);
-  const parkBackground = await page.locator('#dv03-scene-layer').evaluate(el => getComputedStyle(el).backgroundImage);
-  expect(skyBackground).toContain('/assets/images/dv03/layers/night.png');
-  expect(parkBackground).toContain('/assets/images/dv03/layers/park.png');
+  const skyZ=await page.locator('.dv03-sky').evaluate(el=>Number(getComputedStyle(el).zIndex));
+  const groundZ=await page.locator('#prod-bklg0128-ground').evaluate(el=>Number(getComputedStyle(el).zIndex));
+  const sceneZ=await page.locator('#dv03-scene-layer').evaluate(el=>Number(getComputedStyle(el).zIndex));
+  const destinationBackground = await page.locator('#dv03-scene-layer').evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(skyZ).toBeLessThan(groundZ);
+  expect(groundZ).toBeLessThan(sceneZ);
+  expect(destinationBackground).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png');
   await expect(page.locator('.dv03-windshield')).toBeVisible();
-  await page.locator('.dv03-windshield').screenshot({ path: 'test-results-prod/bklg-0128-night-park.png' });
+  await page.locator('.dv03-windshield').screenshot({ path: 'test-results-prod/bklg-0128-night-ground-car-wash.png' });
 });

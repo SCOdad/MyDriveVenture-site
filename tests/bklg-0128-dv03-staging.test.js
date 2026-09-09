@@ -17,10 +17,11 @@ test('BKLG-0128 UAT route is non-discoverable and operator-gated',()=>{
 });
 
 test('BKLG-0128 exposes the seven canonical layer rows with OFF controls',()=>{
-  for(const label of ['Sky / Atmosphere','Background','Road','Sign','Cockpit','HUD','Hero'])assert.match(js,new RegExp(label.replace('/','\\/')));
+  for(const label of ['Sky / Atmosphere','Road / Ground','Background','Sign','Cockpit','HUD','Hero'])assert.match(js,new RegExp(label.replace('/','\\/')));
   assert.equal((js.match(/value:'off'/g)||[]).length,7);
   assert.match(js,/01-SKY-NIGHT/);
-  assert.match(js,/02-BACKGROUND-PARK/);
+  assert.match(js,/02-ROAD-GROUND-BASE/);
+  assert.match(js,/03-BACKGROUND-PARK/);
   assert.match(js,/DV-UX-DV03-SKY-NIGHT/);
   assert.match(js,/DV-UX-DV03-BACKGROUND-PARK/);
 });
@@ -53,6 +54,7 @@ test('BKLG-0128 layer harness is anchored to the DV03 windshield UX',()=>{
   assert.match(js,/ResizeObserver/);
   assert.match(js,/ensureRoadLayer/);
   assert.match(js,/state\.sky/);
+  assert.match(js,/state\.road/);
   assert.match(js,/state\.background/);
 });
 

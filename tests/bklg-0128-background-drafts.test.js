@@ -18,26 +18,26 @@ const drafts=[
   ['GAS-STATION','DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png']
 ];
 
-test('BKLG-0128 harness exposes all six current background drafts',()=>{
+test('BKLG-0128 harness exposes all six current background drafts on layer 03',()=>{
   for(const [key,file] of drafts){
-    assert.match(staging,new RegExp(`02-BACKGROUND-${key}`));
+    assert.match(staging,new RegExp(`03-BACKGROUND-${key}`));
     assert.match(staging,new RegExp(file.replaceAll('.','\\.')));
     assert.ok(fs.existsSync(path.join(root,'assets/images/dv03/layers',file)),`missing ${file}`);
   }
-  assert.match(staging,/02-BACKGROUND-PARK/);
+  assert.match(staging,/03-BACKGROUND-PARK/);
   assert.match(staging,/selectedBackground=backgroundValue==='base'\|\|backgroundValue==='off'\?null:optionFor\('background',backgroundValue\)/);
 });
 
-test('BKLG-0128 gallery includes all six drafts with explicit draft status',()=>{
+test('BKLG-0128 gallery includes all six drafts with explicit draft status on layer 03',()=>{
   for(const [key,file] of drafts){
-    assert.match(gallery,new RegExp(`02-BACKGROUND-${key}`));
+    assert.match(gallery,new RegExp(`03-BACKGROUND-${key}`));
     assert.match(gallery,new RegExp(file.replaceAll('.','\\.')));
   }
   assert.equal((gallery.match(/status:'Draft \/ UAT'/g)||[]).length,6);
-  assert.match(gallery,/02-BACKGROUND-PARK/);
+  assert.match(gallery,/03-BACKGROUND-PARK/);
 });
 
 test('BKLG-0128 UAT and gallery cache keys are bumped together',()=>{
-  assert.match(uatHtml,/20260909-prod4/);
-  assert.match(galleryHtml,/20260909-prod4/);
+  assert.match(uatHtml,/20260909-prod5/);
+  assert.match(galleryHtml,/20260909-prod5/);
 });

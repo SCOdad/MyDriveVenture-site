@@ -18,17 +18,19 @@
       {value:'off',label:'OFF'},
       {value:'base',label:'Base Sky',sortKey:'01-SKY-BASE'},
       {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'/assets/images/dv03/layers/night.png'}]},
-    {key:'02',id:'background',label:'Background',options:[
+    {key:'02',id:'road',label:'Road / Ground',options:[
       {value:'off',label:'OFF'},
-      {value:'base',label:'Base World',sortKey:'02-BACKGROUND-BASE'},
-      {value:'park',label:'Park',sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/park.png'},
-      {value:'school',label:'School',sortKey:'02-BACKGROUND-SCHOOL',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'grocery-store',label:'Grocery Store',sortKey:'02-BACKGROUND-GROCERY-STORE',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'library',label:'Library',sortKey:'02-BACKGROUND-LIBRARY',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'snack-run',label:'Snack Run',sortKey:'02-BACKGROUND-SNACK-RUN',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'car-wash',label:'Car Wash',sortKey:'02-BACKGROUND-CAR-WASH',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'gas-station',label:'Gas Station',sortKey:'02-BACKGROUND-GAS-STATION',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',draft:true}]},
-    {key:'03',id:'road',label:'Road',options:[{value:'off',label:'OFF'},{value:'base',label:'Base Road',sortKey:'03-ROAD-BASE'}]},
+      {value:'base',label:'Base Ground / Approach',sortKey:'02-ROAD-GROUND-BASE'}]},
+    {key:'03',id:'background',label:'Background',options:[
+      {value:'off',label:'OFF'},
+      {value:'base',label:'Base World',sortKey:'03-BACKGROUND-BASE'},
+      {value:'park',label:'Park',sortKey:'03-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/park.png'},
+      {value:'school',label:'School',sortKey:'03-BACKGROUND-SCHOOL',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'grocery-store',label:'Grocery Store',sortKey:'03-BACKGROUND-GROCERY-STORE',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'library',label:'Library',sortKey:'03-BACKGROUND-LIBRARY',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'snack-run',label:'Snack Run',sortKey:'03-BACKGROUND-SNACK-RUN',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'car-wash',label:'Car Wash',sortKey:'03-BACKGROUND-CAR-WASH',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',draft:true},
+      {value:'gas-station',label:'Gas Station',sortKey:'03-BACKGROUND-GAS-STATION',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',draft:true}]},
     {key:'04',id:'sign',label:'Sign',options:[{value:'off',label:'OFF'},{value:'base',label:'Milestone',sortKey:'04-SIGN-MILESTONE',assetId:'DV-UX-DV03-MILESTONE-SIGN'}]},
     {key:'05',id:'cockpit',label:'Cockpit',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'05-COCKPIT-STANDARD',assetId:'DV-UX-DV03-COCKPIT-FRAME'}]},
     {key:'06',id:'hud',label:'HUD',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'06-HUD-STANDARD'}]},
@@ -74,10 +76,14 @@
     style.id='bklg-0128-uat-style';
     style.textContent=`
       .dv03-windshield{background:#000!important}
-      .dv03-sky,.dv03-scene-layer{background-repeat:no-repeat!important;background-position:center!important;background-size:100% 100%!important;image-rendering:pixelated}
-      .dv03-scene-layer{z-index:2;overflow:hidden}
-      .bklg0128-road-layer{position:absolute;inset:0;z-index:2;pointer-events:none}
+      .dv03-sky,.dv03-landscape,.dv03-scene-layer{background-repeat:no-repeat!important;background-position:center!important;background-size:100% 100%!important;image-rendering:pixelated}
+      .dv03-sky{z-index:1!important}
+      .bklg0128-road-layer{position:absolute;inset:0;z-index:2!important;pointer-events:none}
       .bklg0128-road-layer .dv03-road{display:block!important}
+      .dv03-landscape,.dv03-scene-layer{z-index:3!important;overflow:hidden}
+      .dv03-sign-layer{z-index:4!important}
+      .dv03-cockpit-frame-layer{z-index:5!important}
+      .dv03-hero-layer{z-index:7!important}
     `;
     doc.head.appendChild(style);
     doc.addEventListener('submit',event=>{event.preventDefault();event.stopImmediatePropagation();window.alert('Drive/vehicle writes are disabled in the BKLG-0128 layer UAT route.');},true);
@@ -92,7 +98,9 @@
     if(!windshield||!source)return null;
     layer=doc.createElement('div');layer.id='bklg0128-road-layer';layer.className='bklg0128-road-layer';
     const clone=source.cloneNode(true);clone.removeAttribute('id');layer.appendChild(clone);
-    const sign=doc.querySelector('.dv03-sign-layer');windshield.insertBefore(layer,sign||null);
+    const scene=doc.getElementById('dv03-scene-layer');
+    const landscape=doc.querySelector('.dv03-landscape');
+    windshield.insertBefore(layer,scene||landscape||null);
     source.style.display='none';
     return layer;
   }
@@ -122,13 +130,13 @@
       sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=skyValue==='base'?'':'none');
       setLayerBackground(sky,skyValue==='night'?optionFor('sky','night'):null);
     }
+    if(roadLayer)roadLayer.style.display=state.road==='base'?'block':'none';
     if(landscape)landscape.style.display=backgroundValue==='base'?'block':'none';
     if(scene){
       scene.style.display=backgroundValue==='off'?'none':'block';
       const selectedBackground=backgroundValue==='base'||backgroundValue==='off'?null:optionFor('background',backgroundValue);
       setLayerBackground(scene,selectedBackground);
     }
-    if(roadLayer)roadLayer.style.display=state.road==='base'?'block':'none';
     if(sign)sign.style.display=state.sign==='base'?'block':'none';
     if(cockpit)cockpit.style.display=state.cockpit==='base'?'block':'none';
     hud.forEach(node=>node.style.display=state.hud==='base'?'':'none');
