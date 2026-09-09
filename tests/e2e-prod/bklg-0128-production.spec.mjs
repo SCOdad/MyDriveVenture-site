@@ -1,9 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260909-prod2';
+const marker = '20260909-prod4';
 const assets = [
   '/assets/images/dv03/layers/night.png',
-  '/assets/images/dv03/layers/park.png'
+  '/assets/images/dv03/layers/park.png',
+  '/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',
+  '/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',
+  '/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',
+  '/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',
+  '/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',
+  '/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png'
 ];
 
 test('BKLG-0128 production publishes fresh harness and viable layer assets', async ({ page }) => {

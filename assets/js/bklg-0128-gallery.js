@@ -1,6 +1,12 @@
 (() => {if(document.documentElement.dataset.dvRoute!=='bklg0128gallery')return;const cfg=window.DV_APP_CONFIG||{},checking=document.getElementById('gallery-checking'),denied=document.getElementById('gallery-denied'),shell=document.getElementById('gallery-shell'),grid=document.getElementById('gallery-grid');const ASSETS=Object.freeze([
 {sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',id:'S1-CANON',name:'Night Sky',file:'DV-UX-DV03-SKY-NIGHT.png',src:'/assets/images/dv03/layers/night.png',status:'Canonical / Approved'},
 {sortKey:'02-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',id:'L1-CANON',name:'Park Background',file:'DV-UX-DV03-BACKGROUND-PARK.png',src:'/assets/images/dv03/layers/park.png',status:'Canonical / Approved'},
+{sortKey:'02-BACKGROUND-SCHOOL',id:'L2-DRAFT-v1',name:'School Background',file:'DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
+{sortKey:'02-BACKGROUND-GROCERY-STORE',id:'L4-DRAFT-v1',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
+{sortKey:'02-BACKGROUND-LIBRARY',id:'L5-DRAFT-v1',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
+{sortKey:'02-BACKGROUND-SNACK-RUN',id:'L6-DRAFT-v1',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
+{sortKey:'02-BACKGROUND-CAR-WASH',id:'L7-DRAFT-v1',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
+{sortKey:'02-BACKGROUND-GAS-STATION',id:'L8-DRAFT-v1',name:'Gas Station Background',file:'DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',status:'Draft / UAT'},
 {sortKey:'90-RECOVERED-L1-PARK',id:'L1',name:'Park',file:'l1-park.png',status:'Recovered legacy'},
 {sortKey:'90-RECOVERED-L2-SCHOOL',id:'L2',name:'School',file:'l2-school.png',status:'Recovered legacy'},
 {sortKey:'90-RECOVERED-L3-GRANDMAS-HOUSE',id:'L3',name:"Grandma's house",file:'l3-grandmas-house.png',status:'Recovered legacy'},
