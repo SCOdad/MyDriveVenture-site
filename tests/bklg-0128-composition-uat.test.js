@@ -10,7 +10,7 @@ const js=read('assets/js/bklg-0128-composition-uat.js');
 test('BKLG-0128 composition experiment is staging-only and loaded after the base harness',()=>{
   assert.match(html,/bklg-0128-composition-uat\.js/);
   assert.ok(html.indexOf('bklg-0128-dv03-staging.js')<html.indexOf('bklg-0128-composition-uat.js'));
-  assert.match(js,/data\.dvRoute!=='bklg0128uat'/);
+  assert.match(js,/dataset\.dvRoute!=='bklg0128uat'/);
 });
 
 test('BKLG-0128 UAT defaults the generic road off',()=>{

@@ -38,6 +38,6 @@ test('BKLG-0128 gallery includes all six drafts with explicit draft status on la
 });
 
 test('BKLG-0128 UAT and gallery cache keys are bumped together',()=>{
-  assert.match(uatHtml,/20260909-prod5/);
-  assert.match(galleryHtml,/20260909-prod5/);
+  assert.match(uatHtml,/20260910-composition1/);
+  assert.match(galleryHtml,/20260910-composition1/);
 });
