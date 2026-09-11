@@ -2,9 +2,9 @@
   const CURRENT = [
     {value:'school',sortKey:'03-BACKGROUND-SCHOOL',id:'L2-DRAFT',name:'School Background',file:'DV03-L2-SCHOOL-BACKGROUND-DRAFT.png'},
     {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-DRAFT',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
-    {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-DRAFT',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png'},
+    {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-DRAFT',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png',version:'721c2d7-library'},
     {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-DRAFT',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png'},
-    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L6B-DRAFT',name:'Drive Thru Background',file:'DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png',version:'590adf8-drive-thru'},
+    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L6B-DRAFT',name:'Drive Thru Background',file:'DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png',version:'721c2d7-drive-thru'},
     {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L7-DRAFT',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png',version:'e83616b-car-wash'},
     {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L8-DRAFT',name:'Gas Station Background',file:'DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
   ];
