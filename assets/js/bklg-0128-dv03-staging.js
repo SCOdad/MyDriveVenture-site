@@ -11,6 +11,7 @@
   const collapse=document.getElementById('uat-collapse');
   let frameReady=false;
   let mode='manual';
+  let runtimeMode=false;
   let anchorRaf=0;
 
   const LAYERS=Object.freeze([
@@ -67,7 +68,7 @@
 
   function renderHarness(){
     rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}${option.draft?' · DRAFT':''}</button>`).join('')}</div></section>`).join('');
-    rows.querySelectorAll('.uat-option').forEach(button=>button.addEventListener('click',()=>{mode='manual';state[button.dataset.layer]=button.dataset.value;applyLayers();renderHarness()}));
+    rows.querySelectorAll('.uat-option').forEach(button=>button.addEventListener('click',()=>{runtimeMode=false;mode='manual';state[button.dataset.layer]=button.dataset.value;applyLayers();renderHarness()}));
     syncHarnessToUX();
   }
 
@@ -116,6 +117,7 @@
     if(!frameReady)return;
     const doc=frame.contentDocument;if(!doc)return;
     ensureFrameSafety(doc);
+    if(runtimeMode)return;
     const sky=doc.querySelector('.dv03-sky');
     const landscape=doc.querySelector('.dv03-landscape');
     const scene=doc.getElementById('dv03-scene-layer');
@@ -127,11 +129,14 @@
     const skyValue=state.sky,backgroundValue=state.background;
 
     if(sky){
+      delete sky.dataset.dvSky;
       sky.style.display=skyValue==='off'?'none':'block';
       sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=skyValue==='base'?'':'none');
       setLayerBackground(sky,skyValue==='night'?optionFor('sky','night'):null);
     }
     if(roadLayer)roadLayer.style.display=state.road==='base'?'block':'none';
+    if(landscape)landscape.hidden=false;
+    if(sign)sign.hidden=false;
     if(landscape)landscape.style.display=backgroundValue==='base'?'block':'none';
     if(scene){
       scene.style.display=backgroundValue==='off'?'none':'block';
@@ -149,7 +154,37 @@
     syncHarnessToUX();
   }
 
-  function resetBase(live=false){LAYERS.forEach(layer=>state[layer.id]='base');mode=live?'live':'manual';applyLayers();renderHarness()}
+  function resetBase(live=false){runtimeMode=false;frame?.contentWindow?.DV_GAME_DV03?.endFeatured();LAYERS.forEach(layer=>state[layer.id]='base');mode=live?'live':'manual';applyLayers();if(live)showRuntime();renderHarness()}
+
+  function showRuntime(scenario=null){
+    if(!frameReady)return;
+    const win=frame.contentWindow,doc=frame.contentDocument,app=win.DV_LOG_APP;
+    const driverId=app?.getDriverId?.(),model=app?.getModel?.();
+    const driver=model?.drivers?.find(d=>d.id===driverId);
+    if(!driver){setStatus('Select a driver in the console first.');return}
+    win.DV_GAME_DV03.endFeatured();runtimeMode=true;
+    doc.querySelectorAll('.dv03-sky,.dv03-landscape,.dv03-scene-layer,.dv03-sign-layer,.dv03-cockpit-frame-layer,.dv03-hero-layer,.cockpit-title,.dash-status,.cockpit-controls').forEach(el=>{el.style.display='';el.style.backgroundImage=''});
+    doc.querySelectorAll('.dv03-cloud').forEach(el=>el.style.display='');
+    const road=doc.getElementById('bklg0128-road-layer');if(road)road.style.display='none';
+    const originalRoad=doc.querySelector('.dv03-landscape .dv03-road');if(originalRoad)originalRoad.style.display='';
+    let awards=model.quest_awards||[],newAwards=[],presentationNow;
+    const make=(key,order,xp,date='2020-01-01T12:00:00Z',drive='uat-old')=>({id:'uat-'+key,driver_id:driverId,drive_id:drive,quest_key:key,awarded_at:date,xp_awarded:xp,quest:{display_order:order,name:'UAT '+key}});
+    if(scenario){
+      awards=[];presentationNow=new win.Date(scenario==='night'?'2026-09-11T23:00:00Z':'2026-09-11T12:00:00Z');
+      if(scenario!=='none')awards.push(make('Q000035',35,400));
+      if(['scenery','mixed','order','xp','key'].includes(scenario)){
+        newAwards=[make('Q000039',39,300,'2026-09-11T12:00:00Z','uat-new')];
+        if(scenario==='mixed'||scenario==='order')newAwards.push(make('Q000006',4,scenario==='order'?1:500,'2026-09-11T12:00:00Z','uat-new'));
+        if(scenario==='xp')newAwards.push(make('Q000006',39,500,'2026-09-11T12:00:00Z','uat-new'));
+        if(scenario==='key')newAwards.push(make('Q000006',39,300,'2026-09-11T12:00:00Z','uat-new'));
+        awards.push(...newAwards);
+      }
+    }
+    win.DV_GAME_DV03.renderScene({driverId,driver:scenario?{...driver,timezone:'UTC'}:driver,model:{...model,quest_awards:awards},presentationNow});
+    if(newAwards.length)win.DV_GAME_DV03.featureDrive({driverId,driveId:'uat-new',awards:newAwards});
+    setStatus(scenario?`Synthetic ${scenario} · no awards written · featured treatment lasts 12 seconds`:'Driver/live · durable award history and current local sky');
+  }
+
   function bindFrame(){
     frameReady=true;
     ensureFrameSafety(frame.contentDocument);
@@ -181,5 +216,5 @@
     document.documentElement.dataset.bklg0128Authorized='true';show(checking,false);show(denied,false);show(shell,true);frame.src='/log/';
   }
   authorize().catch(error=>{show(checking,false);show(denied,true);document.getElementById('uat-denied-detail').textContent=error.message||'Unable to verify operator access.'});
-  window.DV_BKLG_0128_UAT=Object.freeze({LAYERS,state,applyLayers,resetBase,syncHarnessToUX});
+  window.DV_BKLG_0128_UAT=Object.freeze({LAYERS,state,applyLayers,resetBase,syncHarnessToUX,showRuntime});
 })();

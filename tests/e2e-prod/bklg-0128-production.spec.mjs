@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260911-native-drive-thru1';
+const marker = '20260911-persistence1';
 const assets = [
   '/assets/images/dv03/layers/night.png',
   '/assets/images/dv03/layers/park.png',
@@ -97,4 +97,26 @@ test('BKLG-0128 production DV03 can visibly compose Night, optional Ground, and 
   expect(destinationBackground).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png');
   await expect(page.locator('.dv03-windshield')).toBeVisible();
   await page.locator('.dv03-windshield').screenshot({ path: 'test-results-prod/bklg-0128-night-ground-car-wash.png' });
+});
+
+test('production presentation source matches checkout and durable scenery survives featured expiry',async({page})=>{
+  const {readFileSync}=await import('node:fs');
+  for(const file of ['log/index.html','log/DV03/staging/BKLG-0128/index.html','assets/js/dv03-presentation.js','assets/js/log-game-dv03.js','assets/js/log-drive-rpc.js','assets/css/log-game-dv03.css','assets/js/bklg-0128-dv03-staging.js','assets/js/bklg-0128-composition-uat.js']){
+    const expected=readFileSync(file,'utf8');
+    await expect.poll(async()=>{const response=await page.request.get(`/${file}?exact=${Date.now()}`);return response.ok()&&(await response.text())===expected},{timeout:45000,intervals:[1000,3000,5000]}).toBe(true);
+  }
+  await page.clock.install({time:new Date('2026-09-11T23:00:00Z')});
+  await page.goto('/log/');
+  await page.evaluate(()=>{
+    document.getElementById('app-main').classList.remove('app-hidden');document.getElementById('app-login').style.display='none';
+    const awards=[{driver_id:'synthetic',drive_id:'synthetic-drive',quest_key:'Q000039',awarded_at:'2020-01-01T00:00:00Z',xp_awarded:300,quest:{display_order:39,name:'Library'}},{driver_id:'synthetic',drive_id:'synthetic-drive',quest_key:'Q000006',awarded_at:'2020-01-01T00:00:00Z',xp_awarded:1,quest:{display_order:4,name:'Featured milestone'}}];
+    window.DV_GAME_DV03.renderScene({driverId:'synthetic',driver:{timezone:'UTC'},model:{quest_awards:awards}});
+    window.dispatchEvent(new CustomEvent('dv:drive-awarded',{detail:{driverId:'synthetic',driveId:'synthetic-drive',awards}}));
+  });
+  await expect(page.locator('.dv03-sky')).toHaveAttribute('data-dv-sky','night');
+  await expect(page.locator('.dv03-sign-layer')).toBeVisible();
+  await expect(page.locator('#hours-sign')).toHaveText('Featured milestone');
+  await page.clock.fastForward(12001);
+  await expect(page.locator('.dv03-sign-layer')).toBeHidden();
+  await expect(page.locator('#dv03-scene-layer')).toHaveAttribute('data-dv-scene','library');
 });

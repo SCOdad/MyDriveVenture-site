@@ -24,6 +24,7 @@
         const button=event.target.closest('[data-composition]');
         if(!button)return;
         const choice=button.dataset.composition;
+        api.resetBase();
         if(choice==='scenery')api.state.sign='off';
         if(choice==='billboard')api.state.background='off';
         if(choice==='both'){
@@ -37,6 +38,12 @@
         document.querySelectorAll('.uat-option').forEach(option=>option.setAttribute('aria-pressed',String(api.state[option.dataset.layer]===option.dataset.value)));
         group.querySelectorAll('[data-composition]').forEach(option=>option.setAttribute('aria-pressed',String(option===button)));
       });
+    }
+    if(!document.getElementById('bklg0128-behavior-presets')){
+      const group=document.createElement('div');group.id='bklg0128-behavior-presets';group.className='uat-presets';
+      group.innerHTML=[['none','No scenery'],['persistent','Persistent scenery'],['scenery','Scenery-only award'],['mixed','Billboard + scenery'],['order','Display order first'],['xp','XP tie-break'],['key','Quest key tie-break'],['day','Day'],['night','Night']].map(([id,label])=>`<button type="button" data-presentation-scenario="${id}">${label}</button>`).join('');
+      presets.after(group);
+      group.addEventListener('click',event=>{const button=event.target.closest('[data-presentation-scenario]');if(button)api.showRuntime(button.dataset.presentationScenario)});
     }
     return true;
   };

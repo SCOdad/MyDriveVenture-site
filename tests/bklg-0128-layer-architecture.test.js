@@ -42,5 +42,5 @@ test('BKLG-0128 remains operator-only, noindex, and staging-scoped',()=>{
   assert.match(uatHtml,/meta name="robots" content="noindex,nofollow"/);
   assert.match(staging,/data\.is_operator!==true/);
   assert.match(staging,/frame\.src='\/log\/'/);
-  assert.doesNotMatch(staging,/quest_definitions|quest_awards|update\(|insert\(|delete\(/);
+  assert.doesNotMatch(staging,/\.from\(|\.update\(|\.insert\(|\.delete\(/);
 });

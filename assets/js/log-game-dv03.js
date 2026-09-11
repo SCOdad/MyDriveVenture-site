@@ -1,12 +1,8 @@
 (() => {
   const FALLBACK_URL='/assets/images/dv03/hero/parker-seated.png';
   const DERIVATIVE_FILENAME='avatar-dv03.png';
-  const SCENE_RECENCY_DAYS=14;
-  const SCENE_RULES=Object.freeze({Q000035:'PARK',Q000012:'CONSTRUCTION'});
-  const SCENE_MARKUP=Object.freeze({
-    PARK:'<div class="dv03-scene-park"><i class="tree-a"></i><i class="tree-b"></i><b>PARK</b></div>',
-    CONSTRUCTION:'<div class="dv03-scene-construction"><i class="cone-a"></i><i class="cone-b"></i><b>ROAD<br>WORK</b></div>'
-  });
+  let currentDetail=null, featuredAwards=[], featuredTimer=null, skyTimer=null;
+  let restingSign='';
   const signedUrlCache=new Map();
   let renderToken=0;
 
@@ -53,16 +49,58 @@
     }
     applyResolved(url,driverName,driverId,token);
   }
-  function clearScene(){const layer=document.getElementById('dv03-scene-layer');if(layer){layer.innerHTML='';delete layer.dataset.dvScene}}
+  function renderSky(){
+    const sky=document.querySelector('.dv03-sky');
+    if(sky)sky.dataset.dvSky=window.DV03_PRESENTATION.skyAt(currentDetail?.presentationNow||new Date(),currentDetail?.driver?.timezone);
+  }
   function renderScene(detail){
-    const layer=document.getElementById('dv03-scene-layer');if(!layer)return;
-    const cutoff=Date.now()-SCENE_RECENCY_DAYS*86400000;
-    const award=(detail?.model?.quest_awards||[]).filter(row=>row.driver_id===detail.driverId&&SCENE_RULES[row.quest_key]&&Date.parse(row.awarded_at)>=cutoff).sort((a,b)=>Date.parse(b.awarded_at)-Date.parse(a.awarded_at))[0];
-    const scene=award?SCENE_RULES[award.quest_key]:null;
-    layer.innerHTML=scene?SCENE_MARKUP[scene]:'';
-    if(scene)layer.dataset.dvScene=scene.toLowerCase();else delete layer.dataset.dvScene;
+    const layer=document.getElementById('dv03-scene-layer');if(!layer||!window.DV03_PRESENTATION)return;
+    currentDetail=detail;
+    const view=window.DV03_PRESENTATION.resolve({awards:detail?.model?.quest_awards||[],driverId:detail?.driverId,newAwards:featuredAwards});
+    layer.innerHTML='';
+    layer.style.backgroundImage=view.scenery?`url("${view.scenery.src}")`:'';
+    layer.dataset.dvScene=view.scenery?.key||'none';
+    layer.dataset.dvPersistentScene=window.DV03_PRESENTATION.SCENERY[view.persistent?.quest_key]?.key||'none';
+    const landscape=document.querySelector('.dv03-landscape');
+    if(landscape)landscape.hidden=Boolean(view.scenery);
+    const signLayer=document.querySelector('.dv03-sign-layer');
+    if(signLayer){signLayer.hidden=!view.showBillboard;const label=signLayer.querySelector('.hours-sign > span');if(label)label.textContent=view.featured&&view.showBillboard?'ACHIEVEMENT EARNED':'NEXT LICENSE MILESTONE'}
+    const sign=document.getElementById('hours-sign');
+    if(sign&&view.featured&&view.showBillboard)sign.textContent=view.featured.quest?.name||view.featured.name||view.featured.quest_key;
+    layer.dataset.dvFeatured=view.featured?.quest_key||'';
+    renderSky();
+    if(!skyTimer)skyTimer=setInterval(renderSky,30000);
+  }
+  function endFeatured(){
+    clearTimeout(featuredTimer);featuredTimer=null;featuredAwards=[];
+    const sign=document.getElementById('hours-sign');if(sign&&restingSign)sign.textContent=restingSign;
+    if(currentDetail)renderScene(currentDetail);
+  }
+  function featureDrive(detail){
+    if(!currentDetail||detail?.driverId!==currentDetail.driverId)return;
+    endFeatured();
+    const keys=new Set((detail.awards||[]).map(a=>a.quest_key));
+    featuredAwards=(currentDetail.model.quest_awards||[]).filter(a=>a.driver_id===detail.driverId&&a.drive_id===detail.driveId&&keys.has(a.quest_key));
+    if(!featuredAwards.length)return;
+    restingSign=document.getElementById('hours-sign')?.textContent||'';
+    renderScene(currentDetail);
+    featuredTimer=setTimeout(endFeatured,window.DV03_PRESENTATION.FEATURED_MS);
+  }
+  function clearScene(){
+    clearTimeout(featuredTimer);clearInterval(skyTimer);featuredTimer=null;skyTimer=null;featuredAwards=[];currentDetail=null;
+    const layer=document.getElementById('dv03-scene-layer');if(layer){layer.innerHTML='';layer.style.backgroundImage='';delete layer.dataset.dvScene;delete layer.dataset.dvPersistentScene;delete layer.dataset.dvFeatured}
+    const landscape=document.querySelector('.dv03-landscape'),sign=document.querySelector('.dv03-sign-layer');
+    if(landscape)landscape.hidden=false;if(sign)sign.hidden=false;
+    const sky=document.querySelector('.dv03-sky');if(sky)delete sky.dataset.dvSky;
   }
   window.addEventListener('dv:driver-changing',event=>{renderToken+=1;showFallback(event.detail?.driverName||'Driver');clearScene()});
-  window.addEventListener('dv:dashboard-rendered',event=>{renderScene(event.detail);resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'))});
-  window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,derivativePath,showFallback,renderScene,resolveHero});
+  window.addEventListener('dv:dashboard-rendered',event=>{
+    if(currentDetail?.driverId!==event.detail?.driverId){featuredAwards=[];clearTimeout(featuredTimer)}
+    restingSign=document.getElementById('hours-sign')?.textContent||'';
+    renderScene(event.detail);resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
+  });
+  window.addEventListener('dv:license-status-updated',()=>{restingSign=document.getElementById('hours-sign')?.textContent||'';if(currentDetail)renderScene(currentDetail)});
+  window.addEventListener('dv:drive-awarded',event=>featureDrive(event.detail));
+  window.addEventListener('focus',()=>{if(currentDetail)renderSky()});
+  window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,derivativePath,showFallback,renderScene,resolveHero,endFeatured,featureDrive});
 })();

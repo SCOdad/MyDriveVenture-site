@@ -19,3 +19,9 @@ html[data-experience=game] .dv03-windshield .hours-sign{isolation:isolate;left:a
 .dv03-body .radio-display h2{margin:8px 0 5px;color:var(--green);font:700 22px Orbitron,sans-serif}
 .dv03-body .dash-status{align-items:center}.dv03-body .dash-status-meta{display:flex;align-items:center;justify-content:flex-end;gap:22px;margin-left:auto;text-align:right;color:#a7b6ba}.dv03-body .night-xp-status,.dv03-body .local-time-status{white-space:nowrap}.dv03-body .night-xp-status b{color:var(--blue)}.dv03-body .dash-status .local-time-status,.dv03-body .dash-status .local-time-status b{color:var(--dv-driver-highlight,#ffe37a)}.dv03-body .license-info>div:nth-child(3)>span{line-height:1.35}
 @media(max-width:760px){.dv03-chip{padding:8px 10px}.dv03-hero{height:80%;left:-2%;bottom:-3%}html[data-experience=game] .dv03-windshield .hours-sign{right:3%;top:18%;width:40%;padding:7px 8px}.dv03-body .dash-status{align-items:flex-start;gap:7px 12px}.dv03-body .dash-status-meta{flex-direction:column;align-items:flex-end;gap:5px}}
+
+/* BKLG-0128: clock context, durable scenery, and transient award presentation. */
+.dv03-sky[data-dv-sky=night]{background:#111c3b url('/assets/images/dv03/layers/night.png') center/100% 100% no-repeat}
+.dv03-sky[data-dv-sky=night] .dv03-cloud{display:none}
+.dv03-scene-layer{background-position:center;background-size:100% 100%;background-repeat:no-repeat;image-rendering:pixelated}
+.dv03-landscape[hidden],.dv03-sign-layer[hidden]{display:none!important}

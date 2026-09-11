@@ -61,8 +61,8 @@ test('BKLG-0128 retired versioned layer drafts are removed',()=>{
 });
 
 test('BKLG-0128 UAT and gallery cache keys are bumped together',()=>{
-  assert.match(uatHtml,/20260911-native-drive-thru1/);
-  assert.match(galleryHtml,/20260911-native-drive-thru1/);
+  assert.match(uatHtml,/20260911-persistence1/);
+  assert.match(galleryHtml,/20260911-persistence1/);
   assert.doesNotMatch(uatHtml,/20260910-composition2/);
   assert.doesNotMatch(galleryHtml,/20260910-composition2/);
 });
