@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260911-native-drive-thru1';
+const marker = '20260911-persistence1';
 const assets = [
   '/assets/images/dv03/layers/night.png',
   '/assets/images/dv03/layers/park.png',
@@ -26,6 +26,8 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   const harnessSource=await (await page.request.get(`/assets/js/bklg-0128-dv03-staging.js?prodcheck=${Date.now()}`)).text();
   const currentSource=await (await page.request.get(`/assets/js/bklg-0128-scenery-current.js?prodcheck=${Date.now()}`)).text();
   const compositionSource=await (await page.request.get(`/assets/js/bklg-0128-composition-uat.js?prodcheck=${Date.now()}`)).text();
+  const presentationSource=await (await page.request.get(`/assets/js/dv03-presentation-rules.js?prodcheck=${Date.now()}`)).text();
+  const runtimeSource=await (await page.request.get(`/assets/js/log-game-dv03.js?prodcheck=${Date.now()}`)).text();
   expect(harnessSource).toContain("{key:'02',id:'road',label:'Road / Ground'");
   expect(harnessSource).toContain("{key:'03',id:'background',label:'Background'");
   expect(harnessSource).toContain("value:'drive-thru',label:'Drive Thru'");
@@ -43,9 +45,14 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   expect(currentSource).toContain('e83616b-car-wash');
   expect(currentSource).not.toContain("createElement('button')");
   expect(compositionSource).toContain("api.state.road='off'");
-  expect(compositionSource).toContain('Scenery Only');
-  expect(compositionSource).toContain('Billboard Only');
-  expect(compositionSource).toContain('Both');
+  expect(compositionSource).toContain('Persistent Scenery');
+  expect(compositionSource).toContain('Billboard Wins');
+  expect(presentationSource).toContain('selectPersistentSceneryAward');
+  expect(presentationSource).toContain('comparePriority');
+  expect(presentationSource).toContain("Q000039:{scene:'library'");
+  expect(runtimeSource).toContain('newlyObservedAwards');
+  expect(runtimeSource).toContain('FEATURE_DURATION_MS');
+  expect(runtimeSource).not.toContain('SCENE_RECENCY_DAYS');
 
   for (const src of assets) {
     const dimensions = await page.evaluate(async (src) => {

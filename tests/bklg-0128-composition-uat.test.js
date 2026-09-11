@@ -23,3 +23,11 @@ test('BKLG-0128 UAT exposes billboard and scenery composition choices',()=>{
   assert.match(js,/api\.state\.sign='off'/);
   assert.match(js,/api\.state\.background='off'/);
 });
+
+test('BKLG-0128 UAT exposes persistent presentation and sky scenarios',()=>{
+  for(const label of ['No Scenery Yet','Persistent Scenery','Scenery Wins','Billboard Wins','Day','Night'])assert.match(js,new RegExp(label));
+  assert.match(js,/data-presentation="persistent"/);
+  assert.match(js,/api\.state\.background='library'/);
+  assert.match(js,/api\.state\.background='snack-run'/);
+  assert.match(js,/api\.state\.sky='night'/);
+});
