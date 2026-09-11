@@ -4,6 +4,7 @@
     {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-DRAFT',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
     {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-DRAFT',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png'},
     {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-DRAFT',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png'},
+    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L6B-DRAFT',name:'Drive Thru Background',file:'DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png',version:'legacy-drive-thru'},
     {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L7-DRAFT',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png',version:'e83616b'},
     {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L8-DRAFT',name:'Gas Station Background',file:'DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
   ];
@@ -15,9 +16,28 @@
       const background=api?.LAYERS?.find(layer=>layer.id==='background');
       if(!background)return false;
       CURRENT.forEach(item=>{
-        const option=background.options.find(candidate=>candidate.value===item.value);
-        if(option){option.label=item.name.replace(' Background','');option.sortKey=item.sortKey;option.src=srcFor(item);option.draft=true;}
+        let option=background.options.find(candidate=>candidate.value===item.value);
+        if(!option){
+          option={value:item.value,label:item.name.replace(' Background',''),sortKey:item.sortKey,src:srcFor(item),draft:true};
+          background.options.push(option);
+        }else{
+          option.label=item.name.replace(' Background','');option.sortKey=item.sortKey;option.src=srcFor(item);option.draft=true;
+        }
       });
+      const driveThru=CURRENT.find(item=>item.value==='drive-thru');
+      const row=document.querySelector('[data-layer-row="background"]');
+      const options=row?.querySelector('.uat-layer-options');
+      if(options&&driveThru&&!options.querySelector('[data-value="drive-thru"]')){
+        const button=document.createElement('button');
+        button.type='button';button.className='uat-option';button.dataset.layer='background';button.dataset.value='drive-thru';button.setAttribute('aria-pressed','false');button.textContent='Drive Thru · DRAFT';
+        button.addEventListener('click',()=>{
+          api.state.background='drive-thru';api.applyLayers?.();
+          options.querySelectorAll('.uat-option').forEach(node=>node.setAttribute('aria-pressed',String(node===button)));
+          row.querySelector('small').textContent=driveThru.sortKey;
+        });
+        const carWashButton=options.querySelector('[data-value="car-wash"]');
+        options.insertBefore(button,carWashButton||null);
+      }
       api.applyLayers?.();
       return true;
     };
