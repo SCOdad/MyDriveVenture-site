@@ -4,6 +4,7 @@
     {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-DRAFT',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
     {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-DRAFT',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png'},
     {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-DRAFT',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png'},
+    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L6B-DRAFT',name:'Drive Thru Background',file:'DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png',version:'legacy-drive-thru'},
     {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L7-DRAFT',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png',version:'e83616b'},
     {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L8-DRAFT',name:'Gas Station Background',file:'DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
   ];
@@ -15,10 +16,16 @@
       const background=api?.LAYERS?.find(layer=>layer.id==='background');
       if(!background)return false;
       CURRENT.forEach(item=>{
-        const option=background.options.find(candidate=>candidate.value===item.value);
-        if(option){option.label=item.name.replace(' Background','');option.sortKey=item.sortKey;option.src=srcFor(item);option.draft=true;}
+        let option=background.options.find(candidate=>candidate.value===item.value);
+        if(!option){
+          option={value:item.value,label:item.name.replace(' Background',''),sortKey:item.sortKey,src:srcFor(item),draft:true};
+          background.options.push(option);
+        }else{
+          option.label=item.name.replace(' Background','');option.sortKey=item.sortKey;option.src=srcFor(item);option.draft=true;
+        }
       });
       api.applyLayers?.();
+      api.renderHarness?.();
       return true;
     };
     if(!apply())setTimeout(apply,0);
