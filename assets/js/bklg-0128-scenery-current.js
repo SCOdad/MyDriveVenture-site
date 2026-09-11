@@ -4,10 +4,10 @@
     {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-DRAFT',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
     {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-DRAFT',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png'},
     {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-DRAFT',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png'},
-    {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L7-DRAFT',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png'},
+    {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L7-DRAFT',name:'Car Wash Background',file:'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png',version:'e83616b'},
     {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L8-DRAFT',name:'Gas Station Background',file:'DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
   ];
-  const srcFor=item=>`/assets/images/dv03/layers/${item.file}`;
+  const srcFor=item=>`/assets/images/dv03/layers/${item.file}${item.version?`?v=${item.version}`:''}`;
 
   if(document.documentElement.dataset.dvRoute==='bklg0128uat'){
     const apply=()=>{
