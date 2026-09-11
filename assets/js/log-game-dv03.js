@@ -1,14 +1,27 @@
 (() => {
   const FALLBACK_URL='/assets/images/dv03/hero/parker-seated.png';
   const DERIVATIVE_FILENAME='avatar-dv03.png';
-  const SCENE_RECENCY_DAYS=14;
-  const SCENE_RULES=Object.freeze({Q000035:'PARK',Q000012:'CONSTRUCTION'});
-  const SCENE_MARKUP=Object.freeze({
-    PARK:'<div class="dv03-scene-park"><i class="tree-a"></i><i class="tree-b"></i><b>PARK</b></div>',
-    CONSTRUCTION:'<div class="dv03-scene-construction"><i class="cone-a"></i><i class="cone-b"></i><b>ROAD<br>WORK</b></div>'
-  });
+  const NIGHT_SKY_URL='/assets/images/dv03/layers/night.png';
+  const FEATURE_DURATION_MS=10000;
   const signedUrlCache=new Map();
   let renderToken=0;
+  let latestDetail=null;
+  let featuredTimer=0;
+  let billboardRestore=null;
+
+  function ensureRules(){
+    if(window.DV03_PRESENTATION_RULES)return Promise.resolve(window.DV03_PRESENTATION_RULES);
+    return new Promise((resolve,reject)=>{
+      const existing=document.querySelector('script[data-dv03-presentation-rules]');
+      if(existing){existing.addEventListener('load',()=>resolve(window.DV03_PRESENTATION_RULES),{once:true});existing.addEventListener('error',reject,{once:true});return}
+      const script=document.createElement('script');
+      script.src='/assets/js/dv03-presentation-rules.js?v=20260911-persistence1';
+      script.dataset.dv03PresentationRules='true';
+      script.onload=()=>resolve(window.DV03_PRESENTATION_RULES);
+      script.onerror=reject;
+      document.head.appendChild(script);
+    });
+  }
 
   function hero(){return document.getElementById('dv03-hero')}
   function derivativePath(assignment){
@@ -53,16 +66,77 @@
     }
     applyResolved(url,driverName,driverId,token);
   }
-  function clearScene(){const layer=document.getElementById('dv03-scene-layer');if(layer){layer.innerHTML='';delete layer.dataset.dvScene}}
-  function renderScene(detail){
-    const layer=document.getElementById('dv03-scene-layer');if(!layer)return;
-    const cutoff=Date.now()-SCENE_RECENCY_DAYS*86400000;
-    const award=(detail?.model?.quest_awards||[]).filter(row=>row.driver_id===detail.driverId&&SCENE_RULES[row.quest_key]&&Date.parse(row.awarded_at)>=cutoff).sort((a,b)=>Date.parse(b.awarded_at)-Date.parse(a.awarded_at))[0];
-    const scene=award?SCENE_RULES[award.quest_key]:null;
-    layer.innerHTML=scene?SCENE_MARKUP[scene]:'';
-    if(scene)layer.dataset.dvScene=scene.toLowerCase();else delete layer.dataset.dvScene;
+
+  function sceneLayer(){return document.getElementById('dv03-scene-layer')}
+  function signLayer(){return document.querySelector('.dv03-sign-layer')}
+  function signText(){return signLayer()?.querySelector('.hours-sign span')||null}
+  function signStrong(){return document.getElementById('hours-sign')}
+
+  function clearScene(){
+    const layer=sceneLayer();
+    if(layer){layer.innerHTML='';layer.style.backgroundImage='';delete layer.dataset.dvScene}
   }
-  window.addEventListener('dv:driver-changing',event=>{renderToken+=1;showFallback(event.detail?.driverName||'Driver');clearScene()});
-  window.addEventListener('dv:dashboard-rendered',event=>{renderScene(event.detail);resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'))});
-  window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,derivativePath,showFallback,renderScene,resolveHero});
+  function restoreBillboardText(){
+    if(!billboardRestore)return;
+    const label=signText(),strong=signStrong();
+    if(label)label.textContent=billboardRestore.label;
+    if(strong)strong.textContent=billboardRestore.strong;
+    billboardRestore=null;
+  }
+  function applySky(detail,rules){
+    const sky=document.querySelector('.dv03-sky');if(!sky)return;
+    const mode=rules.skyFor(detail?.driver?.timezone||null,new Date());
+    sky.dataset.dvSky=mode;
+    sky.style.backgroundImage=mode==='night'?`url("${NIGHT_SKY_URL}")`:'';
+    sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=mode==='night'?'none':'');
+  }
+  function enrichAwards(awards,detail){
+    const modelAwards=detail?.model?.quest_awards||[],driveId=awards?.[0]?.drive_id||null;
+    return (awards||[]).map(award=>{
+      const match=modelAwards.find(row=>row.quest_key===award.quest_key&&(!driveId||row.drive_id===driveId))||modelAwards.find(row=>row.quest_key===award.quest_key);
+      return {...match,...award,quest:match?.quest||award.quest||null,xp_awarded:award.xp_awarded??award.xp??match?.xp_awarded??0};
+    });
+  }
+  function applyPresentation(detail,featuredAwards=[]){
+    const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
+    const layer=sceneLayer(),sign=signLayer();if(!layer)return;
+    applySky(detail,rules);
+    const presentation=rules.resolvePresentation({awards:detail?.model?.quest_awards||[],driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null});
+    const scenery=presentation.activeScenery;
+    layer.innerHTML='';
+    layer.style.backgroundImage=scenery?`url("${scenery.src}")`:'';
+    layer.style.backgroundRepeat=scenery?'no-repeat':'';
+    layer.style.backgroundPosition=scenery?'center':'';
+    layer.style.backgroundSize=scenery?'100% 100%':'';
+    if(scenery)layer.dataset.dvScene=scenery.scene;else delete layer.dataset.dvScene;
+    if(sign)sign.style.display=presentation.showBillboard?'block':'none';
+    if(presentation.featuredMode==='billboard'&&presentation.featuredAward){
+      const label=signText(),strong=signStrong();
+      if(!billboardRestore)billboardRestore={label:label?.textContent||'NEXT LICENSE MILESTONE',strong:strong?.textContent||''};
+      if(label)label.textContent='ACHIEVEMENT UNLOCKED';
+      if(strong)strong.textContent=presentation.featuredAward?.quest?.name||presentation.featuredAward?.name||presentation.featuredAward?.quest_key||'Achievement';
+    }else restoreBillboardText();
+    return presentation;
+  }
+  function renderScene(detail){
+    latestDetail=detail||latestDetail;
+    if(!latestDetail)return;
+    applyPresentation(latestDetail,[]);
+  }
+  function featureAwards(rawAwards){
+    if(!latestDetail||!rawAwards?.length)return;
+    clearTimeout(featuredTimer);
+    const awards=enrichAwards(rawAwards,latestDetail);
+    applyPresentation(latestDetail,awards);
+    featuredTimer=window.setTimeout(()=>{featuredTimer=0;restoreBillboardText();renderScene(latestDetail)},FEATURE_DURATION_MS);
+  }
+
+  ensureRules().then(()=>{
+    window.addEventListener('dv:driver-changing',event=>{renderToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
+    window.addEventListener('dv:dashboard-rendered',event=>{latestDetail=event.detail;renderScene(event.detail);resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'))});
+    window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
+    window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards});
+  }).catch(()=>{
+    window.addEventListener('dv:dashboard-rendered',event=>resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver')));
+  });
 })();
