@@ -24,8 +24,21 @@
           option.label=item.name.replace(' Background','');option.sortKey=item.sortKey;option.src=srcFor(item);option.draft=true;
         }
       });
+      const driveThru=CURRENT.find(item=>item.value==='drive-thru');
+      const row=document.querySelector('[data-layer-row="background"]');
+      const options=row?.querySelector('.uat-layer-options');
+      if(options&&driveThru&&!options.querySelector('[data-value="drive-thru"]')){
+        const button=document.createElement('button');
+        button.type='button';button.className='uat-option';button.dataset.layer='background';button.dataset.value='drive-thru';button.setAttribute('aria-pressed','false');button.textContent='Drive Thru · DRAFT';
+        button.addEventListener('click',()=>{
+          api.state.background='drive-thru';api.applyLayers?.();
+          options.querySelectorAll('.uat-option').forEach(node=>node.setAttribute('aria-pressed',String(node===button)));
+          row.querySelector('small').textContent=driveThru.sortKey;
+        });
+        const carWashButton=options.querySelector('[data-value="car-wash"]');
+        options.insertBefore(button,carWashButton||null);
+      }
       api.applyLayers?.();
-      api.renderHarness?.();
       return true;
     };
     if(!apply())setTimeout(apply,0);
