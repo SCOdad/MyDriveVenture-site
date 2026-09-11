@@ -4,6 +4,7 @@
   const NIGHT_SKY_URL='/assets/images/dv03/layers/night.png';
   const FEATURE_DURATION_MS=10000;
   const signedUrlCache=new Map();
+  const seenAwardIdsByDriver=new Map();
   let renderToken=0;
   let latestDetail=null;
   let featuredTimer=0;
@@ -71,11 +72,7 @@
   function signLayer(){return document.querySelector('.dv03-sign-layer')}
   function signText(){return signLayer()?.querySelector('.hours-sign span')||null}
   function signStrong(){return document.getElementById('hours-sign')}
-
-  function clearScene(){
-    const layer=sceneLayer();
-    if(layer){layer.innerHTML='';layer.style.backgroundImage='';delete layer.dataset.dvScene}
-  }
+  function clearScene(){const layer=sceneLayer();if(layer){layer.innerHTML='';layer.style.backgroundImage='';delete layer.dataset.dvScene}}
   function restoreBillboardText(){
     if(!billboardRestore)return;
     const label=signText(),strong=signStrong();
@@ -91,11 +88,20 @@
     sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=mode==='night'?'none':'');
   }
   function enrichAwards(awards,detail){
-    const modelAwards=detail?.model?.quest_awards||[],driveId=awards?.[0]?.drive_id||null;
+    const modelAwards=detail?.model?.quest_awards||[];
     return (awards||[]).map(award=>{
-      const match=modelAwards.find(row=>row.quest_key===award.quest_key&&(!driveId||row.drive_id===driveId))||modelAwards.find(row=>row.quest_key===award.quest_key);
+      const match=modelAwards.find(row=>row.id&&award.id&&row.id===award.id)||modelAwards.find(row=>row.quest_key===award.quest_key&&row.drive_id===award.drive_id)||modelAwards.find(row=>row.quest_key===award.quest_key);
       return {...match,...award,quest:match?.quest||award.quest||null,xp_awarded:award.xp_awarded??award.xp??match?.xp_awarded??0};
     });
+  }
+  function newlyObservedAwards(detail){
+    const driverId=detail?.driverId;if(!driverId)return[];
+    const awards=(detail?.model?.quest_awards||[]).filter(row=>row.driver_id===driverId);
+    const ids=new Set(awards.map(row=>row.id).filter(Boolean));
+    const prior=seenAwardIdsByDriver.get(driverId);
+    seenAwardIdsByDriver.set(driverId,ids);
+    if(!prior)return[];
+    return awards.filter(row=>row.id&&!prior.has(row.id));
   }
   function applyPresentation(detail,featuredAwards=[]){
     const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
@@ -118,11 +124,7 @@
     }else restoreBillboardText();
     return presentation;
   }
-  function renderScene(detail){
-    latestDetail=detail||latestDetail;
-    if(!latestDetail)return;
-    applyPresentation(latestDetail,[]);
-  }
+  function renderScene(detail){latestDetail=detail||latestDetail;if(latestDetail)applyPresentation(latestDetail,[])}
   function featureAwards(rawAwards){
     if(!latestDetail||!rawAwards?.length)return;
     clearTimeout(featuredTimer);
@@ -133,10 +135,14 @@
 
   ensureRules().then(()=>{
     window.addEventListener('dv:driver-changing',event=>{renderToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
-    window.addEventListener('dv:dashboard-rendered',event=>{latestDetail=event.detail;renderScene(event.detail);resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'))});
+    window.addEventListener('dv:dashboard-rendered',event=>{
+      const newAwards=newlyObservedAwards(event.detail);
+      latestDetail=event.detail;
+      renderScene(event.detail);
+      resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
+      if(newAwards.length)featureAwards(newAwards);
+    });
     window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
-    window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards});
-  }).catch(()=>{
-    window.addEventListener('dv:dashboard-rendered',event=>resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver')));
-  });
+    window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards,newlyObservedAwards});
+  }).catch(()=>{window.addEventListener('dv:dashboard-rendered',event=>resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver')))});
 })();
