@@ -46,7 +46,8 @@ test('BKLG-0128 Drive Thru is native to the authoritative Background harness',()
   assert.match(staging,/03-BACKGROUND-DRIVE-THRU/);
   assert.doesNotMatch(current,/createElement\('button'\)/);
   assert.doesNotMatch(current,/insertBefore\(button/);
-  assert.match(current,/590adf8-drive-thru/);
+  assert.match(current,/721c2d7-library/);
+  assert.match(current,/721c2d7-drive-thru/);
   assert.match(current,/e83616b-car-wash/);
 });
 
