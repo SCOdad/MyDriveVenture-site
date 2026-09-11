@@ -3,11 +3,13 @@
   const DERIVATIVE_FILENAME='avatar-dv03.png';
   const NIGHT_SKY_URL='/assets/images/dv03/layers/night.png';
   const FEATURE_DURATION_MS=10000;
+  const SKY_REFRESH_MS=60000;
   const signedUrlCache=new Map();
   const seenAwardIdsByDriver=new Map();
   let renderToken=0;
   let latestDetail=null;
   let featuredTimer=0;
+  let skyTimer=0;
   let billboardRestore=null;
 
   function ensureRules(){
@@ -83,7 +85,8 @@
   }
   function applySky(detail,rules){
     const sky=document.querySelector?.('.dv03-sky');if(!sky||!rules)return;
-    const mode=rules.skyFor(detail?.driver?.timezone||null,new Date());
+    const phase=String(document.getElementById('night-time-phase')?.textContent||'').trim().toUpperCase();
+    const mode=phase==='ENDS'?'night':phase==='BEGINS'?'day':rules.skyFor(detail?.driver?.timezone||null,new Date());
     sky.dataset.dvSky=mode;
     sky.style.backgroundImage=mode==='night'?`url("${NIGHT_SKY_URL}")`:'';
     sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=mode==='night'?'none':'');
@@ -110,6 +113,8 @@
     applySky(detail,rules);
     const presentation=rules.resolvePresentation({awards:detail?.model?.quest_awards||[],driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null});
     const scenery=presentation.activeScenery;
+    const landscape=document.querySelector?.('.dv03-landscape');
+    if(landscape)landscape.style.display=scenery?'none':'';
     layer.innerHTML='';
     layer.style.backgroundImage=scenery?`url("${scenery.src}")`:'';
     layer.style.backgroundRepeat=scenery?'no-repeat':'';
@@ -146,5 +151,8 @@
     if(newAwards.length)featureAwards(newAwards);
   });
   window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
-  ensureRules().then(rules=>{if(rules&&latestDetail)renderScene(latestDetail)}).catch(()=>{});
+  ensureRules().then(rules=>{
+    if(rules&&latestDetail)renderScene(latestDetail);
+    if(rules&&!skyTimer)skyTimer=window.setInterval(()=>{if(latestDetail)applySky(latestDetail,rules)},SKY_REFRESH_MS);
+  }).catch(()=>{});
 })();
