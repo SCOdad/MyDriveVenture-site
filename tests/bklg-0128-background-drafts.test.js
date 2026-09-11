@@ -15,6 +15,7 @@ const drafts=[
   ['GROCERY-STORE','DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'],
   ['LIBRARY','DV03-L5-LIBRARY-BACKGROUND-DRAFT.png'],
   ['SNACK-RUN','DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png'],
+  ['DRIVE-THRU','DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png'],
   ['CAR-WASH','DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png'],
   ['GAS-STATION','DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png']
 ];
@@ -30,7 +31,7 @@ const retired=[
   'DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png'
 ];
 
-test('BKLG-0128 current scenery registry points all six backgrounds at unversioned draft files',()=>{
+test('BKLG-0128 current scenery registry points all destination backgrounds at canonical draft files',()=>{
   for(const [key,file] of drafts){
     assert.match(current,new RegExp(`03-BACKGROUND-${key}`));
     assert.match(current,new RegExp(file.replaceAll('.','\\.')));
@@ -38,6 +39,15 @@ test('BKLG-0128 current scenery registry points all six backgrounds at unversion
   }
   assert.match(staging,/03-BACKGROUND-PARK/);
   assert.match(gallery,/03-BACKGROUND-PARK/);
+});
+
+test('BKLG-0128 Drive Thru is native to the authoritative Background harness',()=>{
+  assert.match(staging,/value:'drive-thru',label:'Drive Thru'/);
+  assert.match(staging,/03-BACKGROUND-DRIVE-THRU/);
+  assert.doesNotMatch(current,/createElement\('button'\)/);
+  assert.doesNotMatch(current,/insertBefore\(button/);
+  assert.match(current,/590adf8-drive-thru/);
+  assert.match(current,/e83616b-car-wash/);
 });
 
 test('BKLG-0128 retired versioned layer drafts are removed',()=>{
@@ -49,6 +59,8 @@ test('BKLG-0128 retired versioned layer drafts are removed',()=>{
 });
 
 test('BKLG-0128 UAT and gallery cache keys are bumped together',()=>{
-  assert.match(uatHtml,/20260910-composition2/);
-  assert.match(galleryHtml,/20260910-composition2/);
+  assert.match(uatHtml,/20260911-native-drive-thru1/);
+  assert.match(galleryHtml,/20260911-native-drive-thru1/);
+  assert.doesNotMatch(uatHtml,/20260910-composition2/);
+  assert.doesNotMatch(galleryHtml,/20260910-composition2/);
 });
