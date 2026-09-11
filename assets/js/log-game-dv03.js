@@ -12,6 +12,7 @@
 
   function ensureRules(){
     if(window.DV03_PRESENTATION_RULES)return Promise.resolve(window.DV03_PRESENTATION_RULES);
+    if(!document?.querySelector||!document?.createElement||!document?.head)return Promise.resolve(null);
     return new Promise((resolve,reject)=>{
       const existing=document.querySelector('script[data-dv03-presentation-rules]');
       if(existing){existing.addEventListener('load',()=>resolve(window.DV03_PRESENTATION_RULES),{once:true});existing.addEventListener('error',reject,{once:true});return}
@@ -69,8 +70,8 @@
   }
 
   function sceneLayer(){return document.getElementById('dv03-scene-layer')}
-  function signLayer(){return document.querySelector('.dv03-sign-layer')}
-  function signText(){return signLayer()?.querySelector('.hours-sign span')||null}
+  function signLayer(){return document.querySelector?.('.dv03-sign-layer')||null}
+  function signText(){return signLayer()?.querySelector?.('.hours-sign span')||null}
   function signStrong(){return document.getElementById('hours-sign')}
   function clearScene(){const layer=sceneLayer();if(layer){layer.innerHTML='';layer.style.backgroundImage='';delete layer.dataset.dvScene}}
   function restoreBillboardText(){
@@ -81,7 +82,7 @@
     billboardRestore=null;
   }
   function applySky(detail,rules){
-    const sky=document.querySelector('.dv03-sky');if(!sky)return;
+    const sky=document.querySelector?.('.dv03-sky');if(!sky||!rules)return;
     const mode=rules.skyFor(detail?.driver?.timezone||null,new Date());
     sky.dataset.dvSky=mode;
     sky.style.backgroundImage=mode==='night'?`url("${NIGHT_SKY_URL}")`:'';
@@ -133,16 +134,17 @@
     featuredTimer=window.setTimeout(()=>{featuredTimer=0;restoreBillboardText();renderScene(latestDetail)},FEATURE_DURATION_MS);
   }
 
-  ensureRules().then(()=>{
-    window.addEventListener('dv:driver-changing',event=>{renderToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
-    window.addEventListener('dv:dashboard-rendered',event=>{
-      const newAwards=newlyObservedAwards(event.detail);
-      latestDetail=event.detail;
-      renderScene(event.detail);
-      resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
-      if(newAwards.length)featureAwards(newAwards);
-    });
-    window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
-    window.DV_GAME_DV03=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards,newlyObservedAwards});
-  }).catch(()=>{window.addEventListener('dv:dashboard-rendered',event=>resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver')))});
+  const api=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards,newlyObservedAwards});
+  window.DV_GAME_DV03=api;
+
+  window.addEventListener('dv:driver-changing',event=>{renderToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
+  window.addEventListener('dv:dashboard-rendered',event=>{
+    const newAwards=newlyObservedAwards(event.detail);
+    latestDetail=event.detail;
+    renderScene(event.detail);
+    resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
+    if(newAwards.length)featureAwards(newAwards);
+  });
+  window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
+  ensureRules().then(rules=>{if(rules&&latestDetail)renderScene(latestDetail)}).catch(()=>{});
 })();
