@@ -34,9 +34,11 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   expect(harnessSource).toContain('z-index:2!important');
   expect(harnessSource).toContain('z-index:3!important');
   expect(currentSource).toContain('DV03-L5-LIBRARY-BACKGROUND-DRAFT.png');
+  expect(currentSource).toContain('DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png');
   expect(currentSource).toContain('DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png');
   expect(currentSource).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png');
   expect(currentSource).toContain('721c2d7-library');
+  expect(currentSource).toContain('56aafef-snack-run');
   expect(currentSource).toContain('721c2d7-drive-thru');
   expect(currentSource).toContain('e83616b-car-wash');
   expect(currentSource).not.toContain("createElement('button')");
