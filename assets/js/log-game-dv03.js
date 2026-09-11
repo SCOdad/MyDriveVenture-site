@@ -124,7 +124,7 @@
     const awards=(awardResult.data||[]).map(row=>({...row,quest:definitions.get(row.quest_key)||null}));
     const selected=rules.selectPersistentSceneryAward(awards,driverId);
     if(selected)persistentAwardByDriver.set(driverId,selected);else persistentAwardByDriver.delete(driverId);
-    if(latestDetail?.driverId===driverId)renderScene(latestDetail);
+    if(latestDetail?.driverId===driverId&&!featuredTimer)renderScene(latestDetail);
   }
   function presentationAwards(detail){
     const awards=[...(detail?.model?.quest_awards||[])],override=persistentAwardByDriver.get(detail?.driverId);
