@@ -6,7 +6,9 @@
   const SKY_REFRESH_MS=60000;
   const signedUrlCache=new Map();
   const seenAwardIdsByDriver=new Map();
+  const persistentAwardByDriver=new Map();
   let renderToken=0;
+  let persistenceToken=0;
   let latestDetail=null;
   let featuredTimer=0;
   let skyTimer=0;
@@ -86,7 +88,9 @@
   function applySky(detail,rules){
     const sky=document.querySelector?.('.dv03-sky');if(!sky||!rules)return;
     const phase=String(document.getElementById('night-time-phase')?.textContent||'').trim().toUpperCase();
-    const mode=phase==='ENDS'?'night':phase==='BEGINS'?'day':rules.skyFor(detail?.driver?.timezone||null,new Date());
+    const value=String(document.getElementById('night-time-value')?.textContent||'').trim().toUpperCase();
+    const phaseReady=value&&!value.includes('LOADING')&&!value.includes('UNAVAILABLE');
+    const mode=phaseReady&&phase==='ENDS'?'night':phaseReady&&phase==='BEGINS'?'day':rules.skyFor(detail?.driver?.timezone||null,new Date());
     sky.dataset.dvSky=mode;
     sky.style.backgroundImage=mode==='night'?`url("${NIGHT_SKY_URL}")`:'';
     sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=mode==='night'?'none':'');
@@ -107,11 +111,31 @@
     if(!prior)return[];
     return awards.filter(row=>row.id&&!prior.has(row.id));
   }
+  async function refreshPersistentScenery(detail){
+    const rules=window.DV03_PRESENTATION_RULES,client=window.DV_LOG_APP?.client,driverId=detail?.driverId;
+    if(!rules||!client||!driverId)return;
+    const token=++persistenceToken,keys=Object.keys(rules.SCENERY_BY_QUEST);
+    const [awardResult,questResult]=await Promise.all([
+      client.from('quest_awards').select('id,driver_id,quest_key,xp_awarded,awarded_at,drive_id').eq('driver_id',driverId).in('quest_key',keys).order('awarded_at',{ascending:false}).limit(20),
+      client.from('quest_definitions').select('quest_key,name,display_order,xp').in('quest_key',keys)
+    ]);
+    if(token!==persistenceToken||window.DV_LOG_APP?.getDriverId?.()!==driverId||awardResult.error||questResult.error)return;
+    const definitions=new Map((questResult.data||[]).map(row=>[row.quest_key,row]));
+    const awards=(awardResult.data||[]).map(row=>({...row,quest:definitions.get(row.quest_key)||null}));
+    const selected=rules.selectPersistentSceneryAward(awards,driverId);
+    if(selected)persistentAwardByDriver.set(driverId,selected);else persistentAwardByDriver.delete(driverId);
+    if(latestDetail?.driverId===driverId)renderScene(latestDetail);
+  }
+  function presentationAwards(detail){
+    const awards=[...(detail?.model?.quest_awards||[])],override=persistentAwardByDriver.get(detail?.driverId);
+    if(override&&!awards.some(row=>row.id===override.id))awards.push(override);
+    return awards;
+  }
   function applyPresentation(detail,featuredAwards=[]){
     const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
     const layer=sceneLayer(),sign=signLayer();if(!layer)return;
     applySky(detail,rules);
-    const presentation=rules.resolvePresentation({awards:detail?.model?.quest_awards||[],driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null});
+    const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null});
     const scenery=presentation.activeScenery;
     const landscape=document.querySelector?.('.dv03-landscape');
     if(landscape)landscape.style.display=scenery?'none':'';
@@ -139,20 +163,21 @@
     featuredTimer=window.setTimeout(()=>{featuredTimer=0;restoreBillboardText();renderScene(latestDetail)},FEATURE_DURATION_MS);
   }
 
-  const api=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards,newlyObservedAwards});
+  const api=Object.freeze({FALLBACK_URL,DERIVATIVE_FILENAME,FEATURE_DURATION_MS,derivativePath,showFallback,renderScene,resolveHero,applyPresentation,featureAwards,newlyObservedAwards,refreshPersistentScenery});
   window.DV_GAME_DV03=api;
 
-  window.addEventListener('dv:driver-changing',event=>{renderToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
+  window.addEventListener('dv:driver-changing',event=>{renderToken+=1;persistenceToken+=1;clearTimeout(featuredTimer);featuredTimer=0;latestDetail=null;restoreBillboardText();showFallback(event.detail?.driverName||'Driver');clearScene()});
   window.addEventListener('dv:dashboard-rendered',event=>{
     const newAwards=newlyObservedAwards(event.detail);
     latestDetail=event.detail;
     renderScene(event.detail);
     resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
+    refreshPersistentScenery(event.detail).catch(()=>{});
     if(newAwards.length)featureAwards(newAwards);
   });
   window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
   ensureRules().then(rules=>{
-    if(rules&&latestDetail)renderScene(latestDetail);
+    if(rules&&latestDetail){renderScene(latestDetail);refreshPersistentScenery(latestDetail).catch(()=>{})}
     if(rules&&!skyTimer)skyTimer=window.setInterval(()=>{if(latestDetail)applySky(latestDetail,rules)},SKY_REFRESH_MS);
   }).catch(()=>{});
 })();
