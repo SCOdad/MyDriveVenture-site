@@ -5,6 +5,7 @@
 .dv03-windshield:after{z-index:8}
 .dv03-layer{position:absolute;inset:0;pointer-events:none}
 .dv03-sky{z-index:0;background:linear-gradient(#77c8ef 0%,#9edcf6 52%,#d8f1ff 100%)}
+.dv03-sky[data-dv-sky="night"]{background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated}
 .dv03-cloud{position:absolute;height:4.5%;width:14%;background:#f4fbff;box-shadow:8px 0 0 #f4fbff,16px 0 0 #eef9ff,8px -7px 0 #f8fdff;opacity:.62}.cloud-a{top:17%;right:16%;transform:scale(.8)}.cloud-b{top:29%;left:41%;transform:scale(.55);opacity:.42}
 .dv03-landscape{z-index:1}.dv03-horizon{position:absolute;left:-2%;right:-2%;bottom:42%;height:23%;background:linear-gradient(#7da35c,#668b49 55%,#577940);clip-path:polygon(0 42%,10% 30%,19% 42%,31% 24%,42% 39%,54% 18%,68% 40%,80% 27%,91% 38%,100% 25%,100% 100%,0 100%)}
 .dv03-tree-line{position:absolute;bottom:39%;height:10%;background:#315c35;clip-path:polygon(0 100%,0 55%,4% 18%,8% 62%,13% 28%,17% 64%,22% 12%,27% 60%,33% 24%,39% 63%,45% 17%,50% 64%,56% 30%,61% 65%,67% 13%,72% 62%,78% 26%,84% 61%,90% 17%,95% 64%,100% 33%,100% 100%)}.tree-line-a{left:0;width:58%;opacity:.8}.tree-line-b{right:0;width:54%;transform:scaleX(-1);opacity:.68}.dv03-landscape:after{content:"";position:absolute;left:0;right:0;bottom:0;height:43%;background:linear-gradient(#6b8b49,#526d3b)}
