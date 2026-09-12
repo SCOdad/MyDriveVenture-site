@@ -28,6 +28,7 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   const compositionSource=await (await page.request.get(`/assets/js/bklg-0128-composition-uat.js?prodcheck=${Date.now()}`)).text();
   const presentationSource=await (await page.request.get(`/assets/js/dv03-presentation-rules.js?prodcheck=${Date.now()}`)).text();
   const runtimeSource=await (await page.request.get(`/assets/js/log-game-dv03.js?prodcheck=${Date.now()}`)).text();
+  const dv03CssSource=await (await page.request.get(`/assets/css/log-game-dv03.css?prodcheck=${Date.now()}`)).text();
   expect(harnessSource).toContain("{key:'02',id:'road',label:'Road / Ground'");
   expect(harnessSource).toContain("{key:'03',id:'background',label:'Background'");
   expect(harnessSource).toContain("value:'drive-thru',label:'Drive Thru'");
@@ -53,6 +54,8 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   expect(runtimeSource).toContain('newlyObservedAwards');
   expect(runtimeSource).toContain('FEATURE_DURATION_MS');
   expect(runtimeSource).not.toContain('SCENE_RECENCY_DAYS');
+  expect(dv03CssSource).toContain('.dv03-sky[data-dv-sky="night"]');
+  expect(dv03CssSource).toContain('background-repeat:no-repeat;background-position:center;background-size:100% 100%;image-rendering:pixelated');
 
   for (const src of assets) {
     const dimensions = await page.evaluate(async (src) => {
@@ -83,6 +86,7 @@ test('BKLG-0128 production DV03 can visibly compose Night, optional Ground, and 
     const sourceRoad=document.querySelector('.dv03-road');
     if (!windshield || !sky || !landscape || !scene || !sourceRoad) throw new Error('DV03 layer DOM is missing in production');
     sky.querySelectorAll('.dv03-cloud').forEach(node => node.style.display = 'none');
+    sky.dataset.dvSky='night';
     sky.style.backgroundImage = 'url("/assets/images/dv03/layers/night.png")';
     sky.style.zIndex='1';
     let ground=document.querySelector('#prod-bklg0128-ground');
@@ -99,9 +103,14 @@ test('BKLG-0128 production DV03 can visibly compose Night, optional Ground, and 
   const groundZ=await page.locator('#prod-bklg0128-ground').evaluate(el=>Number(getComputedStyle(el).zIndex));
   const sceneZ=await page.locator('#dv03-scene-layer').evaluate(el=>Number(getComputedStyle(el).zIndex));
   const destinationBackground = await page.locator('#dv03-scene-layer').evaluate(el => getComputedStyle(el).backgroundImage);
+  const nightSkyTreatment=await page.locator('.dv03-sky').evaluate(el=>{const style=getComputedStyle(el);return{repeat:style.backgroundRepeat,position:style.backgroundPosition,size:style.backgroundSize,imageRendering:style.imageRendering}});
   expect(skyZ).toBeLessThan(groundZ);
   expect(groundZ).toBeLessThan(sceneZ);
   expect(destinationBackground).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png');
+  expect(nightSkyTreatment.repeat).toBe('no-repeat');
+  expect(nightSkyTreatment.position).toBe('50% 50%');
+  expect(nightSkyTreatment.size).toBe('100% 100%');
+  expect(nightSkyTreatment.imageRendering).toBe('pixelated');
   await expect(page.locator('.dv03-windshield')).toBeVisible();
   await page.locator('.dv03-windshield').screenshot({ path: 'test-results-prod/bklg-0128-night-ground-car-wash.png' });
 });
