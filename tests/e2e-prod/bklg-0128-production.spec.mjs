@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260911-persistence1';
+const marker = '20260912-final-assets1';
 const assets = [
   '/assets/images/dv03/layers/night.png',
   '/assets/images/dv03/layers/park.png',
-  '/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png',
-  '/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'
+  '/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png',
+  '/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'
 ];
 
 test('BKLG-0128 production publishes fresh harness and viable layer assets', async ({ page }) => {
@@ -33,10 +33,10 @@ test('BKLG-0128 production publishes fresh harness and viable layer assets', asy
   expect(harnessSource).toContain('02-ROAD-GROUND-BASE');
   expect(harnessSource).toContain('z-index:2!important');
   expect(harnessSource).toContain('z-index:3!important');
-  expect(currentSource).toContain('DV03-L5-LIBRARY-BACKGROUND-DRAFT.png');
-  expect(currentSource).toContain('DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png');
-  expect(currentSource).toContain('DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png');
-  expect(currentSource).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png');
+  expect(currentSource).toContain('DV03-L5-LIBRARY-BACKGROUND.png');
+  expect(currentSource).toContain('DV03-L6-SNACK-RUN-BACKGROUND.png');
+  expect(currentSource).toContain('DV03-L7-DRIVE-THRU-BACKGROUND.png');
+  expect(currentSource).toContain('DV03-L8-CAR-WASH-BACKGROUND.png');
   expect(currentSource).toContain('721c2d7-library');
   expect(currentSource).toContain('56aafef-snack-run');
   expect(currentSource).toContain('721c2d7-drive-thru');
@@ -83,7 +83,7 @@ test('BKLG-0128 production DV03 can visibly compose Night, optional Ground, and 
     landscape.style.display = 'none';
     scene.style.display = 'block';
     scene.style.zIndex='3';
-    scene.style.backgroundImage = 'url("/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png")';
+    scene.style.backgroundImage = 'url("/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png")';
     scene.style.backgroundRepeat = 'no-repeat';
     scene.style.backgroundPosition = 'center';
     scene.style.backgroundSize = '100% 100%';
@@ -94,7 +94,7 @@ test('BKLG-0128 production DV03 can visibly compose Night, optional Ground, and 
   const destinationBackground = await page.locator('#dv03-scene-layer').evaluate(el => getComputedStyle(el).backgroundImage);
   expect(skyZ).toBeLessThan(groundZ);
   expect(groundZ).toBeLessThan(sceneZ);
-  expect(destinationBackground).toContain('DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png');
+  expect(destinationBackground).toContain('DV03-L8-CAR-WASH-BACKGROUND.png');
   await expect(page.locator('.dv03-windshield')).toBeVisible();
   await page.locator('.dv03-windshield').screenshot({ path: 'test-results-prod/bklg-0128-night-ground-car-wash.png' });
 });

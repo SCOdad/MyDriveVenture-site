@@ -3,13 +3,13 @@
   const base='/assets/images/dv03/layers/';
   const SCENERY=Object.freeze({
     Q000035:{key:'park',src:base+'park.png'},
-    Q000036:{key:'school',src:base+'DV03-L2-SCHOOL-BACKGROUND-DRAFT.png'},
-    Q000038:{key:'grocery-store',src:base+'DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
-    Q000039:{key:'library',src:base+'DV03-L5-LIBRARY-BACKGROUND-DRAFT.png?v=721c2d7-library'},
-    Q000017:{key:'snack-run',src:base+'DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png?v=56aafef-snack-run'},
-    Q000043:{key:'drive-thru',src:base+'DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png?v=721c2d7-drive-thru'},
-    Q000044:{key:'car-wash',src:base+'DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png?v=e83616b-car-wash'},
-    Q000046:{key:'gas-station',src:base+'DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
+    Q000036:{key:'school',src:base+'DV03-L2-SCHOOL-BACKGROUND.png'},
+    Q000038:{key:'grocery-store',src:base+'DV03-L4-GROCERY-STORE-BACKGROUND.png'},
+    Q000039:{key:'library',src:base+'DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
+    Q000017:{key:'snack-run',src:base+'DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run'},
+    Q000043:{key:'drive-thru',src:base+'DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
+    Q000044:{key:'car-wash',src:base+'DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
+    Q000046:{key:'gas-station',src:base+'DV03-L9-GAS-STATION-BACKGROUND.png'}
   });
   const numeric=(value,fallback)=>value==null||value===''||!Number.isFinite(Number(value))?fallback:Number(value);
   const lexical=(a,b)=>String(a||'')<String(b||'')?-1:String(a||'')>String(b||'')?1:0;

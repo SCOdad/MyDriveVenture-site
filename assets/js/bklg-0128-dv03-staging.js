@@ -26,13 +26,13 @@
       {value:'off',label:'OFF'},
       {value:'base',label:'Base World',sortKey:'03-BACKGROUND-BASE'},
       {value:'park',label:'Park',sortKey:'03-BACKGROUND-PARK',assetId:'DV-UX-DV03-BACKGROUND-PARK',src:'/assets/images/dv03/layers/park.png'},
-      {value:'school',label:'School',sortKey:'03-BACKGROUND-SCHOOL',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'grocery-store',label:'Grocery Store',sortKey:'03-BACKGROUND-GROCERY-STORE',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'library',label:'Library',sortKey:'03-BACKGROUND-LIBRARY',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'snack-run',label:'Snack Run',sortKey:'03-BACKGROUND-SNACK-RUN',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT-v1.png',draft:true},
-      {value:'drive-thru',label:'Drive Thru',sortKey:'03-BACKGROUND-DRIVE-THRU',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png?v=590adf8-drive-thru',draft:true},
-      {value:'car-wash',label:'Car Wash',sortKey:'03-BACKGROUND-CAR-WASH',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png?v=e83616b-car-wash',draft:true},
-      {value:'gas-station',label:'Gas Station',sortKey:'03-BACKGROUND-GAS-STATION',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT-v1.png',draft:true}]},
+      {value:'school',label:'School',sortKey:'03-BACKGROUND-SCHOOL',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND.png'},
+      {value:'grocery-store',label:'Grocery Store',sortKey:'03-BACKGROUND-GROCERY-STORE',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND.png'},
+      {value:'library',label:'Library',sortKey:'03-BACKGROUND-LIBRARY',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
+      {value:'snack-run',label:'Snack Run',sortKey:'03-BACKGROUND-SNACK-RUN',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run'},
+      {value:'drive-thru',label:'Drive Thru',sortKey:'03-BACKGROUND-DRIVE-THRU',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
+      {value:'car-wash',label:'Car Wash',sortKey:'03-BACKGROUND-CAR-WASH',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
+      {value:'gas-station',label:'Gas Station',sortKey:'03-BACKGROUND-GAS-STATION',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'}]},
     {key:'04',id:'sign',label:'Sign',options:[{value:'off',label:'OFF'},{value:'base',label:'Milestone',sortKey:'04-SIGN-MILESTONE',assetId:'DV-UX-DV03-MILESTONE-SIGN'}]},
     {key:'05',id:'cockpit',label:'Cockpit',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'05-COCKPIT-STANDARD',assetId:'DV-UX-DV03-COCKPIT-FRAME'}]},
     {key:'06',id:'hud',label:'HUD',options:[{value:'off',label:'OFF'},{value:'base',label:'Default',sortKey:'06-HUD-STANDARD'}]},
@@ -67,7 +67,7 @@
   }
 
   function renderHarness(){
-    rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}${option.draft?' · DRAFT':''}</button>`).join('')}</div></section>`).join('');
+    rows.innerHTML=LAYERS.map(layer=>`<section class="uat-layer-row" data-layer-row="${layer.id}"><div class="uat-layer-label"><b>${layer.key} · ${layer.label}</b><small>${optionFor(layer.id,state[layer.id])?.sortKey||'OFF'}</small></div><div class="uat-layer-options">${layer.options.map(option=>`<button type="button" class="uat-option" data-layer="${layer.id}" data-value="${option.value}" aria-pressed="${state[layer.id]===option.value}">${option.label}</button>`).join('')}</div></section>`).join('');
     rows.querySelectorAll('.uat-option').forEach(button=>button.addEventListener('click',()=>{runtimeMode=false;mode='manual';state[button.dataset.layer]=button.dataset.value;applyLayers();renderHarness()}));
     syncHarnessToUX();
   }
