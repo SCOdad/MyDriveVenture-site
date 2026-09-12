@@ -156,11 +156,13 @@
 
   async function loadDashboard({quiet=false}={}){
     if(!quiet)status(loginStatus,'Access linked. Loading dashboard…');
-    const result=await Promise.race([client.rpc('get_authenticated_dashboard_v1'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Dashboard request timed out after 15 seconds.')),15000))]);
+    const result=await Promise.race([client.functions.invoke('driver-api',{body:{action:'dashboard'}}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Dashboard request timed out after 15 seconds.')),15000))]);
     const {data,error}=result;
     if(error)throw new Error(`Dashboard: ${error.message||'Unable to load dashboard'}`);
     if(!data||data.ok!==true)throw new Error(`Dashboard: ${data?.error||'Unable to load dashboard'}`);
-    model=data;
+    model=data.data||data;
+    model.contract=data.contract||model.contract||'dashboard';
+    model.contract_version=data.contract_version||model.contract_version||1;
     modelEpoch+=1;
     model.license_statuses=[];
     licenseStatusCache.clear();

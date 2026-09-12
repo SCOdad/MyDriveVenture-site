@@ -158,12 +158,18 @@ async function lifecycleChecks(){
     rpc(name,args){
       calls.push({name,args});
       if(name==='claim_authenticated_access_v1')return Promise.resolve({data:{ok:true},error:null});
-      if(name==='get_authenticated_dashboard_v1')return Promise.resolve({data:JSON.parse(JSON.stringify(model)),error:null});
       if(name==='get_authenticated_driver_status_v1'){
         if(args?.p_driver_id==='slow')return slowStatus;
         return Promise.resolve({data:{...statusPayload},error:null});
       }
       throw new Error('Unexpected RPC '+name);
+    },
+    functions:{
+      invoke(name,args){
+        calls.push({name,args});
+        if(name==='driver-api'&&args?.body?.action==='dashboard')return Promise.resolve({data:{ok:true,contract:'dashboard',contract_version:1,data:JSON.parse(JSON.stringify(model))},error:null});
+        throw new Error('Unexpected function '+name);
+      }
     },
     auth:{
       getSession:()=>Promise.resolve({data:{session:{user:{id:'u'}}}}),
@@ -189,7 +195,7 @@ async function lifecycleChecks(){
   await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length===1);
 
   const app=window.DV_LOG_APP;
-  assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'initial dashboard should load once');
+  assert.strictEqual(calls.filter(c=>c.name==='driver-api').length,1,'initial dashboard should load once');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage'],'initial load must fetch status only for the active driver');
   assert.strictEqual(app.getAccessMode('view'),'VIEW');
   assert.strictEqual(app.getAccessMode('missing'),'VIEW','operator access must fail closed to VIEW when metadata is missing');
@@ -198,11 +204,11 @@ async function lifecycleChecks(){
   await app.selectDriver('view');
   assert.strictEqual(app.getDriverId(),'view');
   assert(app.getRenderGeneration()>initialGeneration,'switch must advance generation');
-  assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'driver switch must not refetch the dashboard');
+  assert.strictEqual(calls.filter(c=>c.name==='driver-api').length,1,'driver switch must not refetch the dashboard');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage','view'],'status loading must be lazy per selected driver');
 
   for(let i=0;i<10;i++)await app.selectDriver(i%2===0?'manage':'view');
-  assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'repeated switching must remain dashboard-fetch free');
+  assert.strictEqual(calls.filter(c=>c.name==='driver-api').length,1,'repeated switching must remain dashboard-fetch free');
   assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').length,2,'cached driver status must prevent repeated status fan-out');
   assert.strictEqual(elements.get('driver-select').options.length,3,'switching must not rebuild a filtered driver selector');
 
