@@ -17,12 +17,13 @@ const assets = [
 test('BKLG-0128 production publishes fresh harness and viable layer assets', async ({ page }) => {
   let fresh = false;
   for (let i = 0; i < 12; i += 1) {
-    await page.goto(`/log/DV03/staging/BKLG-0128/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`/log/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
     const html = await page.content();
     if (html.includes(marker)) { fresh = true; break; }
     await page.waitForTimeout(5000);
   }
-  expect(fresh, 'production staging HTML never published the new cache-buster').toBe(true);
+  expect(fresh, 'production DV03 console never published the new cache-buster').toBe(true);
+  await page.goto(`/log/DV03/staging/BKLG-0128/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
 
   const harnessSource=await (await page.request.get(`/assets/js/bklg-0128-dv03-staging.js?prodcheck=${Date.now()}`)).text();
   const currentSource=await (await page.request.get(`/assets/js/bklg-0128-scenery-current.js?prodcheck=${Date.now()}`)).text();
