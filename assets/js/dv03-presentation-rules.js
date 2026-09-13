@@ -1,15 +1,16 @@
 (() => {
   const DAY_START_HOUR = 6;
   const NIGHT_START_HOUR = 18;
+  const DEFAULT_SCENERY = Object.freeze({scene:'neighborhood',label:'Neighborhood',src:'/assets/images/dv03/world/l9-neighborhood.png'});
   const SCENERY_BY_QUEST = Object.freeze({
-    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND-DRAFT.png?v=56aafef-snack-run'},
+    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run'},
     Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/park.png'},
-    Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND-DRAFT.png'},
-    Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND-DRAFT.png'},
-    Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND-DRAFT.png?v=721c2d7-library'},
-    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND-DRAFT.png?v=721c2d7-drive-thru'},
-    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L7-CAR-WASH-BACKGROUND-DRAFT.png?v=e83616b-car-wash'},
-    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L8-GAS-STATION-BACKGROUND-DRAFT.png'}
+    Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND.png'},
+    Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND.png'},
+    Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
+    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
+    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
+    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'}
   });
 
   const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -64,12 +65,12 @@
       featuredAward,
       featuredScenery,
       featuredMode,
-      activeScenery:featuredScenery||persistentScenery,
+      activeScenery:featuredScenery||persistentScenery||DEFAULT_SCENERY,
       showBillboard:featuredMode==='billboard'||(!featuredAward&&!persistentScenery)
     });
   }
 
-  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,resolvePresentation});
+  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,resolvePresentation});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV03_PRESENTATION_RULES=api;
 })();

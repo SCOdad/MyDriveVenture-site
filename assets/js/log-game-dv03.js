@@ -21,7 +21,7 @@
       const existing=document.querySelector('script[data-dv03-presentation-rules]');
       if(existing){existing.addEventListener('load',()=>resolve(window.DV03_PRESENTATION_RULES),{once:true});existing.addEventListener('error',reject,{once:true});return}
       const script=document.createElement('script');
-      script.src='/assets/js/dv03-presentation-rules.js?v=20260911-persistence1';
+      script.src='/assets/js/dv03-presentation-rules.js?v=20260913-0184';
       script.dataset.dv03PresentationRules='true';
       script.onload=()=>resolve(window.DV03_PRESENTATION_RULES);
       script.onerror=reject;
