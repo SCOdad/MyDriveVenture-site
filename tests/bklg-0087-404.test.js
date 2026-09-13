@@ -43,3 +43,10 @@ test('BKLG-0087 keeps 404 styling isolated and responsive',()=>{
   assert.match(css,/@media\(max-width:760px\)/);
   assert.match(css,/@media\(max-width:430px\)/);
 });
+
+test('BKLG-0134 Cloudflare preview normalizes uppercase FAQ route',()=>{
+  const redirects=fs.readFileSync('_redirects','utf8').trim().split(/\r?\n/);
+  assert.ok(fs.existsSync('faq/index.html'),'FAQ source page must be published');
+  assert.ok(redirects.includes('/FAQ/ /faq/ 301'));
+  assert.ok(redirects.includes('/FAQ/* /faq/:splat 301'));
+});
