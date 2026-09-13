@@ -1,5 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
 const rules=require('../assets/js/dv03-presentation-rules.js');
 
 const award=(quest_key,display_order,xp_awarded,awarded_at='2026-09-11T12:00:00Z',driver_id='driver-1')=>({id:`${quest_key}-${awarded_at}`,driver_id,quest_key,xp_awarded,awarded_at,quest:{quest_key,display_order,name:quest_key}});
@@ -35,6 +37,28 @@ test('DV03 resting scenery suppresses billboard while featured billboard tempora
   assert.equal(featured.featuredAward.quest_key,'Q000009');
   assert.equal(featured.featuredMode,'billboard');
   assert.equal(featured.persistentScenery.scene,'library');
+  assert.equal(featured.showBillboard,true);
+});
+
+test('DV03 scenery references ship final existing assets',()=>{
+  const source=fs.readFileSync(path.join(__dirname,'..','assets','js','dv03-presentation-rules.js'),'utf8');
+  assert.doesNotMatch(source,/DRAFT/);
+  for(const scenery of [rules.DEFAULT_SCENERY,...Object.values(rules.SCENERY_BY_QUEST)]){
+    const [assetPath]=scenery.src.replace(/^\//,'').split('?');
+    assert.equal(fs.existsSync(path.join(__dirname,'..',assetPath)),true,`${scenery.scene} asset is present`);
+  }
+  assert.match(rules.SCENERY_BY_QUEST.Q000038.src,/DV03-L4-GROCERY-STORE-BACKGROUND\.png/);
+});
+
+test('DV03 drivers without mapped scenery still receive a real windshield scene',()=>{
+  const resting=rules.resolvePresentation({awards:[],driverId:'driver-1'});
+  assert.equal(resting.activeScenery.scene,'neighborhood');
+  assert.equal(resting.showBillboard,true);
+
+  const milestone=award('Q000085',85,0,'2026-09-12T12:00:00Z');
+  const featured=rules.resolvePresentation({awards:[],driverId:'driver-1',featuredAwards:[milestone]});
+  assert.equal(featured.featuredMode,'billboard');
+  assert.equal(featured.activeScenery.scene,'neighborhood');
   assert.equal(featured.showBillboard,true);
 });
 
