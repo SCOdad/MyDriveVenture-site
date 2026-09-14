@@ -1,5 +1,5 @@
 (()=>{
-  const cfg=window.DV_APP_CONFIG||{};
+  const cfg=window.DV_ENVIRONMENT_CONFIG||window.DV_APP_CONFIG||{};
   const params=new URLSearchParams(location.search);
   const tokenHash=(params.get('token_hash')||'').trim();
   const title=document.getElementById('auth-title');
