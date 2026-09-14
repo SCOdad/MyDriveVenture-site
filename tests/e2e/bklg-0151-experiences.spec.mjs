@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
+import { fixtureDrivers, installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
 
 async function openAuthenticatedExperience(page, path) {
   await signIn(page, personas.guardianMulti);
@@ -74,8 +74,8 @@ test('Skills Practiced cards show visible checkboxes in one column on narrow scr
   await expectSkillCheckboxPresentation(page, 1);
 });
 
-async function renderTemplateForDriver(page, driverName) {
-  await signIn(page, personas.guardianMulti);
+async function renderTemplateForDriver(page, driverName, email = personas.guardianMulti) {
+  await signIn(page, email);
   await selectDriverByName(page, driverName);
   return page.evaluate(async () => {
     const app = window.DV_LOG_APP;
@@ -102,7 +102,7 @@ async function renderTemplateForDriver(page, driverName) {
 }
 
 test('Michigan driver receives the Michigan driving-log template', async ({ page }) => {
-  const result = await renderTemplateForDriver(page, 'Synthetic Driver One');
+  const result = await renderTemplateForDriver(page, fixtureDrivers.boundedMichigan, fixtureDrivers.boundedMichiganGuardian);
   expect(result.status).toBe(200);
   expect(result.template).toBe('DV-LOG-MI-v202609');
   expect(result.contentType).toContain('application/pdf');
@@ -110,7 +110,7 @@ test('Michigan driver receives the Michigan driving-log template', async ({ page
 });
 
 test('Kansas driver receives the Drive Venture US fallback template', async ({ page }) => {
-  const result = await renderTemplateForDriver(page, 'Synthetic Driver Two');
+  const result = await renderTemplateForDriver(page, fixtureDrivers.secondaryKansas);
   expect(result.status).toBe(200);
   expect(result.template).toBe('DV-LOG-US-v202609');
   expect(result.contentType).toContain('application/pdf');
