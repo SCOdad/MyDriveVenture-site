@@ -7,6 +7,13 @@ export const personas = {
   operator: 'operator@dev.driveventure.example.invalid'
 };
 
+export const fixtureDrivers = {
+  primaryMichigan: process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
+  secondaryKansas: process.env.DV_E2E_KS_DRIVER_NAME || 'Synthetic Driver Two',
+  boundedMichigan: process.env.DV_E2E_BOUNDED_MI_DRIVER_NAME || process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
+  boundedMichiganGuardian: process.env.DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL || personas.guardianMulti
+};
+
 export function requireTestPassword() {
   const password = process.env.DV_DEV_TEST_PASSWORD;
   if (!password) throw new Error('DV_DEV_TEST_PASSWORD is required for authenticated Playwright tests.');
@@ -48,6 +55,7 @@ export async function signIn(page, email) {
 }
 
 export async function selectDriverByName(page, name) {
+  if ((await page.locator('#driver-heading').textContent())?.trim() === name) return;
   const option = page.locator('#driver-select option').filter({ hasText: name }).first();
   const value = await option.getAttribute('value');
   if (!value) throw new Error(`Driver option not found: ${name}`);

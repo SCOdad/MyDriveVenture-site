@@ -1,0 +1,2 @@
+/FAQ/ /faq/ 301
+/FAQ/* /faq/:splat 301

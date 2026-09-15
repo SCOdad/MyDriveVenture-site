@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
+import { fixtureDrivers, installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
 
 async function waitForDriveFormContext(page) {
   await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
@@ -83,8 +83,8 @@ test.describe('BKLG-0132 critical browser regression', () => {
   test('ordinary guardian can create and edit an isolated DEV drive', async ({ page }, testInfo) => {
     test.setTimeout(120_000); // One create, two edits, and authoritative refreshes.
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, personas.guardianMulti);
-    await selectDriverByName(page, 'Synthetic Driver One');
+    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
     await waitForDriveFormContext(page);
     const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
     const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
@@ -124,8 +124,8 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('Michigan skills use compact checkboxes, persist edits, and appear in trip detail', async ({ page }, testInfo) => {
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, personas.guardianMulti);
-    await selectDriverByName(page, 'Synthetic Driver One');
+    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
     await waitForDriveFormContext(page);
     const skills=page.locator('#drive-lesson-options input[type=checkbox]');
     await expect(skills).toHaveCount(13, { timeout: 20_000 });
@@ -191,7 +191,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('administrator content and skill edits never certify a drive', async ({ page }) => {
     const assertNoPageFailures=installPageGuards(page);
-    await signIn(page,personas.operator);await selectDriverByName(page,'Synthetic Driver One');
+    await signIn(page,personas.operator);await selectDriverByName(page,fixtureDrivers.boundedMichigan);
     const result=await page.evaluate(async()=>{
       const app=window.DV_LOG_APP,driverId=app.getDriverId(),cutoff=Date.now()-120000,ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId&&new Date(d.created_at).getTime()<cutoff).map(d=>d.id);
       let detail=null;

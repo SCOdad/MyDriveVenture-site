@@ -47,10 +47,10 @@ test.describe('BKLG-0143 focused Operator backlog regression', () => {
 
     const category = page.locator('#detail-form [name="category"]');
     await expect(category).toHaveJSProperty('required', true);
-    await expect(category.locator('option')).toHaveCount(12);
+    await expect(category.locator('option')).toHaveCount(14);
     await expect(category.locator('option')).toHaveText([
-      'Choose category', 'Product', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data',
-      'Platform / Infrastructure', 'Technical Debt', 'Operations', 'Operator',
+      'Choose category', 'Product', 'App / UX', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data',
+      'Platform / Infrastructure', 'Security', 'Technical Debt', 'Operations', 'Operator',
       'Communications / Text Parker', 'Documentation'
     ]);
 

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
+import { fixtureDrivers, installPageGuards, signIn, selectDriverByName } from './helpers.mjs';
 
 async function waitForFormContext(page) {
   await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
@@ -20,8 +20,8 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
     window.confirm=()=>true;
     window.prompt=()=> 'Playwright retained-delete regression';
   });
-  await signIn(page, personas.guardianMulti);
-  await selectDriverByName(page,'Synthetic Driver One');
+  await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
   await waitForFormContext(page);
 
   const run=process.env.GITHUB_RUN_ID||Date.now();
