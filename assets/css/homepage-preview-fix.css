@@ -1,12 +1,45 @@
 /* BKLG-0188: keep the DV03 homepage preview uncropped so Parker's name remains visible. */
 .product-preview .preview-grid {
   grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+.product-preview .preview-main {
+  width: min(100%, 72rem);
 }
 
 .product-preview .preview-main img {
+  display: block;
   width: 100%;
   height: auto;
   aspect-ratio: auto;
   object-fit: contain;
   object-position: center top;
+}
+
+/* BKLG-0189: social-link icon treatment without separate binary assets. */
+.footer-links a[href*="instagram.com/"],
+.footer-links a[href*="facebook.com/"] {
+  display: inline-flex;
+  align-items: center;
+  gap: .38rem;
+}
+
+.footer-links a[href*="instagram.com/"]::before,
+.footer-links a[href*="facebook.com/"]::before {
+  display: inline-grid;
+  width: 1.35rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid currentColor;
+  font: 800 .65rem/1 var(--heading-font);
+}
+
+.footer-links a[href*="instagram.com/"]::before {
+  content: "IG";
+}
+
+.footer-links a[href*="facebook.com/"]::before {
+  content: "f";
+  font-size: .9rem;
 }
