@@ -2,19 +2,53 @@
 .product-preview .preview-grid {
   grid-template-columns: 1fr;
   justify-items: center;
+  overflow-x: hidden;
 }
 
 .product-preview .preview-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: min(100%, 72rem);
+  max-width: 100%;
+  overflow: visible;
 }
 
 .product-preview .preview-main img {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
   aspect-ratio: auto;
   object-fit: contain;
   object-position: center top;
+  margin: 0 auto;
+}
+
+@media (max-width: 679px) {
+  .product-preview {
+    padding-inline: .75rem;
+  }
+
+  .product-preview .product-preview-inner,
+  .product-preview .preview-grid,
+  .product-preview .preview-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .product-preview .preview-grid figure {
+    overflow: visible;
+  }
+
+  .product-preview .preview-main img {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    object-fit: contain;
+  }
 }
 
 /* BKLG-0189: social-link icon treatment without separate binary assets. */
