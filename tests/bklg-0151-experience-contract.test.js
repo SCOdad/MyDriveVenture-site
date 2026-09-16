@@ -17,6 +17,18 @@ test('shared drive RPC retains BKLG-0151 behavior for legacy supported views', (
   assert.match(source, /if\(edit\)edit\.draft=values\(\)/);
 });
 
+test('BKLG-0180 browser save no longer monkey-patches drive-ops into multi-call skill choreography', () => {
+  const controls = read('assets/js/log-driving-log-v1.js');
+  assert.doesNotMatch(controls, /slug === 'drive-ops' && \['log_drive', 'edit_drive'\]/);
+  assert.doesNotMatch(controls, /originalInvoke\('drive-skill-ops'/);
+  const rpc = read('assets/js/log-drive-rpc.js');
+  assert.match(rpc, /returnedIds=sortedIds\(data\?\.lesson_ids\|\|data\?\.drive\?\.lesson_ids\|\|\[\]\)/);
+  assert.doesNotMatch(rpc, /functions\.invoke\('drive-skill-ops'/);
+  assert.match(rpc, /operation:'CREATE'/);
+  assert.match(rpc, /operation:'EDIT'/);
+  assert.match(rpc, /expected_revision:edit\.revision/);
+});
+
 test('supported experiences load the current PDF cleanup contract directly', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
     const source = read(path);

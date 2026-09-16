@@ -33,7 +33,7 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await page.locator('#drive-destination').fill(marker);
   await page.locator('#drive-notes').fill('DELETE regression fixture');
 
-  const save=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().method()==='POST'&&r.request().postData()?.includes('log_drive'),{timeout:20_000});
+  const save=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().method()==='POST'&&r.request().postData()?.includes('CREATE'),{timeout:20_000});
   await page.locator('#drive-form button[type=submit]').click();
   const saveResponse=await save;
   expect(saveResponse.status()).toBe(200);
@@ -51,12 +51,12 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await expect.poll(() => page.locator('#drive-form').getAttribute('data-edit-drive')).toBe(String(driveId));
   await expect.poll(() => page.evaluate(() => window.DV_LOG_APP?.getDriverId?.() || null)).not.toBeNull();
 
-  const deletedResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-delete')&&r.request().method()==='POST',{timeout:60_000});
+  const deletedResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().method()==='POST'&&r.request().postData()?.includes('INACTIVATE'),{timeout:60_000});
   await page.evaluate(() => document.getElementById('drive-delete')?.click());
   const deletedResponse=await deletedResponsePromise;
   let deletedBody=null;try{deletedBody=await deletedResponse.json()}catch{}
-  expect(deletedResponse.status(),`drive-delete response: ${JSON.stringify(deletedBody)}`).toBe(200);
-  expect(deletedBody?.ok,`drive-delete response: ${JSON.stringify(deletedBody)}`).toBe(true);
+  expect(deletedResponse.status(),`drive mutation response: ${JSON.stringify(deletedBody)}`).toBe(200);
+  expect(deletedBody?.ok,`drive mutation response: ${JSON.stringify(deletedBody)}`).toBe(true);
   expect(['DELETED','ALREADY_DELETED']).toContain(deletedBody?.outcome);
   expect(deletedBody?.drive?.status).toBe('VOID');
 
