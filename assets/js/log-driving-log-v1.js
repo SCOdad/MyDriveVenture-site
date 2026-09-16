@@ -200,31 +200,6 @@
       }
       return result;
     }
-    if (slug === 'drive-ops' && ['log_drive', 'edit_drive'].includes(options?.body?.action)) {
-      const requestedLessonIds = Array.isArray(options?.body?.lesson_ids) ? [...new Set(options.body.lesson_ids.filter(Boolean).map(String))] : selectedLessonIds();
-      const result = await originalInvoke(slug, options), drive = result?.data?.drive, driverId = options?.body?.driver_id;
-      if (result?.error || !result?.data?.ok || !drive?.id || !driverId) return result;
-      const synced = await originalInvoke('drive-skill-ops', { body: { action: 'set', driver_id: driverId, drive_id: drive.id, lesson_ids: requestedLessonIds, ...(options?.body?.reason ? { reason: options.body.reason } : {}) } });
-      if (synced.error || !synced.data?.ok) {
-        result.data.ok = false;
-        result.data.error = 'Drive details changed, but Skills Practiced could not be saved. Reopen the drive before trying again.';
-        return result;
-      }
-      const verified = await originalInvoke('drive-detail-api', { body: { driver_id: driverId, drive_id: drive.id } });
-      const verifiedDrive = verified?.data?.drive, verifiedIds = verified?.data?.lesson_ids || verifiedDrive?.lesson_ids || [];
-      if (verified.error || !verified.data?.ok || !verifiedDrive || !lessonSetEqual(requestedLessonIds, verifiedIds)) {
-        result.data.ok = false;
-        result.data.error = 'Drive save could not be verified. Reopen the drive before trying again.';
-        return result;
-      }
-      verifiedDrive.lesson_ids = verifiedIds;
-      verifiedDrive.lessons = verified.data.lessons || [];
-      verifiedDrive.lesson_id = verifiedIds[0] || null;
-      result.data.drive = verifiedDrive;
-      result.data.lesson_ids = verifiedIds;
-      result.data.supervisor = verified.data.supervisor || null;
-      return result;
-    }
     return originalInvoke(slug, options);
   };
 
