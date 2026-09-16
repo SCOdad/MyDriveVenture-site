@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
+import { fixtureDrivers, installPageGuards, personas, signIn, selectDriverByName } from './helpers.mjs';
 
 async function yesterday(page) {
   return page.evaluate(() => { const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
@@ -60,8 +60,8 @@ async function detail(page, driverId, driveId) {
 test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, reread, and reload', async ({ page }, testInfo) => {
   test.setTimeout(240_000);
   const assertNoPageFailures=installPageGuards(page);
-  await signIn(page, personas.guardianMulti);
-  await selectDriverByName(page,'Synthetic Driver One');
+  await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
   await waitForDriveFormContext(page);
   const marker=`notes-${Date.now()}-${testInfo.retry}`;
   const driveId=await createFixture(page,marker);
@@ -102,8 +102,8 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
 
 test('BKLG-0151 Road Notes profanity is rejected without overwriting the canonical note', async ({ page }, testInfo) => {
   test.setTimeout(150_000);
-  await signIn(page, personas.guardianMulti);
-  await selectDriverByName(page,'Synthetic Driver One');
+  await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
   await waitForDriveFormContext(page);
   const marker=`profanity-${Date.now()}-${testInfo.retry}`;
   const driveId=await createFixture(page,marker);

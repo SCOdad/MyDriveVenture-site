@@ -1,0 +1,32 @@
+name: BKLG-0128 Production Smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Run BKLG-0128 production smoke
+        run: npx playwright test --config=playwright.prod.config.mjs
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bklg-0128-production-evidence
+          path: |
+            playwright-report-prod/
+            test-results-prod/
+          if-no-files-found: ignore
+          retention-days: 14

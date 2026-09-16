@@ -14,10 +14,30 @@ test('required backlog fields use native validation and the shared required mark
   }
 });
 
-test('Category uses the approved provisional canonical dropdown', () => {
+test('Category uses the approved canonical dropdown', () => {
   const select = html.match(/<select name="category" required>[\s\S]*?<\/select>/)?.[0] || '';
   const values = [...select.matchAll(/<option(?: value="([^"]*)")?>([^<]+)<\/option>/g)].map(match => match[1] ?? match[2]);
-  assert.deepEqual(values, ['', 'Product', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data', 'Platform / Infrastructure', 'Technical Debt', 'Operations', 'Operator', 'Communications / Text Parker', 'Documentation']);
+  assert.deepEqual(values, ['', 'Product', 'App / UX', 'Web / UX', 'Visual / Brand', 'Quest Engine', 'Data', 'Platform / Infrastructure', 'Security', 'Technical Debt', 'Operations', 'Operator', 'Communications / Text Parker', 'Documentation']);
+});
+
+test('READY is retired and HUMAN_REVIEW is available in operator status controls', () => {
+  const statusFilter = html.match(/<select id="filter-status">[\s\S]*?<\/select>/)?.[0] || '';
+  const statusEdit = html.match(/<select name="status" required>[\s\S]*?<\/select>/)?.[0] || '';
+  assert.doesNotMatch(statusFilter, />READY</);
+  assert.doesNotMatch(statusEdit, />READY</);
+  assert.match(statusFilter, />HUMAN_REVIEW</);
+  assert.match(statusEdit, />HUMAN_REVIEW</);
+  assert.doesNotMatch(js, /<option>READY<\/option>/);
+  assert.match(js, /<option>HUMAN_REVIEW<\/option>/);
+});
+
+test('Clear button resets search, status, and priority filters before reload', () => {
+  assert.match(html, /id="filter-search"[\s\S]*?id="clear-filters"[\s\S]*?>Clear<\/button>/);
+  assert.match(js, /getElementById\('clear-filters'\)\.onclick=/);
+  assert.match(js, /getElementById\('filter-search'\)\.value=''/);
+  assert.match(js, /getElementById\('filter-status'\)\.value=''/);
+  assert.match(js, /getElementById\('filter-priority'\)\.value=''/);
+  assert.match(js, /clearTimeout\(timer\);load\(\)/);
 });
 
 test('historical Category values are preserved while editing existing items', () => {

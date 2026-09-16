@@ -1,0 +1,94 @@
+/* BKLG-0188: keep the DV03 homepage preview uncropped so Parker's name remains visible. */
+.product-preview .preview-grid {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  overflow-x: hidden;
+}
+
+.product-preview .preview-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 72rem);
+  max-width: 100%;
+  overflow: visible;
+}
+
+.product-preview .preview-main img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center top;
+  margin: 0 auto;
+}
+
+@media (max-width: 679px) {
+  .product-preview {
+    padding-inline: .5rem;
+  }
+
+  .product-preview .product-preview-inner,
+  .product-preview .preview-grid,
+  .product-preview .preview-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .product-preview .preview-grid figure,
+  .product-preview .preview-main {
+    overflow: visible;
+  }
+
+  .product-preview .preview-main {
+    padding: .5rem;
+    background: #090d11;
+  }
+
+  .product-preview .preview-main img {
+    width: 88%;
+    max-width: 88%;
+    min-width: 0;
+    height: auto;
+    object-fit: contain;
+    object-position: center top;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .product-preview .preview-main img {
+    width: 84%;
+    max-width: 84%;
+  }
+}
+
+/* BKLG-0189: social-link icon treatment without separate binary assets. */
+.footer-links a[href*="instagram.com/"],
+.footer-links a[href*="facebook.com/"] {
+  display: inline-flex;
+  align-items: center;
+  gap: .38rem;
+}
+
+.footer-links a[href*="instagram.com/"]::before,
+.footer-links a[href*="facebook.com/"]::before {
+  display: inline-grid;
+  width: 1.35rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid currentColor;
+  font: 800 .65rem/1 var(--heading-font);
+}
+
+.footer-links a[href*="instagram.com/"]::before {
+  content: "IG";
+}
+
+.footer-links a[href*="facebook.com/"]::before {
+  content: "f";
+  font-size: .9rem;
+}

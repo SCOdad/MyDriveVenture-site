@@ -2,7 +2,7 @@
   const cfg=window.DV_APP_CONFIG||{},params=new URLSearchParams(location.search),raw=params.get('return');
   if(!raw||!cfg.supabaseUrl||!cfg.publishableKey||!window.supabase)return;
   let target='';
-  try{const u=new URL(raw,location.origin);if(u.origin===location.origin&&u.pathname==='/family/'&&u.searchParams.has('invite'))target=u.pathname+u.search}catch{return}
+  try{const u=new URL(raw,location.origin);if(u.origin===location.origin&&((u.pathname==='/family/'&&u.searchParams.has('invite'))||(u.pathname==='/staging/operator-leads/'&&!u.search&&!u.hash)))target=u.pathname+u.search}catch{return}
   if(!target)return;
   const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});window.DV_SUPABASE_CLIENT=client;
   let redirecting=false;
@@ -20,7 +20,7 @@
       const redirect=`${location.origin}/log/?return=${encodeURIComponent(target)}`;
       const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:redirect,shouldCreateUser:false}});
       if(error)throw error;
-      if(status){status.textContent='Check your email for a secure sign-in link. After sign-in, we’ll return you to the family invitation.';status.className='app-status success'}
+      if(status){status.textContent='Check your email for a secure sign-in link. After sign-in, we’ll return you to your requested page.';status.className='app-status success'}
     }catch{
       if(status){status.textContent='We could not send a sign-in link right now. Please try again.';status.className='app-status error'}
     }finally{button.disabled=false}

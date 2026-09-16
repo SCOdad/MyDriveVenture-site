@@ -31,4 +31,14 @@
     publishableKey: selected.publishableKey,
     functionUrl,
   });
+
+  const publicPixelPaths = new Set(['/join/', '/waitlist/']);
+  const path = (window.location.pathname || '/').replace(/\/index\.html$/, '/');
+  if (name === 'prod' && publicPixelPaths.has(path) && !window.__DV_META_PIXEL_V1_REQUESTED) {
+    window.__DV_META_PIXEL_V1_REQUESTED = true;
+    const script = document.createElement('script');
+    script.src = '/assets/js/meta-pixel.js?v=20260915-bklg0190';
+    script.async = true;
+    document.head.appendChild(script);
+  }
 })();
