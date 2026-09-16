@@ -10,8 +10,8 @@ async function submitDriveForm(page) {
   const responsePromise = page.waitForResponse(response => {
     if (!response.url().includes('/functions/v1/drive-ops') || response.request().method() !== 'POST') return false;
     try {
-      const action = response.request().postDataJSON()?.action;
-      return action === 'log_drive' || action === 'edit_drive';
+      const request = response.request().postDataJSON();
+      return request?.action === 'mutate_drive' && (request?.operation === 'CREATE' || request?.operation === 'EDIT');
     } catch {
       return false;
     }
