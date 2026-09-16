@@ -1,0 +1,12 @@
+/* BKLG-0188: keep the DV03 homepage preview uncropped so Parker's name remains visible. */
+.product-preview .preview-grid {
+  grid-template-columns: 1fr;
+}
+
+.product-preview .preview-main img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  object-position: center top;
+}
