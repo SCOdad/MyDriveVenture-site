@@ -10,8 +10,8 @@ async function submitDriveForm(page) {
   const responsePromise = page.waitForResponse(response => {
     if (!response.url().includes('/functions/v1/drive-ops') || response.request().method() !== 'POST') return false;
     try {
-      const action = response.request().postDataJSON()?.action;
-      return action === 'log_drive' || action === 'edit_drive';
+      const request = response.request().postDataJSON();
+      return request?.action === 'mutate_drive' && (request?.operation === 'CREATE' || request?.operation === 'EDIT');
     } catch {
       return false;
     }
@@ -140,14 +140,15 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await page.locator('#drive-end').fill('14:15');
     await page.locator('#drive-destination').fill(route);
     await page.locator('#drive-notes').fill('Skills detail fixture');
-    const skillResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-skill-ops')&&r.request().method()==='POST',{timeout:20_000});
+    const mutationResponsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().method()==='POST'&&r.request().postData()?.includes('CREATE'),{timeout:20_000});
     const logged=await submitDriveForm(page);
-    const skillResponse=await skillResponsePromise;
-    const skillRequest=skillResponse.request().postDataJSON();
-    let skillBody=null;try{skillBody=await skillResponse.json()}catch{}
-    expect(skillRequest.lesson_ids,`drive-skill-ops request: ${JSON.stringify(skillRequest)}`).toHaveLength(2);
-    expect(skillResponse.status(),`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(200);
-    expect(skillBody?.ok,`drive-skill-ops response: ${JSON.stringify(skillBody)}`).toBe(true);
+    const mutationResponse=await mutationResponsePromise;
+    const mutationRequest=mutationResponse.request().postDataJSON();
+    let mutationBody=null;try{mutationBody=await mutationResponse.json()}catch{}
+    expect(mutationRequest.lesson_ids,`drive mutation request: ${JSON.stringify(mutationRequest)}`).toHaveLength(2);
+    expect(mutationResponse.status(),`drive mutation response: ${JSON.stringify(mutationBody)}`).toBe(200);
+    expect(mutationBody?.ok,`drive mutation response: ${JSON.stringify(mutationBody)}`).toBe(true);
+    expect(mutationBody?.lesson_ids).toHaveLength(2);
     const immediateDetail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
     expect(immediateDetail.error).toBeNull();
     expect(immediateDetail.data.lesson_ids).toHaveLength(2);
@@ -199,16 +200,12 @@ test.describe('BKLG-0132 critical browser regression', () => {
       if(!detail)return{error:'No stable certified synthetic drive available'};
       const cfg=window.DV_APP_CONFIG,{data:sessionData}=await app.client.auth.getSession(),token=sessionData?.session?.access_token;
       const direct=async(slug,body)=>{const r=await fetch(`${cfg.supabaseUrl.replace(/\/$/,'')}/functions/v1/${slug}`,{method:'POST',headers:{authorization:`Bearer ${token}`,apikey:cfg.publishableKey,'content-type':'application/json'},body:JSON.stringify(body)});return{status:r.status,body:await r.json()}};
-      const d=detail.drive,stamp=Date.now(),edit=await direct('drive-ops',{action:'edit_drive',driver_id:driverId,drive_id:d.id,drive_date:d.drive_date,start_time:d.start_time,end_time:d.end_time,vehicle_id:d.vehicle_id,lesson_id:d.lesson_id,lesson_notes:d.lesson_notes,supervisor_person_id:d.supervisor_person_id,external_supervisor_name:d.external_supervisor_name,destination:d.destination,notes:`Operator UAT ${stamp}`,reason:`BKLG-0151 admin certification regression ${stamp}`});
+      const d=detail.drive,stamp=Date.now(),all=(await app.client.functions.invoke('drive-ops',{body:{action:'form_context',driver_id:driverId}})).data?.lessons||[],currentIds=detail.lesson_ids||[],alternate=currentIds.length>1?[currentIds[0]]:[currentIds[0]||all[0]?.id,all.find(x=>x.id!==(currentIds[0]||all[0]?.id))?.id].filter(Boolean),edit=await direct('drive-ops',{action:'mutate_drive',operation:'EDIT',driver_id:driverId,drive_id:d.id,expected_revision:d.drive_revision,drive_date:d.drive_date,start_time:d.start_time,end_time:d.end_time,vehicle_id:d.vehicle_id,lesson_id:alternate[0]||null,lesson_ids:alternate,lesson_notes:d.lesson_notes,supervisor_person_id:d.supervisor_person_id,external_supervisor_name:d.external_supervisor_name,destination:d.destination,notes:`Operator UAT ${stamp}`,reason:`BKLG-0151 admin certification regression ${stamp}`});
       const afterEdit=(await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:d.id}})).data;
-      const currentIds=afterEdit.lesson_ids||[],all=(await app.client.functions.invoke('drive-ops',{body:{action:'form_context',driver_id:driverId}})).data?.lessons||[],alternate=currentIds.length>1?[currentIds[0]]:[currentIds[0]||all[0]?.id,all.find(x=>x.id!==(currentIds[0]||all[0]?.id))?.id].filter(Boolean);
-      const skill=await direct('drive-skill-ops',{action:'set',driver_id:driverId,drive_id:d.id,lesson_ids:alternate,reason:`BKLG-0151 operator skill regression ${stamp}`});
-      const afterSkill=(await app.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:d.id}})).data;
-      return{edit,afterEdit:afterEdit?.drive,skill,afterSkill:afterSkill?.drive,lessonIds:afterSkill?.lesson_ids};
+      return{edit,afterEdit:afterEdit?.drive,lessonIds:afterEdit?.lesson_ids};
     });
     expect(result.error).toBeUndefined();expect(result.edit.status).toBe(200);expect(result.edit.body.ok).toBe(true);
-    expect(result.afterEdit.certification_status).toBe('PENDING');expect(result.afterEdit.certified_by_person_id).toBeNull();expect(result.afterEdit.certification_method).toBeNull();
-    expect(result.skill.status).toBe(200);expect(result.skill.body.ok).toBe(true);expect(result.afterSkill.certification_status).toBe('PENDING');expect(result.afterSkill.certified_by_person_id).toBeNull();expect(result.afterSkill.certification_method).toBeNull();expect(result.lessonIds.length).toBeGreaterThan(0);
+    expect(result.afterEdit.certification_status).toBe('PENDING');expect(result.afterEdit.certified_by_person_id).toBeNull();expect(result.afterEdit.certification_method).toBeNull();expect(result.lessonIds.length).toBeGreaterThan(0);
     assertNoPageFailures();
   });
 });

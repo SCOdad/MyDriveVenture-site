@@ -3,21 +3,21 @@
   if(!app?.client||!form||form.dataset.dvDriveReviewBound==='true')return;
   form.dataset.dvDriveReviewBound='true';
   if(!document.querySelector('link[data-dv-drive-review-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-edit.css?v=20260906-soft-delete1';l.dataset.dvDriveReviewCss='true';document.head.appendChild(l)}
-  let current={active:false,driverId:null,driveId:null};
+  let current={active:false,driverId:null,driveId:null,driveRevision:null};
   const clean=v=>v==null?'':String(v).trim();
   function setReviewMode(active){document.body.classList.toggle('dv-drive-review-active',!!active);if(active){setTimeout(()=>{const card=form.closest('.app-card');card?.scrollIntoView({behavior:'smooth',block:'center'});const context=document.getElementById('drive-edit-context');context?.setAttribute('tabindex','-1');context?.focus({preventScroll:true})},80)}}
   function removeInactiveDrives(model){const byId=new Map((model?.recent_drives||[]).map(d=>[String(d.id),d]));document.querySelectorAll('#drive-list [data-drive-detail-id]').forEach(link=>{const drive=byId.get(String(link.dataset.driveDetailId));if(!drive||drive.status!=='COMPLETE')link.closest('li')?.remove()});const list=document.getElementById('drive-list');if(list&&!list.children.length)list.innerHTML='<li class="empty-state">No drives logged yet.</li>'}
   function ensureDeleteButton(){let b=document.getElementById('drive-delete');if(b)return b;b=document.createElement('button');b.id='drive-delete';b.type='button';b.className='button subtle-button button-small drive-delete-button';b.textContent='Delete drive';b.hidden=true;const cancel=document.getElementById('drive-edit-cancel');(cancel||form.querySelector('button[type=submit]'))?.after(b);return b}
   const del=ensureDeleteButton();
   window.addEventListener('dv:dashboard-rendered',e=>removeInactiveDrives(e.detail?.model));
-  window.addEventListener('dv:drive-edit-mode',e=>{const active=!!form.dataset.editDrive||!!e.detail?.active;current={active,driverId:e.detail?.driverId||app.getDriverId?.()||null,driveId:form.dataset.editDrive||e.detail?.driveId||null};setReviewMode(active);del.hidden=!active});
+  window.addEventListener('dv:drive-edit-mode',e=>{const active=!!form.dataset.editDrive||!!e.detail?.active;current={active,driverId:e.detail?.driverId||app.getDriverId?.()||null,driveId:form.dataset.editDrive||e.detail?.driveId||null,driveRevision:e.detail?.driveRevision??null};setReviewMode(active);del.hidden=!active});
   if(form.dataset.editDrive){current={active:true,driverId:app.getDriverId?.()||null,driveId:form.dataset.editDrive};setReviewMode(true);del.hidden=false}
   del.addEventListener('click',async()=>{
     const driverId=app.getDriverId?.()||current.driverId,driveId=form.dataset.editDrive||current.driveId;if(!driverId||!driveId)return;
     if(!window.confirm('Delete this drive?\n\nIt will be removed from your driving totals, achievements, printable log, and certification queue. Drive Venture will retain an audit record so the deletion can be traced.'))return;
     const reason=window.prompt('Optional: Why are you deleting this drive?','')??null;
     del.disabled=true;if(status){status.textContent='Deleting drive…';status.className='app-status'}
-    const {data,error}=await app.client.functions.invoke('drive-delete',{body:{driver_id:driverId,drive_id:driveId,reason:clean(reason)||null}});
+    const {data,error}=await app.client.functions.invoke('drive-ops',{body:{action:'mutate_drive',operation:'INACTIVATE',driver_id:driverId,drive_id:driveId,expected_revision:current.driveRevision,reason:clean(reason)||null}});
     if(error||!data?.ok){del.disabled=false;if(status){status.textContent=`Delete drive: ${data?.error||error?.message||'Unable to delete drive.'}`;status.className='app-status error'}return}
     if(!['DELETED','ALREADY_DELETED'].includes(String(data.outcome||''))||data.drive?.status!=='VOID'){
       del.disabled=false;if(status){status.textContent=`Delete drive: Drive Venture could not verify that this drive is inactive (${data.outcome||'unknown result'}).`;status.className='app-status error'}return

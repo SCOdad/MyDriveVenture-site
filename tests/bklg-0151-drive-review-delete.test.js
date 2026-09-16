@@ -17,7 +17,9 @@ test('BKLG-0151 review mode dims page and exposes retained Delete Drive action',
   const css=read('assets/css/log-drive-edit.css');
   assert.match(js,/dv-drive-review-active/);
   assert.match(js,/Delete drive/);
-  assert.match(js,/functions\.invoke\('drive-delete'/);
+  assert.match(js,/functions\.invoke\('drive-ops'/);
+  assert.match(js,/operation:'INACTIVATE'/);
+  assert.match(js,/expected_revision:current\.driveRevision/);
   assert.match(css,/body\.dv-drive-review-active::before/);
   assert.match(css,/rgba\(0,0,0,\.68\)/);
 });

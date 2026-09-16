@@ -20,7 +20,7 @@ async function createFixture(page, marker) {
   await page.locator('#drive-destination').fill(marker);
   await page.locator('#drive-notes').fill('Initial road note');
   expect(await page.locator('#drive-form').evaluate(form=>form.checkValidity())).toBe(true);
-  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('log_drive'),{timeout:30_000});
+  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('CREATE'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const response=await responsePromise;
   const body=await response.json();
@@ -39,7 +39,7 @@ async function openEdit(page, marker) {
 }
 
 async function saveEdit(page, expectedNotes, expectedDestination) {
-  const requestPromise=page.waitForRequest(r=>r.url().includes('/functions/v1/drive-ops')&&r.method()==='POST'&&r.postData()?.includes('edit_drive'),{timeout:30_000});
+  const requestPromise=page.waitForRequest(r=>r.url().includes('/functions/v1/drive-ops')&&r.method()==='POST'&&r.postData()?.includes('EDIT'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const request=await requestPromise, body=request.postDataJSON();
   expect(body.notes??null).toBe(expectedNotes||null);
@@ -110,7 +110,7 @@ test('BKLG-0151 Road Notes profanity is rejected without overwriting the canonic
   await openEdit(page,marker);
   const driverId=await page.locator('#driver-select').inputValue();
   await page.locator('#drive-notes').fill('sh1tty browser rejection check');
-  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('edit_drive'),{timeout:30_000});
+  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('EDIT'),{timeout:30_000});
   await page.locator('#drive-form button[type=submit]').click();
   const response=await responsePromise, body=await response.json();
   expect(response.status()).toBe(422);
