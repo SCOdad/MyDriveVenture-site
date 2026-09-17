@@ -12,7 +12,7 @@ test('DV01 is retired to the current experience', () => {
 
 test('shared drive RPC retains BKLG-0151 behavior for legacy supported views', () => {
   const source = read('assets/js/log-drive-rpc.js');
-  assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary1/);
+  assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary2/);
   assert.match(source, /sameChanged\(requested,data\.drive,edit\.original\)/);
   assert.match(source, /if\(edit\)edit\.draft=values\(\)/);
 });
@@ -34,6 +34,7 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
   const dashboard = read('assets/js/log-dashboard-entry-v5.js');
   const presenter = read('assets/js/log-prepilot-v2.js');
   assert.match(controls, /renderDriveSkillSummaries\(data\.drive_skill_summaries\)/);
+  assert.match(controls, /querySelector\(':scope > div'\)/);
   assert.match(controls, /Skills Practiced: \$\{names\.join\(', '\)\}/);
   assert.match(controls, /refreshContext: loadContext/);
   assert.match(dashboard, /Road notes: \$\{esc\(d\.notes\)\}/);
@@ -57,7 +58,7 @@ test('supported experiences load the BKLG-0180 CREATE rehydration contract', () 
 test('supported experiences load the current driving-log summary contract directly', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
     const source = read(path);
-    assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary1/);
+    assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary2/);
   }
 });
 

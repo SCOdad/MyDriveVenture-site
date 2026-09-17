@@ -94,7 +94,7 @@
   function renderDriveSkillSummaries(rows) {
     const byDrive=new Map((rows||[]).map(row=>[String(row.drive_id),(row.lessons||[]).map(x=>x.title||x.lesson_code).filter(Boolean)]));
     document.querySelectorAll('#drive-list [data-drive-detail-id]').forEach(link=>{
-      const summary=link.closest('.drive-item')?.querySelector('.drive-item-summary span:first-child'),names=byDrive.get(String(link.dataset.driveDetailId))||[];
+      const item=link.closest('.drive-item'),summary=item?.querySelector('.drive-item-summary span:first-child')||item?.querySelector(':scope > div'),names=byDrive.get(String(link.dataset.driveDetailId))||[];
       let line=summary?.querySelector('.drive-skill-summary');
       if(!names.length){line?.remove();return}
       if(!line){line=document.createElement('small');line.className='drive-skill-summary';summary?.append(document.createElement('br'),line)}
