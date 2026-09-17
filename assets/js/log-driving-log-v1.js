@@ -196,7 +196,7 @@
   notes?.addEventListener('input', updateNoteCount);
   updateNoteCount();
 
-  window.DV_DRIVING_LOG = { getSelectedLessonIds: selectedLessonIds, setLessonSelection, lessonSetEqual, updateNoteCount };
+  window.DV_DRIVING_LOG = { getSelectedLessonIds: selectedLessonIds, setLessonSelection, lessonSetEqual, updateNoteCount, refreshContext: loadContext };
 
   const originalInvoke = client.functions.invoke.bind(client.functions);
   client.functions.invoke = async (slug, options = {}) => {

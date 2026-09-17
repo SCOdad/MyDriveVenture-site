@@ -149,6 +149,13 @@ test.describe('BKLG-0132 critical browser regression', () => {
     expect(mutationResponse.status(),`drive mutation response: ${JSON.stringify(mutationBody)}`).toBe(200);
     expect(mutationBody?.ok,`drive mutation response: ${JSON.stringify(mutationBody)}`).toBe(true);
     expect(mutationBody?.lesson_ids).toHaveLength(2);
+    await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.',{timeout:60_000});
+    await expect(page.locator('#drive-destination')).toHaveValue(route);
+    await expect(page.locator('#drive-notes')).toHaveValue('Skills detail fixture');
+    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(2);
+    const createdRow=page.locator('#drive-list .drive-item').filter({hasText:route}).first();
+    await expect(createdRow).toContainText('Road notes: Skills detail fixture');
+    await expect(createdRow).toContainText('Skills Practiced:');
     const immediateDetail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
     expect(immediateDetail.error).toBeNull();
     expect(immediateDetail.data.lesson_ids).toHaveLength(2);
