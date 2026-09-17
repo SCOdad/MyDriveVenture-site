@@ -39,6 +39,7 @@ test('BKLG-0180 CREATE reloads the authoritative saved drive instead of clearing
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
   assert.match(rpc, /enterEdit\(reread\.drive,\{scroll:false,preservePriorDraft:false\}\)/);
+  assert.match(rpc, /if\(edit\?\.id===id\)\{form\.scrollIntoView/);
   assert.doesNotMatch(rpc, /field\('drive-destination'\)\.value='';field\('drive-notes'\)\.value=''/);
 });
 
