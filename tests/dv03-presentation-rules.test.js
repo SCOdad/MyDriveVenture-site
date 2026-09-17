@@ -44,10 +44,11 @@ test('DV03 resting scenery suppresses billboard while featured billboard tempora
 test('DV03 scenery references ship final existing assets',()=>{
   const source=fs.readFileSync(path.join(__dirname,'..','assets','js','dv03-presentation-rules.js'),'utf8');
   assert.doesNotMatch(source,/DRAFT/);
-  for(const scenery of [rules.DEFAULT_SCENERY,...Object.values(rules.SCENERY_BY_QUEST)]){
+  for(const scenery of Object.values(rules.SCENERY_BY_QUEST)){
     const [assetPath]=scenery.src.replace(/^\//,'').split('?');
     assert.equal(fs.existsSync(path.join(__dirname,'..',assetPath)),true,`${scenery.scene} asset is present`);
   }
+  assert.equal(rules.DEFAULT_SCENERY,null);
   assert.match(rules.SCENERY_BY_QUEST.Q000038.src,/DV03-L4-GROCERY-STORE-BACKGROUND\.png/);
 });
 
@@ -63,9 +64,9 @@ test('DV03 drivers without mapped scenery use the base landscape layer during th
   assert.equal(featured.showBillboard,true);
 });
 
-test('DV03 drivers without mapped scenery can still use the default nighttime windshield scene',()=>{
+test('DV03 drivers without mapped scenery keep base landscape even at night',()=>{
   const resting=rules.resolvePresentation({awards:[],driverId:'driver-1',skyMode:'night'});
-  assert.equal(resting.activeScenery.scene,'neighborhood');
+  assert.equal(resting.activeScenery,null);
   assert.equal(resting.showBillboard,true);
 });
 
@@ -79,14 +80,14 @@ test('DV03 featured scenery wins without billboard when its display order outran
   assert.equal(result.showBillboard,false);
 });
 
-test('DV03 featured night-only scenery falls back to the base daytime landscape before night',()=>{
+test('DV03 featured night-only scenery falls back to billboard before night',()=>{
   const scenery=award('Q000017',17,250,'2026-09-11T12:00:00Z');
   const laterOrderBillboard=award('Q000080',80,400,'2026-09-11T12:00:00Z');
   const result=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[laterOrderBillboard,scenery],skyMode:'day'});
   assert.equal(result.featuredAward.quest_key,'Q000017');
-  assert.equal(result.featuredMode,'scenery');
+  assert.equal(result.featuredMode,'billboard');
   assert.equal(result.activeScenery,null);
-  assert.equal(result.showBillboard,false);
+  assert.equal(result.showBillboard,true);
 });
 
 test('DV03 sky follows driver-local day/night boundaries',()=>{
