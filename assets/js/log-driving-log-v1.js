@@ -91,6 +91,16 @@
     [...lesson.options].forEach(o => { o.selected = !!o.value && wanted.has(o.value); });
     document.querySelectorAll('#drive-lesson-options input[type=checkbox]').forEach(box => { box.checked = wanted.has(box.value); });
   }
+  function renderDriveSkillSummaries(rows) {
+    const byDrive=new Map((rows||[]).map(row=>[String(row.drive_id),(row.lessons||[]).map(x=>x.title||x.lesson_code).filter(Boolean)]));
+    document.querySelectorAll('#drive-list [data-drive-detail-id]').forEach(link=>{
+      const summary=link.closest('.drive-item')?.querySelector('.drive-item-summary span:first-child'),names=byDrive.get(String(link.dataset.driveDetailId))||[];
+      let line=summary?.querySelector('.drive-skill-summary');
+      if(!names.length){line?.remove();return}
+      if(!line){line=document.createElement('small');line.className='drive-skill-summary';summary?.append(document.createElement('br'),line)}
+      line.textContent=`Skills Practiced: ${names.join(', ')}`;
+    });
+  }
   function setExportStatus(text, kind = '') {
     if (!exportStatus) return;
     exportStatus.textContent = text || '';
@@ -207,6 +217,7 @@
     const mine = ++contextToken, previousSupervisor = supervisor?.value || '';
     const { data, error } = await client.functions.invoke('drive-ops', { body: { action: 'form_context', driver_id: driverId } });
     if (mine !== contextToken || app.getDriverId() !== driverId || error || !data?.ok) return;
+    renderDriveSkillSummaries(data.drive_skill_summaries);
     const liveLessons = selectedLessonIds();
     if (supervisor) {
       supervisor.innerHTML = '<option value="">Choose a grown-up</option>' + data.supervisors.map(g => `<option value="${esc(g.person_id)}">${esc(g.display_name)}${g.is_primary ? ' · Primary' : ''}</option>`).join('') + '<option value="OTHER">Other</option>';

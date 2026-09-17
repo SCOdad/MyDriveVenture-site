@@ -29,6 +29,12 @@ test('BKLG-0180 browser save no longer monkey-patches drive-ops into multi-call 
   assert.match(rpc, /expected_revision:edit\.revision/);
 });
 
+test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read model', () => {
+  const controls = read('assets/js/log-driving-log-v1.js');
+  assert.match(controls, /renderDriveSkillSummaries\(data\.drive_skill_summaries\)/);
+  assert.match(controls, /Skills Practiced: \$\{names\.join\(', '\)\}/);
+});
+
 test('supported experiences load the current PDF cleanup contract directly', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
     const source = read(path);
