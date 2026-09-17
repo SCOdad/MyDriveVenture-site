@@ -32,10 +32,12 @@ test('BKLG-0180 browser save no longer monkey-patches drive-ops into multi-call 
 test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read model', () => {
   const controls = read('assets/js/log-driving-log-v1.js');
   const dashboard = read('assets/js/log-dashboard-entry-v5.js');
+  const presenter = read('assets/js/log-prepilot-v2.js');
   assert.match(controls, /renderDriveSkillSummaries\(data\.drive_skill_summaries\)/);
   assert.match(controls, /Skills Practiced: \$\{names\.join\(', '\)\}/);
   assert.match(controls, /refreshContext: loadContext/);
   assert.match(dashboard, /Road notes: \$\{esc\(d\.notes\)\}/);
+  assert.match(presenter, /Road notes: \$\{esc\(d\.notes\)\}/);
 });
 
 test('BKLG-0180 CREATE reloads the authoritative saved drive instead of clearing submitted fields', () => {
