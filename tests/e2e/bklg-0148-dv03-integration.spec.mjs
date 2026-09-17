@@ -14,11 +14,29 @@ test('DV03 mock preview uses Parker fallback and remains read-only',async({page}
   await expect(page.locator('#dash-clock')).toHaveText('5:42 PM');
   await expect(page.locator('#night-time-phase')).toHaveText('BEGINS');
   await expect(page.locator('#night-time-value')).toHaveText('9:12 PM');
-  const layout=await page.evaluate(()=>{const sign=document.querySelector('.hours-sign').getBoundingClientRect(),frame=document.querySelector('.dv03-cockpit-frame-layer'),meta=document.querySelector('.dash-status-meta').getBoundingClientRect(),status=document.querySelector('.dash-status').getBoundingClientRect();return{signRight:sign.right,signWidth:sign.width,signBackground:getComputedStyle(document.querySelector('.hours-sign')).backgroundColor,signZ:Number(getComputedStyle(document.querySelector('.dv03-sign-layer')).zIndex),frameZ:Number(getComputedStyle(frame).zIndex),metaRight:meta.right,statusRight:status.right}});
-  expect(layout.signWidth).toBeGreaterThan(250);
-  expect(layout.signRight).toBeGreaterThan(850);
-  expect(layout.signBackground).not.toBe('rgba(0, 0, 0, 0)');
-  expect(layout.signZ).toBeLessThan(layout.frameZ);
+  const milestone=page.locator('.dv03-milestone-strip .hours-sign');
+  await expect(milestone).toBeVisible();
+  await expect(milestone).toContainText('NEXT LICENSE MILESTONE');
+  await expect(milestone.locator('#hours-sign')).not.toHaveText(/Loading/i);
+  await expect(milestone.locator('#hours-sign')).toHaveText(/(LEVEL|HOURS)/i);
+  const layout=await page.evaluate(()=>{
+    const sign=document.querySelector('.dv03-milestone-strip .hours-sign').getBoundingClientRect();
+    const strip=document.querySelector('.dv03-milestone-strip').getBoundingClientRect();
+    const windshield=document.querySelector('.dv03-windshield').getBoundingClientRect();
+    const meta=document.querySelector('.dash-status-meta').getBoundingClientRect();
+    const status=document.querySelector('.dash-status').getBoundingClientRect();
+    return{
+      signTop:sign.top,
+      signWidth:sign.width,
+      stripTop:strip.top,
+      windshieldBottom:windshield.bottom,
+      metaRight:meta.right,
+      statusRight:status.right,
+    };
+  });
+  expect(layout.signWidth).toBeGreaterThan(230);
+  expect(layout.stripTop).toBeGreaterThanOrEqual(layout.windshieldBottom);
+  expect(layout.signTop).toBeGreaterThanOrEqual(layout.windshieldBottom);
   expect(Math.abs(layout.statusRight-layout.metaRight)).toBeLessThan(20);
   const colors=await page.evaluate(()=>({local:getComputedStyle(document.querySelector('.local-time-status')).color,localValue:getComputedStyle(document.querySelector('#dash-clock')).color,night:getComputedStyle(document.querySelector('#night-time-value')).color,driver:getComputedStyle(document.body).getPropertyValue('--dv-driver-highlight').trim()}));
   expect(colors.local).toBe(colors.localValue);
@@ -31,7 +49,7 @@ test('DV03 remains coherent at the mobile breakpoint',async({page})=>{
   await page.goto('/log/');
   await page.getByRole('button',{name:'Preview DV03 with synthetic data'}).click();
   await expect(page.locator('#dv03-hero')).toBeVisible();
-  await expect(page.locator('.hours-sign')).toBeVisible();
+  await expect(page.locator('.dv03-milestone-strip .hours-sign')).toBeVisible();
   await expect(page.locator('.dv03-cockpit-frame')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
 });
