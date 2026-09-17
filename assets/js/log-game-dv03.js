@@ -141,9 +141,8 @@
     const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
     const layer=sceneLayer(),sign=signLayer();if(!layer)return;
     const skyMode=applySky(detail,rules);
-    const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null});
-    const activeScenery=presentation.activeScenery;
-    const scenery=rules.sceneryAvailableForSky?.(activeScenery,skyMode)?activeScenery:null;
+    const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null,skyMode});
+    const scenery=presentation.activeScenery;
     const landscape=document.querySelector?.('.dv03-landscape');
     if(landscape)landscape.style.display=scenery?'none':'';
     layer.innerHTML='';
