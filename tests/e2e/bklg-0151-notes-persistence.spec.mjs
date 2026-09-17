@@ -34,7 +34,7 @@ async function openEdit(page, marker) {
   await expect(row).toBeVisible({timeout:20_000});
   await row.click();
   await expect(page.locator('.drive-detail-dialog')).toBeVisible();
-  await page.locator('[data-edit-drive]').click();
+  await page.locator('button[data-edit-drive]').click();
   await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
 }
 

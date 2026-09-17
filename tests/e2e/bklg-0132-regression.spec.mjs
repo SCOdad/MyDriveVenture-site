@@ -104,7 +104,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(row).toHaveAttribute('data-drive-detail-id', logged.drive.id);
     await row.click();
     await expect(page.locator('.drive-detail-dialog')).toBeVisible();
-    await page.locator('[data-edit-drive]').click();
+    await page.locator('button[data-edit-drive]').click();
     await expect(page.locator('#drive-edit-context')).toBeVisible();
     await expect(page.locator('#drive-form button[type=submit]')).toHaveText('Save changes');
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture edited');
@@ -158,7 +158,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(page.locator('.drive-detail-dialog')).toContainText('Skills Practiced');
     await expect(page.locator('.drive-detail-dialog')).toContainText('1 · Before you start the engine');
     await expect(page.locator('.drive-detail-dialog')).toContainText('8 · Parking');
-    await page.locator('[data-edit-drive]').click();
+    await page.locator('button[data-edit-drive]').click();
     await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(2);
     await skills.nth(11).check();
     const longNote='N'.repeat(500);await page.locator('#drive-notes').fill(longNote);

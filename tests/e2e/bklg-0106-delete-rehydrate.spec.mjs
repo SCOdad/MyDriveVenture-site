@@ -45,7 +45,7 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await expect(row).toBeVisible({timeout:20_000});
   await row.click();
   await expect(page.locator('.drive-detail-dialog')).toBeVisible();
-  await page.locator('[data-edit-drive]').click();
+  await page.locator('button[data-edit-drive]').click();
   await expect(page.locator('#drive-delete')).toBeVisible();
   await expect(page.locator('#drive-delete')).toBeEnabled();
   await expect.poll(() => page.locator('#drive-form').getAttribute('data-edit-drive')).toBe(String(driveId));
