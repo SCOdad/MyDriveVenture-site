@@ -1,7 +1,7 @@
 (() => {
   const DAY_START_HOUR = 6;
   const NIGHT_START_HOUR = 18;
-  const DEFAULT_SCENERY = Object.freeze({scene:'neighborhood',label:'Neighborhood',src:'/assets/images/dv03/world/l9-neighborhood.png'});
+  const DEFAULT_SCENERY = null;
   const SCENERY_BY_QUEST = Object.freeze({
     Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run',nightOnly:true},
     Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/park.png'},
@@ -62,25 +62,31 @@
     return skyMode==='night'||scenery.nightOnly!==true;
   }
 
-  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date()}={}){
+  function firstAvailableScenery(sceneryList,skyMode){
+    return (sceneryList||[]).find(scenery=>sceneryAvailableForSky(scenery,skyMode))||DEFAULT_SCENERY;
+  }
+
+  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date(),skyMode=null}={}){
+    const sky=skyMode||skyFor(timeZone,now);
     const persistentAward=selectPersistentSceneryAward(awards,driverId);
     const persistentScenery=sceneryFor(persistentAward);
     const featuredAward=selectFeaturedAward(featuredAwards);
     const featuredScenery=sceneryFor(featuredAward);
-    const featuredMode=featuredAward?(featuredScenery?'scenery':'billboard'):null;
+    const activeScenery=firstAvailableScenery([featuredScenery,persistentScenery],sky);
+    const featuredMode=featuredAward?(activeScenery&&activeScenery===featuredScenery?'scenery':'billboard'):null;
     return Object.freeze({
-      sky:skyFor(timeZone,now),
+      sky,
       persistentAward,
       persistentScenery,
       featuredAward,
       featuredScenery,
       featuredMode,
-      activeScenery:featuredScenery||persistentScenery||DEFAULT_SCENERY,
-      showBillboard:featuredMode==='billboard'||(!featuredAward&&!persistentScenery)
+      activeScenery,
+      showBillboard:featuredMode==='billboard'||(!featuredAward&&!activeScenery)
     });
   }
 
-  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,resolvePresentation});
+  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,resolvePresentation});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV03_PRESENTATION_RULES=api;
 })();
