@@ -30,11 +30,12 @@ async function createFixture(page, marker) {
 }
 
 async function openEdit(page, marker) {
+  if (await page.locator('#drive-form').getAttribute('data-edit-drive')) return;
   const row=page.locator('#drive-list .drive-item').filter({hasText:marker}).first();
   await expect(row).toBeVisible({timeout:20_000});
   await row.click();
   await expect(page.locator('.drive-detail-dialog')).toBeVisible();
-  await page.locator('[data-edit-drive]').click();
+  await page.locator('button[data-edit-drive]').click();
   await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
 }
 
