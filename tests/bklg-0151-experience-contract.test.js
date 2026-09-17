@@ -35,6 +35,19 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
   assert.match(controls, /Skills Practiced: \$\{names\.join\(', '\)\}/);
 });
 
+test('BKLG-0180 CREATE reloads the authoritative saved drive instead of clearing submitted fields', () => {
+  const rpc = read('assets/js/log-drive-rpc.js');
+  assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
+  assert.match(rpc, /enterEdit\(reread\.drive,\{scroll:false,preservePriorDraft:false\}\)/);
+  assert.doesNotMatch(rpc, /field\('drive-destination'\)\.value='';field\('drive-notes'\)\.value=''/);
+});
+
+test('supported experiences load the BKLG-0180 CREATE rehydration contract', () => {
+  for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
+    assert.match(read(path), /log-drive-rpc\.js\?v=20260917-0180-create-rehydrate1/);
+  }
+});
+
 test('supported experiences load the current PDF cleanup contract directly', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
     const source = read(path);
