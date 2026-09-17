@@ -9,9 +9,10 @@
   function removeInactiveDrives(model){const byId=new Map((model?.recent_drives||[]).map(d=>[String(d.id),d]));document.querySelectorAll('#drive-list [data-drive-detail-id]').forEach(link=>{const drive=byId.get(String(link.dataset.driveDetailId));if(!drive||drive.status!=='COMPLETE')link.closest('li')?.remove()});const list=document.getElementById('drive-list');if(list&&!list.children.length)list.innerHTML='<li class="empty-state">No drives logged yet.</li>'}
   function ensureDeleteButton(){let b=document.getElementById('drive-delete');if(b)return b;b=document.createElement('button');b.id='drive-delete';b.type='button';b.className='button subtle-button button-small drive-delete-button';b.textContent='Delete drive';b.hidden=true;const cancel=document.getElementById('drive-edit-cancel');(cancel||form.querySelector('button[type=submit]'))?.after(b);return b}
   const del=ensureDeleteButton();
+  const canInactivate=driverId=>app.getAccessMode?.(driverId)!=='VIEW';
   window.addEventListener('dv:dashboard-rendered',e=>removeInactiveDrives(e.detail?.model));
-  window.addEventListener('dv:drive-edit-mode',e=>{const active=!!form.dataset.editDrive||!!e.detail?.active;current={active,driverId:e.detail?.driverId||app.getDriverId?.()||null,driveId:form.dataset.editDrive||e.detail?.driveId||null,driveRevision:e.detail?.driveRevision??null};setReviewMode(active);del.hidden=!active});
-  if(form.dataset.editDrive){current={active:true,driverId:app.getDriverId?.()||null,driveId:form.dataset.editDrive};setReviewMode(true);del.hidden=false}
+  window.addEventListener('dv:drive-edit-mode',e=>{const active=!!form.dataset.editDrive||!!e.detail?.active;current={active,driverId:e.detail?.driverId||app.getDriverId?.()||null,driveId:form.dataset.editDrive||e.detail?.driveId||null,driveRevision:e.detail?.driveRevision??null};setReviewMode(active);del.hidden=!active||!canInactivate(current.driverId)});
+  if(form.dataset.editDrive){current={active:true,driverId:app.getDriverId?.()||null,driveId:form.dataset.editDrive};setReviewMode(true);del.hidden=!canInactivate(current.driverId)}
   del.addEventListener('click',async()=>{
     const driverId=app.getDriverId?.()||current.driverId,driveId=form.dataset.editDrive||current.driveId;if(!driverId||!driveId)return;
     if(!window.confirm('Delete this drive?\n\nIt will be removed from your driving totals, achievements, printable log, and certification queue. Drive Venture will retain an audit record so the deletion can be traced.'))return;

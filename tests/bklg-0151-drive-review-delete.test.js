@@ -44,3 +44,9 @@ test('BKLG-0151 delete copy explains retained audit behavior',()=>{
   assert.match(js,/removed from your driving totals, achievements, printable log, and certification queue/);
   assert.doesNotMatch(js,/hard delete/i);
 });
+
+test('BKLG-0180 does not offer inactivation to view-only operators',()=>{
+  const js=read('assets/js/log-drive-review.js');
+  assert.match(js,/getAccessMode\?\.\(driverId\)!==['"]VIEW['"]/);
+  assert.match(js,/del\.hidden=!active\|\|!canInactivate/);
+});
