@@ -10,7 +10,12 @@
     Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
     Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
     Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
-    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'}
+    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'},
+    Q000086:{scene:'shopping-center',label:'Shopping Center',src:'/assets/images/dv03/layers/DV03-L10-SHOPPING-CENTER-BACKGROUND.png'},
+    Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-L11-COFFEE-SHOP-BACKGROUND.png'},
+    Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
+    Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
+    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-L13-MOVIE-THEATER-BACKGROUND.png'}
   });
 
   const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
