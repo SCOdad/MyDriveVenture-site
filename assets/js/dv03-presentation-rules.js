@@ -1,21 +1,21 @@
 (() => {
   const DAY_START_HOUR = 6;
   const NIGHT_START_HOUR = 18;
-  const DEFAULT_SCENERY = Object.freeze({scene:'neighborhood',label:'Neighborhood',src:'/assets/images/dv03/world/l9-neighborhood.png'});
+  const DEFAULT_SCENERY = null;
   const SCENERY_BY_QUEST = Object.freeze({
-    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run'},
+    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run',nightOnly:true},
     Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/park.png'},
     Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND.png'},
     Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND.png'},
     Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
-    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
-    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
-    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'},
-    Q000086:{scene:'shopping-center',label:'Shopping Center',src:'/assets/images/dv03/layers/DV03-L10-SHOPPING-CENTER-BACKGROUND.png'},
-    Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-L11-COFFEE-SHOP-BACKGROUND.png'},
-    Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
-    Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
-    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-L13-MOVIE-THEATER-BACKGROUND.png'}
+    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru',nightOnly:true},
+    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash',nightOnly:true},
+    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png',nightOnly:true},
+    Q000086:{scene:'shopping-center',label:'Shopping Center',src:'/assets/images/dv03/layers/DV03-L10-SHOPPING-CENTER-BACKGROUND.png',nightOnly:true},
+    Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-L11-COFFEE-SHOP-BACKGROUND.png',nightOnly:true},
+    Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png',nightOnly:true},
+    Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png',nightOnly:true},
+    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-L13-MOVIE-THEATER-BACKGROUND.png',nightOnly:true}
   });
 
   const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -57,25 +57,36 @@
     return hour>=NIGHT_START_HOUR||hour<DAY_START_HOUR?'night':'day';
   }
 
-  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date()}={}){
+  function sceneryAvailableForSky(scenery,skyMode){
+    if(!scenery)return false;
+    return skyMode==='night'||scenery.nightOnly!==true;
+  }
+
+  function firstAvailableScenery(sceneryList,skyMode){
+    return (sceneryList||[]).find(scenery=>sceneryAvailableForSky(scenery,skyMode))||DEFAULT_SCENERY;
+  }
+
+  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date(),skyMode=null}={}){
+    const sky=skyMode||skyFor(timeZone,now);
     const persistentAward=selectPersistentSceneryAward(awards,driverId);
     const persistentScenery=sceneryFor(persistentAward);
     const featuredAward=selectFeaturedAward(featuredAwards);
     const featuredScenery=sceneryFor(featuredAward);
-    const featuredMode=featuredAward?(featuredScenery?'scenery':'billboard'):null;
+    const activeScenery=firstAvailableScenery([featuredScenery,persistentScenery],sky);
+    const featuredMode=featuredAward?(activeScenery&&activeScenery===featuredScenery?'scenery':'billboard'):null;
     return Object.freeze({
-      sky:skyFor(timeZone,now),
+      sky,
       persistentAward,
       persistentScenery,
       featuredAward,
       featuredScenery,
       featuredMode,
-      activeScenery:featuredScenery||persistentScenery||DEFAULT_SCENERY,
-      showBillboard:featuredMode==='billboard'||(!featuredAward&&!persistentScenery)
+      activeScenery,
+      showBillboard:featuredMode==='billboard'||(!featuredAward&&!activeScenery)
     });
   }
 
-  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,resolvePresentation});
+  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,resolvePresentation});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV03_PRESENTATION_RULES=api;
 })();

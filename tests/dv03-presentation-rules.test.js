@@ -28,12 +28,13 @@ test('DV03 persistent scenery is the most recently earned scenery-qualified awar
 
 test('DV03 resting scenery suppresses billboard while featured billboard temporarily wins',()=>{
   const scenery=award('Q000039',39,300,'2026-09-10T12:00:00Z');
-  const resting=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',timeZone:'America/Detroit',now:new Date('2026-09-11T16:00:00Z')});
+  const resting=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',timeZone:'America/Detroit',now:new Date('2026-09-11T16:00:00Z'),skyMode:'day'});
   assert.equal(resting.persistentScenery.scene,'library');
+  assert.equal(resting.activeScenery.scene,'library');
   assert.equal(resting.showBillboard,false);
 
   const milestone=award('Q000009',9,2500,'2026-09-11T12:00:00Z');
-  const featured=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[scenery,milestone],timeZone:'America/Detroit',now:new Date('2026-09-11T16:00:00Z')});
+  const featured=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[scenery,milestone],timeZone:'America/Detroit',now:new Date('2026-09-11T16:00:00Z'),skyMode:'day'});
   assert.equal(featured.featuredAward.quest_key,'Q000009');
   assert.equal(featured.featuredMode,'billboard');
   assert.equal(featured.persistentScenery.scene,'library');
@@ -43,33 +44,50 @@ test('DV03 resting scenery suppresses billboard while featured billboard tempora
 test('DV03 scenery references ship final existing assets',()=>{
   const source=fs.readFileSync(path.join(__dirname,'..','assets','js','dv03-presentation-rules.js'),'utf8');
   assert.doesNotMatch(source,/DRAFT/);
-  for(const scenery of [rules.DEFAULT_SCENERY,...Object.values(rules.SCENERY_BY_QUEST)]){
+  for(const scenery of Object.values(rules.SCENERY_BY_QUEST)){
     const [assetPath]=scenery.src.replace(/^\//,'').split('?');
     assert.equal(fs.existsSync(path.join(__dirname,'..',assetPath)),true,`${scenery.scene} asset is present`);
   }
+  assert.equal(rules.DEFAULT_SCENERY,null);
   assert.match(rules.SCENERY_BY_QUEST.Q000038.src,/DV03-L4-GROCERY-STORE-BACKGROUND\.png/);
 });
 
-test('DV03 drivers without mapped scenery still receive a real windshield scene',()=>{
-  const resting=rules.resolvePresentation({awards:[],driverId:'driver-1'});
-  assert.equal(resting.activeScenery.scene,'neighborhood');
+test('DV03 drivers without mapped scenery use the base landscape layer during the day',()=>{
+  const resting=rules.resolvePresentation({awards:[],driverId:'driver-1',skyMode:'day'});
+  assert.equal(resting.activeScenery,null);
   assert.equal(resting.showBillboard,true);
 
   const milestone=award('Q000085',85,0,'2026-09-12T12:00:00Z');
-  const featured=rules.resolvePresentation({awards:[],driverId:'driver-1',featuredAwards:[milestone]});
+  const featured=rules.resolvePresentation({awards:[],driverId:'driver-1',featuredAwards:[milestone],skyMode:'day'});
   assert.equal(featured.featuredMode,'billboard');
-  assert.equal(featured.activeScenery.scene,'neighborhood');
+  assert.equal(featured.activeScenery,null);
   assert.equal(featured.showBillboard,true);
 });
 
-test('DV03 featured scenery wins without billboard when its display order outranks alternatives',()=>{
+test('DV03 drivers without mapped scenery keep base landscape even at night',()=>{
+  const resting=rules.resolvePresentation({awards:[],driverId:'driver-1',skyMode:'night'});
+  assert.equal(resting.activeScenery,null);
+  assert.equal(resting.showBillboard,true);
+});
+
+test('DV03 featured scenery wins without billboard when its display order outranks alternatives at night',()=>{
   const scenery=award('Q000017',17,250,'2026-09-11T12:00:00Z');
   const laterOrderBillboard=award('Q000080',80,400,'2026-09-11T12:00:00Z');
-  const result=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[laterOrderBillboard,scenery]});
+  const result=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[laterOrderBillboard,scenery],skyMode:'night'});
   assert.equal(result.featuredAward.quest_key,'Q000017');
   assert.equal(result.featuredMode,'scenery');
   assert.equal(result.activeScenery.scene,'snack-run');
   assert.equal(result.showBillboard,false);
+});
+
+test('DV03 featured night-only scenery falls back to billboard before night',()=>{
+  const scenery=award('Q000017',17,250,'2026-09-11T12:00:00Z');
+  const laterOrderBillboard=award('Q000080',80,400,'2026-09-11T12:00:00Z');
+  const result=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[laterOrderBillboard,scenery],skyMode:'day'});
+  assert.equal(result.featuredAward.quest_key,'Q000017');
+  assert.equal(result.featuredMode,'billboard');
+  assert.equal(result.activeScenery,null);
+  assert.equal(result.showBillboard,true);
 });
 
 test('DV03 sky follows driver-local day/night boundaries',()=>{

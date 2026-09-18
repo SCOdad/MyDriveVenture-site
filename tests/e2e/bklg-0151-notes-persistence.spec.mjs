@@ -26,6 +26,9 @@ async function createFixture(page, marker) {
   const body=await response.json();
   expect(body.ok).toBe(true);
   expect(body.drive?.certification_status).toBe('CERTIFIED');
+  await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.',{timeout:60_000});
+  await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',body.drive.id,{timeout:20_000});
+  await expect(page.locator('#drive-notes')).toHaveValue('Initial road note',{timeout:20_000});
   return body.drive.id;
 }
 

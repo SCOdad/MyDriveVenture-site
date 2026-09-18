@@ -25,8 +25,9 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   await waitForFormContext(page);
 
   const run=process.env.GITHUB_RUN_ID||Date.now();
-  const marker=`BKLG-0106 delete ${run}-${testInfo.retry}`;
-  await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0106-delete-${run}-${testInfo.retry}`);
+  const attempt=process.env.GITHUB_RUN_ATTEMPT||'local';
+  const marker=`BKLG-0106 delete ${run}-${attempt}-${testInfo.retry}`;
+  await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0106-delete-${run}-${attempt}-${testInfo.retry}`);
   await page.locator('#drive-date').fill(await fixtureDate(page));
   await page.locator('#drive-start').fill('11:00');
   await page.locator('#drive-end').fill('11:10');
