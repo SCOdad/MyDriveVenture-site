@@ -149,7 +149,7 @@
     layer.style.backgroundImage=scenery?`url("${scenery.src}")`:'';
     layer.style.backgroundRepeat=scenery?'no-repeat':'';
     layer.style.backgroundPosition=scenery?'center':'';
-    layer.style.backgroundSize=scenery?'100% 100%':'';
+    layer.style.backgroundSize=scenery?'cover':'';
     if(scenery)layer.dataset.dvScene=scenery.scene;else delete layer.dataset.dvScene;
     if(sign)sign.style.display=presentation.showBillboard?'block':'none';
     if(presentation.featuredMode==='billboard'&&presentation.featuredAward){
@@ -182,6 +182,7 @@
     if(newAwards.length)featureAwards(newAwards);
   });
   window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
+  window.addEventListener('dv:night-phase-updated',event=>{if(latestDetail&&(!event.detail?.driverId||event.detail.driverId===latestDetail.driverId))renderScene(latestDetail)});
   ensureRules().then(rules=>{
     if(rules&&latestDetail){renderScene(latestDetail);refreshPersistentScenery(latestDetail).catch(()=>{})}
     if(rules&&!skyTimer)skyTimer=window.setInterval(()=>{if(latestDetail)renderScene(latestDetail)},SKY_REFRESH_MS);
