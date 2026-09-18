@@ -80,14 +80,14 @@ test('DV03 featured scenery wins without billboard when its display order outran
   assert.equal(result.showBillboard,false);
 });
 
-test('DV03 featured night-only scenery falls back to billboard before night',()=>{
+test('DV03 featured scenery remains active with daytime sky',()=>{
   const scenery=award('Q000017',17,250,'2026-09-11T12:00:00Z');
   const laterOrderBillboard=award('Q000080',80,400,'2026-09-11T12:00:00Z');
   const result=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',featuredAwards:[laterOrderBillboard,scenery],skyMode:'day'});
   assert.equal(result.featuredAward.quest_key,'Q000017');
-  assert.equal(result.featuredMode,'billboard');
-  assert.equal(result.activeScenery,null);
-  assert.equal(result.showBillboard,true);
+  assert.equal(result.featuredMode,'scenery');
+  assert.equal(result.activeScenery.scene,'snack-run');
+  assert.equal(result.showBillboard,false);
 });
 
 test('DV03 sky follows driver-local day/night boundaries',()=>{
