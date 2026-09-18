@@ -54,9 +54,10 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(preview,/entry\.hidden=false/);
   assert.match(html,/class="dv-mock-entry" hidden/);
   assert.match(css,/\.dv-mock-entry\[hidden\]\{display:none!important\}/);
-  assert.match(html,/log-game-dv03\.css\?v=20260916-0187-assets1/);
+  assert.match(html,/log-game-dv03\.css\?v=20260918-0187-layout2/);
   assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance2/);
-  assert.match(html,/log-game-dv03\.js\?v=20260917-0187-daytime1/);
+  assert.match(html,/log-game-polish\.js\?v=20260918-0187-phase2/);
+  assert.match(html,/log-game-dv03\.js\?v=20260918-0187-phase2/);
   assert.match(read('assets/js/log-game-dv03.js'),/dv03-presentation-rules\.js\?v=20260917-0187-daytime1/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
@@ -77,7 +78,7 @@ test('DV03 reuses the proven DV02 palette, gauge, clock, and night XP runtime',(
   assert.match(html,/data-experience="game"/);
   assert.match(polish,/\['game','dv03'\]\.includes/);
   assert.match(polish,/id="night-time-phase"/);
-  assert.match(polish,/night\?'ENDS':'BEGINS'/);
+  assert.match(polish,/mode==='night'\?'ENDS':'BEGINS'/);
   assert.match(polish,/threshold\?\.endLocalTime/);
   assert.match(html,/class="dash-status-meta"/);
   assert.match(html,/NEXT TIME<br>MILESTONE/);
