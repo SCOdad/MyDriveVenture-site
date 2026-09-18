@@ -133,8 +133,8 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await skills.nth(0).check();
     await skills.nth(7).check();
     expect(await page.evaluate(() => window.DV_DRIVING_LOG.getSelectedLessonIds())).toHaveLength(2);
-    const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,route=`BKLG-0151 skills ${runId}-${testInfo.retry}`;
-    await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${testInfo.retry}`);
+    const runId=process.env.GITHUB_RUN_ID||`${Date.now()}`,runAttempt=process.env.GITHUB_RUN_ATTEMPT||'local',route=`BKLG-0151 skills ${runId}-${runAttempt}-${testInfo.retry}`;
+    await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0151-skills-${runId}-${runAttempt}-${testInfo.retry}`);
     await page.locator('#drive-date').fill(await currentFixtureDate(page));
     await page.locator('#drive-start').fill('14:00');
     await page.locator('#drive-end').fill('14:15');
