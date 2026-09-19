@@ -8,9 +8,16 @@ test('Family Hub client parses and uses canonical supported contracts',()=>{
   assert.doesNotThrow(()=>new Function(js));
   assert.match(js,/api\('driver-api','dashboard'\)/);
   assert.match(js,/api\('driver-hero-url','headshot'/);
+  assert.match(js,/r\.signed_url\|\|r\.headshot_signed_url/);
   assert.match(js,/DV_DRIVER_PALETTES/);
   assert.match(js,/total_minutes/);
   assert.match(js,/night_minutes/);
+});
+
+test('Family Hub preserves Family API progress when dashboard progress is absent',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/const dashboardProgress=pMap\.get\(String\(d\.id\)\)/);
+  assert.match(js,/progress:dashboardProgress\|\|d\.progress\|\|null/);
 });
 
 test('Family Hub bounds driver summary to three plus See all',()=>{
