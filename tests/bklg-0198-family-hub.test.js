@@ -6,9 +6,10 @@ const read=p=>fs.readFileSync(p,'utf8');
 test('Family Hub client parses and uses canonical supported contracts',()=>{
   const js=read('assets/js/family.js');
   assert.doesNotThrow(()=>new Function(js));
-  assert.match(js,/api\('driver-api','dashboard'\)/);
-  assert.match(js,/api\('driver-hero-url','headshot'/);
+  assert.doesNotMatch(js,/api\('driver-api','dashboard'\)/);
+  assert.doesNotMatch(js,/api\('driver-hero-url','headshot'/);
   assert.match(js,/DV_DRIVER_PALETTES/);
+  assert.match(js,/headshot_signed_url/);
   assert.match(js,/total_minutes/);
   assert.match(js,/night_minutes/);
 });
