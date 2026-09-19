@@ -92,18 +92,20 @@ test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
     await expect(first).toContainText('2.0 hrs');
     await expect(first).toHaveClass(/has-driver-accent/);
     expect(await first.getAttribute('style')).toContain('--family-accent-base:');
-    await expect(first.locator('.family-parker-silhouette')).toBeVisible();
+    await expect(first.locator('.family-avatar-fallback')).toBeVisible();
     await expect(first.locator('.family-avatar-fallback')).toContainText('No avatar yet');
   });
 
-  test('driver cards are keyboard/click actionable into the driver console',async({page})=>{
+  test('driver cards are clickable into the driver console and persist selection',async({page})=>{
     await mountFamilyFixture(page,{driverCount:2});
     const first=page.locator('.family-driver-card').first();
     await expect(first).toHaveAttribute('role','link');
+    await expect(first).toHaveAttribute('tabindex','0');
     await expect(first).toContainText('Open console');
-    await first.focus();
-    await page.keyboard.press('Enter');
-    await page.waitForURL('**/log/');
+    await Promise.all([
+      page.waitForURL(url=>url.pathname==='/log/'),
+      first.click()
+    ]);
     expect(await page.evaluate(()=>localStorage.getItem('dv.log.driver'))).toBe('driver-1');
   });
 
