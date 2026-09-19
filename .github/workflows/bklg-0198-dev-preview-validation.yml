@@ -54,7 +54,7 @@ jobs:
               }
             });
             page.on('requestfailed',request=>{
-              if(request.url().includes('/functions/v1/'))diagnostics.requests.push({url:request.url(),failure:request.failure()?.errorText||'unknown'});
+              if(request.url().includes('/functions/v1/')||/\.(?:js|mjs)(?:\?|$)/i.test(request.url()))diagnostics.requests.push({url:request.url(),failure:request.failure()?.errorText||'unknown'});
             });
             await page.goto(base+'/family/',{waitUntil:'domcontentloaded'});
             try{await page.waitForSelector('#family-app:not([hidden])',{timeout:20000})}
@@ -62,7 +62,11 @@ jobs:
               const state=await page.evaluate(()=>({
                 loading:document.querySelector('#family-loading')?.textContent?.trim()||null,
                 authHidden:document.querySelector('#family-auth-needed')?.hidden??null,
-                appHidden:document.querySelector('#family-app')?.hidden??null
+                appHidden:document.querySelector('#family-app')?.hidden??null,
+                config:window.DV_APP_CONFIG?{url:window.DV_APP_CONFIG.supabaseUrl,key:Boolean(window.DV_APP_CONFIG.publishableKey)}:null,
+                supabase:Boolean(window.supabase?.createClient),
+                scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
+                resources:performance.getEntriesByType('resource').map(e=>({name:e.name,initiator:e.initiatorType})).filter(e=>e.name.includes('/assets/js/')||e.name.includes('/functions/v1/'))
               }));
               console.error('BKLG-0198 preview diagnostics',JSON.stringify({viewport,state,failures,diagnostics}));
               throw error;
