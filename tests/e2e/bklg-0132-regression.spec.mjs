@@ -150,9 +150,10 @@ test.describe('BKLG-0132 critical browser regression', () => {
     expect(mutationBody?.ok,`drive mutation response: ${JSON.stringify(mutationBody)}`).toBe(true);
     expect(mutationBody?.lesson_ids).toHaveLength(2);
     await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.',{timeout:60_000});
-    await expect(page.locator('#drive-destination')).toHaveValue(route);
-    await expect(page.locator('#drive-notes')).toHaveValue('Skills detail fixture');
-    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(2);
+    await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
+    await expect(page.locator('#drive-destination')).toHaveValue('');
+    await expect(page.locator('#drive-notes')).toHaveValue('');
+    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(0);
     const createdRow=page.locator('#drive-list .drive-item').filter({hasText:route}).first();
     await expect(createdRow).toContainText('Road notes: Skills detail fixture');
     await expect(createdRow).toContainText('Skills Practiced:');
@@ -166,6 +167,8 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await expect(page.locator('.drive-detail-dialog')).toContainText('1 · Before you start the engine');
     await expect(page.locator('.drive-detail-dialog')).toContainText('8 · Parking');
     await page.locator('button[data-edit-drive]').click();
+    await expect(page.locator('#drive-destination')).toHaveValue(route);
+    await expect(page.locator('#drive-notes')).toHaveValue('Skills detail fixture');
     await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(2);
     await skills.nth(11).check();
     const longNote='N'.repeat(500);await page.locator('#drive-notes').fill(longNote);
