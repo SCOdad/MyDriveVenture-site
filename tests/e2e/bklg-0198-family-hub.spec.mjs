@@ -34,9 +34,10 @@ async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCo
     </main>
   </body></html>`);
   await page.addStyleTag({path:asset('assets/css/family.css')});
-  await page.evaluate(({driverCount})=>{
+  await page.evaluate(({driverCount,familyDriverCount})=>{
     const ids=n=>Array.from({length:n},(_,i)=>`driver-${i+1}`);
-    const driverRows=n=>ids(n).map((id,i)=>({id,person_id:`person-${i+1}`,display_name:`Driver ${i+1}`,license_stage:i%2?'LEVEL_2':'LEVEL_1',favorite_color:['GREEN','BLUE','PINK','ORANGE','PURPLE'][i%5]}));
+    const avatarData='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="90"><rect width="120" height="90" fill="#222"/><circle cx="60" cy="40" r="22" fill="#f4b820"/></svg>');
+    const driverRows=n=>ids(n).map((id,i)=>({id,person_id:`person-${i+1}`,display_name:`Driver ${i+1}`,license_stage:i%2?'LEVEL_2':'LEVEL_1',favorite_color:['GREEN','BLUE','PINK','ORANGE','PURPLE'][i%5],progress:{driver_id:id,total_minutes:600+i*60,night_minutes:120+i*15,total_drives:10+i,xp:100+i*25},avatar:i===0?{visual_asset_id:'DV-TEST-HEADSHOT',headshot_signed_url:avatarData}:null}));
     const state={count:driverCount,familyDriverCount};
     window.__familyFixture=state;
     window.DV_APP_CONFIG={supabaseUrl:'https://dev.fixture.invalid',publishableKey:'fixture-key'};
@@ -51,14 +52,12 @@ async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCo
       const response=data=>({ok:data.ok!==false,status:data.ok===false?404:200,json:async()=>data});
       if(String(url).includes('/family-api')){
         if(body.action==='add_driver'){state.count=1;state.familyDriverCount=Math.max(1,state.familyDriverCount);return response({ok:true});}
-        return response({ok:true,family_id:'family-1',current_person_id:'grownup-1',family_driver_count:state.familyDriverCount,primary_driver_ids:driverIds,drivers:drivers.map(({favorite_color,...d})=>d),grownups:[{person_id:'grownup-1',display_name:'Fixture Grown-up',relationship:'PARENT',is_primary:n>0,driver_ids:driverIds}]});
+        return response({ok:true,family_id:'family-1',current_person_id:'grownup-1',family_driver_count:state.familyDriverCount,primary_driver_ids:driverIds,drivers,grownups:[{person_id:'grownup-1',display_name:'Fixture Grown-up',relationship:'PARENT',is_primary:n>0,driver_ids:driverIds}]});
       }
       if(String(url).includes('/family-invite-api'))return response({ok:true,zero_access_grownups:[],pending_invitations:[]});
-      if(String(url).includes('/driver-api'))return response({ok:true,data:{drivers,progress:driverIds.map((id,i)=>({driver_id:id,total_minutes:600+i*60,night_minutes:120+i*15}))}});
-      if(String(url).includes('/driver-hero-url'))return response({ok:false,error:'No current avatar'});
       throw new Error(`Unexpected fixture request: ${url}`);
     };
-  },{driverCount});
+  },{driverCount,familyDriverCount});
   await page.addScriptTag({path:asset('assets/js/driver-palettes.js')});
   await page.addScriptTag({path:asset('assets/js/family.js')});
   await expect(page.locator('#family-app')).toBeVisible();
@@ -105,7 +104,8 @@ test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
     await expect(first).toHaveClass(/has-driver-accent/);
     const style=await first.getAttribute('style');
     expect(style).toContain('--family-accent-base:');
-    await expect(first.locator('.family-parker-silhouette')).toBeVisible();
+    await expect(first.locator('.family-driver-photo img')).toBeVisible();
+    await expect(page.locator('.family-driver-card').nth(1).locator('.family-parker-silhouette')).toBeVisible();
   });
 
   test('zero visible drivers is not misrepresented when the family already has drivers',async({page})=>{
