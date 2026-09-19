@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { personas, signIn, installPageGuards } from './helpers.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const asset=relative=>path.join(root,relative);
@@ -64,6 +65,17 @@ async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCo
 }
 
 test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
+  test('real DEV multi-driver guardian loads Family Hub through authenticated contracts',async({page})=>{
+    const assertNoPageFailures=installPageGuards(page);
+    await signIn(page,personas.guardianMulti);
+    await page.goto('/family/');
+    await expect(page.locator('#family-app')).toBeVisible({timeout:20_000});
+    await expect(page.locator('.family-driver-card')).toHaveCount(2,{timeout:20_000});
+    await expect(page.locator('.family-grownup-card')).toHaveCount(1);
+    await expect(page.locator('.family-driver-stats').first()).toContainText('Practice');
+    await expect(page.locator('#family-see-all-drivers')).toBeHidden();
+    assertNoPageFailures();
+  });
   test('five drivers render as three-card summary with See all',async({page})=>{
     await mountFamilyFixture(page,{driverCount:5});
     const cards=page.locator('.family-driver-card');
