@@ -49,9 +49,9 @@ test('BKLG-0180 CREATE reloads the authoritative saved drive instead of clearing
   assert.doesNotMatch(rpc, /field\('drive-destination'\)\.value='';field\('drive-notes'\)\.value=''/);
 });
 
-test('supported experiences load the BKLG-0180 CREATE rehydration contract', () => {
+test('supported experiences load the current CREATE rehydration and failure-recovery contract', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
-    assert.match(read(path), /log-drive-rpc\.js\?v=20260917-0180-create-rehydrate2/);
+    assert.match(read(path), /log-drive-rpc\.js\?v=20260919-0084-hotfix/);
   }
 });
 
