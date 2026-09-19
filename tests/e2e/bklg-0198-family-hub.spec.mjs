@@ -8,6 +8,7 @@ const asset=relative=>path.join(root,relative);
 
 async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCount}={}){
   await page.setViewportSize({width:1100,height:900});
+  await page.goto('/family/');
   await page.setContent(`<!doctype html><html><body>
     <main>
       <section id="family-loading"><p>Loading…</p></section>
@@ -103,7 +104,7 @@ test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
     await expect(first).toHaveAttribute('tabindex','0');
     await expect(first).toContainText('Open console');
     await Promise.all([
-      page.waitForURL(url=>url.pathname==='/log/'),
+      page.waitForURL(url=>url.pathname==='/log/',{waitUntil:'commit'}),
       first.click()
     ]);
     expect(await page.evaluate(()=>localStorage.getItem('dv.log.driver'))).toBe('driver-1');
