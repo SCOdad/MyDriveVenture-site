@@ -45,7 +45,7 @@ test('CREATE verifies the authoritative saved drive and returns to ordinary log 
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
   assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;resetAfterCreate\(\)/);
-  assert.match(rpc, /function resetAfterCreate\(\)\{clearEditUi\(\)/);
+  assert.match(rpc, /function resetAfterCreate\(\)\{if\(edit\)return;clearEditUi\(\)/);
   assert.doesNotMatch(rpc, /app\.detailDrives\[id\]=reread\.drive;enterEdit\(reread\.drive/);
   assert.match(rpc, /if\(edit\?\.id===id\)\{form\.scrollIntoView/);
   assert.match(rpc, /\['drive-start','drive-end','drive-destination','drive-notes'\]/);
