@@ -16,8 +16,7 @@ test('Family Hub client parses and uses canonical supported contracts',()=>{
 
 test('Family Hub preserves Family API progress when dashboard progress is absent',()=>{
   const js=read('assets/js/family.js');
-  assert.match(js,/const dashboardProgress=pMap\.get\(String\(d\.id\)\)/);
-  assert.match(js,/progress:dashboardProgress\|\|d\.progress\|\|null/);
+  assert.match(js,/progress:d\.progress\|\|pMap\.get\(String\(d\.id\)\)\|\|null/);
 });
 
 test('Family Hub bounds driver summary to three plus See all',()=>{
