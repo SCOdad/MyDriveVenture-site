@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260913-0184';
+const marker = '20260918-0187-scenery3';
 const assets = [
   '/assets/images/dv03/layers/night.png',
   '/assets/images/dv03/layers/park.png',
