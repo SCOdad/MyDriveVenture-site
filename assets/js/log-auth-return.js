@@ -2,7 +2,12 @@
   const cfg=window.DV_APP_CONFIG||{},params=new URLSearchParams(location.search),raw=params.get('return');
   if(!raw||!cfg.supabaseUrl||!cfg.publishableKey||!window.supabase)return;
   let target='';
-  try{const u=new URL(raw,location.origin);if(u.origin===location.origin&&((u.pathname==='/family/'&&u.searchParams.has('invite'))||(u.pathname==='/staging/operator-leads/'&&!u.search&&!u.hash)))target=u.pathname+u.search}catch{return}
+  try{
+    const u=new URL(raw,location.origin);
+    const familyReturn=u.pathname==='/family/'&&!u.hash;
+    const operatorLeadsReturn=u.pathname==='/staging/operator-leads/'&&!u.search&&!u.hash;
+    if(u.origin===location.origin&&(familyReturn||operatorLeadsReturn))target=u.pathname+u.search;
+  }catch{return}
   if(!target)return;
   const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});window.DV_SUPABASE_CLIENT=client;
   let redirecting=false;
