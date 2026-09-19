@@ -1,0 +1,66 @@
+name: BKLG-0198 DEV Preview Acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/bklg-0198-dev-preview-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  family-preview:
+    runs-on: ubuntu-latest
+    env:
+      DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
+      DV_PREVIEW_URL: https://fd0b4667.mydriveventure-dev.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Test deployed Family Hub at desktop and mobile widths
+        shell: bash
+        run: |
+          test -n "$DV_DEV_TEST_PASSWORD"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { chromium } from '@playwright/test';
+          const base=process.env.DV_PREVIEW_URL;
+          const password=process.env.DV_DEV_TEST_PASSWORD;
+          const email='bklg0198.five@dev.driveventure.example.invalid';
+          const browser=await chromium.launch({headless:true});
+          for (const viewport of [{width:1280,height:900},{width:390,height:844}]) {
+            const page=await browser.newPage({viewport});
+            const failures=[];
+            page.on('pageerror',e=>failures.push('pageerror: '+e.message));
+            page.on('console',m=>{if(m.type()==='error')failures.push('console.error: '+m.text())});
+            await page.goto(base+'/log/',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>Boolean(window.DV_APP_CONFIG?.supabaseUrl&&window.supabase?.createClient));
+            const signed=await page.evaluate(async({email,password})=>{
+              const cfg=window.DV_APP_CONFIG;
+              const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+              window.DV_SUPABASE_CLIENT=client;
+              const {data,error}=await client.auth.signInWithPassword({email,password});
+              return {ok:!error&&Boolean(data?.session),error:error?.message||null};
+            },{email,password});
+            assert.equal(signed.ok,true,signed.error||'DEV preview sign-in failed');
+            await page.goto(base+'/family/',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#family-app:not([hidden])',{timeout:20000});
+            assert.equal(await page.locator('.family-driver-card').count(),5);
+            assert.equal(await page.locator('.family-driver-card:visible').count(),3);
+            assert.equal(await page.locator('#family-see-all-drivers').isVisible(),true);
+            assert.equal(await page.locator('.family-grownup-card').count(),3);
+            assert.equal(await page.locator('.family-driver-card').first().getAttribute('class').then(v=>v.includes('has-driver-accent')),true);
+            if(viewport.width<500){
+              const box=await page.locator('.family-driver-card:visible').first().boundingBox();
+              assert.ok(box&&box.width<=390,'mobile card exceeds viewport');
+            }
+            assert.deepEqual(failures,[]);
+            await page.close();
+          }
+          await browser.close();
+          console.log('BKLG-0198 deployed DEV preview desktop/mobile acceptance passed.');
+          NODE
