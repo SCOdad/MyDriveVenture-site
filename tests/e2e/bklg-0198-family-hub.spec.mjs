@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { personas, signIn, installPageGuards } from './helpers.mjs';
+import { personas, signIn, installPageGuards, requireTestPassword } from './helpers.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const asset=relative=>path.join(root,relative);
@@ -64,6 +64,40 @@ async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCo
 }
 
 test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
+  test('authenticated DEV persona matrix exercises zero, one, three, five, scoped, and no-shared states',async({request})=>{
+    const password=requireTestPassword();
+    const base='https://safwylxxhywbsfxpmchd.supabase.co';
+    const key='sb_publishable_RkvQiWAFZG0RFJT5OzjRcg_rKIzLe1e';
+    const expected=[
+      ['bklg0198.zero@dev.driveventure.example.invalid',0,0,0],
+      ['bklg0198.one@dev.driveventure.example.invalid',1,1,1],
+      ['bklg0198.three@dev.driveventure.example.invalid',3,3,3],
+      ['bklg0198.five@dev.driveventure.example.invalid',5,5,5],
+      ['bklg0198.scoped@dev.driveventure.example.invalid',5,2,0],
+      ['bklg0198.noshared@dev.driveventure.example.invalid',5,0,0],
+    ];
+    const overviews=new Map();
+    for(const [email,familyCount,visibleCount,primaryCount] of expected){
+      const auth=await request.post(`${base}/auth/v1/token?grant_type=password`,{headers:{apikey:key,'content-type':'application/json'},data:{email,password}});
+      expect(auth.status(),`DEV auth for ${email}`).toBe(200);
+      const token=(await auth.json()).access_token;expect(token).toBeTruthy();
+      const response=await request.post(`${base}/functions/v1/family-api`,{headers:{apikey:key,authorization:`Bearer ${token}`,'content-type':'application/json'},data:{action:'overview'}});
+      const body=await response.json();
+      expect(response.status(),`family-api for ${email}: ${JSON.stringify(body)}`).toBe(200);
+      expect(body.ok).toBe(true);
+      expect(body.family_driver_count).toBe(familyCount);
+      expect(body.drivers).toHaveLength(visibleCount);
+      expect(body.primary_driver_ids).toHaveLength(primaryCount);
+      expect(body.grownups.some(g=>String(g.person_id)===String(body.current_person_id))).toBe(true);
+      overviews.set(email,body);
+    }
+    const five=overviews.get('bklg0198.five@dev.driveventure.example.invalid');
+    expect(five.drivers.map(d=>d.favorite_color)).toEqual(['GREEN','BLUE','PINK','ORANGE','PURPLE']);
+    expect(five.drivers[0].progress.total_minutes).toBe(125);
+    expect(five.drivers[0].avatar?.visual_asset_id).toBe('DV-TEST-BKLG0198-HEADSHOT');
+    const scoped=overviews.get('bklg0198.scoped@dev.driveventure.example.invalid');
+    expect(scoped.drivers.map(d=>d.display_name)).toEqual(['Five Driver A','Five Driver B']);
+  });
   test('real DEV multi-driver guardian loads Family Hub through authenticated contracts',async({page})=>{
     const assertNoPageFailures=installPageGuards(page);
     await signIn(page,personas.guardianMulti);
