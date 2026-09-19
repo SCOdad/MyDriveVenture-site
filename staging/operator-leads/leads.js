@@ -1,11 +1,12 @@
 (()=>{
   const cfg=window.DV_APP_CONFIG||{};
   const endpoint=String(window.DV_OPERATOR_LEADS_ENDPOINT||'');
-  if(!endpoint||!document.getElementById('operator-dashboard'))return;
+  const nudgeEndpoint=String(window.DV_LIFECYCLE_NUDGE_ENDPOINT||'');
+  if(!endpoint||!nudgeEndpoint||!document.getElementById('operator-dashboard'))return;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const mins=v=>{const n=Number(v||0),h=Math.floor(n/60),m=n%60;return h?`${h}h ${m}m`:`${m}m`};
   const label=s=>String(s||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
-  let client,token='',payload=null;
+  let client,token='',payload=null,nudgePayload=null;
 
   function install(){
     const tools=document.querySelector('[aria-labelledby="tools-title"]');
@@ -17,7 +18,11 @@
       <label>Name <input name="name" required maxlength="160"></label><label>Email <input name="email" type="email"></label><label>Phone <input name="phone" inputmode="tel"></label><label>State <input name="home_state" maxlength="2" placeholder="MI"></label>
       <label>Source <input name="source" maxlength="80" placeholder="PERSONAL_REFERRAL"></label><label>Referred by <input name="referred_by" maxlength="160"></label><label class="lead-wide">Notes <textarea name="operator_notes" rows="2" maxlength="2000"></textarea></label>
       <div class="lead-wide"><button class="button button-primary" type="submit">Add lead</button> <span id="lead-save-status" class="meta" role="status"></span></div></form></details>
-    <div class="table-scroll"><table class="lead-table"><thead><tr><th>Lead</th><th>Lifecycle</th><th>Family / driver</th><th>Use</th><th>Progress</th><th>Signals</th><th>Link</th></tr></thead><tbody id="lead-rows"></tbody></table></div>`;
+    <div class="table-scroll"><table class="lead-table"><thead><tr><th>Lead</th><th>Lifecycle</th><th>Family / driver</th><th>Use</th><th>Progress</th><th>Signals</th><th>Link</th></tr></thead><tbody id="lead-rows"></tbody></table></div>
+    <div class="nudge-preview"><div class="lead-head"><div><p class="eyebrow">BKLG-0130 preview only</p><h3>Next best nudge</h3><p class="meta">No family email can be sent from this screen.</p></div></div>
+    <div id="nudge-summary" class="lead-summary"></div><p id="nudge-error" class="dashboard-error" hidden></p>
+    <div class="table-scroll"><table class="lead-table nudge-table"><thead><tr><th>Grown-up</th><th>Driver</th><th>Next message</th><th>Why</th><th>Send status</th></tr></thead><tbody id="nudge-rows"></tbody></table></div>
+    <details class="nudge-history"><summary>Recent automated grown-up email ledger</summary><div class="table-scroll"><table class="lead-table"><thead><tr><th>When</th><th>Recipient</th><th>Workflow</th><th>Type</th><th>Status</th></tr></thead><tbody id="nudge-history-rows"></tbody></table></div></details></div>`;
     tools.parentNode.insertBefore(section,tools);
     document.getElementById('lead-refresh').addEventListener('click',load);
     document.getElementById('lead-form').addEventListener('submit',createLead);
@@ -34,6 +39,19 @@
     if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}
     const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Lead request failed (${r.status})`),{status:r.status});return out;
   }
+  async function nudgeApi(body,retried=false){
+    await auth();
+    if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});
+    const r=await fetch(nudgeEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});
+    if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return nudgeApi(body,true)}
+    const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Nudge preview failed (${r.status})`),{status:r.status});return out;
+  }
+  function renderNudges(){
+    const rows=nudgePayload?.selected||[],history=nudgePayload?.recent_dispatches||[];
+    document.getElementById('nudge-summary').innerHTML=`<span><strong>${esc(rows.filter(r=>r.eligible_to_send).length)}</strong> eligible now</span><span><strong>${esc(rows.filter(r=>!r.eligible_to_send).length)}</strong> suppressed</span><span><strong>${esc(nudgePayload?.candidate_count||0)}</strong> candidates</span>`;
+    document.getElementById('nudge-rows').innerHTML=rows.map(row=>`<tr><td><strong>${esc(row.recipient_name)}</strong><small>${esc(row.recipient_email)}</small></td><td>${esc(row.driver_name)}<small>${esc(label(row.lifecycle_state))}</small></td><td><span class="lead-stage">${esc(label(row.communication_type))}</span></td><td>${esc(row.reason)}${row.suppressed_candidates?.length?`<small>${esc(row.suppressed_candidates.length)} lower-priority alternative(s)</small>`:''}</td><td>${row.eligible_to_send?'<span class="nudge-eligible">Eligible</span>':`<span class="nudge-suppressed">Suppressed</span><small>${esc(label(row.suppression_reason||''))}</small>`}</td></tr>`).join('')||'<tr><td colspan="5">No lifecycle communication candidates right now.</td></tr>';
+    document.getElementById('nudge-history-rows').innerHTML=history.map(row=>`<tr><td>${esc(row.sent_at||row.created_at||'—')}</td><td>${esc(row.recipient_email||'—')}</td><td>${esc(label(row.workflow))}</td><td>${esc(label(row.communication_type))}</td><td>${esc(label(row.status))}</td></tr>`).join('')||'<tr><td colspan="5">No lifecycle dispatch history yet.</td></tr>';
+  }
   function familySelect(row){
     const opts=(payload.family_options||[]).map(f=>`<option value="${esc(f.id)}" ${row.converted_family_id===f.id?'selected':''}>${esc(f.label)}</option>`).join('');
     const suggested=row.suggested_family_id&&!row.converted_family_id?`<small>Exact contact match available.</small>`:'';
@@ -49,7 +67,12 @@
     document.querySelectorAll('.lead-link').forEach(b=>b.addEventListener('click',linkFamily));
   }
   async function load(){
-    const err=document.getElementById('lead-error');err.hidden=true;try{payload=await api({action:'list'});render();document.getElementById('operator-dashboard').hidden=false;document.getElementById('lead-access-status').textContent='';document.getElementById('lead-signin').hidden=true}catch(e){document.getElementById('lead-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('operator-dashboard').hidden=true;document.getElementById('lead-signin').hidden=false;document.getElementById('lead-rows').replaceChildren();payload=null}else{err.textContent=e.message;err.hidden=false}}
+    const err=document.getElementById('lead-error'),nudgeErr=document.getElementById('nudge-error');err.hidden=true;nudgeErr.hidden=true;
+    try{
+      payload=await api({action:'list'});render();
+      try{nudgePayload=await nudgeApi({mode:'preview'});renderNudges()}catch(nudgeError){nudgePayload=null;nudgeErr.textContent=nudgeError.message;nudgeErr.hidden=false}
+      document.getElementById('operator-dashboard').hidden=false;document.getElementById('lead-access-status').textContent='';document.getElementById('lead-signin').hidden=true
+    }catch(e){document.getElementById('lead-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('operator-dashboard').hidden=true;document.getElementById('lead-signin').hidden=false;document.getElementById('lead-rows').replaceChildren();payload=null;nudgePayload=null}else{err.textContent=e.message;err.hidden=false}}
   }
   async function createLead(ev){
     ev.preventDefault();const form=ev.currentTarget,status=document.getElementById('lead-save-status'),body=Object.fromEntries(new FormData(form).entries());status.textContent='Saving…';try{await api({action:'create_lead',...body});form.reset();status.textContent='Lead added.';await load()}catch(e){status.textContent=e.message}
