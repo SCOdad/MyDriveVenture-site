@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const asset=relative=>path.join(root,relative);
 
-async function mountFamilyFixture(page,{driverCount=5}={}){
+async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCount}={}){
   await page.setViewportSize({width:1100,height:900});
   await page.setContent(`<!doctype html><html><body>
     <main>
@@ -36,7 +36,7 @@ async function mountFamilyFixture(page,{driverCount=5}={}){
   await page.evaluate(({driverCount})=>{
     const ids=n=>Array.from({length:n},(_,i)=>`driver-${i+1}`);
     const driverRows=n=>ids(n).map((id,i)=>({id,person_id:`person-${i+1}`,display_name:`Driver ${i+1}`,license_stage:i%2?'LEVEL_2':'LEVEL_1',favorite_color:['GREEN','BLUE','PINK','ORANGE','PURPLE'][i%5]}));
-    const state={count:driverCount};
+    const state={count:driverCount,familyDriverCount};
     window.__familyFixture=state;
     window.DV_APP_CONFIG={supabaseUrl:'https://dev.fixture.invalid',publishableKey:'fixture-key'};
     window.supabase={createClient:()=>({auth:{
@@ -49,8 +49,8 @@ async function mountFamilyFixture(page,{driverCount=5}={}){
       const n=state.count,drivers=driverRows(n),driverIds=drivers.map(d=>d.id);
       const response=data=>({ok:data.ok!==false,status:data.ok===false?404:200,json:async()=>data});
       if(String(url).includes('/family-api')){
-        if(body.action==='add_driver'){state.count=1;return response({ok:true});}
-        return response({ok:true,family_id:'family-1',current_person_id:'grownup-1',primary_driver_ids:driverIds,drivers:drivers.map(({favorite_color,...d})=>d),grownups:[{person_id:'grownup-1',display_name:'Fixture Grown-up',relationship:'PARENT',is_primary:n>0,driver_ids:driverIds}]});
+        if(body.action==='add_driver'){state.count=1;state.familyDriverCount=Math.max(1,state.familyDriverCount);return response({ok:true});}
+        return response({ok:true,family_id:'family-1',current_person_id:'grownup-1',family_driver_count:state.familyDriverCount,primary_driver_ids:driverIds,drivers:drivers.map(({favorite_color,...d})=>d),grownups:[{person_id:'grownup-1',display_name:'Fixture Grown-up',relationship:'PARENT',is_primary:n>0,driver_ids:driverIds}]});
       }
       if(String(url).includes('/family-invite-api'))return response({ok:true,zero_access_grownups:[],pending_invitations:[]});
       if(String(url).includes('/driver-api'))return response({ok:true,data:{drivers,progress:driverIds.map((id,i)=>({driver_id:id,total_minutes:600+i*60,night_minutes:120+i*15}))}});
@@ -94,6 +94,13 @@ test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
     const style=await first.getAttribute('style');
     expect(style).toContain('--family-accent-base:');
     await expect(first.locator('.family-parker-silhouette')).toBeVisible();
+  });
+
+  test('zero visible drivers is not misrepresented when the family already has drivers',async({page})=>{
+    await mountFamilyFixture(page,{driverCount:0,familyDriverCount:2});
+    await expect(page.locator('.family-no-shared-drivers')).toContainText('No drivers are currently shared with you');
+    await expect(page.locator('.family-first-driver')).toHaveCount(0);
+    await expect(page.locator('[data-open-panel="grownup"]')).toBeDisabled();
   });
 
   test('zero-driver family invites the first driver and disables grown-up invite',async({page})=>{
