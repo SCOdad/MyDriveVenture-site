@@ -26,8 +26,11 @@ test('Family Hub includes intentional zero-driver onboarding state',()=>{
   const js=read('assets/js/family.js');
   assert.match(js,/Add your first driver/);
   assert.match(js,/data-open-panel="driver"/);
-  assert.match(js,/family_driver_count/);\n  assert.match(js,/trueZeroFamily/);\n  assert.match(js,/addGrown\.disabled=primary\.size===0/);
-  assert.match(js,/Add your first driver before inviting another grown-up/);\n  assert.match(js,/No drivers are currently shared with you/);
+  assert.match(js,/family_driver_count/);
+  assert.match(js,/trueZeroFamily/);
+  assert.match(js,/addGrown\.disabled=primary\.size===0/);
+  assert.match(js,/Add your first driver before inviting another grown-up/);
+  assert.match(js,/No drivers are currently shared with you/);
 });
 
 test('driver cards avoid sensitive identity fields and preserve scoped grown-up access UI',()=>{
