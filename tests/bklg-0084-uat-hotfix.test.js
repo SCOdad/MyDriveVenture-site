@@ -34,6 +34,6 @@ test('hotfix assets use fresh cache keys on supported entry points', () => {
   assert.match(joinHtml, /join\.js\?v=20260919-bklg0084-hotfix/);
   for (const html of [currentHtml, oldHtml]) {
     assert.match(html, /log-dashboard-v3\.css\?v=20260919-0084-hotfix/);
-    assert.match(html, /log-drive-rpc\.js\?v=20260919-0084-hotfix/);
+    assert.match(html, /log-drive-rpc\.js\?v=20260919-drive-totals1/);
   }
 });

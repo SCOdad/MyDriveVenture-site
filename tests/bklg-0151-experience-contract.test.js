@@ -41,17 +41,19 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
   assert.match(presenter, /Road notes: \$\{esc\(d\.notes\)\}/);
 });
 
-test('BKLG-0180 CREATE reloads the authoritative saved drive instead of clearing submitted fields', () => {
+test('CREATE verifies the authoritative saved drive and returns to ordinary log mode', () => {
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
-  assert.match(rpc, /enterEdit\(reread\.drive,\{scroll:false,preservePriorDraft:false\}\)/);
+  assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;resetAfterCreate\(\)/);
+  assert.match(rpc, /function resetAfterCreate\(\)\{if\(edit\)return;clearEditUi\(\)/);
+  assert.doesNotMatch(rpc, /app\.detailDrives\[id\]=reread\.drive;enterEdit\(reread\.drive/);
   assert.match(rpc, /if\(edit\?\.id===id\)\{form\.scrollIntoView/);
-  assert.doesNotMatch(rpc, /field\('drive-destination'\)\.value='';field\('drive-notes'\)\.value=''/);
+  assert.match(rpc, /\['drive-start','drive-end','drive-destination','drive-notes'\]/);
 });
 
 test('supported experiences load the current CREATE rehydration and failure-recovery contract', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
-    assert.match(read(path), /log-drive-rpc\.js\?v=20260919-0084-hotfix/);
+    assert.match(read(path), /log-drive-rpc\.js\?v=20260919-drive-totals1/);
   }
 });
 
