@@ -1,3 +1,4 @@
 /FAQ/ /faq/ 301
 /FAQ/* /faq/:splat 301
 /join/v2/ /join/ 301
+/join/v2/* /join/:splat 301
