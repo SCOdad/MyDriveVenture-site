@@ -17,7 +17,7 @@
   function setRecoveryPending(active){const button=ensureRecoveryButton();button.hidden=!active;button.disabled=false;if(active)setSubmitting(true)}
   function savePending(pending){recovery.save(pending);setRecoveryPending(true)}
   function clearPending(){recovery.clear();setRecoveryPending(false)}
-  function offerPendingRecovery(){const pending=pendingForCurrentDriver();if(!pending)return false;setRecoveryPending(true);setStatus(`Drive Venture could not confirm whether your ${pending.operation==='CREATE'?'drive':'edit'} finished. Your original submission is محفوظ and will not be changed. Choose “Check unfinished save” to resolve it safely.`,'error');return true}
+  function offerPendingRecovery(){const pending=pendingForCurrentDriver();if(!pending)return false;setRecoveryPending(true);setStatus(`Drive Venture could not confirm whether your ${pending.operation==='CREATE'?'drive':'edit'} finished. Your original submission is protected and will not be changed. Choose “Check unfinished save” to resolve it safely.`,'error');return true}
   const sortedIds=v=>[...(v||[])].filter(Boolean).map(String).sort();
   const comparable=d=>({drive_date:clean(d?.drive_date),start_time:time(d?.start_time),end_time:time(d?.end_time),vehicle_id:d?.vehicle_id||null,lesson_ids:sortedIds(d?.lesson_ids||(d?.lesson_id?[d.lesson_id]:[])),lesson_notes:clean(d?.lesson_notes)||null,supervisor_person_id:d?.supervisor_person_id||null,external_supervisor_name:clean(d?.external_supervisor_name)||null,destination:clean(d?.destination)||null,notes:clean(d?.notes)||null});
   const values=()=>{const supervisor=field('drive-supervisor')?.value||'',ids=lessonIds();return comparable({drive_date:field('drive-date')?.value,start_time:field('drive-start')?.value,end_time:field('drive-end')?.value,vehicle_id:field('drive-vehicle')?.value,lesson_ids:ids,lesson_id:ids[0]||null,lesson_notes:field('drive-lesson-notes')?.value||null,supervisor_person_id:supervisor&&supervisor!=='OTHER'?supervisor:null,external_supervisor_name:supervisor==='OTHER'?(field('drive-supervisor-other')?.value||null):null,destination:field('drive-destination')?.value,notes:field('drive-notes')?.value})};
@@ -75,20 +75,20 @@
         const{data,error}=await invokeDriveOps(pending.body);
         if(error||!data?.ok){
           const info=await errorInfo(error,data);
-          if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this save. Your original submission is محفوظ; no new drive was sent. Try “Check unfinished save” again when the connection is stable.','error');
+          if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this save. Your original submission is protected; no new drive was sent. Try “Check unfinished save” again when the connection is stable.','error');
           if(info.code==='CONFLICT')return setStatus('Drive Venture found a save-identity conflict and stopped rather than risk a duplicate. Check Recent drives for this trip before taking any further action.','error');
           clearPending();setSubmitting(false);return setStatus(`Drive: ${info.message}`,'error',researchFor(info));
         }
         const verified=await ensureVerifiedSkills(data,driverId,pending.requested.lesson_ids);
         if(!verified.ok)return setStatus(`Drive: ${verified.error}`,'error');
         const id=verified.drive?.id;
-        if(!id)return setStatus('The save was acknowledged, but Drive Venture could not identify the saved drive. The recovery record is still محفوظ.','error');
+        if(!id)return setStatus('The save was acknowledged, but Drive Venture could not identify the saved drive. The recovery record is still protected.','error');
         app.detailDrives=app.detailDrives||{};app.detailDrives[id]=verified.drive;
         try{await app.refreshDashboard()}catch(_){}
         if(app.getDriverId()!==driverId)return;
         await window.DV_DRIVING_LOG?.refreshContext?.(driverId);
         const reread=await authoritativeDrive(driverId,id);
-        if(!reread.ok||!same(pending.requested,reread.drive))return setStatus('The drive exists, but Drive Venture could not finish verifying the saved values. The recovery record is still محفوظ.','error');
+        if(!reread.ok||!same(pending.requested,reread.drive))return setStatus('The drive exists, but Drive Venture could not finish verifying the saved values. The recovery record is still protected.','error');
         app.detailDrives[id]=reread.drive;clearPending();
         try{if(sessionStorage.getItem(submissionKey)===pending.source_event_id)clearSubmissionId()}catch(_){}
         resetAfterCreate();setSubmitting(false);
