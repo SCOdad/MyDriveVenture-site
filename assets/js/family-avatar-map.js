@@ -16,9 +16,13 @@
     return {};
   }
 
+  function localStaticOrigin(){return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(location.origin)}
+  function devBackend(){try{return new URL(cfg.supabaseUrl).hostname.startsWith('safwylxxhywbsfxpmchd.')}catch{return false}}
+
   async function avatarMap(ids){
     const wanted=[...new Set(ids.map(String).filter(Boolean))];
     if(!wanted.length)return {};
+    if(localStaticOrigin()&&devBackend())return {};
     const session=(await client.auth.getSession()).data.session;
     if(!session?.access_token)throw new Error('no-session');
     const response=await window.__dvAvatarOriginalFetch(`${cfg.supabaseUrl}/functions/v1/family-avatar-map`,{
