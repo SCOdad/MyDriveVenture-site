@@ -15,7 +15,7 @@
   function setSubmitting(active){for(const el of form.querySelectorAll('input,select,textarea,button')){if(el.id==='drive-save-recover')continue;if(active){if(!lockStates.has(el))lockStates.set(el,el.disabled);el.disabled=true}else if(lockStates.has(el)){el.disabled=lockStates.get(el);lockStates.delete(el)}}form.setAttribute('aria-busy',active?'true':'false');const recover=ensureRecoveryButton();if(active&& !recover.hidden)recover.disabled=false}
   function pendingForCurrentDriver(){const pending=recovery.load();return pending&&pending.driver_id===app.getDriverId?.()?pending:null}
   function setRecoveryPending(active){const button=ensureRecoveryButton();button.hidden=!active;button.disabled=false;if(active)setSubmitting(true)}
-  function savePending(pending){recovery.save(pending);setRecoveryPending(true)}
+  function savePending(pending){recovery.save(pending)}
   function clearPending(){recovery.clear();setRecoveryPending(false)}
   function offerPendingRecovery(){const pending=pendingForCurrentDriver();if(!pending)return false;setRecoveryPending(true);setStatus(`Drive Venture could not confirm whether your ${pending.operation==='CREATE'?'drive':'edit'} finished. Your original submission is protected and will not be changed. Choose “Check unfinished save” to resolve it safely.`,'error');return true}
   const sortedIds=v=>[...(v||[])].filter(Boolean).map(String).sort();
