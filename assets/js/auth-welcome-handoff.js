@@ -37,10 +37,13 @@
       if(!data?.session)throw new Error('No authenticated session was returned.');
       title.textContent='You’re in!';
       message.textContent=target.startsWith('/family/')?'Secure sign-in complete. Opening your Family Hub…':'Secure sign-in complete. Opening your driver console…';
-      if(target.startsWith('/family/')&&cfg.functionUrl){
+      if(target.startsWith('/family/')){
         try{
           const flowId=new URL(target,location.origin).searchParams.get('acq_flow');
-          if(flowId)await fetch(cfg.functionUrl('public-acquisition-v2'),{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${data.session.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action:'authenticated',flow_id:flowId})});
+          if(flowId){
+            try{sessionStorage.setItem('dv:acquisition:v2:pending-family-flow',flowId)}catch(_){}
+            if(cfg.functionUrl)await fetch(cfg.functionUrl('public-acquisition-v2'),{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${data.session.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action:'authenticated',flow_id:flowId})});
+          }
         }catch(error){console.warn('acquisition authentication tracking unavailable',error)}
       }
       location.replace(target);

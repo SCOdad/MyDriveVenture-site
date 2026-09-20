@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const join = fs.readFileSync(path.join(root, 'assets/js/join.js'), 'utf8');
 const drive = fs.readFileSync(path.join(root, 'assets/js/log-drive-rpc.js'), 'utf8');
 const dashboard = fs.readFileSync(path.join(root, 'assets/css/log-dashboard-v3.css'), 'utf8');
-const joinHtml = fs.readFileSync(path.join(root, 'join/index.html'), 'utf8');
+const legacyJoinHtml = fs.readFileSync(path.join(root, 'join/v1/index.html'), 'utf8');
 const currentHtml = fs.readFileSync(path.join(root, 'log/index.html'), 'utf8');
 const oldHtml = fs.readFileSync(path.join(root, 'log/DV02/index.html'), 'utf8');
 
@@ -31,7 +31,7 @@ test('dashboard heading wraps long driver names at desktop and mobile sizes', ()
 });
 
 test('hotfix assets use fresh cache keys on supported entry points', () => {
-  assert.match(joinHtml, /join\.js\?v=20260919-bklg0084-hotfix/);
+  assert.match(legacyJoinHtml, /join\.js\?v=20260919-bklg0084-hotfix/);
   for (const html of [currentHtml, oldHtml]) {
     assert.match(html, /log-dashboard-v3\.css\?v=20260919-0084-hotfix/);
     assert.match(html, /log-drive-rpc\.js\?v=20260919-drive-totals1/);
