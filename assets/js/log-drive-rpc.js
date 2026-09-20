@@ -32,20 +32,23 @@
   function nightMessage(r,saved=false){if(r?.status==='CLASSIFIED')return r.minutes>0?` ${r.minutes} night minute${r.minutes===1?'':'s'} credited.`:'';if(r?.status==='LOCATION_PENDING')return saved?' Drive saved, but night credit could not be verified because location information is incomplete.':' Night credit could not be verified because location information is incomplete.';if(r?.status==='LOOKUP_PENDING')return saved?' Drive saved, but night credit could not be verified right now.':' Night credit could not be verified right now.';return ''}
   function researchFor(info){const code=clean(info?.code),message=clean(info?.message).toLowerCase();if(code==='DRIVE_DURATION_LIMIT')return info?.research_url||DRIVE_SAFETY_RESEARCH_URL;if(message.includes('2 hours 15 minutes'))return info?.research_url||DRIVE_SAFETY_RESEARCH_URL;return ''}
   async function errorInfo(error,data){if(error?.code==='DV_SAVE_TIMEOUT')return{message:'Drive Venture could not confirm the save before the connection timed out.',code:'DV_SAVE_TIMEOUT',research_url:''};if(data?.error)return{message:data.error,code:data.code||'',research_url:data.research_url||''};try{if(error?.context?.json){const body=await error.context.json();if(body?.error)return{message:body.error,code:body.code||'',research_url:body.research_url||''}}}catch(_){}return{message:error?.message||'Unable to save changes.',code:'NETWORK_UNCERTAIN',research_url:''}}
-  async function invokeDriveOps(body){
+  async function withSaveTimeout(promise,message='Drive save outcome is unknown.'){
     let timeoutId;
     try{return await Promise.race([
-      client.functions.invoke('drive-ops',{body}),
-      new Promise((_,reject)=>{timeoutId=setTimeout(()=>{const error=new Error('Drive save outcome is unknown.');error.code='DV_SAVE_TIMEOUT';reject(error)},recovery.timeoutMs())}),
+      Promise.resolve(promise),
+      new Promise((_,reject)=>{timeoutId=setTimeout(()=>{const error=new Error(message);error.code='DV_SAVE_TIMEOUT';reject(error)},recovery.timeoutMs())}),
     ])}finally{clearTimeout(timeoutId)}
   }
+  async function invokeDriveOps(body){return withSaveTimeout(client.functions.invoke('drive-ops',{body}))}
+  async function settleHydration(promise){try{return await withSaveTimeout(promise,'Drive refresh timed out.')}catch(_){return null}}
   async function ensureVerifiedSkills(data,driverId,requestedIds,reason=null){
     const ids=sortedIds(requestedIds),returnedIds=sortedIds(data?.lesson_ids||data?.drive?.lesson_ids||[]);
     if(data?.drive&&JSON.stringify(ids)===JSON.stringify(returnedIds))return{ok:true,drive:data.drive,lesson_ids:returnedIds,supervisor:data.supervisor||null};
     return{ok:false,error:'Drive save did not return the adopted Skills Practiced. Reopen the drive before trying again.'};
   }
   async function authoritativeDrive(driverId,driveId){
-    const{data,error}=await client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}});
+    let result;try{result=await withSaveTimeout(client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}}),'Drive verification timed out.')}catch(_){return{ok:false,error:'Drive save could not be verified yet. Use the unfinished-save recovery before trying again.'}}
+    const{data,error}=result||{};
     if(error||!data?.ok||!data?.drive)return{ok:false,error:'Drive edit was saved, but the authoritative drive could not be reread. Reopen the drive before trying again.'};
     const ids=sortedIds(data.lesson_ids||data.drive.lesson_ids||[]);
     data.drive.lesson_ids=ids;data.drive.lessons=data.lessons||data.drive.lessons||[];data.drive.lesson_id=ids[0]||null;
@@ -75,7 +78,7 @@
         const{data,error}=await invokeDriveOps(pending.body);
         if(error||!data?.ok){
           const info=await errorInfo(error,data);
-          if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this save. Your original submission is protected; no new drive was sent. Try “Check unfinished save” again when the connection is stable.','error');
+          if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this save. Your original submission is protected; no different drive was sent. Try “Check unfinished save” again when the connection is stable.','error');
           if(info.code==='CONFLICT')return setStatus('Drive Venture found a save-identity conflict and stopped rather than risk a duplicate. Check Recent drives for this trip before taking any further action.','error');
           clearPending();setSubmitting(false);return setStatus(`Drive: ${info.message}`,'error',researchFor(info));
         }
@@ -84,9 +87,9 @@
         const id=verified.drive?.id;
         if(!id)return setStatus('The save was acknowledged, but Drive Venture could not identify the saved drive. The recovery record is still protected.','error');
         app.detailDrives=app.detailDrives||{};app.detailDrives[id]=verified.drive;
-        try{await app.refreshDashboard()}catch(_){}
+        await settleHydration(app.refreshDashboard?.())
         if(app.getDriverId()!==driverId)return;
-        await window.DV_DRIVING_LOG?.refreshContext?.(driverId);
+        await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));
         const reread=await authoritativeDrive(driverId,id);
         if(!reread.ok||!same(pending.requested,reread.drive))return setStatus('The drive exists, but Drive Venture could not finish verifying the saved values. The recovery record is still protected.','error');
         app.detailDrives[id]=reread.drive;clearPending();
@@ -120,8 +123,8 @@
       }
       const verified=await ensureVerifiedSkills(data,driverId,pending.requested.lesson_ids);
       if(!verified.ok)return setStatus(`Drive edit: ${verified.error}`,'error');
-      try{await app.refreshDashboard()}catch(_){}
-      await window.DV_DRIVING_LOG?.refreshContext?.(driverId);
+      await settleHydration(app.refreshDashboard?.())
+      await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));
       const reread=await authoritativeDrive(driverId,pending.drive_id);
       if(!reread.ok||!same(pending.requested,reread.drive))return setStatus('The edit was acknowledged, but Drive Venture could not finish verifying it. The recovery record is still protected.','error');
       app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=reread.drive;clearPending();enterEdit(reread.drive,{scroll:false,preservePriorDraft:false});setSubmitting(false);
@@ -158,9 +161,9 @@
         if(!data.drive||!sameChanged(requested,data.drive,edit.original)){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus('Drive edit was acknowledged but could not be verified. Your requested values and recovery record are protected.','error')}
         const adminReason=field('drive-admin-reason');if(adminReason)adminReason.value='';
         app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;
-        try{await app.refreshDashboard()}catch(_){}
+        await settleHydration(app.refreshDashboard?.())
         if(app.getDriverId()!==driverId)return;
-        await window.DV_DRIVING_LOG?.refreshContext?.(driverId);const reread=await authoritativeDrive(driverId,id);
+        await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDrive(driverId,id);
         if(!reread.ok){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus(`Drive edit: ${reread.error}`,'error')}
         if(!sameChanged(requested,reread.drive,original)){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus('Drive edit could not be verified after refresh. Your requested values and recovery record are protected.','error')}
         app.detailDrives[id]=reread.drive;
@@ -185,8 +188,8 @@
       const verified=await ensureVerifiedSkills(data,driverId,requested.lesson_ids);if(!verified.ok){setRecoveryPending(true);return setStatus(`Drive: ${verified.error}`,'error')}data.drive=verified.drive;data.lesson_ids=verified.lesson_ids;data.supervisor=verified.supervisor;
       const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'',successMessage=`Drive logged and verified.${nightMessage(data.night_classification,true)}${earned}`,id=data.drive?.id;
       if(!id){setFields(requested);setRecoveryPending(true);return setStatus('Drive was acknowledged, but the saved record could not be reopened. Your submitted values and recovery record remain protected.','error')}
-      app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;try{await app.refreshDashboard()}catch(_){}if(app.getDriverId()!==driverId)return;
-      await window.DV_DRIVING_LOG?.refreshContext?.(driverId);const reread=await authoritativeDrive(driverId,id);
+      app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;await settleHydration(app.refreshDashboard?.())if(app.getDriverId()!==driverId)return;
+      await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDrive(driverId,id);
       if(!reread.ok){setFields(requested);setRecoveryPending(true);return setStatus(`Drive: ${reread.error}`,'error')}
       if(!same(requested,reread.drive)){setFields(requested);setRecoveryPending(true);return setStatus('Drive was saved, but the authoritative values did not match your submission. Your submitted values and recovery record remain protected.','error')}
       app.detailDrives[id]=reread.drive;clearPending();clearSubmissionId();resetAfterCreate();setSubmitting(false);setStatus(successMessage,'success')
