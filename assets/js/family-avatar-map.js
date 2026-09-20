@@ -38,17 +38,7 @@
     window.fetch=async(input,init={})=>{
       const url=typeof input==='string'?input:String(input?.url||'');
       if(url.includes('/functions/v1/driver-hero-url')){
-        let driverId='';
-        try{driverId=String(JSON.parse(init?.body||'{}').driver_id||'')}catch{}
-        try{
-          const avatars=await avatarMap([driverId]);
-          const avatar=avatars[driverId]||avatarCache.get(driverId)||null;
-          if(!avatar)return new Response(JSON.stringify({ok:false,error:'No current avatar assignment'}),{status:404,headers:{'content-type':'application/json'}});
-          return new Response(JSON.stringify({ok:true,signed_url:avatar,headshot_signed_url:avatar}),{status:200,headers:{'content-type':'application/json'}});
-        }catch(error){
-          console.warn('Drive Venture avatar shim failed',error);
-          return new Response(JSON.stringify({ok:false,error:'Driver Hero is unavailable'}),{status:500,headers:{'content-type':'application/json'}});
-        }
+        return new Response(JSON.stringify({ok:true,signed_url:null,headshot_signed_url:null,avatar_deferred_to:'family-avatar-map'}),{status:200,headers:{'content-type':'application/json'}});
       }
       return window.__dvAvatarOriginalFetch(input,init);
     };
@@ -118,7 +108,7 @@
     const cards=visibleCards();
     if(!cards.length)return;
     const ids=cards.map(card=>String(card.dataset.driverId||'')).filter(Boolean);
-    const requestKey=ids.sort().join('|');
+    const requestKey=ids.slice().sort().join('|');
     inflight=true;
     try{
       cards.forEach(card=>markStatus(card,'fetching'));
@@ -145,7 +135,7 @@
   const reconcile=setInterval(()=>{
     reconcileCount+=1;
     load();
-    if(reconcileCount>=20)clearInterval(reconcile);
-  },750);
+    if(reconcileCount>=24)clearInterval(reconcile);
+  },500);
   window.DVFamilyAvatarMap={reload:()=>{failed.clear();avatarCache.clear();setTimeout(load,0)},failed,avatarCache,get lastRequestKey(){return lastRequestKey}};
 })();
