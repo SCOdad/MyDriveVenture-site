@@ -16,7 +16,10 @@ test('Family Hub client parses and uses canonical supported contracts',()=>{
   assert.doesNotThrow(()=>new Function(js));
   assert.match(js,/api\('driver-api','dashboard'\)/);
   assert.match(js,/api\('driver-hero-url','headshot'/);
-  assert.match(js,/r\.signed_url\|\|r\.headshot_signed_url/);
+  assert.match(js,/\[r\.signed_url,r\.headshot_signed_url\]/);
+  assert.match(js,/img\.onerror=\(\)=>resolve\(false\)/);
+  assert.match(js,/avatarUrlCache\.set\(id,url\)/);
+  assert.match(js,/No usable headshot/);
   assert.match(js,/DV_DRIVER_PALETTES/);
   assert.match(js,/total_minutes/);
   assert.match(js,/night_minutes/);
