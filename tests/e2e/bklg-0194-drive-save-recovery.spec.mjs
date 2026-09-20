@@ -1,0 +1,110 @@
+import { test, expect } from '@playwright/test';
+import { fixtureDrivers, signIn, selectDriverByName } from './helpers.mjs';
+
+async function yesterday(page) {
+  return page.evaluate(() => { const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
+}
+
+async function ready(page){
+  await signIn(page, fixtureDrivers.boundedMichiganGuardian);
+  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
+  await expect(page.locator('#drive-supervisor')).toBeVisible({timeout:20_000});
+  await expect.poll(async()=>page.locator('#drive-supervisor').inputValue(),{timeout:20_000}).not.toBe('');
+  await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
+}
+
+async function fillCreate(page,marker){
+  await page.evaluate(id=>sessionStorage.setItem('dv:web-drive:submission-id',id),`bklg-0194-${marker}`);
+  await page.locator('#drive-date').fill(await yesterday(page));
+  await page.locator('#drive-start').fill('15:00');
+  await page.locator('#drive-end').fill('15:12');
+  await page.locator('#drive-destination').fill(marker);
+  await page.locator('#drive-notes').fill('BKLG-0194 recovery canary');
+}
+
+async function createNormally(page,marker){
+  await fillCreate(page,marker);
+  const responsePromise=page.waitForResponse(r=>r.url().includes('/functions/v1/drive-ops')&&r.request().postData()?.includes('"operation":"CREATE"'),{timeout:30_000});
+  await page.locator('#drive-form button[type=submit]').click();
+  const response=await responsePromise,body=await response.json();
+  expect(body.ok).toBe(true);
+  await expect(page.locator('#drive-status')).toContainText('Drive logged and verified.',{timeout:60_000});
+  return body.drive.id;
+}
+
+async function openEdit(page,marker){
+  const row=page.locator('#drive-list .drive-item').filter({hasText:marker}).first();
+  await expect(row).toBeVisible({timeout:20_000});
+  await row.click();
+  await expect(page.locator('.drive-detail-dialog')).toBeVisible();
+  await page.locator('button[data-edit-drive]').click();
+  await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
+}
+
+test('BKLG-0194 recovers a committed CREATE whose response is lost without duplicating the drive',async({page},testInfo)=>{
+  test.setTimeout(180_000);
+  await ready(page);
+  const marker=`lost-create-${Date.now()}-${testInfo.retry}`;
+  await fillCreate(page,marker);
+
+  let intercepted=false;
+  await page.route('**/functions/v1/drive-ops',async route=>{
+    const request=route.request();
+    if(!intercepted&&request.postData()?.includes('"operation":"CREATE"')){
+      intercepted=true;
+      const response=await route.fetch();
+      expect(response.status()).toBe(200);
+      await route.abort('failed');
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.locator('#drive-form button[type=submit]').click();
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the drive finished saving',{timeout:20_000});
+  await expect(page.locator('#drive-save-recover')).toBeVisible();
+  await expect(page.locator('#drive-date')).toBeDisabled();
+
+  await page.unroute('**/functions/v1/drive-ops');
+  await page.locator('#drive-save-recover').click();
+  await expect(page.locator('#drive-status')).toContainText('Drive save recovered and verified',{timeout:60_000});
+  await expect(page.locator('#drive-save-recover')).toBeHidden();
+  await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
+
+  const matches=page.locator('#drive-list .drive-item').filter({hasText:marker});
+  await expect(matches).toHaveCount(1,{timeout:20_000});
+});
+
+test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision instead of blind retry',async({page},testInfo)=>{
+  test.setTimeout(180_000);
+  await ready(page);
+  const marker=`lost-edit-${Date.now()}-${testInfo.retry}`;
+  await createNormally(page,marker);
+  await openEdit(page,marker);
+  const edited=`${marker}-edited`;
+  await page.locator('#drive-destination').fill(edited);
+
+  let editCalls=0;
+  await page.route('**/functions/v1/drive-ops',async route=>{
+    const request=route.request();
+    if(request.postData()?.includes('"operation":"EDIT"')){
+      editCalls+=1;
+      if(editCalls===1){
+        const response=await route.fetch();
+        expect(response.status()).toBe(200);
+        await route.abort('failed');
+        return;
+      }
+    }
+    await route.continue();
+  });
+
+  await page.locator('#drive-form button[type=submit]').click();
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the edit finished',{timeout:20_000});
+  await expect(page.locator('#drive-save-recover')).toBeVisible();
+  await page.locator('#drive-save-recover').click();
+  await expect(page.locator('#drive-status')).toContainText('Drive edit recovered and verified',{timeout:60_000});
+  await expect(page.locator('#drive-destination')).toHaveValue(edited);
+  expect(editCalls).toBe(1);
+  await page.unroute('**/functions/v1/drive-ops');
+});
