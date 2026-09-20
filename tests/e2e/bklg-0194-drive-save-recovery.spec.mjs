@@ -80,14 +80,18 @@ test('BKLG-0194 recovers a committed CREATE whose response is lost without dupli
   await expect(matches).toHaveCount(1,{timeout:20_000});
 });
 
-test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision instead of blind retry',async({page},testInfo)=>{
-  test.setTimeout(180_000);
+test('BKLG-0194 resolves a lost EDIT response by adopting the exact saved revision and blocks competing edits',async({page},testInfo)=>{
+  test.setTimeout(210_000);
   await ready(page);
   const marker=`lost-edit-${Date.now()}-${testInfo.retry}`;
-  await createNormally(page,marker);
+  const originalDriveId=await createNormally(page,marker);
+  const otherMarker=`other-edit-${Date.now()}-${testInfo.retry}`;
+  await createNormally(page,otherMarker);
   await openEdit(page,marker);
   const edited=`${marker}-edited`;
+  const editedNote=`BKLG-0194 interrupted note ${Date.now()}-${testInfo.retry}`;
   await page.locator('#drive-destination').fill(edited);
+  await page.locator('#drive-notes').fill(editedNote);
 
   let editCalls=0;
   await page.route('**/functions/v1/drive-ops',async route=>{
@@ -107,11 +111,28 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision ins
   await page.locator('#drive-form button[type=submit]').click();
   await expect(page.locator('#drive-status')).toContainText('could not confirm whether the edit finished',{timeout:60_000});
   await expect(page.locator('#drive-save-recover')).toBeVisible();
+
+  const protectedDriveId=await page.locator('#drive-form').getAttribute('data-edit-drive');
+  expect(protectedDriveId).toBe(originalDriveId);
+  const otherRow=page.locator('#drive-list .drive-item').filter({hasText:otherMarker}).first();
+  await expect(otherRow).toBeVisible({timeout:20_000});
+  await otherRow.click();
+  await expect(page.locator('.drive-detail-dialog')).toBeVisible();
+  await page.locator('button[data-edit-drive]').click();
+  await expect(page.locator('#drive-status')).toContainText('Finish checking the unfinished save before editing another drive.');
+  await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',originalDriveId);
+
   await page.locator('#drive-save-recover').click();
   await expect(page.locator('#drive-status')).toContainText('Drive edit recovered and verified',{timeout:60_000});
   await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
   await expect(page.locator('#drive-destination')).toHaveValue('');
-  await expect(page.locator('#drive-list .drive-item').filter({hasText:edited}).first()).toBeVisible({timeout:20_000});
+  const canonical=await page.evaluate(async ({driverId,driveId})=>{
+    const {data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:driveId}});
+    return {data,error:error?.message||null};
+  },{driverId:await page.locator('#driver-select').inputValue(),driveId:originalDriveId});
+  expect(canonical.error).toBeNull();
+  expect(canonical.data?.drive?.destination).toBe(edited);
+  expect(canonical.data?.drive?.notes).toBe(editedNote);
   expect(editCalls).toBe(1);
   await page.unroute('**/functions/v1/drive-ops');
 });
