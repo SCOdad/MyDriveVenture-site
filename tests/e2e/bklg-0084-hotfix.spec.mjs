@@ -37,7 +37,7 @@ test('failed drive save leaves logging state and restores the submit button', as
     Object.defineProperty(window.crypto, 'randomUUID', { value: () => '00000000-0000-4000-8000-000000000084' });
     window.DV_DRIVING_LOG = { getSelectedLessonIds: () => [], updateNoteCount: () => {} };
     window.DV_LOG_APP = {
-      client: { functions: { invoke: async () => ({ data: null, error: new Error('Drive date is before the permit date') }) } },
+      client: { functions: { invoke: async () => ({ data: null, error: { context: { json: async () => ({ error: 'Drive date is before the permit date', code: 'DRIVE_BEFORE_PERMIT' }) } } }) } },
       getDriverId: () => 'driver-1',
       getRenderGeneration: () => 1,
     };
