@@ -2,80 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Join the Drive Venture pilot in Michigan or Kansas and set up a supervised driver.">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Start your Drive Venture family with a grown-up email.">
   <meta name="robots" content="noindex,nofollow">
   <meta name="theme-color" content="#080b0e">
-  <title>Join Drive Venture</title>
+  <title>Start your Drive Venture family</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/site.css">
   <link rel="stylesheet" href="/assets/css/join.css">
-<script src="/assets/js/environment-config.js"></script></head>
+  <script src="/assets/js/environment-config.js"></script>
+</head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
-  <header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a><nav aria-label="Primary"><ul><li><a href="/#how-it-works">How it works</a></li><li><a href="/#mission">Why it matters</a></li><li><a href="/feedback/">Feedback</a></li><li><a class="nav-cta" href="/log/">Log your drive</a></li></ul></nav></div></header>
+  <header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a></div></header>
   <main id="main" class="content narrow onboarding-shell">
     <section class="join-intro" aria-labelledby="join-heading">
-      <div class="join-intro-copy"><p class="eyebrow">Michigan + Kansas pilot onboarding</p><h1 id="join-heading">Start your Drive Venture</h1><p class="lede">Set up one supervised driver and their grown-up.</p></div>
+      <div class="join-intro-copy">
+        <p class="eyebrow">Family setup</p>
+        <h1 id="join-heading">Start with the grown-up.</h1>
+        <p class="lede">Give us your name and email. Parker will send you a secure link to your Family Hub, where you can add your first driver.</p>
+      </div>
       <figure class="join-art"><img src="/assets/images/dv-char-parker-phone.webp" width="768" height="1152" alt="Parker holding a phone displaying the Drive Venture mark."></figure>
     </section>
-    <div class="notice"><strong>Pilot experience:</strong> Drive Venture helps organize supervised-practice activity and encouragement. It does not assess driving skill or replace licensing requirements or adult supervision.</div>
 
-    <form id="dv-onboarding-form" class="onboarding-form" novalidate>
+    <div class="notice"><strong>Two quick fields now.</strong> Driver details stay out of this first step. You will add the driver after securely signing in.</div>
+
+    <form id="dv-acquisition-v2-form" class="onboarding-form" novalidate>
       <section class="form-card" aria-labelledby="grownup-heading">
-        <p class="step-label">1 of 4</p><h2 id="grownup-heading">Grown-up</h2>
-        <label><span class="field-label">Name <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="Use the name you want Drive Venture to use when communicating with you. A first name or nickname is fine." aria-label="Why we ask for grown-up name">?</span></span><input name="guardianName" autocomplete="name" required maxlength="100" placeholder="What should we call you?"></label>
-        <label><span class="field-label">Email <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="We use this for important account and onboarding messages and as a fallback when text messaging is not available." aria-label="Why we ask for grown-up email">?</span></span><input name="guardianEmail" type="email" autocomplete="email" required maxlength="254"></label>
-        <label><span class="field-label">Mobile number <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="We keep the grown-up and driver phone numbers separately so Text Parker can identify the right person and preserve consent correctly. A mobile number is only required if this person opts into Text Parker." aria-label="Why we ask for grown-up mobile number">?</span></span><input name="guardianMobile" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-1234"></label>
-        <label class="checkbox-row real-checkbox"><input name="guardianSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the grown-up</strong><br>I agree to receive transactional text messages from Drive Venture through Text Parker at the mobile number provided. Messages may include enrollment assistance, supervised-drive start and finish confirmations, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
+        <p class="step-label">Start here</p>
+        <h2 id="grownup-heading">Grown-up</h2>
+        <label><span class="field-label">Name <span class="required-marker" aria-hidden="true">*</span></span><input name="name" autocomplete="name" required maxlength="100" placeholder="What should Parker call you?"></label>
+        <label><span class="field-label">Email <span class="required-marker" aria-hidden="true">*</span></span><input name="email" type="email" autocomplete="email" required maxlength="254"></label>
+        <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+        <div id="acquisition-v2-message" class="form-message" role="status" aria-live="polite"></div>
+        <button id="acquisition-v2-submit" class="button primary onboarding-submit" type="submit">Email my secure link</button>
+        <p class="field-help">We use this email for secure Drive Venture account access and essential service messages. Driver information is added after sign-in. See our <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</p>
       </section>
-
-      <section class="form-card" aria-labelledby="driver-heading">
-        <p class="step-label">2 of 4</p><h2 id="driver-heading">Driver</h2>
-        <label><span class="field-label">Driver name or nickname <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="This is the name Drive Venture will use throughout the driver experience. A nickname is encouraged if that is what the driver normally uses." aria-label="Why we ask for driver name">?</span></span><input name="driverName" autocomplete="name" required maxlength="100" placeholder="What should Drive Venture call the driver?"></label>
-        <div class="field-grid two-col"><label><span class="field-label">Birthday <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="Birthday is used for age-based licensing progress and birthday quests." aria-label="Why we ask for birthday">?</span></span><input name="driverBirthDate" type="date" required></label><label><span class="field-label">Home ZIP code <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="ZIP code determines whether Michigan or Kansas licensing requirements apply, plus local time zone and location-dependent features." aria-label="Why we ask for ZIP code">?</span></span><input name="homeZip" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required placeholder="48348 or 66603"></label></div>
-        <label><span class="field-label">Driver email <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="Used for driver-facing welcome and service messages when available. It is not used as the driver's identity key." aria-label="Why we ask for driver email">?</span></span><input name="driverEmail" type="email" autocomplete="email" maxlength="254"></label>
-        <label><span class="field-label">Driver mobile number <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="Text Parker needs the driver's own number to associate messages and driving sessions with the correct driver. A mobile number is only required if the driver opts into Text Parker." aria-label="Why we ask for driver mobile number">?</span></span><input name="driverMobile" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5678"></label>
-        <label class="checkbox-row real-checkbox"><input name="driverSmsOptIn" type="checkbox"><span><strong>Optional: Text Parker for the driver</strong><br><strong>Driver:</strong> I agree to receive transactional text messages from Drive Venture through Text Parker at the driver mobile number provided above. Messages may include enrollment assistance, supervised-drive start and finish interactions, progress messages, service updates, and requested help. Message frequency varies. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not required to use Drive Venture. See the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</span></label>
-      </section>
-
-      <section class="form-card" aria-labelledby="license-heading">
-        <p class="step-label">3 of 4</p><h2 id="license-heading">Driving setup</h2>
-        <label><span class="field-label">Current license stage <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="Drive Venture uses the ZIP code and current stage to show the right Michigan or Kansas licensing milestones. Kansas Farm Permits are not supported in this pilot." aria-label="Why we ask for license stage">?</span></span><select name="licenseStage" required><option value="">Choose one</option><option value="LEVEL_1">Learner / Level 1 permit</option><option value="LEVEL_2">Intermediate / Level 2 license</option><option value="LEVEL_3">Full / Level 3 license</option></select></label>
-        <label><span class="field-label">Permit / current-stage issue date <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="This date anchors time-based licensing requirements. On a phone, your device's native date picker should appear." aria-label="Why we ask for permit date">?</span></span><input name="licenseStageStartDate" type="date" required></label>
-        <label class="checkbox-row real-checkbox"><input id="prior-practice-has" name="priorPracticeHas" type="checkbox"><span><strong>Already have practice hours logged?</strong><br>Enter a starting practice balance so Drive Venture starts from your current progress. This is not a drive and will not award quests by itself.</span></label>
-        <div id="prior-practice-wrap" class="conditional-field" hidden>
-          <div class="field-grid two-col"><label><span class="field-label">Total prior practice hours <span class="required-marker" aria-hidden="true">*</span></span><input name="priorPracticeTotal" type="number" inputmode="decimal" min="0" max="500" step="0.1" placeholder="24.5"></label><label><span class="field-label">Prior night hours <span class="required-marker" aria-hidden="true">*</span></span><input name="priorPracticeNight" type="number" inputmode="decimal" min="0" max="500" step="0.1" value="0"></label></div>
-          <p class="field-help">If you later add specific drives from before you joined Drive Venture, those detailed drives replace this starting balance so the same time is not counted twice.</p>
-        </div>
-        <label class="checkbox-row real-checkbox"><input id="custom-avatar-requested" name="customAvatarRequested" type="checkbox"><span><strong>I'd like a custom Drive Venture avatar.</strong><br>You can upload a source photo here. Avatar selection is independent from SMS consent.</span></label>
-        <div id="avatar-upload-wrap" class="conditional-field" hidden><label><span class="field-label">Driver photo <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="A clear photo of the driver's face helps us create a recognizable Drive Venture avatar. The source photo is stored privately and is not published as the avatar." aria-label="Why we ask for a driver photo">?</span></span><input id="avatar-photo" name="avatarPhoto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif"><span class="field-help">JPEG, PNG, WebP, HEIC, or HEIF. Maximum 4 MB.</span></label></div>
-      </section>
-
-      <section class="form-card" aria-labelledby="vehicle-heading">
-        <p class="step-label">4 of 4</p><h2 id="vehicle-heading">Starting vehicle</h2>
-        <label><span class="field-label">Vehicle name <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="Give the vehicle a friendly name the driver will recognize in the Garage and driving log." aria-label="Why we ask for vehicle name">?</span></span><input name="vehicleName" required maxlength="80" placeholder="Blue Pacifica"></label>
-        <label><span class="field-label">Vehicle class <span class="required-marker" aria-hidden="true">*</span> <span class="tip" tabindex="0" data-tip="Vehicle class supports Garage organization and class-based quests. Choose the closest match." aria-label="Why we ask for vehicle class">?</span></span><select name="vehicleClass" required><option value="">Choose one</option><option>Sedan</option><option>SUV</option><option>Pickup</option><option>Minivan</option><option>Convertible</option><option>Hybrid</option><option>EV</option><option>Manual</option></select></label>
-        <label><span class="field-label">Vehicle color <span class="meta">(optional)</span> <span class="tip" tabindex="0" data-tip="Helps distinguish vehicles in the Garage and supports personalized artwork." aria-label="Why we ask for vehicle color">?</span></span><input name="vehicleColor" maxlength="40"></label>
-      </section>
-
-      <label class="honeypot" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
-      <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
-      <button id="submit-button" class="button primary onboarding-submit" type="submit">Join the pilot</button>
-      <p class="meta"><span class="required-marker" aria-hidden="true">*</span> Required field. By submitting, the grown-up confirms they are authorized to enroll the driver and that the information provided is accurate. SMS participation is optional for each person. Each SMS checkbox is separate and unchecked by default.</p>
     </form>
 
-    <section id="onboarding-success" class="form-card success-card" hidden tabindex="-1">
-      <p class="eyebrow">You're in</p><h2>Welcome to Drive Venture.</h2>
-      <p>Your pilot onboarding information is stored in Drive Venture's secure backend.</p>
-      <p>If either person opted into Text Parker, that consent is recorded separately for that person's mobile number with the consent version and time of submission.</p>
-      <a class="button" href="/">Back to Drive Venture</a>
+    <section id="acquisition-v2-success" class="form-card success-card" hidden tabindex="-1">
+      <p class="eyebrow">Check your email</p>
+      <h2>Your Family Hub is ready to open.</h2>
+      <p>Parker sent a secure sign-in link to <strong id="acquisition-v2-email"></strong>.</p>
+      <p>Open that message and choose <strong>Open your Family Hub</strong>. After your email is verified, you will land in Drive Venture with no driver yet—and the Family Hub will guide you to add the first one.</p>
+      <p class="field-help">If the email takes a minute, check spam or promotions before submitting again.</p>
     </section>
   </main>
-  <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li><a href="/feedback/">Feedback</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li><li><a href="/text-parker/">Text Parker</a></li><li><a href="mailto:mike@mydriveventure.com">Contact</a></li></ul><p>Drive Venture is operated by Michael Stefaniak as a Michigan sole proprietor.</p><p>&copy; 2026 Drive Venture.</p></div></footer>
-  <script src="/assets/js/submission-context.js"></script><script src="/join/config.js"></script><script src="/assets/js/join.js?v=20260919-bklg0084-hotfix"></script>
+  <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
+  <script src="/assets/js/meta-pixel.js?v=20260920-bklg0197-cutover" async></script>
+  <script src="/assets/js/join-v2.js?v=20260920-bklg0197-cutover"></script>
 </body>
 </html>
