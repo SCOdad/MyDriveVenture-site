@@ -82,6 +82,50 @@
   const exportStatus = document.getElementById('drive-log-export-status');
   let contextToken = 0;
   let exportController = null;
+  let contextDriverId = null;
+
+  function ensureContextStatus() {
+    const form = document.getElementById('drive-form');
+    if (!form) return null;
+    let box = document.getElementById('drive-form-context-status');
+    if (box) return box;
+    box = document.createElement('div');
+    box.id = 'drive-form-context-status';
+    box.className = 'app-status';
+    box.hidden = true;
+    box.setAttribute('role', 'status');
+    box.setAttribute('aria-live', 'polite');
+    const submit = form.querySelector('button[type=submit]');
+    submit?.closest('div')?.before(box) || form.prepend(box);
+    return box;
+  }
+
+  function setContextReady(ready, message = '') {
+    const form = document.getElementById('drive-form');
+    const submit = form?.querySelector('button[type=submit]');
+    const box = ensureContextStatus();
+    if (form) form.dataset.formContextReady = ready ? 'true' : 'false';
+    if (submit) submit.disabled = !ready;
+    if (supervisor) supervisor.disabled = !ready;
+    if (lesson) lesson.disabled = !ready;
+    if (lessonNotes) lessonNotes.disabled = !ready;
+    if (box) {
+      box.hidden = ready && !message;
+      box.className = `app-status${ready ? '' : ' error'}`;
+      box.innerHTML = message ? `${esc(message)} ${ready ? '' : '<button type="button" id="drive-form-context-retry" class="button secondary button-small">Retry form setup</button>'}` : '';
+      box.querySelector('#drive-form-context-retry')?.addEventListener('click', () => {
+        const driverId = contextDriverId || app.getDriverId?.();
+        if (driverId) loadContext(driverId);
+      });
+    }
+    if (!ready) {
+      hideLessonGrid();
+      if (lessonWrap) { lessonWrap.hidden = true; lessonWrap.style.display = 'none'; }
+      if (lessonNotesWrap) { lessonNotesWrap.hidden = true; lessonNotesWrap.style.display = 'none'; }
+      if (supervisor) supervisor.innerHTML = '<option value="">Drive form setup unavailable</option>';
+      toggleOther();
+    }
+  }
 
   const lessonSetEqual = (a, b) => JSON.stringify([...(a || [])].map(String).sort()) === JSON.stringify([...(b || [])].map(String).sort());
   const selectedLessonIds = () => lesson?.multiple ? [...lesson.options].filter(o => o.selected && o.value).map(o => o.value) : (lesson?.value ? [lesson.value] : []);
@@ -215,8 +259,14 @@
 
   async function loadContext(driverId) {
     const mine = ++contextToken, previousSupervisor = supervisor?.value || '';
+    contextDriverId = driverId;
+    setContextReady(false, 'Loading drive form setup…');
     const { data, error } = await client.functions.invoke('drive-ops', { body: { action: 'form_context', driver_id: driverId } });
-    if (mine !== contextToken || app.getDriverId() !== driverId || error || !data?.ok) return;
+    if (mine !== contextToken || app.getDriverId() !== driverId) return;
+    if (error || !data?.ok) {
+      setContextReady(false, 'Drive Venture could not load the required drive form setup. You cannot log a drive until this is available.');
+      return;
+    }
     renderDriveSkillSummaries(data.drive_skill_summaries);
     const liveLessons = selectedLessonIds();
     if (supervisor) {
@@ -248,6 +298,7 @@
       hideLessonGrid();
       if (lessonNotesWrap) { lessonNotesWrap.hidden = true; lessonNotesWrap.style.display = 'none'; }
     }
+    setContextReady(true);
     window.dispatchEvent(new CustomEvent('dv:driving-log-context', { detail: { driverId, ...data } }));
   }
 
@@ -280,6 +331,8 @@
 
   window.addEventListener('dv:driver-changing', () => {
     contextToken += 1;
+    contextDriverId = null;
+    setContextReady(false, 'Loading drive form setup…');
     exportController?.abort();
     exportController = null;
     setExportStatus('');
