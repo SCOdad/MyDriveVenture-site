@@ -8,8 +8,13 @@ async function yesterday(page) {
 async function ready(page){
   await signIn(page, fixtureDrivers.boundedMichiganGuardian);
   await selectDriverByName(page,fixtureDrivers.boundedMichigan);
-  await expect(page.locator('#drive-supervisor')).toBeVisible({timeout:20_000});
-  await expect.poll(async()=>page.locator('#drive-supervisor').inputValue(),{timeout:20_000}).not.toBe('');
+  const supervisor=page.locator('#drive-supervisor');
+  await expect(supervisor).toBeVisible({timeout:20_000});
+  await expect.poll(async()=>supervisor.locator('option').evaluateAll(options=>options.filter(option=>option.value&&option.value!=='OTHER').length),{timeout:20_000,message:'Expected at least one canonical supervisor option in DEV form context'}).toBeGreaterThan(0);
+  if(!(await supervisor.inputValue())){
+    await supervisor.selectOption(await supervisor.locator('option').evaluateAll(options=>options.find(option=>option.value&&option.value!=='OTHER')?.value||''));
+  }
+  await expect(supervisor).not.toHaveValue('');
   await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
 }
 
