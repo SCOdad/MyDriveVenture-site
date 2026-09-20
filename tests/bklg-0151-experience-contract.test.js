@@ -53,7 +53,10 @@ test('CREATE verifies the authoritative saved drive and returns to ordinary log 
 
 test('supported experiences load the current CREATE rehydration and failure-recovery contract', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
-    assert.match(read(path), /log-drive-rpc\.js\?v=20260919-drive-totals1/);
+    const source=read(path);
+    assert.match(source, /drive-save-recovery\.js\?v=20260920-0194-recovery1/);
+    assert.match(source, /log-drive-rpc\.js\?v=20260920-0194-recovery1/);
+    assert.ok(source.indexOf('drive-save-recovery.js') < source.indexOf('log-drive-rpc.js'));
   }
 });
 
