@@ -69,5 +69,9 @@ test('BKLG-0194 shared drive RPC uses one bounded recovery lifecycle for CREATE 
   assert.match(source,/querySelectorAll\('input,select,textarea,button'\)/);
   assert.match(source,/dv:driver-changing',[\s\S]*setSubmitting\(false\);resetEditForDriverChange\(\)/);
   assert.match(source,/Finish checking the unfinished save before editing another drive\./);
+  assert.match(source,/function enterEdit\(d,\{scroll=true,preservePriorDraft=true,allowPending=false\}=\{\}\)\{if\(!allowPending&&pendingForCurrentDriver\(\)\)/);
+  assert.match(source,/function resetAfterEdit\(\)\{resetNewDriveForm\(\)\}/);
+  assert.match(source,/Drive updated and verified:[\s\S]*Ready to log another drive\./);
+  assert.match(source,/Drive edit recovered and verified:[\s\S]*Ready to log another drive\./);
   assert.doesNotMatch(source,/Please try again\.['"]\),35000/);
 });
