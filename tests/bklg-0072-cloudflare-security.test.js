@@ -22,6 +22,11 @@ test('BKLG-0072 leaves Cloudflare Pages default nosniff and referrer policy auth
 
 test('BKLG-0197 canonical onboarding alias is a permanent edge redirect',()=>{
   assert.match(redirects,/^\/join\/v2\/\s+\/join\/\s+301$/m);
+  assert.match(redirects,/^\/join\/v2\/\*\s+\/join\/:splat\s+301$/m);
+});
+
+test('BKLG-0072 preserves legacy onboarding and FAQ redirects',()=>{
+  assert.doesNotMatch(redirects,/\/join\/v1\/\s+\/join\//);
   assert.match(redirects,/^\/FAQ\/\s+\/faq\/\s+301$/m);
   assert.match(redirects,/^\/FAQ\/\*\s+\/faq\/:splat\s+301$/m);
 });
