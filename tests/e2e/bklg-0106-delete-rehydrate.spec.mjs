@@ -41,6 +41,8 @@ test('BKLG-0106 retained delete disappears immediately and stays absent after au
   const saveBody=await saveResponse.json();
   expect(saveBody.ok).toBe(true);
   const driveId=saveBody.drive.id;
+  await expect(page.locator('#drive-status')).toContainText('Drive logged and verified',{timeout:60_000});
+  await expect(page.locator('#drive-save-recover')).toBeHidden();
 
   const row=page.locator('#drive-list .drive-item').filter({hasText:marker}).first();
   await expect(row).toBeVisible({timeout:20_000});
