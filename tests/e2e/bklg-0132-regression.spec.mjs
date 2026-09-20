@@ -117,7 +117,9 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const edited = await submitDriveForm(page);
     expect(edited?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture edited');
     await expectEditRefreshComplete(page);
-    await row.click();
+    const refreshedRow = page.locator('#drive-list .drive-item').filter({ hasText: route }).first();
+    await expect(refreshedRow).toBeVisible({ timeout: 20_000 });
+    await refreshedRow.click();
     await expect(page.locator('.drive-detail-dialog')).toBeVisible();
     await page.locator('button[data-edit-drive]').click();
     await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
