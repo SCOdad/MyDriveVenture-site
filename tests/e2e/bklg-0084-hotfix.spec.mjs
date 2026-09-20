@@ -42,6 +42,7 @@ test('failed drive save leaves logging state and restores the submit button', as
       getRenderGeneration: () => 1,
     };
   });
+  await page.addScriptTag({ path: path.join(root, 'assets/js/drive-save-recovery.js') });
   await page.addScriptTag({ path: path.join(root, 'assets/js/log-drive-rpc.js') });
   await page.locator('#drive-form button[type=submit]').click();
 
