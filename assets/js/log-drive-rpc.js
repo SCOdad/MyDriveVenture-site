@@ -5,7 +5,7 @@
   const client=app.client,statusEl=document.getElementById('drive-status'),submissionKey='dv:web-drive:submission-id',recovery=window.DV_DRIVE_SAVE_RECOVERY;
   if(!recovery)return;
   const DRIVE_SAFETY_RESEARCH_URL='/research/teen-drowsy-driving/';
-  let edit=null,preEditDraft=null;
+  let edit=null,preEditDraft=null,saveLifecycleActive=false;
   if(!document.querySelector('link[data-dv-drive-edit-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-edit.css?v=20260824-5';l.dataset.dvDriveEditCss='true';document.head.appendChild(l)}
   const field=id=>document.getElementById(id),clean=v=>v==null?'':String(v).trim(),time=v=>clean(v).slice(0,5),lessonIds=()=>window.DV_DRIVING_LOG?.getSelectedLessonIds?.()||[];
   const editFieldIds=new Set(['drive-date','drive-start','drive-end','drive-vehicle','drive-lesson','drive-lesson-notes','drive-supervisor','drive-supervisor-other','drive-destination','drive-notes']);
@@ -17,7 +17,7 @@
   function setRecoveryPending(active){const button=ensureRecoveryButton();button.hidden=!active;button.classList.toggle('app-hidden',!active);button.disabled=false;if(active)setSubmitting(true)}
   function savePending(pending){recovery.save(pending)}
   function clearPending(){recovery.clear();setRecoveryPending(false)}
-  function offerPendingRecovery(){const pending=pendingForCurrentDriver();if(!pending)return false;setRecoveryPending(true);setStatus(`Drive Venture could not confirm whether your ${pending.operation==='CREATE'?'drive':'edit'} finished. Your original submission is protected and will not be changed. Choose “Check unfinished save” to resolve it safely.`,'error');return true}
+  function offerPendingRecovery(){const pending=pendingForCurrentDriver();if(!pending)return false;if(saveLifecycleActive)return false;setRecoveryPending(true);setStatus(`Drive Venture could not confirm whether your ${pending.operation==='CREATE'?'drive':'edit'} finished. Your original submission is protected and will not be changed. Choose “Check unfinished save” to resolve it safely.`,'error');return true}
   const sortedIds=v=>[...(v||[])].filter(Boolean).map(String).sort();
   const comparable=d=>({drive_date:clean(d?.drive_date),start_time:time(d?.start_time),end_time:time(d?.end_time),vehicle_id:d?.vehicle_id||null,lesson_ids:sortedIds(d?.lesson_ids||(d?.lesson_id?[d.lesson_id]:[])),lesson_notes:clean(d?.lesson_notes)||null,supervisor_person_id:d?.supervisor_person_id||null,external_supervisor_name:clean(d?.external_supervisor_name)||null,destination:clean(d?.destination)||null,notes:clean(d?.notes)||null});
   const values=()=>{const supervisor=field('drive-supervisor')?.value||'',ids=lessonIds();return comparable({drive_date:field('drive-date')?.value,start_time:field('drive-start')?.value,end_time:field('drive-end')?.value,vehicle_id:field('drive-vehicle')?.value,lesson_ids:ids,lesson_id:ids[0]||null,lesson_notes:field('drive-lesson-notes')?.value||null,supervisor_person_id:supervisor&&supervisor!=='OTHER'?supervisor:null,external_supervisor_name:supervisor==='OTHER'?(field('drive-supervisor-other')?.value||null):null,destination:field('drive-destination')?.value,notes:field('drive-notes')?.value})};
@@ -67,6 +67,7 @@
   function resetAfterEdit(){resetNewDriveForm()}
   function cancelEdit(){const restore=preEditDraft;clearEditUi();if(restore)setFields(restore);setStatus('Edit mode closed. Your prior drive-log draft was restored.');form.scrollIntoView({behavior:'smooth',block:'start'})}
   function resetEditForDriverChange(){if(edit||form.dataset.editDrive)clearEditUi();['drive-start','drive-end','drive-destination','drive-notes'].forEach(id=>{const el=field(id);if(el)el.value=''});window.DV_DRIVING_LOG?.setLessonSelection?.([]);window.DV_DRIVING_LOG?.updateNoteCount?.();const date=field('drive-date');if(date)delete date.dataset.dvUserEdited;setStatus('')}
+  document.addEventListener('click',e=>{const trigger=e.target.closest?.('[data-edit-drive]');if(!trigger||!pendingForCurrentDriver())return;e.preventDefault();e.stopImmediatePropagation();setRecoveryPending(true);setStatus('Finish checking the unfinished save before editing another drive.','error');ensureRecoveryButton().scrollIntoView({behavior:'smooth',block:'center'})},true);
   document.addEventListener('click',async e=>{if(e.target.id==='drive-edit-cancel'){cancelEdit();return}const trigger=e.target.closest?.('button[data-edit-drive]');if(!trigger)return;const id=trigger.dataset.editDrive,driverId=app.getDriverId?.();if(!id||!driverId)return;if(edit?.id===id){form.scrollIntoView({behavior:'smooth',block:'start'});return}setStatus('Opening drive…');const{data,error}=await client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:id}});if(error||!data?.drive)return setStatus('Drive details could not be opened.','error');app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;enterEdit(data.drive);setStatus('')});
   function captureEditField(target){if(!edit||!editFieldIds.has(target?.id))return;edit.draft=values();context()}
   form.addEventListener('input',e=>captureEditField(e.target));form.addEventListener('change',e=>captureEditField(e.target));
@@ -74,7 +75,7 @@
   window.addEventListener('dv:driving-log-context',()=>{if(edit){setFields(edit.draft);context()}offerPendingRecovery()});
   async function recoverPendingMutation(){
     const pending=pendingForCurrentDriver();if(!pending)return setStatus('There is no unfinished save for this driver.');
-    const driverId=pending.driver_id;setSubmitting(true);setRecoveryPending(true);setStatus('Checking the unfinished save…');
+    const driverId=pending.driver_id;saveLifecycleActive=true;setSubmitting(true);setRecoveryPending(true);setStatus('Checking the unfinished save…');
     try{
       if(pending.operation==='CREATE'){
         const{data,error}=await invokeDriveOps(pending.body);
@@ -134,7 +135,7 @@
     }catch(error){
       const info=await errorInfo(error,null);
       return setStatus(`Drive Venture still cannot confirm this save: ${info.message} Your original submission remains protected.`,'error');
-    }finally{if(pendingForCurrentDriver())setRecoveryPending(true)}
+    }finally{saveLifecycleActive=false;if(pendingForCurrentDriver())setRecoveryPending(true)}
   }
 
   ensureRecoveryButton().addEventListener('click',recoverPendingMutation);
@@ -152,11 +153,12 @@
       if(isOperatorView()){const reasonInput=ensureAdminReason();reason=clean(reasonInput?.value);if(!reason){reasonInput?.focus();return setStatus('Administrator edit reason is required.','error')}const driver=app.getModel?.().drivers?.find?.(x=>x.id===driverId);if(!window.confirm(`Modify ${driver?.display_name||'this driver'}’s drive as an administrator?\n\nReason: ${reason}`))return setStatus('Administrator edit cancelled.')}
       const id=edit.id,body={action:'mutate_drive',operation:'EDIT',driver_id:driverId,drive_id:id,expected_revision:edit.revision,...requested,...(reason?{reason}:{})};
       savePending(recovery.makePending({operation:'EDIT',driverId,driveId:id,expectedRevision:edit.revision,requested,body}));
-      setSubmitting(true);setStatus('Saving changes…');
+      saveLifecycleActive=true;setSubmitting(true);setStatus('Saving changes…');
       try{
         const{data,error}=await invokeDriveOps(body);
         if(app.getDriverId()!==driverId||(generation!=null&&app.getRenderGeneration?.()!==generation))return;
         if(error||!data?.ok){const info=await errorInfo(error,data);if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the edit finished. Your exact edit is protected; choose “Check unfinished save” to resolve it safely.','error')}clearPending();if(info.code==='CONFLICT'){const latest=await authoritativeDrive(driverId,id);if(latest.ok){app.detailDrives=app.detailDrives||{};app.detailDrives[id]=latest.drive;enterEdit(latest.drive,{scroll:false,preservePriorDraft:false})}return setStatus('This drive changed before your edit could be accepted. Drive Venture reopened the latest saved version; review it before editing again.','error')}return setStatus(`Drive edit: ${info.message}`,'error',researchFor(info))}
+        setStatus('Drive saved. Verifying the saved edit…');
         const verified=await ensureVerifiedSkills(data,driverId,requested.lesson_ids,reason);
         if(!verified.ok){setRecoveryPending(true);return setStatus(`Drive edit: ${verified.error}`,'error')}
         data.drive=verified.drive;data.lesson_ids=verified.lesson_ids;data.supervisor=verified.supervisor;
@@ -176,16 +178,17 @@
         const info=await errorInfo(error,null);
         if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the edit finished. Your exact edit is protected; choose “Check unfinished save” to resolve it safely.','error')}
         clearPending();return setStatus(`Drive edit: ${info.message}`,'error',researchFor(info))
-      }finally{if(!pendingForCurrentDriver())setSubmitting(false)}
+      }finally{saveLifecycleActive=false;if(!pendingForCurrentDriver())setSubmitting(false)}
     }
 
     const sourceEventId=stableSubmissionId(),body={action:'mutate_drive',operation:'CREATE',driver_id:driverId,source_event_id:sourceEventId,...requested};
     savePending(recovery.makePending({operation:'CREATE',driverId,sourceEventId,requested,body}));
-    setSubmitting(true);setStatus('Logging drive…');
+    saveLifecycleActive=true;setSubmitting(true);setStatus('Logging drive…');
     try{
       const{data,error}=await invokeDriveOps(body);
       if(app.getDriverId()!==driverId||(generation!=null&&app.getRenderGeneration?.()!==generation))return;
       if(error||!data?.ok){const info=await errorInfo(error,data);if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the drive finished saving. Your exact submission is protected; choose “Check unfinished save” to resolve it without creating a duplicate.','error')}if(info.code==='CONFLICT'){setRecoveryPending(true);return setStatus('Drive Venture found a save-identity conflict and stopped rather than risk creating a duplicate. Check Recent drives for this trip before taking further action.','error')}clearPending();return setStatus(`Drive: ${info.message}. You can fix the values and try again.`,'error',researchFor(info))}
+      setStatus('Drive saved. Verifying the saved drive…');
       const verified=await ensureVerifiedSkills(data,driverId,requested.lesson_ids);if(!verified.ok){setRecoveryPending(true);return setStatus(`Drive: ${verified.error}`,'error')}data.drive=verified.drive;data.lesson_ids=verified.lesson_ids;data.supervisor=verified.supervisor;
       const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'',successMessage=`Drive logged and verified.${nightMessage(data.night_classification,true)}${earned}`,id=data.drive?.id;
       if(!id){setFields(requested);setRecoveryPending(true);return setStatus('Drive was acknowledged, but the saved record could not be reopened. Your submitted values and recovery record remain protected.','error')}
@@ -198,7 +201,7 @@
       const info=await errorInfo(error,null);
       if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the drive finished saving. Your exact submission is protected; choose “Check unfinished save” to resolve it without creating a duplicate.','error')}
       clearPending();setStatus(`Drive: ${info.message}. You can fix the values and try again.`,'error',researchFor(info))
-    }finally{if(!pendingForCurrentDriver())setSubmitting(false)}
+    }finally{saveLifecycleActive=false;if(!pendingForCurrentDriver())setSubmitting(false)}
   });
   let linkedEditHandled=false;
   window.addEventListener('dv:dashboard-rendered',async()=>{offerPendingRecovery();if(linkedEditHandled)return;const p=new URLSearchParams(location.search),targetDriver=p.get('driver'),targetDrive=p.get('editDrive');if(!targetDriver||!targetDrive)return;linkedEditHandled=true;try{if(app.getDriverId()!==targetDriver)await app.selectDriver(targetDriver);const{data,error}=await client.functions.invoke('drive-detail-api',{body:{driver_id:targetDriver,drive_id:targetDrive}});if(error||!data?.drive)throw new Error(data?.error||error?.message||'Drive unavailable');app.detailDrives=app.detailDrives||{};app.detailDrives[targetDrive]=data.drive;enterEdit(data.drive);p.delete('driver');p.delete('editDrive');history.replaceState(null,'',location.pathname+(p.toString()?('?'+p.toString()):'')+location.hash)}catch(e){setStatus('That secure edit link could not open the drive. Please choose it from Recent drives.','error')}});
