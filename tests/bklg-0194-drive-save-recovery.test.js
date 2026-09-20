@@ -59,6 +59,8 @@ test('BKLG-0194 shared drive RPC uses one bounded recovery lifecycle for CREATE 
   assert.match(source,/makePending\(\{operation:'CREATE'/);
   assert.match(source,/makePending\(\{operation:'EDIT'/);
   assert.match(source,/Check unfinished save/);
+  assert.match(source,/function savePending\(pending\)\{recovery\.save\(pending\)\}/);
+  assert.doesNotMatch(source,/function savePending\(pending\)\{recovery\.save\(pending\);setRecoveryPending\(true\)\}/);
   assert.match(source,/editRecoveryAction/);
   assert.match(source,/same\(pending\.requested,initial\.drive\)/);
   assert.match(source,/setSubmitting\(true\)/);
