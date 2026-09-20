@@ -3,6 +3,14 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const read=p=>fs.readFileSync(p,'utf8');
 
+test('Family Hub renders structured API failures as readable text',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/function errorText/);
+  assert.match(js,/\['message','details','hint','code'\]/);
+  assert.match(js,/new Error\(errorText\(b\.error\)\)/);
+  assert.doesNotMatch(js,/new Error\(b\.error\|\|'Family update failed'\)/);
+});
+
 test('Family Hub client parses and uses canonical supported contracts',()=>{
   const js=read('assets/js/family.js');
   assert.doesNotThrow(()=>new Function(js));
