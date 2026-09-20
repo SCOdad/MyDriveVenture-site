@@ -109,7 +109,9 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision ins
   await expect(page.locator('#drive-save-recover')).toBeVisible();
   await page.locator('#drive-save-recover').click();
   await expect(page.locator('#drive-status')).toContainText('Drive edit recovered and verified',{timeout:60_000});
-  await expect(page.locator('#drive-destination')).toHaveValue(edited);
+  await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
+  await expect(page.locator('#drive-destination')).toHaveValue('');
+  await expect(page.locator('#drive-list .drive-item').filter({hasText:edited}).first()).toBeVisible({timeout:20_000});
   expect(editCalls).toBe(1);
   await page.unroute('**/functions/v1/drive-ops');
 });
