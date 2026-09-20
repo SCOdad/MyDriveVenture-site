@@ -108,3 +108,37 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision ins
   expect(editCalls).toBe(1);
   await page.unroute('**/functions/v1/drive-ops');
 });
+
+
+test('BKLG-0194 restores an unfinished CREATE after same-tab reload and completes the original transaction',async({page},testInfo)=>{
+  test.setTimeout(180_000);
+  await page.addInitScript(()=>{window.__DV_DRIVE_SAVE_TIMEOUT_MS=200});
+  await ready(page);
+  const marker=`reload-create-${Date.now()}-${testInfo.retry}`;
+  await fillCreate(page,marker);
+
+  let held=false;
+  await page.route('**/functions/v1/drive-ops',async route=>{
+    if(!held&&route.request().postData()?.includes('"operation":"CREATE"')){
+      held=true;
+      await new Promise(resolve=>setTimeout(resolve,1200));
+      try{await route.abort('failed')}catch(_){}
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.locator('#drive-form button[type=submit]').click();
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the drive finished saving',{timeout:10_000});
+  await expect(page.locator('#drive-save-recover')).toBeVisible();
+  await page.unroute('**/functions/v1/drive-ops');
+
+  await page.reload();
+  await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
+  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
+  await expect(page.locator('#drive-save-recover')).toBeVisible({timeout:20_000});
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether your drive finished',{timeout:20_000});
+  await page.locator('#drive-save-recover').click();
+  await expect(page.locator('#drive-status')).toContainText('Drive save recovered and verified',{timeout:60_000});
+  await expect(page.locator('#drive-list .drive-item').filter({hasText:marker})).toHaveCount(1,{timeout:20_000});
+});
