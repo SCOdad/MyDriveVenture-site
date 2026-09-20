@@ -4,9 +4,11 @@
 
   const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   window.DV_SUPABASE_CLIENT=client;
-  const loaded=new Set();
+
   const failed=new Map();
+  const avatarCache=new Map();
   let inflight=false;
+  let lastRequestKey='';
 
   function normalizeMap(body){
     if(body?.avatars&&typeof body.avatars==='object')return body.avatars;
@@ -15,16 +17,20 @@
   }
 
   async function avatarMap(ids){
+    const wanted=[...new Set(ids.map(String).filter(Boolean))];
+    if(!wanted.length)return {};
     const session=(await client.auth.getSession()).data.session;
     if(!session?.access_token)throw new Error('no-session');
     const response=await window.__dvAvatarOriginalFetch(`${cfg.supabaseUrl}/functions/v1/family-avatar-map`,{
       method:'POST',
       headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
-      body:JSON.stringify({driver_ids:[...new Set(ids.map(String).filter(Boolean))]})
+      body:JSON.stringify({driver_ids:wanted})
     });
     const body=await response.json().catch(()=>({}));
     if(!response.ok||body.ok!==true)throw new Error(`avatar-map-${response.status}`);
-    return normalizeMap(body);
+    const avatars=normalizeMap(body);
+    for(const [id,url] of Object.entries(avatars))if(url)avatarCache.set(String(id),String(url));
+    return avatars;
   }
 
   if(!window.__dvAvatarOriginalFetch){
@@ -36,7 +42,7 @@
         try{driverId=String(JSON.parse(init?.body||'{}').driver_id||'')}catch{}
         try{
           const avatars=await avatarMap([driverId]);
-          const avatar=avatars[driverId]||null;
+          const avatar=avatars[driverId]||avatarCache.get(driverId)||null;
           if(!avatar)return new Response(JSON.stringify({ok:false,error:'No current avatar assignment'}),{status:404,headers:{'content-type':'application/json'}});
           return new Response(JSON.stringify({ok:true,signed_url:avatar,headshot_signed_url:avatar}),{status:200,headers:{'content-type':'application/json'}});
         }catch(error){
@@ -51,8 +57,7 @@
   function visibleCards(){
     return [...document.querySelectorAll('.family-driver-card[data-driver-id]:not([hidden])')].filter(card=>{
       const id=String(card.dataset.driverId||'');
-      if(!id||loaded.has(id))return false;
-      return Number(failed.get(id)||0)<5;
+      return !!id && Number(failed.get(id)||0)<6;
     });
   }
 
@@ -62,17 +67,47 @@
     if(host)host.dataset.avatarMapStatus=status;
   }
 
+  function needsApply(card,url){
+    const id=String(card.dataset.driverId||'');
+    const img=card.querySelector('[data-avatar-host] img[data-dv-avatar-driver]');
+    return !img || img.dataset.dvAvatarDriver!==id || img.src!==url;
+  }
+
   function showAvatar(card,url){
     return new Promise(resolve=>{
       const id=String(card.dataset.driverId||'');
       const host=card.querySelector('[data-avatar-host]');
       if(!host||!url){resolve(false);return;}
+      if(!needsApply(card,url)){
+        markStatus(card,'loaded');
+        card.dataset.avatarFallback='false';
+        resolve(true);
+        return;
+      }
       const img=new Image();
       img.alt='';
       img.loading='lazy';
       img.decoding='async';
-      img.onload=()=>{host.replaceChildren(img);host.classList.add('has-avatar');card.dataset.avatarFallback='false';markStatus(card,'loaded');loaded.add(id);failed.delete(id);resolve(true)};
-      img.onerror=()=>{failed.set(id,Number(failed.get(id)||0)+1);card.dataset.avatarFallback='true';markStatus(card,'image-error');resolve(false)};
+      img.dataset.dvAvatarDriver=id;
+      img.style.width='100%';
+      img.style.height='100%';
+      img.style.objectFit='cover';
+      img.style.objectPosition='center center';
+      img.onload=()=>{
+        host.replaceChildren(img);
+        host.classList.add('has-avatar');
+        card.dataset.avatarFallback='false';
+        card.dataset.avatarLoaded='true';
+        markStatus(card,'loaded');
+        failed.delete(id);
+        resolve(true);
+      };
+      img.onerror=()=>{
+        failed.set(id,Number(failed.get(id)||0)+1);
+        card.dataset.avatarFallback='true';
+        markStatus(card,'image-error');
+        resolve(false);
+      };
       markStatus(card,'loading-image');
       img.src=url;
     });
@@ -82,14 +117,16 @@
     if(inflight)return;
     const cards=visibleCards();
     if(!cards.length)return;
+    const ids=cards.map(card=>String(card.dataset.driverId||'')).filter(Boolean);
+    const requestKey=ids.sort().join('|');
     inflight=true;
     try{
-      const ids=cards.map(card=>String(card.dataset.driverId||'')).filter(Boolean);
       cards.forEach(card=>markStatus(card,'fetching'));
       const avatars=await avatarMap(ids);
+      lastRequestKey=requestKey;
       await Promise.all(cards.map(async card=>{
         const id=String(card.dataset.driverId||'');
-        const url=avatars[id];
+        const url=avatars[id]||avatarCache.get(id);
         if(!url){markStatus(card,'no-avatar');return;}
         await showAvatar(card,url);
       }));
@@ -99,10 +136,16 @@
     }finally{inflight=false;}
   }
 
-  function schedule(){setTimeout(load,50)}
+  function schedule(){setTimeout(load,75)}
   const observer=new MutationObserver(schedule);
-  if(document.body)observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id']});
+  if(document.body)observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id','data-avatar-loaded','data-avatar-fallback']});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});
   else schedule();
-  window.DVFamilyAvatarMap={reload:()=>{failed.clear();loaded.clear();setTimeout(load,0)},loaded,failed};
+  let reconcileCount=0;
+  const reconcile=setInterval(()=>{
+    reconcileCount+=1;
+    load();
+    if(reconcileCount>=20)clearInterval(reconcile);
+  },750);
+  window.DVFamilyAvatarMap={reload:()=>{failed.clear();avatarCache.clear();setTimeout(load,0)},failed,avatarCache,get lastRequestKey(){return lastRequestKey}};
 })();
