@@ -54,6 +54,18 @@
     data.drive.lesson_ids=ids;data.drive.lessons=data.lessons||data.drive.lessons||[];data.drive.lesson_id=ids[0]||null;
     return{ok:true,drive:data.drive};
   }
+  async function authoritativeDriveAfterSave(driverId,driveId,{attempts=4,delayMs=700}={}){
+    let result={ok:false,error:'Drive verification is still pending.'};
+    for(let attempt=1;attempt<=attempts;attempt++){
+      result=await authoritativeDrive(driverId,driveId);
+      if(result.ok)return result;
+      if(attempt<attempts){
+        setStatus('Drive saved. Still verifying the saved drive…');
+        await new Promise(resolve=>setTimeout(resolve,delayMs*attempt));
+      }
+    }
+    return result;
+  }
   function localDurationIssue(d){const duration=minutes(d);return duration>135?{message:'Drive Venture can only count up to 2 hours 15 minutes for one drive',code:'DRIVE_DURATION_LIMIT',research_url:DRIVE_SAFETY_RESEARCH_URL}:null}
   function context(d=edit?.draft){if(!edit)return;let box=document.getElementById('drive-edit-context');if(!box){box=document.createElement('div');box.id='drive-edit-context';box.className='drive-edit-context';form.before(box)}const labels={drive_date:'date',start_time:'start time',end_time:'finish time',vehicle_id:'vehicle',lesson_ids:'skills practiced',lesson_notes:'skills',supervisor_person_id:'supervisor',external_supervisor_name:'supervisor',destination:'destination',notes:'road notes'},draft=comparable(d),changed=Object.keys(edit.original).filter(k=>!equalValue(k,draft[k],edit.original[k])).map(k=>labels[k]);box.textContent=`Editing: ${summary(draft)}${changed.length?` · Unsaved changes: ${[...new Set(changed)].join(', ')}`:''}`;box.hidden=false}
   function isOperatorView(){const model=app.getModel?.()||{},driverId=app.getDriverId?.();return !!edit&&model.is_operator===true&&app.getAccessMode?.(driverId)==='VIEW'}
@@ -167,7 +179,7 @@
         app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;
         await settleHydration(app.refreshDashboard?.())
         if(app.getDriverId()!==driverId)return;
-        await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDrive(driverId,id);
+        await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDriveAfterSave(driverId,id);
         if(!reread.ok){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus(`Drive edit: ${reread.error}`,'error')}
         if(!sameChanged(requested,reread.drive,original)){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus('Drive edit could not be verified after refresh. Your requested values and recovery record are protected.','error')}
         app.detailDrives[id]=reread.drive;
@@ -193,7 +205,7 @@
       const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'',successMessage=`Drive logged and verified.${nightMessage(data.night_classification,true)}${earned}`,id=data.drive?.id;
       if(!id){setFields(requested);setRecoveryPending(true);return setStatus('Drive was acknowledged, but the saved record could not be reopened. Your submitted values and recovery record remain protected.','error')}
       app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;await settleHydration(app.refreshDashboard?.());if(app.getDriverId()!==driverId)return;
-      await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDrive(driverId,id);
+      await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDriveAfterSave(driverId,id);
       if(!reread.ok){setFields(requested);setRecoveryPending(true);return setStatus(`Drive: ${reread.error}`,'error')}
       if(!same(requested,reread.drive)){setFields(requested);setRecoveryPending(true);return setStatus('Drive was saved, but the authoritative values did not match your submission. Your submitted values and recovery record remain protected.','error')}
       app.detailDrives[id]=reread.drive;clearPending();clearSubmissionId();resetAfterCreate();setSubmitting(false);setStatus(successMessage,'success')
