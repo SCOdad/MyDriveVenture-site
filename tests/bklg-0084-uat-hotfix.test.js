@@ -21,7 +21,7 @@ test('drive creation has bounded failure handling and always leaves busy state',
   assert.match(drive, /Promise\.race/);
   assert.match(drive, /DV_SAVE_TIMEOUT/);
   assert.match(drive, /recovery\.timeoutMs\(\)/);
-  assert.match(drive, /finally\{if\(!pendingForCurrentDriver\(\)\)setSubmitting\(false\)\}/);
+  assert.match(drive, /finally\{saveLifecycleActive=false;if\(!pendingForCurrentDriver\(\)\)setSubmitting\(false\)\}/);
   assert.match(drive, /setStatus\(`Drive: \$\{info\.message\}/);
 });
 
