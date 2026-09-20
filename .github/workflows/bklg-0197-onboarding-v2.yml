@@ -1,0 +1,19 @@
+name: BKLG-0197 Onboarding V2
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  onboarding-v2-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify lightweight acquisition and Family Hub handoff
+        run: node --test tests/bklg-0197-onboarding-v2.test.js
