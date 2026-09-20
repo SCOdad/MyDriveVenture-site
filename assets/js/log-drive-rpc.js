@@ -188,7 +188,7 @@
       const verified=await ensureVerifiedSkills(data,driverId,requested.lesson_ids);if(!verified.ok){setRecoveryPending(true);return setStatus(`Drive: ${verified.error}`,'error')}data.drive=verified.drive;data.lesson_ids=verified.lesson_ids;data.supervisor=verified.supervisor;
       const awards=data.quests?.awarded||[],earned=awards.length?` Earned: ${awards.map(q=>q.name||q.quest_key).join(', ')}.`:'',successMessage=`Drive logged and verified.${nightMessage(data.night_classification,true)}${earned}`,id=data.drive?.id;
       if(!id){setFields(requested);setRecoveryPending(true);return setStatus('Drive was acknowledged, but the saved record could not be reopened. Your submitted values and recovery record remain protected.','error')}
-      app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;await settleHydration(app.refreshDashboard?.())if(app.getDriverId()!==driverId)return;
+      app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;await settleHydration(app.refreshDashboard?.());if(app.getDriverId()!==driverId)return;
       await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDrive(driverId,id);
       if(!reread.ok){setFields(requested);setRecoveryPending(true);return setStatus(`Drive: ${reread.error}`,'error')}
       if(!same(requested,reread.drive)){setFields(requested);setRecoveryPending(true);return setStatus('Drive was saved, but the authoritative values did not match your submission. Your submitted values and recovery record remain protected.','error')}
