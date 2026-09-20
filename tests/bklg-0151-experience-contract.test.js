@@ -44,7 +44,7 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
 test('CREATE verifies the authoritative saved drive and returns to ordinary log mode', () => {
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
-  assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;resetAfterCreate\(\)/);
+  assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;clearPending\(\);clearSubmissionId\(\);resetAfterCreate\(\)/);
   assert.match(rpc, /function resetAfterCreate\(\)\{if\(edit\)return;clearEditUi\(\)/);
   assert.doesNotMatch(rpc, /app\.detailDrives\[id\]=reread\.drive;enterEdit\(reread\.drive/);
   assert.match(rpc, /if\(edit\?\.id===id\)\{form\.scrollIntoView/);
