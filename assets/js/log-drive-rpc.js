@@ -68,7 +68,7 @@
   document.addEventListener('click',async e=>{if(e.target.id==='drive-edit-cancel'){cancelEdit();return}const trigger=e.target.closest?.('button[data-edit-drive]');if(!trigger)return;const id=trigger.dataset.editDrive,driverId=app.getDriverId?.();if(!id||!driverId)return;if(edit?.id===id){form.scrollIntoView({behavior:'smooth',block:'start'});return}setStatus('Opening drive…');const{data,error}=await client.functions.invoke('drive-detail-api',{body:{driver_id:driverId,drive_id:id}});if(error||!data?.drive)return setStatus('Drive details could not be opened.','error');app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;enterEdit(data.drive);setStatus('')});
   function captureEditField(target){if(!edit||!editFieldIds.has(target?.id))return;edit.draft=values();context()}
   form.addEventListener('input',e=>captureEditField(e.target));form.addEventListener('change',e=>captureEditField(e.target));
-  window.addEventListener('dv:driver-changing',e=>{const detail=e.detail||{};if(detail.driverId&&detail.previousDriverId===detail.driverId)return;resetEditForDriverChange()});
+  window.addEventListener('dv:driver-changing',e=>{const detail=e.detail||{};if(detail.driverId&&detail.previousDriverId===detail.driverId)return;setSubmitting(false);resetEditForDriverChange()});
   window.addEventListener('dv:driving-log-context',()=>{if(edit){setFields(edit.draft);context()}offerPendingRecovery()});
   async function recoverPendingMutation(){
     const pending=pendingForCurrentDriver();if(!pending)return setStatus('There is no unfinished save for this driver.');
