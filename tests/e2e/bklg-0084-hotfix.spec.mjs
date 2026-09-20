@@ -18,6 +18,7 @@ test('long driver name wraps without pushing the dashboard out of view', async (
 });
 
 test('failed drive save leaves logging state and restores the submit button', async ({ page }) => {
+  await page.goto('/log/');
   await page.setContent(`
     <form id="drive-form">
       <input id="drive-date" value="2026-02-25">
