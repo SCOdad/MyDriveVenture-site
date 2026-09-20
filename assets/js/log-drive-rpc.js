@@ -150,7 +150,8 @@
     }finally{saveLifecycleActive=false;if(pendingForCurrentDriver())setRecoveryPending(true)}
   }
 
-  ensureRecoveryButton().addEventListener('click',recoverPendingMutation);
+  ensureRecoveryButton();
+  document.addEventListener('click',e=>{if(e.target.closest?.('#drive-save-recover')){e.preventDefault();recoverPendingMutation()}},true);
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId(),generation=app.getRenderGeneration?.();if(!driverId)return setStatus('No active driver is selected.','error');
