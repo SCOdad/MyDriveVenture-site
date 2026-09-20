@@ -60,3 +60,24 @@ test('BKLG-0211 source does not introduce a client-side DEV auth bypass', () => 
   assert.doesNotMatch(joined,/service[_-]?role/i);
   assert.doesNotMatch(joined,/pretend.*auth|bypass.*auth|dev.*password/i);
 });
+
+
+test('BKLG-0211 drive form context failure blocks misleading fallback submission', () => {
+  const source = fs.readFileSync('assets/js/log-driving-log-v1.js','utf8');
+  assert.match(source,/function setContextReady\(ready, message = ''\)/);
+  assert.match(source,/form\.dataset\.formContextReady = ready \? 'true' : 'false'/);
+  assert.match(source,/submit\.disabled = !ready/);
+  assert.match(source,/Drive Venture could not load the required drive form setup/);
+  assert.match(source,/Retry form setup/);
+  assert.match(source,/Drive form setup unavailable/);
+  assert.match(source,/if \(error \|\| !data\?\.ok\)/);
+  assert.match(source,/setContextReady\(true\)/);
+});
+
+test('BKLG-0211 Michigan enumerated context still renders canonical skills and supervisors', () => {
+  const source = fs.readFileSync('assets/js/log-driving-log-v1.js','utf8');
+  assert.match(source,/mode === 'ENUMERATED'/);
+  assert.match(source,/renderLessonGrid\(data\.lessons\)/);
+  assert.match(source,/data\.supervisors\.map/);
+  assert.match(source,/data\.default_supervisor_person_id \|\| data\.primary_supervisor_person_id/);
+});
