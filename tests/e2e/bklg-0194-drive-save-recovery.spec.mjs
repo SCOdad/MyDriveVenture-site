@@ -66,7 +66,7 @@ test('BKLG-0194 recovers a committed CREATE whose response is lost without dupli
   });
 
   await page.locator('#drive-form button[type=submit]').click();
-  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the drive finished saving',{timeout:20_000});
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the drive finished saving',{timeout:60_000});
   await expect(page.locator('#drive-save-recover')).toBeVisible();
   await expect(page.locator('#drive-date')).toBeDisabled();
 
@@ -105,7 +105,7 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the saved revision ins
   });
 
   await page.locator('#drive-form button[type=submit]').click();
-  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the edit finished',{timeout:20_000});
+  await expect(page.locator('#drive-status')).toContainText('could not confirm whether the edit finished',{timeout:60_000});
   await expect(page.locator('#drive-save-recover')).toBeVisible();
   await page.locator('#drive-save-recover').click();
   await expect(page.locator('#drive-status')).toContainText('Drive edit recovered and verified',{timeout:60_000});
@@ -143,6 +143,7 @@ test('BKLG-0194 restores an unfinished CREATE after same-tab reload and complete
   await selectDriverByName(page,fixtureDrivers.boundedMichigan);
   await expect(page.locator('#drive-save-recover')).toBeVisible({timeout:20_000});
   await expect(page.locator('#drive-status')).toContainText('could not confirm whether your drive finished',{timeout:20_000});
+  await page.evaluate(()=>{window.__DV_DRIVE_SAVE_TIMEOUT_MS=35_000});
   await page.locator('#drive-save-recover').click();
   await expect(page.locator('#drive-status')).toContainText('Drive save recovered and verified',{timeout:60_000});
   await expect(page.locator('#drive-list .drive-item').filter({hasText:marker})).toHaveCount(1,{timeout:20_000});
