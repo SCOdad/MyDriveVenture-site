@@ -2,6 +2,9 @@
   const cfg=window.DV_ENVIRONMENT_CONFIG||window.DV_APP_CONFIG||{};
   const params=new URLSearchParams(location.search);
   const tokenHash=(params.get('token_hash')||'').trim();
+  const rawReturn=(params.get('return')||'').trim();
+  let target='/log/';
+  try{const u=new URL(rawReturn||'/log/',location.origin);if(u.origin===location.origin&&(u.pathname==='/family/'||u.pathname==='/log/'))target=u.pathname+u.search}catch(_){}
   const title=document.getElementById('auth-title');
   const message=document.getElementById('auth-message');
   const actions=document.getElementById('auth-actions');
@@ -33,8 +36,14 @@
       if(error)throw error;
       if(!data?.session)throw new Error('No authenticated session was returned.');
       title.textContent='You’re in!';
-      message.textContent='Secure sign-in complete. Opening your driver console…';
-      location.replace('/log/');
+      message.textContent=target.startsWith('/family/')?'Secure sign-in complete. Opening your Family Hub…':'Secure sign-in complete. Opening your driver console…';
+      if(target.startsWith('/family/')&&cfg.functionUrl){
+        try{
+          const flowId=new URL(target,location.origin).searchParams.get('acq_flow');
+          if(flowId)await fetch(cfg.functionUrl('public-acquisition-v2'),{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${data.session.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action:'authenticated',flow_id:flowId})});
+        }catch(error){console.warn('acquisition authentication tracking unavailable',error)}
+      }
+      location.replace(target);
     }catch(error){
       console.error('welcome auth handoff failed',error);
       const text=String(error?.message||'').toLowerCase();
