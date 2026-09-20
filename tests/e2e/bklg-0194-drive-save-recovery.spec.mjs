@@ -114,6 +114,14 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the exact saved revisi
 
   const protectedDriveId=await page.locator('#drive-form').getAttribute('data-edit-drive');
   expect(protectedDriveId).toBe(originalDriveId);
+  await page.evaluate(()=>{
+    document.getElementById('drive-status')?.setAttribute('data-bklg0194-status-probe','same-node');
+    document.getElementById('drive-save-recover')?.setAttribute('data-bklg0194-recovery-probe','same-node');
+    window.__bklg0194RecoveryClicks=0;
+    document.addEventListener('click',event=>{
+      if(event.target.closest?.('#drive-save-recover'))window.__bklg0194RecoveryClicks+=1;
+    },true);
+  });
   const otherRow=page.locator('#drive-list .drive-item').filter({hasText:otherMarker}).first();
   await expect(otherRow).toBeVisible({timeout:20_000});
   await otherRow.click();
@@ -121,8 +129,26 @@ test('BKLG-0194 resolves a lost EDIT response by adopting the exact saved revisi
   await page.locator('button[data-edit-drive]').click();
   await expect(page.locator('#drive-status')).toContainText('Finish checking the unfinished save before editing another drive.');
   await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',originalDriveId);
+  await expect(page.locator('#drive-status')).toHaveAttribute('data-bklg0194-status-probe','same-node');
+  await expect(page.locator('#drive-save-recover')).toHaveAttribute('data-bklg0194-recovery-probe','same-node');
+  const pendingProbe=await page.evaluate(()=>{
+    const api=window.DV_DRIVE_SAVE_RECOVERY;
+    const pending=api?.load?.()||null;
+    return {pending,currentDriver:window.DV_LOG_APP?.getDriverId?.()||null};
+  });
+  expect(pendingProbe.pending?.operation).toBe('EDIT');
+  expect(pendingProbe.pending?.drive_id).toBe(originalDriveId);
+  expect(pendingProbe.pending?.driver_id).toBe(pendingProbe.currentDriver);
 
+  const recoveryReread=page.waitForRequest(request=>
+    request.url().includes('/functions/v1/drive-detail-api')&&
+    request.method()==='POST'&&
+    request.postData()?.includes(originalDriveId),
+    {timeout:20_000}
+  );
   await page.locator('#drive-save-recover').click();
+  expect(await page.evaluate(()=>window.__bklg0194RecoveryClicks)).toBeGreaterThan(0);
+  await recoveryReread;
   await expect(page.locator('#drive-status')).toContainText('Drive edit recovered and verified',{timeout:60_000});
   await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
   await expect(page.locator('#drive-destination')).toHaveValue('');
