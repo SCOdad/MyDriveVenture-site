@@ -18,7 +18,7 @@ assert.match(js,/action:'update_rule'/,'Nudge UI must expose safe priority/enabl
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Staged Nudge UI must not expose delivery controls');
 assert.match(html,/id="nudge-signin-email"/,'Dedicated Nudge surface must provide its own Operator email sign-in field');
 assert.match(js,/persistSession:false/,'OTP request must use a session-independent auth client');
-assert.match(js,/emailRedirectTo:location\.origin\+'\/staging\/nudge\/'/,'Nudge magic link must return directly to the dedicated surface');
+assert.match(js,/emailRedirectTo:location\.origin\+'\/log\/\?return='\+encodeURIComponent\('\/staging\/nudge\/'\)/,'Nudge magic link must use the proven log auth handoff before returning to the dedicated surface');
 assert.doesNotMatch(js,/Promise\.race\(\[request/,'Nudge sign-in must not manufacture a client timeout while Supabase may still accept the request');
 assert.match(js,/startOtpCooldown/,'Nudge sign-in must enforce a visible resend cooldown');
 assert.match(js,/status\)===429/,'Nudge sign-in must handle Supabase magic-link rate limiting');
