@@ -1,21 +1,18 @@
 import { test, expect } from '@playwright/test';
-import { fixtureDrivers, signIn, selectDriverByName } from './helpers.mjs';
+import { fixtureDrivers, signInFixture, selectDriverByName } from './helpers.mjs';
 
 async function yesterday(page) {
   return page.evaluate(() => { const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
 }
 
 async function ready(page){
-  await signIn(page, fixtureDrivers.boundedMichiganGuardian);
-  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
-  const supervisor=page.locator('#drive-supervisor');
-  await expect(supervisor).toBeVisible({timeout:20_000});
-  await expect.poll(async()=>supervisor.locator('option').evaluateAll(options=>options.filter(option=>option.value&&option.value!=='OTHER').length),{timeout:20_000,message:'Expected at least one canonical supervisor option in DEV form context'}).toBeGreaterThan(0);
-  if(!(await supervisor.inputValue())){
-    await supervisor.selectOption(await supervisor.locator('option').evaluateAll(options=>options.find(option=>option.value&&option.value!=='OTHER')?.value||''));
-  }
-  await expect(supervisor).not.toHaveValue('');
-  await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
+  await signInFixture(page, {
+    email: fixtureDrivers.boundedMichiganGuardian,
+    driverName: fixtureDrivers.boundedMichigan,
+    accessMode: 'MANAGE',
+    requireSupervisor: true,
+    requireVehicle: true
+  });
 }
 
 async function fillCreate(page,marker){
