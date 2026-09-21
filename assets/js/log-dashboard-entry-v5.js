@@ -28,6 +28,8 @@
   let modelEpoch=0;
   const licenseStatusCache=new Map();
   const licenseStatusInFlight=new Map();
+  const overlapSummaryCache=new Map();
+  const overlapSummaryInFlight=new Map();
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const hours=m=>(Number(m||0)/60).toFixed(1);
@@ -83,7 +85,7 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const v=model.vehicles.find(x=>x.id===d.vehicle_id);return `<li class="drive-item"><div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name||'Vehicle')} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const v=model.vehicles.find(x=>x.id===d.vehicle_id),overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name||'Vehicle')} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
@@ -135,6 +137,27 @@
     try{return await request}finally{if(licenseStatusInFlight.get(driverId)===request)licenseStatusInFlight.delete(driverId)}
   }
 
+  async function ensureOverlapSummary(driverId){
+    if(overlapSummaryCache.has(driverId))return overlapSummaryCache.get(driverId);
+    if(overlapSummaryInFlight.has(driverId))return overlapSummaryInFlight.get(driverId);
+    const epoch=modelEpoch;
+    const request=(async()=>{
+      try{
+        const {data,error}=await client.rpc('get_authenticated_driver_overlap_summary_v1',{p_driver_id:driverId});
+        if(error)throw error;
+        const rows=Array.isArray(data)?data:[];
+        if(epoch===modelEpoch){
+          overlapSummaryCache.set(driverId,rows);
+          const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
+          model.recent_drives=(model.recent_drives||[]).map(d=>String(d.driver_id)===String(driverId)?{...d,overlap:byDrive.get(String(d.id))||null}:d);
+        }
+        return rows;
+      }catch(_){return []}
+    })();
+    overlapSummaryInFlight.set(driverId,request);
+    try{return await request}finally{if(overlapSummaryInFlight.get(driverId)===request)overlapSummaryInFlight.delete(driverId)}
+  }
+
   async function selectDriver(nextDriverId,{persist=true}={}){
     if(!(model.drivers||[]).some(d=>d.id===nextDriverId))return false;
     const previousDriverId=currentDriverId;
@@ -146,6 +169,7 @@
     resetDriverPresentation();
     const hasLicense=!!currentLicenseStatus();
     render(generation);
+    ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
     if(hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
@@ -165,6 +189,8 @@
     model.license_statuses=[];
     licenseStatusCache.clear();
     licenseStatusInFlight.clear();
+    overlapSummaryCache.clear();
+    overlapSummaryInFlight.clear();
     if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId)){let savedDriverId='';try{savedDriverId=localStorage.getItem('dv.log.driver')||''}catch(_){}currentDriverId=model.drivers.some(d=>d.id===savedDriverId)?savedDriverId:(model.drivers[0]?.id||'')}
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
