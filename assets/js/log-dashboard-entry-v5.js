@@ -195,7 +195,7 @@
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
     if(driverSwitcher)driverSwitcher.hidden=model.drivers.length<=1;
-    await selectDriver(currentDriverId,{persist:false});
+    selectDriver(currentDriverId,{persist:false});
     return model;
   }
 
