@@ -4,7 +4,7 @@
   const tokenHash=(params.get('token_hash')||'').trim();
   const rawReturn=(params.get('return')||'').trim();
   let target='/log/';
-  try{const u=new URL(rawReturn||'/log/',location.origin);if(u.origin===location.origin&&(u.pathname==='/family/'||u.pathname==='/log/'))target=u.pathname+u.search}catch(_){}
+  try{const u=new URL(rawReturn||'/log/',location.origin);if(u.origin===location.origin&&['/family/','/log/','/profile/'].includes(u.pathname))target=u.pathname+u.search}catch(_){}
   const title=document.getElementById('auth-title');
   const message=document.getElementById('auth-message');
   const actions=document.getElementById('auth-actions');
@@ -36,7 +36,7 @@
       if(error)throw error;
       if(!data?.session)throw new Error('No authenticated session was returned.');
       title.textContent='You’re in!';
-      message.textContent=target.startsWith('/family/')?'Secure sign-in complete. Opening your Family Hub…':'Secure sign-in complete. Opening your driver console…';
+      message.textContent=target.startsWith('/family/')?'Secure sign-in complete. Opening your Family Hub…':target.startsWith('/profile/')?'Secure sign-in complete. Opening your profile…':'Secure sign-in complete. Opening your driver console…';
       if(target.startsWith('/family/')){
         try{
           const flowId=new URL(target,location.origin).searchParams.get('acq_flow');
