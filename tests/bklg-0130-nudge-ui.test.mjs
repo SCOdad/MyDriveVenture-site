@@ -16,7 +16,10 @@ assert.match(js,/\[\[\$\{esc\(token\)\}\]\]/,'Nudge editor must surface distinct
 assert.match(js,/Resolved email/,'Nudge UI must show recipient-specific resolved previews');
 assert.match(js,/action:'update_rule'/,'Nudge UI must expose safe priority/enabled changes');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Staged Nudge UI must not expose delivery controls');
-assert.match(html,/\/log\/\?return=%2Fstaging%2Fnudge%2F/,'Nudge sign-in must return to the dedicated surface');
+assert.match(html,/id="nudge-signin-email"/,'Dedicated Nudge surface must provide its own Operator email sign-in field');
+assert.match(js,/persistSession:false/,'OTP request must use a session-independent auth client');
+assert.match(js,/emailRedirectTo:location\.origin\+'\/staging\/nudge\/'/,'Nudge magic link must return directly to the dedicated surface');
+assert.match(js,/Sign-in request timed out/,'Nudge sign-in request must fail visibly instead of hanging indefinitely');
 
 const authReturn=fs.readFileSync(new URL('../assets/js/log-auth-return.js',import.meta.url),'utf8');
 assert.match(authReturn,/\/staging\/nudge\//,'Drive Venture login must allow return to staged Nudge Operator');
