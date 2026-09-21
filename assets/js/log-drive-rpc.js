@@ -67,6 +67,18 @@
     return result;
   }
   function localDurationIssue(d){const duration=minutes(d);return duration>135?{message:'Drive Venture can only count up to 2 hours 15 minutes for one drive',code:'DRIVE_DURATION_LIMIT',research_url:DRIVE_SAFETY_RESEARCH_URL}:null}
+  async function confirmOverlapWarning(driverId,requested,excludeDriveId=null){
+    try{
+      const {data,error}=await client.rpc('get_authenticated_drive_overlap_conflicts_v1',{
+        p_driver_id:driverId,p_drive_date:requested.drive_date,p_start_time:requested.start_time,p_end_time:requested.end_time,p_exclude_drive_id:excludeDriveId
+      });
+      if(error||!data?.has_overlap)return true;
+      const conflicts=Array.isArray(data.conflicts)?data.conflicts:[];
+      const windows=conflicts.map(x=>`${String(x.drive_date||'')} ${String(x.start_time||'').slice(0,5)}–${String(x.end_time||'').slice(0,5)}`).join('\n');
+      const guidance=excludeDriveId?'\n\nTo avoid the conflict, adjust this drive so its recorded time falls outside the window(s) above.':'';
+      return window.confirm(`⚠ Potential time conflict\n\nThis drive overlaps ${Number(data.conflict_count||conflicts.length)} existing drive${Number(data.conflict_count||conflicts.length)===1?'':'s'}:\n\n${windows}${guidance}\n\nOverlapping drives are allowed and both will continue to count. Save anyway?`);
+    }catch(_){return true}
+  }
   function context(d=edit?.draft){if(!edit)return;let box=document.getElementById('drive-edit-context');if(!box){box=document.createElement('div');box.id='drive-edit-context';box.className='drive-edit-context';form.before(box)}const labels={drive_date:'date',start_time:'start time',end_time:'finish time',vehicle_id:'vehicle',lesson_ids:'skills practiced',lesson_notes:'skills',supervisor_person_id:'supervisor',external_supervisor_name:'supervisor',destination:'destination',notes:'road notes'},draft=comparable(d),changed=Object.keys(edit.original).filter(k=>!equalValue(k,draft[k],edit.original[k])).map(k=>labels[k]);box.textContent=`Editing: ${summary(draft)}${changed.length?` · Unsaved changes: ${[...new Set(changed)].join(', ')}`:''}`;box.hidden=false}
   function isOperatorView(){const model=app.getModel?.()||{},driverId=app.getDriverId?.();return !!edit&&model.is_operator===true&&app.getAccessMode?.(driverId)==='VIEW'}
   function ensureAdminReason(){let wrap=document.getElementById('drive-admin-reason-wrap');if(!wrap){wrap=document.createElement('label');wrap.id='drive-admin-reason-wrap';wrap.hidden=true;wrap.innerHTML='<span>Administrator edit reason</span><textarea id="drive-admin-reason" maxlength="500" placeholder="Why is this administrator correction needed?"></textarea>';form.querySelector('button[type=submit]')?.before(wrap)}const input=document.getElementById('drive-admin-reason'),active=isOperatorView();wrap.hidden=!active;wrap.style.display=active?'grid':'none';if(input){input.required=active;input.disabled=!active;if(!active)input.value=''}return input}
@@ -161,6 +173,7 @@
     const durationIssue=localDurationIssue(requested);if(durationIssue)return setStatus(durationIssue.message,'error',durationIssue.research_url);
     if(edit){
       if(same(requested,edit.original))return setStatus('No changes to save. The selected drive is still loaded.');
+      if(!await confirmOverlapWarning(driverId,requested,edit.id))return setStatus('Edit cancelled. Adjust the drive time or save again when ready.');
       const original={...edit.original};
       let reason=null;
       if(isOperatorView()){const reasonInput=ensureAdminReason();reason=clean(reasonInput?.value);if(!reason){reasonInput?.focus();return setStatus('Administrator edit reason is required.','error')}const driver=app.getModel?.().drivers?.find?.(x=>x.id===driverId);if(!window.confirm(`Modify ${driver?.display_name||'this driver'}’s drive as an administrator?\n\nReason: ${reason}`))return setStatus('Administrator edit cancelled.')}
@@ -194,6 +207,7 @@
       }finally{saveLifecycleActive=false;if(!pendingForCurrentDriver())setSubmitting(false)}
     }
 
+    if(!await confirmOverlapWarning(driverId,requested,null))return setStatus('Drive not saved. Adjust the drive time or submit again to save the overlap.');
     const sourceEventId=stableSubmissionId(),body={action:'mutate_drive',operation:'CREATE',driver_id:driverId,source_event_id:sourceEventId,...requested};
     savePending(recovery.makePending({operation:'CREATE',driverId,sourceEventId,requested,body}));
     saveLifecycleActive=true;setSubmitting(true);setStatus('Logging drive…');
