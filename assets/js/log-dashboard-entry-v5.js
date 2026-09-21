@@ -143,7 +143,9 @@
     const epoch=modelEpoch;
     const request=(async()=>{
       try{
-        const {data,error}=await client.rpc('get_authenticated_driver_overlap_summary_v1',{p_driver_id:driverId});
+        const result=client.rpc('get_authenticated_driver_overlap_summary_v1',{p_driver_id:driverId});
+        if(!result||typeof result.then!=='function')return [];
+        const {data,error}=await result;
         if(error)throw error;
         const rows=Array.isArray(data)?data:[];
         if(epoch===modelEpoch){
