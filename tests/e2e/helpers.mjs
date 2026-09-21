@@ -19,7 +19,7 @@ export const fixtureContracts = {
   guardianMultiMichigan: { email: personas.guardianMulti, driverName: fixtureDrivers.primaryMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: true },
   guardianMultiKansas: { email: personas.guardianMulti, driverName: fixtureDrivers.secondaryKansas, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: false },
   guardianSingleMichigan: { email: personas.guardianSingle, driverName: fixtureDrivers.singleMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: true },
-  driverMichigan: { email: personas.driverOne, driverName: fixtureDrivers.primaryMichigan, accessMode: 'SELF', requireSupervisor: true, requireVehicle: true, requireLessons: true },
+  driverMichigan: { email: personas.driverOne, driverName: fixtureDrivers.primaryMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: true },
   operatorMichigan: { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false, requireLessons: false }
 };
 
