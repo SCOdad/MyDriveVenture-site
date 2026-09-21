@@ -200,7 +200,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('administrator content and skill edits never certify a drive', async ({ page }) => {
     const assertNoPageFailures=installPageGuards(page);
-    await signIn(page,personas.operator);await selectDriverByName(page,fixtureDrivers.boundedMichigan);
+    await signIn(page,personas.operator);await waitForFixtureReady(page,{email:personas.operator,driverName:fixtureDrivers.boundedMichigan,accessMode:'VIEW',requireSupervisor:false,requireVehicle:false});
     const result=await page.evaluate(async()=>{
       const app=window.DV_LOG_APP,driverId=app.getDriverId(),cutoff=Date.now()-120000,ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId&&new Date(d.created_at).getTime()<cutoff).map(d=>d.id);
       let detail=null;
