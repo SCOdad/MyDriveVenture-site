@@ -76,7 +76,9 @@
       const conflicts=Array.isArray(data.conflicts)?data.conflicts:[];
       const windows=conflicts.map(x=>`${String(x.drive_date||'')} ${String(x.start_time||'').slice(0,5)}–${String(x.end_time||'').slice(0,5)}`).join('\n');
       const guidance=excludeDriveId?'\n\nTo avoid the conflict, adjust this drive so its recorded time falls outside the window(s) above.':'';
-      return window.confirm(`⚠ Potential time conflict\n\nThis drive overlaps ${Number(data.conflict_count||conflicts.length)} existing drive${Number(data.conflict_count||conflicts.length)===1?'':'s'}:\n\n${windows}${guidance}\n\nOverlapping drives are allowed and both will continue to count. Save anyway?`);
+      const message=`⚠ Potential time conflict\n\nThis drive overlaps ${Number(data.conflict_count||conflicts.length)} existing drive${Number(data.conflict_count||conflicts.length)===1?'':'s'}:\n\n${windows}${guidance}\n\nOverlapping drives are allowed and both will continue to count. Save anyway?`;
+      if(typeof window.confirm!=='function')return true;
+      return window.confirm(message);
     }catch(_){return true}
   }
   function context(d=edit?.draft){if(!edit)return;let box=document.getElementById('drive-edit-context');if(!box){box=document.createElement('div');box.id='drive-edit-context';box.className='drive-edit-context';form.before(box)}const labels={drive_date:'date',start_time:'start time',end_time:'finish time',vehicle_id:'vehicle',lesson_ids:'skills practiced',lesson_notes:'skills',supervisor_person_id:'supervisor',external_supervisor_name:'supervisor',destination:'destination',notes:'road notes'},draft=comparable(d),changed=Object.keys(edit.original).filter(k=>!equalValue(k,draft[k],edit.original[k])).map(k=>labels[k]);box.textContent=`Editing: ${summary(draft)}${changed.length?` · Unsaved changes: ${[...new Set(changed)].join(', ')}`:''}`;box.hidden=false}
