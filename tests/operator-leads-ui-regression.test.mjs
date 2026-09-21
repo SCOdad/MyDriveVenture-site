@@ -16,4 +16,6 @@ assert.match(js,/suppression_reason/,'Preview must expose why a candidate is sup
 assert.match(js,/message_preview/,'Operator preview must show the exact lifecycle email copy before any send');
 assert.match(html,/id="lead-signin"><a class="button button-primary"/,'Operator sign-in control must remain visible while browser session state is being checked');
 assert.doesNotMatch(html,/id="lead-signin" hidden/,'Operator sign-in must not depend on auth initialization completing');
+assert.match(js,/signOut\(\{scope:'local'\}\)/,'Operator sign-in must clear a stale/non-operator browser session before navigating');
+assert.match(js,/Opening Operator sign-in/,'Operator sign-in click should provide immediate user feedback');
 console.log('operator leads + nudge UI regression checks passed');
