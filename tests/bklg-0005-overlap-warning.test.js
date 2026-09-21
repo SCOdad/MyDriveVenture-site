@@ -29,3 +29,16 @@ test('BKLG-0005 dashboard overlap hydration does not block initial render',()=>{
   const source=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
   assert.match(source,/render\(generation\);\s*ensureOverlapSummary\(nextDriverId\)\.then/);
 });
+
+test('BKLG-0005 DV00 and DV03 both have explicit overlap visual treatment',()=>{
+  const dv00=fs.readFileSync('log/DV00/index.html','utf8');
+  const dv03=fs.readFileSync('log/index.html','utf8');
+  const classicCss=fs.readFileSync('assets/css/log.css','utf8');
+  const dv03Css=fs.readFileSync('assets/css/log-game-dv03.css','utf8');
+  assert.match(dv00,/assets\/css\/log\.css/);
+  assert.match(dv03,/assets\/css\/log-game-dv03\.css/);
+  assert.match(classicCss,/\.drive-item-overlap/);
+  assert.match(classicCss,/\.drive-overlap-eyebrow/);
+  assert.match(dv03Css,/\.dv03-body \.drive-item-overlap/);
+  assert.match(dv03Css,/\.dv03-body \.drive-overlap-eyebrow/);
+});
