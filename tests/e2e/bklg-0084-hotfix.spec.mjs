@@ -18,6 +18,7 @@ test('long driver name wraps without pushing the dashboard out of view', async (
 });
 
 test('failed drive save leaves logging state and restores the submit button', async ({ page }) => {
+  await page.goto('/log/');
   await page.setContent(`
     <form id="drive-form">
       <input id="drive-date" value="2026-02-25">
@@ -37,11 +38,12 @@ test('failed drive save leaves logging state and restores the submit button', as
     Object.defineProperty(window.crypto, 'randomUUID', { value: () => '00000000-0000-4000-8000-000000000084' });
     window.DV_DRIVING_LOG = { getSelectedLessonIds: () => [], updateNoteCount: () => {} };
     window.DV_LOG_APP = {
-      client: { functions: { invoke: async () => ({ data: null, error: new Error('Drive date is before the permit date') }) } },
+      client: { functions: { invoke: async () => ({ data: null, error: { context: { json: async () => ({ error: 'Drive date is before the permit date', code: 'DRIVE_BEFORE_PERMIT' }) } } }) } },
       getDriverId: () => 'driver-1',
       getRenderGeneration: () => 1,
     };
   });
+  await page.addScriptTag({ path: path.join(root, 'assets/js/drive-save-recovery.js') });
   await page.addScriptTag({ path: path.join(root, 'assets/js/log-drive-rpc.js') });
   await page.locator('#drive-form button[type=submit]').click();
 

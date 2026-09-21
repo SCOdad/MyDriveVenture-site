@@ -60,7 +60,8 @@ function architectureChecks(){
   assert(avatar.includes("addEventListener('dv:drive-edit-mode'"),'read-only controls must react to bounded admin edit mode');
   assert(driveRpc.includes("addEventListener('dv:driver-changing'"),'drive edit state must clear when the driver changes');
   assert(driveRpc.includes("['drive-start','drive-end','drive-destination','drive-notes']"),'driver-specific draft values must clear on selection change');
-  assert(driveRpc.includes("if(app.getDriverId()!==driverId)return;enterEdit"),'saved edit must not reopen after switching drivers during refresh');
+  assert(driveRpc.includes("if(app.getDriverId()!==driverId)return;"),'saved edit must stop post-save UI work after switching drivers during refresh');
+  assert(driveRpc.includes('resetAfterEdit()'),'verified edit must return to ordinary Log a Drive state');
   assert(detail.includes('detailToken'),'drive-detail responses must be tokenized against stale renders');
   assert(shared.includes("addEventListener('dv:driver-changing'"),'shared async work must invalidate on driver change');
   assert(!shared.includes("rpc('get_authenticated_driver_status_v1'"),'shared actions must reuse the dashboard status instead of duplicating it');

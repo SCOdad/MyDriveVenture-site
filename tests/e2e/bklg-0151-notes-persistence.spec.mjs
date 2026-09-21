@@ -50,9 +50,9 @@ async function saveEdit(page, expectedNotes, expectedDestination) {
   expect(body.notes??null).toBe(expectedNotes||null);
   if(expectedDestination!==undefined)expect(body.destination??null).toBe(expectedDestination||null);
   await expect(page.locator('#drive-status')).toContainText('Drive updated and verified',{timeout:60_000});
-  await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
-  await expect(page.locator('#drive-notes')).toHaveValue(expectedNotes||'',{timeout:20_000});
-  if(expectedDestination!==undefined)await expect(page.locator('#drive-destination')).toHaveValue(expectedDestination||'',{timeout:20_000});
+  await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
+  await expect(page.locator('#drive-notes')).toHaveValue('',{timeout:20_000});
+  await expect(page.locator('#drive-destination')).toHaveValue('',{timeout:20_000});
 }
 
 async function detail(page, driverId, driveId) {
@@ -83,6 +83,7 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
   expect(canonical.data?.drive?.certification_method).toBe('WEB_GUARDIAN_EDIT');
 
   const boundary='N'.repeat(500), changedDestination=`${marker}-changed`;
+  await openEdit(page,marker);
   await page.locator('#drive-notes').fill(boundary);
   await page.locator('#drive-destination').fill(changedDestination);
   await expect(page.locator('#drive-notes-meta')).toContainText('500 / 500');
@@ -91,6 +92,7 @@ test('BKLG-0151 Road Notes persist across replace, 500-char boundary, clear, rer
   expect(canonical.data?.drive?.notes).toBe(boundary);
   expect(canonical.data?.drive?.destination).toBe(changedDestination);
 
+  await openEdit(page,changedDestination);
   await page.locator('#drive-notes').fill('');
   await saveEdit(page,null,changedDestination);
   canonical=await detail(page,driverId,driveId);

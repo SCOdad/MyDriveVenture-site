@@ -44,8 +44,10 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
 test('CREATE verifies the authoritative saved drive and returns to ordinary log mode', () => {
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
-  assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;resetAfterCreate\(\)/);
-  assert.match(rpc, /function resetAfterCreate\(\)\{if\(edit\)return;clearEditUi\(\)/);
+  assert.match(rpc, /app\.detailDrives\[id\]=reread\.drive;clearPending\(\);clearSubmissionId\(\);resetAfterCreate\(\)/);
+  assert.match(rpc, /function resetNewDriveForm\(\)\{clearEditUi\(\)/);
+  assert.match(rpc, /function resetAfterCreate\(\)\{if\(edit\)return;resetNewDriveForm\(\)\}/);
+  assert.match(rpc, /function resetAfterEdit\(\)\{resetNewDriveForm\(\)\}/);
   assert.doesNotMatch(rpc, /app\.detailDrives\[id\]=reread\.drive;enterEdit\(reread\.drive/);
   assert.match(rpc, /if\(edit\?\.id===id\)\{form\.scrollIntoView/);
   assert.match(rpc, /\['drive-start','drive-end','drive-destination','drive-notes'\]/);
@@ -53,7 +55,10 @@ test('CREATE verifies the authoritative saved drive and returns to ordinary log 
 
 test('supported experiences load the current CREATE rehydration and failure-recovery contract', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
-    assert.match(read(path), /log-drive-rpc\.js\?v=20260919-drive-totals1/);
+    const source=read(path);
+    assert.match(source, /drive-save-recovery\.js\?v=20260920-0194-recovery1/);
+    assert.match(source, /log-drive-rpc\.js\?v=20260920-0194-recovery1/);
+    assert.ok(source.indexOf('drive-save-recovery.js') < source.indexOf('log-drive-rpc.js'));
   }
 });
 

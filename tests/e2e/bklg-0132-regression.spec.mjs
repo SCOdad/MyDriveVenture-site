@@ -31,8 +31,11 @@ async function submitDriveForm(page) {
 async function expectEditRefreshComplete(page) {
   await expect(page.locator('#drive-status')).toHaveClass(/success/);
   await expect(page.locator('#drive-status')).toContainText('Drive updated and verified:');
-  await expect(page.locator('#drive-edit-context')).toBeVisible();
-  await expect(page.locator('#drive-form button[type=submit]')).toHaveText('Save changes');
+  await expect(page.locator('#drive-form')).not.toHaveAttribute('data-edit-drive',/.+/);
+  await expect(page.locator('#drive-edit-context')).toBeHidden();
+  await expect(page.locator('#drive-form button[type=submit]')).toHaveText('Save drive');
+  await expect(page.locator('#drive-destination')).toHaveValue('');
+  await expect(page.locator('#drive-notes')).toHaveValue('');
 }
 
 async function currentFixtureDate(page) {
@@ -114,6 +117,12 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const edited = await submitDriveForm(page);
     expect(edited?.drive?.notes).toBe('BKLG-0132 deterministic browser fixture edited');
     await expectEditRefreshComplete(page);
+    const refreshedRow = page.locator('#drive-list .drive-item').filter({ hasText: route }).first();
+    await expect(refreshedRow).toBeVisible({ timeout: 20_000 });
+    await refreshedRow.click();
+    await expect(page.locator('.drive-detail-dialog')).toBeVisible();
+    await page.locator('button[data-edit-drive]').click();
+    await expect(page.locator('#drive-form')).toHaveAttribute('data-edit-drive',/.+/);
     await page.locator('#drive-notes').fill('BKLG-0132 deterministic browser fixture');
     await expect(page.locator('#drive-edit-context')).toContainText('Unsaved changes: road notes');
     const restored = await submitDriveForm(page);
@@ -174,8 +183,6 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const longNote='N'.repeat(500);await page.locator('#drive-notes').fill(longNote);
     await expect(page.locator('#drive-notes-meta')).toContainText('500 / 500 · maximum reached');
     await submitDriveForm(page);await expectEditRefreshComplete(page);
-    await expect(page.locator('#drive-lesson-options input:checked')).toHaveCount(3);
-    await expect(page.locator('#drive-notes')).toHaveValue(longNote);
     const detail=await page.evaluate(async id=>{const{data,error}=await window.DV_LOG_APP.client.functions.invoke('drive-detail-api',{body:{driver_id:window.DV_LOG_APP.getDriverId(),drive_id:id}});return{data,error:error?.message||null}},logged.drive.id);
     expect(detail.error).toBeNull();expect(detail.data.lesson_ids).toHaveLength(3);expect(detail.data.drive.notes).toHaveLength(500);expect(detail.data.supervisor?.display_name).toBeTruthy();
     assertNoPageFailures();
