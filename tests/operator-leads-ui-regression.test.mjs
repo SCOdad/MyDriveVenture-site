@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const config=fs.readFileSync(new URL('../staging/operator-leads/config.js',import.meta.url),'utf8');
 const js=fs.readFileSync(new URL('../staging/operator-leads/leads.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../staging/operator-leads/index.html',import.meta.url),'utf8');
+const css=fs.readFileSync(new URL('../staging/operator-leads/leads.css',import.meta.url),'utf8');
 
 assert.match(config,/DV_OPERATOR_LEADS_ENDPOINT/);
 assert.match(config,/DV_LIFECYCLE_NUDGE_ENDPOINT/);
@@ -19,3 +20,6 @@ assert.doesNotMatch(html,/id="lead-signin" hidden/,'Operator sign-in must not de
 assert.match(js,/signOut\(\{scope:'local'\}\)/,'Operator sign-in must clear a stale/non-operator browser session before navigating');
 assert.match(js,/Opening Operator sign-in/,'Operator sign-in click should provide immediate user feedback');
 console.log('operator leads + nudge UI regression checks passed');
+
+assert.match(css,/\.lead-summary span\{background:#202b35;color:#f7f3e8/,'lead summary pills must remain readable on dark Operator background');
+assert.match(css,/\.lead-stage\{background:#26333e;color:#f7f3e8/,'lead lifecycle badges must remain readable on dark Operator background');
