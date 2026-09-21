@@ -11,7 +11,16 @@ export const fixtureDrivers = {
   primaryMichigan: process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
   secondaryKansas: process.env.DV_E2E_KS_DRIVER_NAME || 'Synthetic Driver Two',
   boundedMichigan: process.env.DV_E2E_BOUNDED_MI_DRIVER_NAME || process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
-  boundedMichiganGuardian: process.env.DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL || personas.guardianMulti
+  boundedMichiganGuardian: process.env.DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL || personas.guardianMulti,
+  singleMichigan: process.env.DV_E2E_SINGLE_MI_DRIVER_NAME || 'Synthetic Driver Three'
+};
+
+export const fixtureContracts = {
+  guardianMultiMichigan: { email: personas.guardianMulti, driverName: fixtureDrivers.primaryMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: true },
+  guardianMultiKansas: { email: personas.guardianMulti, driverName: fixtureDrivers.secondaryKansas, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: false },
+  guardianSingleMichigan: { email: personas.guardianSingle, driverName: fixtureDrivers.singleMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true, requireLessons: true },
+  driverMichigan: { email: personas.driverOne, driverName: fixtureDrivers.primaryMichigan, accessMode: 'SELF', requireSupervisor: true, requireVehicle: true, requireLessons: true },
+  operatorMichigan: { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false, requireLessons: false }
 };
 
 export function requireTestPassword() {
