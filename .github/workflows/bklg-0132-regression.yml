@@ -20,7 +20,33 @@ jobs:
       - run: npm run test:js
 
   playwright-dev:
+    name: Playwright DEV / ${{ matrix.group }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: smoke-ui
+            specs: >-
+              tests/e2e/bklg-0084-hotfix.spec.mjs
+              tests/e2e/bklg-0090-visual.spec.mjs
+              tests/e2e/bklg-0148-dv03-integration.spec.mjs
+          - group: drive-log
+            specs: >-
+              tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs
+              tests/e2e/bklg-0106-delete-rehydrate.spec.mjs
+              tests/e2e/bklg-0132-regression.spec.mjs
+              tests/e2e/bklg-0151-experiences.spec.mjs
+              tests/e2e/bklg-0151-notes-persistence.spec.mjs
+              tests/e2e/bklg-0194-drive-save-recovery.spec.mjs
+          - group: operator-family
+            specs: >-
+              tests/e2e/bklg-0143-operator-backlog.spec.mjs
+              tests/e2e/bklg-0198-family-hub.spec.mjs
+              tests/e2e/operator-leads.spec.mjs
+          - group: production-readonly
+            specs: tests/e2e/bklg-0148-dv03-production.spec.mjs
     env:
       DV_E2E_BASE_URL: http://127.0.0.1:4173
       DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
@@ -48,12 +74,13 @@ jobs:
           done
           cat /tmp/dv-e2e-http.log
           exit 1
-      - run: npm run test:e2e
+      - name: Run ${{ matrix.group }} E2E group
+        run: npx playwright test ${{ matrix.specs }}
       - name: Upload Playwright evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-evidence
+          name: playwright-evidence-${{ matrix.group }}
           path: |
             playwright-report/
             test-results/
