@@ -27,6 +27,17 @@
     tools.parentNode.insertBefore(section,tools);
     document.getElementById('lead-refresh').addEventListener('click',load);
     document.getElementById('lead-form').addEventListener('submit',createLead);
+    document.querySelector('#lead-signin a')?.addEventListener('click',async e=>{
+      e.preventDefault();
+      const href=e.currentTarget.href;
+      const status=document.getElementById('lead-access-status');
+      if(status)status.textContent='Opening Operator sign-in…';
+      try{
+        if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+        await Promise.race([client.auth.signOut({scope:'local'}),new Promise(resolve=>setTimeout(resolve,1200))]);
+      }catch(_){}
+      location.assign(href);
+    });
   }
 
   async function auth(){
