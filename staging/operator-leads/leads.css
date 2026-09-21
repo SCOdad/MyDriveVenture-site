@@ -2,3 +2,14 @@
 .nudge-panel{margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--border,#d7d7d7)}.nudge-rule-table,.nudge-preview-table{min-width:980px}.nudge-priority{width:5.5rem}.nudge-eligible{font-weight:700;color:#166534}.nudge-suppressed{font-weight:700;color:#92400e}.nudge-panel h4{margin:1.25rem 0 .5rem}
 
 .nudge-copy{margin-top:.35rem}.nudge-copy summary{cursor:pointer;font-size:.8rem}.nudge-copy pre{white-space:pre-wrap;max-width:34rem;font:inherit;font-size:.78rem;background:var(--surface,#fff);padding:.6rem;border:1px solid var(--border,#d7d7d7);border-radius:.4rem}
+
+/* BKLG-0130 dark Operator readability repair */
+.lead-summary span{background:#202b35;color:#f7f3e8;border-color:#667784}
+.lead-summary strong{color:#f7f3e8}
+.lead-stage{background:#26333e;color:#f7f3e8;border:1px solid #667784}
+.stage-engaged,.stage-returning,.stage-complete{background:#193c2d;color:#dff7e7;border-color:#4b9b70}
+.stage-activated{background:#18344f;color:#e5f0ff;border-color:#4f86b8}
+.stage-dormant{background:#4a3516;color:#fff0cc;border-color:#b98a3b}
+.stage-graduating{background:#4a4216;color:#fff5b8;border-color:#b9a63b}
+.lead-flag{color:#f7f3e8;border-color:#667784}
+.nudge-copy pre{background:#111820;color:#f7f3e8;border-color:#667784}
