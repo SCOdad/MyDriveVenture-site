@@ -22,30 +22,49 @@ jobs:
   playwright-dev:
     name: Playwright DEV / ${{ matrix.group }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: ${{ matrix.timeout_minutes }}
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Read-oriented UI checks. Keep these separate from shared DEV mutations so
+          # they can become candidates for measured worker concurrency.
           - group: smoke-ui
+            timeout_minutes: 10
             specs: >-
               tests/e2e/bklg-0084-hotfix.spec.mjs
               tests/e2e/bklg-0090-visual.spec.mjs
               tests/e2e/bklg-0148-dv03-integration.spec.mjs
-          - group: drive-log
+          - group: driver-navigation
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs
+          # Shared bounded-driver mutation contracts remain single-worker.
+          - group: drive-mutations
+            timeout_minutes: 10
             specs: >-
-              tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs
               tests/e2e/bklg-0106-delete-rehydrate.spec.mjs
-              tests/e2e/bklg-0132-regression.spec.mjs
-              tests/e2e/bklg-0151-experiences.spec.mjs
               tests/e2e/bklg-0151-notes-persistence.spec.mjs
-              tests/e2e/bklg-0194-drive-save-recovery.spec.mjs
+          # Recovery deliberately intercepts/aborts drive writes and has long test-level
+          # bounds, so it gets an isolated clock and a larger job ceiling.
+          - group: drive-recovery
+            timeout_minutes: 15
+            specs: tests/e2e/bklg-0194-drive-save-recovery.spec.mjs
+          - group: experience-contract
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0151-experiences.spec.mjs
+          # BKLG-0132 intentionally spans login, switching, mutations, skills and
+          # operator access. Isolate it rather than rewriting historical coverage here.
+          - group: core-regression
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0132-regression.spec.mjs
           - group: operator-family
+            timeout_minutes: 10
             specs: >-
               tests/e2e/bklg-0143-operator-backlog.spec.mjs
               tests/e2e/bklg-0198-family-hub.spec.mjs
               tests/e2e/operator-leads.spec.mjs
           - group: production-readonly
+            timeout_minutes: 10
             specs: tests/e2e/bklg-0148-dv03-production.spec.mjs
     env:
       DV_E2E_BASE_URL: http://127.0.0.1:4173
