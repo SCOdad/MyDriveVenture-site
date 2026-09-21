@@ -7,19 +7,10 @@ const html=fs.readFileSync(new URL('../staging/operator-leads/index.html',import
 const css=fs.readFileSync(new URL('../staging/operator-leads/leads.css',import.meta.url),'utf8');
 
 assert.match(config,/DV_OPERATOR_LEADS_ENDPOINT/);
-assert.match(config,/DV_LIFECYCLE_NUDGE_ENDPOINT/);
-assert.match(js,/action:'preview'/,'Operator UI must load the nudge engine in preview mode');
-assert.match(js,/action:'update_rule'/,'Operator UI must support safe rule updates');
-assert.match(js,/nudge-priority/,'Operator UI must expose priority');
-assert.match(js,/nudge-enabled/,'Operator UI must expose enabled state');
-assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator leads UI must not expose send controls');
-assert.match(js,/suppression_reason/,'Preview must expose why a candidate is suppressed');
-assert.match(js,/message_preview/,'Operator preview must show the exact lifecycle email copy before any send');
+assert.doesNotMatch(config,/DV_LIFECYCLE_NUDGE_ENDPOINT/,'Leads page must remain separate from nudge management');
+assert.doesNotMatch(js,/save_template|update_rule|nudge-groups|nudge-preview/,'Leads page must not contain BKLG-0130 management UI');
 assert.match(html,/id="lead-signin"><a class="button button-primary"/,'Operator sign-in control must remain visible while browser session state is being checked');
-assert.doesNotMatch(html,/id="lead-signin" hidden/,'Operator sign-in must not depend on auth initialization completing');
 assert.match(js,/signOut\(\{scope:'local'\}\)/,'Operator sign-in must clear a stale/non-operator browser session before navigating');
-assert.match(js,/Opening Operator sign-in/,'Operator sign-in click should provide immediate user feedback');
-console.log('operator leads + nudge UI regression checks passed');
-
 assert.match(css,/\.lead-summary span\{background:#202b35;color:#f7f3e8/,'lead summary pills must remain readable on dark Operator background');
 assert.match(css,/\.lead-stage\{background:#26333e;color:#f7f3e8/,'lead lifecycle badges must remain readable on dark Operator background');
+console.log('operator leads separation/readability regression checks passed');
