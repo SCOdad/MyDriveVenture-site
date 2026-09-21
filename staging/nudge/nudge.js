@@ -59,9 +59,9 @@
     button.disabled=true;if(status)status.textContent='Sending sign-in link… This can take a little while in DEV.';
     try{
       if(!otpClient)otpClient=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'dv-nudge-otp-request'}});
-      const result=await otpClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/staging/nudge/',shouldCreateUser:false}});
+      const result=await otpClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/log/?return='+encodeURIComponent('/staging/nudge/'),shouldCreateUser:false}});
       if(result.error)throw result.error;
-      if(status)status.textContent='Check your email for a secure sign-in link. It will return you directly to Nudges.';
+      if(status)status.textContent='Check your email for a secure sign-in link. After verification, Drive Venture will return you to Nudges.';
       startOtpCooldown(button,status,60,'The request was accepted.');
     }catch(error){
       const wait=retrySeconds(error);
