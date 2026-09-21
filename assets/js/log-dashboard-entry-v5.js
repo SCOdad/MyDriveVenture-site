@@ -169,7 +169,7 @@
     resetDriverPresentation();
     const hasLicense=!!currentLicenseStatus();
     render(generation);
-    const overlapPromise=ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
+    ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
     if(hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
