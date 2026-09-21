@@ -62,19 +62,19 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.guardianMulti);
     await expect(page.locator('#driver-select option')).toHaveCount(2);
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
     await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
-    await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.secondaryKansas);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
-    await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.secondaryKansas);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     assertNoPageFailures();
   });
 
@@ -182,12 +182,12 @@ test.describe('BKLG-0132 critical browser regression', () => {
   test('operator authenticates, sees VIEW-only drivers, and gets bounded admin edit controls', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.operator);
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     await expect(page.locator('#operator-driver-search')).toBeVisible({ timeout: 20_000 });
-    await selectDriverByName(page, 'Synthetic Driver One');
     expect(await currentAccessMode(page)).toBe('VIEW');
-    await selectDriverByName(page, 'Synthetic Driver Two');
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.secondaryKansas, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     expect(await currentAccessMode(page)).toBe('VIEW');
-    await selectDriverByName(page, 'Synthetic Driver One');
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     const firstDrive = page.locator('#drive-list [data-drive-detail-id]').first();
     await expect(firstDrive).toBeVisible({ timeout: 20_000 });
     await firstDrive.click();
