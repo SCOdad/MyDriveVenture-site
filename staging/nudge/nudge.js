@@ -3,7 +3,7 @@
   if(!endpoint||!document.getElementById('nudge-dashboard'))return;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const label=s=>String(s||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
-  let client,token='',payload=null,activeEditor=null;
+  let client,otpClient,token='',payload=null,activeEditor=null;
 
   async function auth(){if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await client.auth.getSession();token=data.session?.access_token||'';return token}
   async function api(body,retried=false){await auth();if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Nudge request failed (${r.status})`),{status:r.status,validation:out.validation});return out}
@@ -40,6 +40,20 @@
   function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target}
 
   document.getElementById('nudge-refresh').addEventListener('click',load);
-  document.querySelector('#nudge-signin a')?.addEventListener('click',async e=>{e.preventDefault();const href=e.currentTarget.href,status=document.getElementById('nudge-access-status');if(status)status.textContent='Opening Operator sign-in…';try{if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});await Promise.race([client.auth.signOut({scope:'local'}),new Promise(resolve=>setTimeout(resolve,1200))])}catch(_){}location.assign(href)});
+  document.getElementById('nudge-signin')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=document.getElementById('nudge-signin-email')?.value.trim(),button=e.currentTarget.querySelector('button'),status=document.getElementById('nudge-signin-status');
+    if(!email)return;
+    button.disabled=true;if(status)status.textContent='Sending sign-in link…';
+    try{
+      if(!otpClient)otpClient=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'dv-nudge-otp-request'}});
+      const request=otpClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/staging/nudge/',shouldCreateUser:false}});
+      const result=await Promise.race([request,new Promise((_,reject)=>setTimeout(()=>reject(new Error('Sign-in request timed out. Please try again.')),12000))]);
+      if(result.error)throw result.error;
+      if(status)status.textContent='Check your email for a secure sign-in link. It will return you directly to Nudges.';
+    }catch(error){
+      if(status)status.textContent=error?.message||'We could not send a sign-in link right now. Please try again.';
+    }finally{button.disabled=false}
+  });
   auth().then(()=>{client.auth.onAuthStateChange((_event,session)=>{if(!session){token='';payload=null;document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false;document.getElementById('nudge-access-status').textContent='Sign in with an Operator account to continue.'}});load()}).catch(e=>{document.getElementById('nudge-access-status').textContent=e.message});
 })();
