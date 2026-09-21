@@ -188,12 +188,13 @@ async function lifecycleChecks(){
     const start=Date.now();
     while(!predicate()){if(Date.now()-start>ms)throw new Error('Timed out waiting for dashboard test state');await new Promise(r=>setTimeout(r,5))}
   };
-  await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length===1);
+  await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length>=1);
 
   const app=window.DV_LOG_APP;
   assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'initial dashboard should load once');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage'],'initial load must fetch status only for the active driver');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_overlap_summary_v1').map(c=>c.args.p_driver_id),['manage'],'initial overlap hydration must be bounded to the active driver');
+  assert.ok(rendered.length<=2,'initial auxiliary overlap hydration may repaint at most once');
   assert.strictEqual(app.getAccessMode('view'),'VIEW');
   assert.strictEqual(app.getAccessMode('missing'),'VIEW','operator access must fail closed to VIEW when metadata is missing');
 
