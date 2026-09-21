@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fixtureDrivers, installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
-
-async function waitForDriveFormContext(page) {
-  await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
-  await expect.poll(async () => page.locator('#drive-supervisor').inputValue(), { timeout: 20_000 }).not.toBe('');
-}
+import { fixtureDrivers, installPageGuards, personas, signIn, signInFixture, selectDriverByName, currentAccessMode, waitForFixtureReady } from './helpers.mjs';
 
 async function submitDriveForm(page) {
   const responsePromise = page.waitForResponse(response => {
@@ -68,27 +63,25 @@ test.describe('BKLG-0132 critical browser regression', () => {
     await signIn(page, personas.guardianMulti);
     await expect(page.locator('#driver-select option')).toHaveCount(2);
     await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
+    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
     await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
     await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForDriveFormContext(page);
+    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
     await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
+    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForDriveFormContext(page);
+    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
+    await waitForFixtureReady(page, { driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     assertNoPageFailures();
   });
 
   test('ordinary guardian can create and edit an isolated DEV drive', async ({ page }, testInfo) => {
     test.setTimeout(120_000); // One create, two edits, and authoritative refreshes.
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
-    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
-    await waitForDriveFormContext(page);
+    await signInFixture(page, { email: fixtureDrivers.boundedMichiganGuardian, driverName: fixtureDrivers.boundedMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
     const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
     const route = `BKLG-0132 CI Route ${runId}-${runAttempt}-${testInfo.retry}`;
@@ -133,9 +126,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('Michigan skills use compact checkboxes, persist edits, and appear in trip detail', async ({ page }, testInfo) => {
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
-    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
-    await waitForDriveFormContext(page);
+    await signInFixture(page, { email: fixtureDrivers.boundedMichiganGuardian, driverName: fixtureDrivers.boundedMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     const skills=page.locator('#drive-lesson-options input[type=checkbox]');
     await expect(skills).toHaveCount(13, { timeout: 20_000 });
     await expect(page.locator('#drive-lesson')).toBeHidden();
