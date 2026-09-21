@@ -12,4 +12,5 @@ assert.match(js,/nudge-priority/,'Operator UI must expose priority');
 assert.match(js,/nudge-enabled/,'Operator UI must expose enabled state');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator leads UI must not expose send controls');
 assert.match(js,/suppression_reason/,'Preview must expose why a candidate is suppressed');
+assert.match(js,/message_preview/,'Operator preview must show the exact lifecycle email copy before any send');
 console.log('operator leads + nudge UI regression checks passed');
