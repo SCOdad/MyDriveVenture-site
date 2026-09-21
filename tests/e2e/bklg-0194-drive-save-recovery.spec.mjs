@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fixtureDrivers, signInFixture, selectDriverByName } from './helpers.mjs';
+import { fixtureDrivers, signInFixture, waitForAuthenticatedApp, waitForFixtureReady } from './helpers.mjs';
 
 async function yesterday(page) {
   return page.evaluate(() => { const d=new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; });
@@ -174,8 +174,14 @@ test('BKLG-0194 restores an unfinished CREATE after same-tab reload and complete
   await page.unroute('**/functions/v1/drive-ops');
 
   await page.reload();
-  await expect(page.locator('#app-main')).toBeVisible({timeout:20_000});
-  await selectDriverByName(page,fixtureDrivers.boundedMichigan);
+  await waitForAuthenticatedApp(page, { email: fixtureDrivers.boundedMichiganGuardian });
+  await waitForFixtureReady(page, {
+    email: fixtureDrivers.boundedMichiganGuardian,
+    driverName: fixtureDrivers.boundedMichigan,
+    accessMode: 'MANAGE',
+    requireSupervisor: true,
+    requireVehicle: true
+  });
   await expect(page.locator('#drive-save-recover')).toBeVisible({timeout:20_000});
   await expect(page.locator('#drive-status')).toContainText('could not confirm whether your drive finished',{timeout:20_000});
   await page.evaluate(()=>{window.__DV_DRIVE_SAVE_TIMEOUT_MS=35_000});
