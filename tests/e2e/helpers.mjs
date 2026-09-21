@@ -124,7 +124,12 @@ export async function waitForAuthenticatedApp(page, { email = null, timeout = 20
   try {
     await expect(page.locator('#app-main')).toBeVisible({ timeout });
     await expect(page.locator('#driver-heading')).not.toHaveText('Drive Venture', { timeout });
-    await page.waitForFunction(() => Boolean(window.DV_LOG_APP?.getDriverId?.()), null, { timeout });
+    await page.waitForFunction(() => {
+      const app = window.DV_LOG_APP;
+      const driverId = app?.getDriverId?.();
+      const model = app?.getModel?.();
+      return Boolean(driverId && model?.drivers?.some(driver => driver.id === driverId));
+    }, null, { timeout });
   } catch (error) {
     await fixtureFailure(page, `Authenticated app did not become ready: ${error.message}`, { email });
   }
@@ -144,12 +149,25 @@ export async function waitForFixtureReady(page, {
   try {
     await selectDriverByName(page, driverName);
     await expect(page.locator('#driver-heading')).toHaveText(driverName, { timeout });
+    await page.waitForFunction(expected => {
+      const app = window.DV_LOG_APP;
+      const id = app?.getDriverId?.();
+      const driver = app?.getModel?.()?.drivers?.find(row => row.id === id);
+      return driver?.display_name === expected;
+    }, driverName, { timeout });
 
     if (accessMode) {
       await expect.poll(() => currentAccessMode(page), {
         timeout,
         message: `Expected ${driverName} access mode to become ${accessMode}`
       }).toBe(accessMode);
+    }
+
+    if (requireSupervisor || requireVehicle || requireLessons) {
+      await expect.poll(
+        () => page.locator('#drive-form').getAttribute('data-form-context-ready'),
+        { timeout, message: 'Expected canonical drive form context to report ready' }
+      ).toBe('true');
     }
 
     if (requireSupervisor) {
