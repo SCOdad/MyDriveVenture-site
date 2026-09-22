@@ -6,6 +6,7 @@
   const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED';
   const DEFAULT_EXHAUSTED_MESSAGE = 'You have used your free Drive Venture drives. Your dashboard, edit/delete tools, and driving-log PDF remain available, but new drives and Text Parker logging are paused until a family license is active.';
   let lastStatus = null;
+  let originalSubmitText = null;
 
   function clean(v) { return v == null ? '' : String(v).trim(); }
   function isFreeTrialStatus(status) { return clean(status?.commercial_state) === 'FREE'; }
@@ -39,13 +40,25 @@
     return panel;
   }
 
+  function getSubmitButton() {
+    return document.getElementById('drive-form')?.querySelector('button[type="submit"]') || null;
+  }
+
+  function isEditMode() {
+    return !!document.getElementById('drive-form')?.dataset.editDrive;
+  }
+
   function setSubmitBlocked(blocked) {
-    const form = document.getElementById('drive-form');
-    const submit = form?.querySelector('button[type="submit"]');
+    const submit = getSubmitButton();
     if (!submit) return;
-    const editing = !!form?.dataset.editDrive;
-    submit.disabled = !!blocked && !editing;
-    submit.dataset.dvEntitlementBlocked = blocked && !editing ? 'true' : 'false';
+    if (originalSubmitText == null) originalSubmitText = submit.textContent || 'Log drive';
+    const unavailable = !!blocked && !isEditMode();
+    submit.disabled = unavailable;
+    submit.hidden = unavailable;
+    submit.setAttribute('aria-hidden', unavailable ? 'true' : 'false');
+    submit.setAttribute('aria-disabled', unavailable ? 'true' : 'false');
+    submit.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
+    if (!unavailable && originalSubmitText != null && submit.textContent === 'Logging paused') submit.textContent = originalSubmitText;
   }
 
   function render(status = lastStatus) {
@@ -169,6 +182,10 @@
     window.DV_DRIVE_SAVE_RECOVERY?.clear?.();
   }
 
+  function resyncSubmitState() {
+    if (lastStatus) render(lastStatus);
+  }
+
   window.DV_ENTITLEMENTS = {
     refresh,
     render,
@@ -181,7 +198,16 @@
   patchRecovery();
   patchPdfFetch();
   document.addEventListener('submit', guardSubmit, true);
-  window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh(); });
+  document.addEventListener('click', event => {
+    const button = event.target?.closest?.('#drive-form button[type="submit"]');
+    if (!button || isEditMode() || !isExhaustedStatus(lastStatus)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    render(lastStatus);
+  }, true);
+  window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resyncSubmitState); });
+  window.addEventListener('dv:drive-edit-mode', () => { queueMicrotask(resyncSubmitState); setTimeout(resyncSubmitState, 0); });
+  window.addEventListener('dv:dashboard-rendered', () => { queueMicrotask(resyncSubmitState); });
   window.addEventListener('dv:driver-changing', () => { lastStatus = null; const panel = ensurePanel(); if (panel) panel.hidden = true; setSubmitBlocked(false); });
   queueMicrotask(refresh);
 })();
