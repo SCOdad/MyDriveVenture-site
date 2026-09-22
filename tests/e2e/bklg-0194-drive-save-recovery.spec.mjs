@@ -6,6 +6,13 @@ async function yesterday(page) {
 }
 
 async function ready(page){
+  // BKLG-0005 intentionally warns instead of blocking when this shared fixture's
+  // recovery-canary time window overlaps an existing drive. These tests exercise
+  // BKLG-0194 save/recovery behavior, so continue through that independent warning.
+  page.on('dialog',async dialog=>{
+    if(dialog.type()==='confirm'&&dialog.message().includes('Potential time conflict'))return dialog.accept();
+    return dialog.dismiss();
+  });
   await signInFixture(page, {
     email: fixtureDrivers.boundedMichiganGuardian,
     driverName: fixtureDrivers.boundedMichigan,
@@ -175,13 +182,18 @@ test('BKLG-0194 restores an unfinished CREATE after same-tab reload and complete
 
   await page.reload();
   await waitForAuthenticatedApp(page, { email: fixtureDrivers.boundedMichiganGuardian });
-  await waitForFixtureReady(page, {
-    email: fixtureDrivers.boundedMichiganGuardian,
-    driverName: fixtureDrivers.boundedMichigan,
-    accessMode: 'MANAGE',
-    requireSupervisor: true,
-    requireVehicle: true
-  });
+  // Do not use waitForFixtureReady here: its editable/read-only assertion is
+  // intentionally stronger than this recovery state. The canonical form context
+  // should be ready, while BKLG-0194 keeps the submit control disabled until the
+  // protected transaction is recovered.
+  await expect(page.locator('#driver-heading')).toHaveText(fixtureDrivers.boundedMichigan,{timeout:20_000});
+  await expect.poll(
+    ()=>page.locator('#drive-form').getAttribute('data-form-context-ready'),
+    {timeout:20_000,message:'Expected canonical drive form context after recovery reload'}
+  ).toBe('true');
+  await expect(page.locator('#drive-supervisor')).not.toHaveValue('',{timeout:20_000});
+  await expect(page.locator('#drive-vehicle option[value]:not([value=""])')).toHaveCount(1,{timeout:20_000});
+  await expect(page.locator('#drive-form button[type=submit]')).toBeDisabled({timeout:20_000});
   await expect(page.locator('#drive-save-recover')).toBeVisible({timeout:20_000});
   await expect(page.locator('#drive-status')).toContainText('could not confirm whether your drive finished',{timeout:20_000});
   await page.evaluate(()=>{window.__DV_DRIVE_SAVE_TIMEOUT_MS=35_000});

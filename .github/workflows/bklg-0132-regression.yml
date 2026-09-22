@@ -1,6 +1,8 @@
 name: BKLG-0132 Frontend Regression
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       e2e_scope:
@@ -11,6 +13,8 @@ on:
         options:
           - fixture-canary
           - full
+          - drive-mutations
+          - drive-recovery
 
 permissions:
   contents: read
@@ -73,13 +77,74 @@ jobs:
           retention-days: 3
           compression-level: 9
 
+
+  playwright-targeted:
+    name: Playwright Targeted / ${{ github.event.inputs.e2e_scope }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.e2e_scope == 'drive-mutations' || github.event.inputs.e2e_scope == 'drive-recovery') }}
+    needs: fixture-readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+      DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
+      DV_E2E_BOUNDED_MI_DRIVER_NAME: Synthetic Driver Three
+      DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL: guardian.single@dev.driveventure.example.invalid
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Require DEV test credential
+        shell: bash
+        run: test -n "$DV_DEV_TEST_PASSWORD" || (echo 'Repository secret DV_DEV_TEST_PASSWORD is required.' && exit 1)
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-e2e-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/log/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-e2e-http.log
+          exit 1
+      - name: Run targeted E2E group
+        shell: bash
+        run: |
+          case "${{ github.event.inputs.e2e_scope }}" in
+            drive-mutations)
+              npx playwright test tests/e2e/bklg-0106-delete-rehydrate.spec.mjs tests/e2e/bklg-0151-notes-persistence.spec.mjs
+              ;;
+            drive-recovery)
+              npx playwright test tests/e2e/bklg-0194-drive-save-recovery.spec.mjs
+              ;;
+            *)
+              echo "Unsupported targeted scope"
+              exit 2
+              ;;
+          esac
+      - name: Upload targeted failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-evidence-targeted-${{ github.event.inputs.e2e_scope }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 9
+
   # The full regression is intentionally partitioned into bounded functional groups.
   # The fixture-readiness canary must pass first so shared DEV prerequisites fail
   # before feature assertions. Each group remains single-worker via playwright.config.mjs.
   # For a complete local fallback, npm run test:e2e still runs the entire E2E suite.
   playwright-full:
     name: Playwright Full / ${{ matrix.group }}
-    if: ${{ inputs.e2e_scope == 'full' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.e2e_scope == 'full' }}
     needs: fixture-readiness
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout_minutes }}
