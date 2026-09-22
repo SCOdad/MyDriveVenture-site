@@ -187,7 +187,10 @@ test('BKLG-0194 restores an unfinished CREATE after same-tab reload and complete
     driverName: fixtureDrivers.boundedMichigan,
     accessMode: 'MANAGE',
     requireSupervisor: true,
-    requireVehicle: true
+    requireVehicle: true,
+    // An unfinished BKLG-0194 save intentionally keeps mutation controls locked
+    // until recovery resolves the protected transaction.
+    requireEditableForm: false
   });
   await expect(page.locator('#drive-save-recover')).toBeVisible({timeout:20_000});
   await expect(page.locator('#drive-status')).toContainText('could not confirm whether your drive finished',{timeout:20_000});
