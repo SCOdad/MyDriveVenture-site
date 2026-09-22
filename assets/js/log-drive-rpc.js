@@ -176,6 +176,7 @@
     if(edit){
       if(same(requested,edit.original))return setStatus('No changes to save. The selected drive is still loaded.');
       const original={...edit.original};
+      if(!await confirmOverlapWarning(driverId,requested,edit.id))return setStatus('Drive not saved. Adjust the drive time or submit again to save the overlap.','error');
       let reason=null;
       if(isOperatorView()){const reasonInput=ensureAdminReason();reason=clean(reasonInput?.value);if(!reason){reasonInput?.focus();return setStatus('Administrator edit reason is required.','error')}const driver=app.getModel?.().drivers?.find?.(x=>x.id===driverId);if(!window.confirm(`Modify ${driver?.display_name||'this driver'}’s drive as an administrator?\n\nReason: ${reason}`))return setStatus('Administrator edit cancelled.')}
       const id=edit.id,body={action:'mutate_drive',operation:'EDIT',driver_id:driverId,drive_id:id,expected_revision:edit.revision,...requested,...(reason?{reason}:{})};
@@ -208,6 +209,7 @@
       }finally{saveLifecycleActive=false;if(!pendingForCurrentDriver())setSubmitting(false)}
     }
 
+    if(!await confirmOverlapWarning(driverId,requested,null))return setStatus('Drive not saved. Adjust the drive time or submit again to save the overlap.','error');
     const sourceEventId=stableSubmissionId(),body={action:'mutate_drive',operation:'CREATE',driver_id:driverId,source_event_id:sourceEventId,...requested};
     savePending(recovery.makePending({operation:'CREATE',driverId,sourceEventId,requested,body}));
     saveLifecycleActive=true;setSubmitting(true);setStatus('Logging drive…');
