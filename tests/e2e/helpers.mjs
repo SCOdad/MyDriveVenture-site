@@ -140,6 +140,7 @@ export async function waitForFixtureReady(page, {
   requireSupervisor = true,
   requireVehicle = true,
   requireLessons = false,
+  requireEditableForm = accessMode !== 'VIEW',
   timeout = 20_000
 } = {}) {
   if (!driverName) throw new Error('waitForFixtureReady requires driverName.');
@@ -203,7 +204,11 @@ export async function waitForFixtureReady(page, {
       ).toBeGreaterThan(0);
     }
 
-    await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled({ timeout });
+    if (requireEditableForm) {
+      await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled({ timeout });
+    } else {
+      await expect(page.locator('#drive-form button[type=submit]')).toHaveAttribute('aria-disabled', 'true', { timeout });
+    }
   } catch (error) {
     await fixtureFailure(page, `DEV fixture did not become ready: ${error.message}`, { email, driverName });
   }
@@ -227,6 +232,7 @@ export async function signInFixture(page, {
     requireSupervisor,
     requireVehicle,
     requireLessons,
+    requireEditableForm,
     timeout
   });
 }
