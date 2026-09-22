@@ -12,7 +12,7 @@ test('DV01 is retired to the current experience', () => {
 
 test('shared drive RPC retains BKLG-0151 behavior for legacy supported views', () => {
   const source = read('assets/js/log-drive-rpc.js');
-  assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary2/);
+  assert.match(source, /log-driving-log-v1\.js\?v=20260922-0005-uat1/);
   assert.match(source, /sameChanged\(requested,data\.drive,edit\.original\)/);
   assert.match(source, /if\(edit\)edit\.draft=values\(\)/);
 });
@@ -65,7 +65,7 @@ test('supported experiences load the current CREATE rehydration and failure-reco
 test('supported experiences load the current driving-log summary contract directly', () => {
   for (const path of ['log/index.html', 'log/DV02/index.html', 'log/DV00/index.html']) {
     const source = read(path);
-    assert.match(source, /log-driving-log-v1\.js\?v=20260917-0180-summary2/);
+    assert.match(source, /log-driving-log-v1\.js\?v=20260922-0005-uat1/);
   }
 });
 
@@ -73,7 +73,8 @@ test('shared driving-log controls define the durable supported experience taxono
   const source = read('assets/js/log-driving-log-v1.js');
   assert.match(source, /Current Experience/);
   assert.match(source, /Old Experience/);
-  assert.match(source, /Classic/);
+  assert.match(source, /Classic Experience/);
+  assert.match(source, /href="\/log\/DV00\/">Classic Experience/);
   assert.match(source, /No-frills base experience/);
   assert.doesNotMatch(source, /Default Experience/);
   assert.doesNotMatch(source, /Prior Experience/);
