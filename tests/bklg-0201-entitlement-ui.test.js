@@ -24,5 +24,8 @@ assert(source.includes('recovery.isAmbiguous = patched'), 'entitlement adapter m
 assert(source.includes('document.addEventListener(\'submit\', guardSubmit, true)'), 'entitlement adapter must capture blocked new-drive submits before the RPC handler');
 assert(source.includes("client.rpc('get_family_entitlement_status_v1'"), 'entitlement adapter must use canonical entitlement status RPC');
 assert(source.includes("normalizeInvokeResult(name, await original(name, options))"), 'entitlement adapter must normalize drive-ops entitlement denial responses');
+assert(source.includes('function patchPdfFetch()'), 'entitlement adapter must normalize structured PDF/export errors before existing export UI renders them');
+assert(source.includes("url.includes('/functions/v1/driving-log-renderer')"), 'PDF/export error normalizer must be scoped to the driving-log renderer');
+assert(source.includes("headers.set('content-type', 'application/json')"), 'PDF/export error normalizer must return a JSON response for existing export error handling');
 
 console.log('BKLG-0201 entitlement UI source contract passed');
