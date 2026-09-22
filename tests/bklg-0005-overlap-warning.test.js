@@ -45,7 +45,7 @@ test('BKLG-0005 DV00 and DV03 both have explicit overlap visual treatment',()=>{
 
 
 test('overlap preflight is wired before create and edit mutation persistence',()=>{
-  const rpc=read('assets/js/log-drive-rpc.js');
+  const rpc=fs.readFileSync('assets/js/log-drive-rpc.js','utf8');
   const editWarning=rpc.indexOf("confirmOverlapWarning(driverId,requested,edit.id)");
   const editMutation=rpc.indexOf("operation:'EDIT'");
   const createWarning=rpc.indexOf("confirmOverlapWarning(driverId,requested,null)");
@@ -55,7 +55,7 @@ test('overlap preflight is wired before create and edit mutation persistence',()
 });
 
 test('reconciled dashboard keeps overlap hydration asynchronous and generation guarded',()=>{
-  const dashboard=read('assets/js/log-dashboard-entry-v5.js');
+  const dashboard=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
   assert.match(dashboard,/render\(generation\);\s*ensureOverlapSummary\(nextDriverId\)\.then/);
   assert.match(dashboard,/generation===renderGeneration&&currentDriverId===nextDriverId/);
   assert.doesNotMatch(dashboard,/await ensureOverlapSummary\(nextDriverId\)/);
