@@ -6,6 +6,13 @@ async function yesterday(page) {
 }
 
 async function ready(page){
+  // BKLG-0005 intentionally warns instead of blocking when this shared fixture's
+  // recovery-canary time window overlaps an existing drive. These tests exercise
+  // BKLG-0194 save/recovery behavior, so continue through that independent warning.
+  page.on('dialog',async dialog=>{
+    if(dialog.type()==='confirm'&&dialog.message().includes('Potential time conflict'))return dialog.accept();
+    return dialog.dismiss();
+  });
   await signInFixture(page, {
     email: fixtureDrivers.boundedMichiganGuardian,
     driverName: fixtureDrivers.boundedMichigan,
