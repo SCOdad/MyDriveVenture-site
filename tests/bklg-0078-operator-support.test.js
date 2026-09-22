@@ -186,7 +186,7 @@ async function lifecycleChecks(){
 
   const waitFor=async(predicate,ms=2000)=>{
     const start=Date.now();
-    while(!predicate()){if(Date.now()-start>ms)throw new Error('Timed out waiting for dashboard test state');await new Promise(r=>setTimeout(r,5))}
+    while(!predicate()){if(Date.now()-start>ms)throw new Error('Timed out waiting for dashboard test state; status='+elements.get('login-status').textContent+'; calls='+JSON.stringify(calls));await new Promise(r=>setTimeout(r,5))}
   };
   await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length===1);
 
