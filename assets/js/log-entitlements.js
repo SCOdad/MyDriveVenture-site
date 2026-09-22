@@ -2,7 +2,7 @@
   if (window.DV_ENTITLEMENTS_SAFE_LOADING || window.DV_ENTITLEMENTS) return;
   window.DV_ENTITLEMENTS_SAFE_LOADING = true;
   const script = document.createElement('script');
-  script.src = '/assets/js/log-entitlements-safe.js?v=20260922-0201-safe3';
+  script.src = '/assets/js/log-entitlements-safe.js?v=20260922-0201-safe4';
   script.async = false;
   script.onload = () => { window.DV_ENTITLEMENTS_SAFE_LOADING = false; };
   script.onerror = () => {
