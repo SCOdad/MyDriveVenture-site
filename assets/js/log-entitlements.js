@@ -27,7 +27,7 @@
   }
 
   function ensurePanel() {
-    const form = document.getElementById('drive-form');
+    const form = getDriveForm();
     if (!form) return null;
     let panel = document.getElementById('drive-entitlement-status');
     if (panel) return panel;
@@ -40,25 +40,57 @@
     return panel;
   }
 
-  function getSubmitButton() {
-    return document.getElementById('drive-form')?.querySelector('button[type="submit"]') || null;
-  }
+  function getDriveForm() { return document.getElementById('drive-form'); }
+  function getSubmitButton() { return getDriveForm()?.querySelector('button[type="submit"]') || null; }
+  function isEditMode() { return !!getDriveForm()?.dataset.editDrive; }
 
-  function isEditMode() {
-    return !!document.getElementById('drive-form')?.dataset.editDrive;
+  function setDriveFormBlocked(blocked) {
+    const form = getDriveForm();
+    if (!form) return;
+    const unavailable = !!blocked && !isEditMode();
+    form.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
+    for (const el of form.querySelectorAll('input, select, textarea')) {
+      if (unavailable) {
+        if (!el.dataset.dvEntitlementOriginalDisabled) el.dataset.dvEntitlementOriginalDisabled = el.disabled ? 'true' : 'false';
+        el.disabled = true;
+        el.setAttribute('aria-disabled', 'true');
+      } else if (el.dataset.dvEntitlementOriginalDisabled) {
+        el.disabled = el.dataset.dvEntitlementOriginalDisabled === 'true';
+        el.removeAttribute('aria-disabled');
+        delete el.dataset.dvEntitlementOriginalDisabled;
+      }
+    }
   }
 
   function setSubmitBlocked(blocked) {
     const submit = getSubmitButton();
+    const unavailable = !!blocked && !isEditMode();
+    setDriveFormBlocked(blocked);
     if (!submit) return;
     if (originalSubmitText == null) originalSubmitText = submit.textContent || 'Log drive';
-    const unavailable = !!blocked && !isEditMode();
-    submit.disabled = unavailable;
+    if (unavailable && !submit.dataset.dvEntitlementOriginalDisabled) submit.dataset.dvEntitlementOriginalDisabled = submit.disabled ? 'true' : 'false';
+    submit.disabled = unavailable || (submit.dataset.dvEntitlementOriginalDisabled === 'true');
     submit.hidden = unavailable;
+    submit.style.setProperty('display', unavailable ? 'none' : '', unavailable ? 'important' : '');
     submit.setAttribute('aria-hidden', unavailable ? 'true' : 'false');
     submit.setAttribute('aria-disabled', unavailable ? 'true' : 'false');
     submit.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
-    if (!unavailable && originalSubmitText != null && submit.textContent === 'Logging paused') submit.textContent = originalSubmitText;
+    if (!unavailable) {
+      if (submit.dataset.dvEntitlementOriginalDisabled) {
+        submit.disabled = submit.dataset.dvEntitlementOriginalDisabled === 'true';
+        delete submit.dataset.dvEntitlementOriginalDisabled;
+      }
+      submit.style.removeProperty('display');
+      if (originalSubmitText != null && submit.textContent === 'Logging paused') submit.textContent = originalSubmitText;
+    }
+  }
+
+  function showEntitlementStatusMessage() {
+    const statusEl = document.getElementById('drive-status');
+    if (statusEl) {
+      statusEl.textContent = entitlementMessage(lastStatus);
+      statusEl.className = 'app-status error';
+    }
   }
 
   function render(status = lastStatus) {
@@ -169,16 +201,12 @@
   }
 
   function guardSubmit(e) {
-    const form = document.getElementById('drive-form');
+    const form = getDriveForm();
     if (!form || form.dataset.editDrive || !isExhaustedStatus(lastStatus)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     render(lastStatus);
-    const statusEl = document.getElementById('drive-status');
-    if (statusEl) {
-      statusEl.textContent = entitlementMessage(lastStatus);
-      statusEl.className = 'app-status error';
-    }
+    showEntitlementStatusMessage();
     window.DV_DRIVE_SAVE_RECOVERY?.clear?.();
   }
 
@@ -204,7 +232,11 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     render(lastStatus);
+    showEntitlementStatusMessage();
   }, true);
+  const observer = new MutationObserver(() => { if (lastStatus) resyncSubmitState(); });
+  const form = getDriveForm();
+  if (form) observer.observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'disabled', 'style', 'data-edit-drive'] });
   window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resyncSubmitState); });
   window.addEventListener('dv:drive-edit-mode', () => { queueMicrotask(resyncSubmitState); setTimeout(resyncSubmitState, 0); });
   window.addEventListener('dv:dashboard-rendered', () => { queueMicrotask(resyncSubmitState); });
