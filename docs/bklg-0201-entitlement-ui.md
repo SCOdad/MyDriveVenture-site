@@ -11,6 +11,7 @@ This source-side note documents the frontend half of BKLG-0201. The backend PR o
 - Calls `get_family_entitlement_status_v1` for authenticated family entitlement state.
 - Renders a small status panel above the drive form.
 - For `FREE_EXHAUSTED`, blocks new-drive submit before the drive RPC handler and clears any local unfinished-save journal.
+- Hides/disables the new-drive submit affordance while a family is exhausted, then restores it when an existing drive is opened for edit.
 - Leaves edit mode available so existing-drive edits remain possible.
 - Patches `DV_DRIVE_SAVE_RECOVERY.isAmbiguous` so `DV_FREE_DRIVE_LIMIT_REACHED` is not treated as an uncertain save.
 - Normalizes `drive-ops` entitlement-denial responses into a clear non-ambiguous error payload.
@@ -36,6 +37,12 @@ The adapter is additive. It does not rewrite `log-drive-rpc.js`, overlap warning
 - the adapter recognizes `DV_FREE_DRIVE_LIMIT_REACHED`;
 - save-recovery ambiguity classification is patched;
 - exhausted-family submit blocking runs in the capture phase;
+- exhausted-family new-drive submit affordance is hidden/disabled while edit mode remains available;
+- structured PDF/export errors are normalized before existing export UI renders them;
 - the canonical status RPC is used.
 
 Manual DEV UAT is still required against the backend BKLG-0201 DEV migration.
+
+## Preview deployment note
+
+PR #241 was marked ready for review and this documentation-only commit was pushed to retrigger the ordinary Cloudflare/GitHub preview webhook after no Pages preview appeared for the draft PR.
