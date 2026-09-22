@@ -10,7 +10,14 @@
   const clean = v => v == null ? '' : String(v).trim();
   const form = () => document.getElementById('drive-form');
   const submit = () => form()?.querySelector('button[type="submit"]') || null;
-  const editMode = () => !!form()?.dataset.editDrive;
+  const editContext = () => document.getElementById('drive-edit-context');
+  const hasVisibleEditContext = () => {
+    const context = editContext();
+    if (!context || context.hidden) return false;
+    if (context.offsetParent === null && getComputedStyle(context).display === 'none') return false;
+    return clean(context.textContent).startsWith('Editing:');
+  };
+  const editMode = () => !!form()?.dataset.editDrive && hasVisibleEditContext();
   const exhausted = status => clean(status?.commercial_state) === 'FREE_EXHAUSTED';
   const message = status => clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE;
 
@@ -211,6 +218,8 @@
     const f = form();
     if (!f) return;
     observer.observe(f, { attributes: true, childList: true, subtree: true, attributeFilter: ['disabled', 'hidden', 'style', 'data-edit-drive'] });
+    const context = editContext();
+    if (context) observer.observe(context, { attributes: true, childList: true, subtree: true, attributeFilter: ['hidden', 'style'] });
   };
 
   window.DV_ENTITLEMENTS = { refresh, render, getStatus: () => lastStatus, isEntitlementDenial: isDenial, code: EXHAUSTED_CODE };
