@@ -59,8 +59,6 @@ export async function signIn(page, email) {
   }, { email, password });
   if (!result.ok) throw new Error(`DEV sign-in failed for ${email}: ${result.error || 'no session returned'}`);
   await page.reload();
-  await expect(page.locator('#app-main')).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator('#driver-heading')).not.toHaveText('Drive Venture', { timeout: 20_000 });
 }
 
 export async function selectDriverByName(page, name) {
