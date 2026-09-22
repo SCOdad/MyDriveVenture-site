@@ -232,7 +232,6 @@ export async function signInFixture(page, {
     requireSupervisor,
     requireVehicle,
     requireLessons,
-    requireEditableForm,
     timeout
   });
 }
