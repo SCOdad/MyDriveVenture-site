@@ -5,6 +5,7 @@
   const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED';
   const DEFAULT_EXHAUSTED_MESSAGE = 'You have used your free Drive Venture drives. Your dashboard, edit/delete tools, and driving-log PDF remain available, but new drives and Text Parker logging are paused until a family license is active.';
   let lastStatus = null;
+  const originalControlState = new WeakMap();
 
   const clean = v => v == null ? '' : String(v).trim();
   const form = () => document.getElementById('drive-form');
@@ -43,20 +44,77 @@
     s.className = 'app-status error';
   }
 
-  function blockNewDrive(blocked) {
+  function driveControls() {
     const f = form();
+    if (!f) return [];
+    return [...f.querySelectorAll('input, select, textarea')];
+  }
+
+  function rememberControl(el) {
+    if (originalControlState.has(el)) return;
+    originalControlState.set(el, {
+      disabled: !!el.disabled,
+      readOnly: !!el.readOnly,
+      ariaDisabled: el.getAttribute('aria-disabled'),
+    });
+  }
+
+  function restoreControl(el) {
+    const state = originalControlState.get(el);
+    if (!state) return;
+    el.disabled = state.disabled;
+    if ('readOnly' in el) el.readOnly = state.readOnly;
+    if (state.ariaDisabled == null) el.removeAttribute('aria-disabled');
+    else el.setAttribute('aria-disabled', state.ariaDisabled);
+    originalControlState.delete(el);
+  }
+
+  function setFieldsBlocked(unavailable) {
+    for (const el of driveControls()) {
+      if (unavailable) {
+        rememberControl(el);
+        el.disabled = true;
+        if ('readOnly' in el) el.readOnly = true;
+        el.setAttribute('aria-disabled', 'true');
+      } else {
+        restoreControl(el);
+      }
+    }
+  }
+
+  function setElementHidden(el, hidden) {
+    if (!el) return;
+    el.hidden = hidden;
+    el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+    if (hidden) el.style.setProperty('display', 'none', 'important');
+    else el.style.removeProperty('display');
+  }
+
+  function setActionControlsBlocked(unavailable) {
     const b = submit();
-    const unavailable = !!blocked && !editMode();
-    if (f) f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
     if (b) {
       b.disabled = unavailable;
-      b.hidden = unavailable;
-      b.style.setProperty('display', unavailable ? 'none' : '', unavailable ? 'important' : '');
-      b.setAttribute('aria-hidden', unavailable ? 'true' : 'false');
       b.setAttribute('aria-disabled', unavailable ? 'true' : 'false');
       b.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
-      if (!unavailable) b.style.removeProperty('display');
+      setElementHidden(b, unavailable);
     }
+    const deleteButton = document.getElementById('drive-delete');
+    if (deleteButton && unavailable) {
+      deleteButton.dataset.dvEntitlementHidden = 'true';
+      setElementHidden(deleteButton, true);
+    } else if (deleteButton?.dataset.dvEntitlementHidden === 'true' && !unavailable && editMode()) {
+      delete deleteButton.dataset.dvEntitlementHidden;
+      setElementHidden(deleteButton, false);
+    }
+  }
+
+  function blockNewDrive(blocked) {
+    const unavailable = !!blocked && !editMode();
+    const f = form();
+    if (f) f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
+    setFieldsBlocked(unavailable);
+    setActionControlsBlocked(unavailable);
+    if (unavailable) writeDriveStatus();
   }
 
   function render(status = lastStatus) {
@@ -148,14 +206,22 @@
     if (lastStatus) render(lastStatus);
   }
 
+  const observer = new MutationObserver(() => resync());
+  const observeWhenReady = () => {
+    const f = form();
+    if (!f) return;
+    observer.observe(f, { attributes: true, childList: true, subtree: true, attributeFilter: ['disabled', 'hidden', 'style', 'data-edit-drive'] });
+  };
+
   window.DV_ENTITLEMENTS = { refresh, render, getStatus: () => lastStatus, isEntitlementDenial: isDenial, code: EXHAUSTED_CODE };
   patchInvoke();
   patchRecovery();
   document.addEventListener('submit', event => { if (event.target === form()) guard(event); }, true);
-  document.addEventListener('click', event => { if (event.target?.closest?.('#drive-form button[type="submit"]')) guard(event); }, true);
-  window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resync); });
+  document.addEventListener('click', event => { if (event.target?.closest?.('#drive-form button[type="submit"], #drive-delete')) guard(event); }, true);
+  window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resync); observeWhenReady(); });
   window.addEventListener('dv:drive-edit-mode', () => setTimeout(resync, 0));
-  window.addEventListener('dv:dashboard-rendered', () => setTimeout(resync, 0));
+  window.addEventListener('dv:dashboard-rendered', () => { setTimeout(resync, 0); observeWhenReady(); });
   window.addEventListener('dv:driver-changing', () => { lastStatus = null; const p = panel(); if (p) p.hidden = true; blockNewDrive(false); });
+  observeWhenReady();
   queueMicrotask(refresh);
 })();
