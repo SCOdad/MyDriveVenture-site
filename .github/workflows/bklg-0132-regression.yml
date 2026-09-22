@@ -1,7 +1,6 @@
 name: BKLG-0132 Frontend Regression
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       e2e_scope:
