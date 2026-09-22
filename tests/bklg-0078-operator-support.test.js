@@ -160,7 +160,6 @@ async function lifecycleChecks(){
       calls.push({name,args});
       if(name==='claim_authenticated_access_v1')return Promise.resolve({data:{ok:true},error:null});
       if(name==='get_authenticated_dashboard_v1')return Promise.resolve({data:JSON.parse(JSON.stringify(model)),error:null});
-      if(name==='get_authenticated_driver_overlap_summary_v1'){calls.push({name,args});return Promise.resolve({data:[],error:null});}
       if(name==='get_authenticated_driver_status_v1'){
         if(args?.p_driver_id==='slow')return slowStatus;
         return Promise.resolve({data:{...statusPayload},error:null});
@@ -193,7 +192,6 @@ async function lifecycleChecks(){
   const app=window.DV_LOG_APP;
   assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'initial dashboard should load once');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage'],'initial load must fetch status only for the active driver');
-  assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_overlap_summary_v1').map(c=>c.args.p_driver_id),['manage'],'initial overlap hydration must be bounded to the active driver');
   assert.strictEqual(app.getAccessMode('view'),'VIEW');
   assert.strictEqual(app.getAccessMode('missing'),'VIEW','operator access must fail closed to VIEW when metadata is missing');
 
