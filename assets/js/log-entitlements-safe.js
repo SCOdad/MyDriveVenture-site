@@ -11,13 +11,19 @@
   const form = () => document.getElementById('drive-form');
   const submit = () => form()?.querySelector('button[type="submit"]') || null;
   const editContext = () => document.getElementById('drive-edit-context');
+  const editDriveFromUrl = () => clean(new URLSearchParams(window.location.search).get('editDrive'));
+  const activeEditDrive = () => clean(form()?.dataset.editDrive);
   const hasVisibleEditContext = () => {
     const context = editContext();
     if (!context || context.hidden) return false;
     if (context.offsetParent === null && getComputedStyle(context).display === 'none') return false;
     return clean(context.textContent).startsWith('Editing:');
   };
-  const editMode = () => !!form()?.dataset.editDrive && hasVisibleEditContext();
+  const editMode = () => {
+    const urlEditDrive = editDriveFromUrl();
+    const formEditDrive = activeEditDrive();
+    return !!urlEditDrive && !!formEditDrive && urlEditDrive === formEditDrive && hasVisibleEditContext();
+  };
   const exhausted = status => clean(status?.commercial_state) === 'FREE_EXHAUSTED';
   const message = status => clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE;
 
@@ -230,6 +236,7 @@
   window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resync); observeWhenReady(); });
   window.addEventListener('dv:drive-edit-mode', () => setTimeout(resync, 0));
   window.addEventListener('dv:dashboard-rendered', () => { setTimeout(resync, 0); observeWhenReady(); });
+  window.addEventListener('popstate', () => setTimeout(resync, 0));
   window.addEventListener('dv:driver-changing', () => { lastStatus = null; const p = panel(); if (p) p.hidden = true; blockNewDrive(false); });
   observeWhenReady();
   queueMicrotask(refresh);
