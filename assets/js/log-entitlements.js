@@ -8,6 +8,8 @@
   let lastStatus = null;
 
   function clean(v) { return v == null ? '' : String(v).trim(); }
+  function isFreeTrialStatus(status) { return clean(status?.commercial_state) === 'FREE'; }
+  function isPaidStatus(status) { return clean(status?.commercial_state) === 'PAID'; }
   function isExhaustedStatus(status) { return clean(status?.commercial_state) === 'FREE_EXHAUSTED'; }
   function isEntitlementCode(code) { return clean(code) === EXHAUSTED_CODE; }
   function entitlementMessage(status) { return clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE; }
@@ -60,12 +62,15 @@
     }
     const remaining = Number(lastStatus.accepted_drives_remaining ?? NaN);
     const used = Number(lastStatus.accepted_drive_count ?? NaN);
-    const capacity = Number(lastStatus.driver_capacity ?? NaN);
-    const drivers = Number(lastStatus.driver_count ?? NaN);
-    const driveText = Number.isFinite(remaining) ? `${remaining} free drive${remaining === 1 ? '' : 's'} remaining` : 'Drive logging available';
-    const driverText = Number.isFinite(drivers) && Number.isFinite(capacity) ? ` · ${drivers}/${capacity} driver slots used` : '';
-    const usedText = Number.isFinite(used) ? ` · ${used} accepted drive${used === 1 ? '' : 's'} logged` : '';
-    panel.textContent = `${driveText}${usedText}${driverText}.`;
+    const usedText = Number.isFinite(used) ? `${used} accepted drive${used === 1 ? '' : 's'} logged` : '';
+    if (isFreeTrialStatus(lastStatus) && Number.isFinite(remaining)) {
+      const freeText = `${remaining} free drive${remaining === 1 ? '' : 's'} remaining`;
+      panel.textContent = usedText ? `${freeText} · ${usedText}.` : `${freeText}.`;
+    } else if (isPaidStatus(lastStatus)) {
+      panel.textContent = usedText ? `Family license active · ${usedText}.` : 'Family license active.';
+    } else {
+      panel.textContent = usedText ? `Drive logging available · ${usedText}.` : 'Drive logging available.';
+    }
     setSubmitBlocked(false);
   }
 
