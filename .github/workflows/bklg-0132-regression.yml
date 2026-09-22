@@ -11,6 +11,8 @@ on:
         options:
           - fixture-canary
           - full
+          - drive-mutations
+          - drive-recovery
 
 permissions:
   contents: read
@@ -79,7 +81,7 @@ jobs:
   # For a complete local fallback, npm run test:e2e still runs the entire E2E suite.
   playwright-full:
     name: Playwright Full / ${{ matrix.group }}
-    if: ${{ inputs.e2e_scope == 'full' }}
+    if: ${{ inputs.e2e_scope == 'full' || inputs.e2e_scope == matrix.group }}
     needs: fixture-readiness
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout_minutes }}
