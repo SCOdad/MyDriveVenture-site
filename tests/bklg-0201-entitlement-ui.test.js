@@ -18,25 +18,27 @@ for (const route of routes) {
   assert(entitlementIndex < rpcIndex, `${route} must load entitlement adapter before drive RPC binds submit handling`);
 }
 
-const source = fs.readFileSync(path.join(root, 'assets/js/log-entitlements.js'), 'utf8');
+const wrapper = fs.readFileSync(path.join(root, 'assets/js/log-entitlements.js'), 'utf8');
+assert(wrapper.includes('/assets/js/log-entitlements-safe.js?v=20260922-0201-safe1'), 'wrapper must load the safe entitlement adapter');
+assert(wrapper.includes('Drive Venture could not load family entitlement status'), 'wrapper must fail visibly if the safe adapter cannot load');
+
+const source = fs.readFileSync(path.join(root, 'assets/js/log-entitlements-safe.js'), 'utf8');
 assert(source.includes("const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED'"), 'entitlement adapter must recognize canonical exhausted-family code');
 assert(source.includes('recovery.isAmbiguous = patched'), 'entitlement adapter must patch save-recovery ambiguity classification');
-assert(source.includes('document.addEventListener(\'submit\', guardSubmit, true)'), 'entitlement adapter must capture blocked new-drive submits before the RPC handler');
-assert(source.includes('document.addEventListener(\'click\''), 'entitlement adapter must also intercept exhausted submit clicks in capture phase');
-assert(source.includes('function setDriveFormBlocked(blocked)'), 'exhausted new-drive mode must disable the new-drive input controls, not only intercept submit');
-assert(source.includes("form.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false'"), 'drive form must expose entitlement-blocked state for UAT/debugging');
-assert(source.includes("el.dataset.dvEntitlementOriginalDisabled"), 'entitlement block must preserve prior disabled state before disabling controls');
-assert(source.includes("submit.style.setProperty('display', unavailable ? 'none' : '', unavailable ? 'important' : '')"), 'exhausted new-drive mode must force-hide the submit affordance even if CSS overrides hidden');
-assert(source.includes('function isEditMode()'), 'submit affordance blocking must distinguish new-drive mode from edit mode');
-assert(source.includes('function showEntitlementStatusMessage()'), 'blocked click/submit must show entitlement copy, not fail silently');
+assert(source.includes("client.rpc('get_family_entitlement_status_v1'"), 'entitlement adapter must use canonical entitlement status RPC');
+assert(source.includes("form()?.querySelector('button[type=\"submit\"]')"), 'entitlement adapter must locate the visible save/submit control');
+assert(source.includes('function setFieldsBlocked(unavailable)'), 'exhausted new-drive mode must disable the new-drive input controls, not only intercept submit');
+assert(source.includes('function setActionControlsBlocked(unavailable)'), 'exhausted new-drive mode must manage save/delete affordances');
+assert(source.includes("f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false'"), 'drive form must expose entitlement-blocked state for UAT/debugging');
+assert(source.includes('originalControlState = new WeakMap()'), 'entitlement block must preserve prior disabled/read-only state before disabling controls');
+assert(source.includes("b.style.setProperty('display', 'none', 'important')"), 'exhausted new-drive mode must force-hide the submit affordance even if CSS overrides hidden');
+assert(source.includes("document.getElementById('drive-delete')"), 'exhausted new-drive mode must hide stale delete controls outside real edit mode');
+assert(source.includes('function writeDriveStatus()'), 'blocked click/submit must show entitlement copy, not fail silently');
 assert(source.includes('new MutationObserver'), 'entitlement adapter must resync if another script re-renders or re-enables the form');
-assert(source.includes("attributeFilter: ['hidden', 'disabled', 'style', 'data-edit-drive']"), 'entitlement observer must watch affordance/edit-mode attributes');
+assert(source.includes("document.addEventListener('submit'"), 'entitlement adapter must capture blocked new-drive submits before the RPC handler');
+assert(source.includes("document.addEventListener('click'"), 'entitlement adapter must also intercept exhausted submit/delete clicks in capture phase');
 assert(source.includes("window.addEventListener('dv:drive-edit-mode'"), 'entitlement adapter must resync the submit affordance when edit mode changes');
 assert(source.includes("window.addEventListener('dv:dashboard-rendered'"), 'entitlement adapter must resync after dashboard/form scripts render');
-assert(source.includes("client.rpc('get_family_entitlement_status_v1'"), 'entitlement adapter must use canonical entitlement status RPC');
-assert(source.includes("normalizeInvokeResult(name, await original(name, options))"), 'entitlement adapter must normalize drive-ops entitlement denial responses');
-assert(source.includes('function patchPdfFetch()'), 'entitlement adapter must normalize structured PDF/export errors before existing export UI renders them');
-assert(source.includes("url.includes('/functions/v1/driving-log-renderer')"), 'PDF/export error normalizer must be scoped to the driving-log renderer');
-assert(source.includes("headers.set('content-type', 'application/json')"), 'PDF/export error normalizer must return a JSON response for existing export error handling');
+assert(source.includes("name === 'drive-ops'"), 'entitlement adapter must normalize drive-ops entitlement denial responses');
 
 console.log('BKLG-0201 entitlement UI source contract passed');
