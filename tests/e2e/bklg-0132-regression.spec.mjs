@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fixtureDrivers, installPageGuards, personas, signIn, selectDriverByName, currentAccessMode } from './helpers.mjs';
-
-async function waitForDriveFormContext(page) {
-  await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
-  await expect.poll(async () => page.locator('#drive-supervisor').inputValue(), { timeout: 20_000 }).not.toBe('');
-}
+import { fixtureDrivers, installPageGuards, personas, signIn, signInFixture, selectDriverByName, currentAccessMode, waitForFixtureReady } from './helpers.mjs';
 
 async function submitDriveForm(page) {
   const responsePromise = page.waitForResponse(response => {
@@ -67,28 +62,26 @@ test.describe('BKLG-0132 critical browser regression', () => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.guardianMulti);
     await expect(page.locator('#driver-select option')).toHaveCount(2);
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
     await expect(page.locator('#drive-form button[type=submit]')).toBeEnabled();
-    await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForDriveFormContext(page);
+    await selectDriverByName(page, fixtureDrivers.secondaryKansas);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     expect(await currentAccessMode(page)).toBe('MANAGE');
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
-    await selectDriverByName(page, 'Synthetic Driver Two');
-    await waitForDriveFormContext(page);
-    await selectDriverByName(page, 'Synthetic Driver One');
-    await waitForDriveFormContext(page);
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.secondaryKansas);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
+    await selectDriverByName(page, fixtureDrivers.primaryMichigan);
+    await waitForFixtureReady(page, { email: personas.guardianMulti, driverName: (await page.locator('#driver-heading').textContent())?.trim(), accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     assertNoPageFailures();
   });
 
   test('ordinary guardian can create and edit an isolated DEV drive', async ({ page }, testInfo) => {
     test.setTimeout(120_000); // One create, two edits, and authoritative refreshes.
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
-    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
-    await waitForDriveFormContext(page);
+    await signInFixture(page, { email: fixtureDrivers.boundedMichiganGuardian, driverName: fixtureDrivers.boundedMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     const runId = process.env.GITHUB_RUN_ID || `${Date.now()}`;
     const runAttempt = process.env.GITHUB_RUN_ATTEMPT || 'local';
     const route = `BKLG-0132 CI Route ${runId}-${runAttempt}-${testInfo.retry}`;
@@ -133,9 +126,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('Michigan skills use compact checkboxes, persist edits, and appear in trip detail', async ({ page }, testInfo) => {
     const assertNoPageFailures = installPageGuards(page);
-    await signIn(page, fixtureDrivers.boundedMichiganGuardian);
-    await selectDriverByName(page, fixtureDrivers.boundedMichigan);
-    await waitForDriveFormContext(page);
+    await signInFixture(page, { email: fixtureDrivers.boundedMichiganGuardian, driverName: fixtureDrivers.boundedMichigan, accessMode: 'MANAGE', requireSupervisor: true, requireVehicle: true });
     const skills=page.locator('#drive-lesson-options input[type=checkbox]');
     await expect(skills).toHaveCount(13, { timeout: 20_000 });
     await expect(page.locator('#drive-lesson')).toBeHidden();
@@ -191,12 +182,12 @@ test.describe('BKLG-0132 critical browser regression', () => {
   test('operator authenticates, sees VIEW-only drivers, and gets bounded admin edit controls', async ({ page }) => {
     const assertNoPageFailures = installPageGuards(page);
     await signIn(page, personas.operator);
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     await expect(page.locator('#operator-driver-search')).toBeVisible({ timeout: 20_000 });
-    await selectDriverByName(page, 'Synthetic Driver One');
     expect(await currentAccessMode(page)).toBe('VIEW');
-    await selectDriverByName(page, 'Synthetic Driver Two');
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.secondaryKansas, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     expect(await currentAccessMode(page)).toBe('VIEW');
-    await selectDriverByName(page, 'Synthetic Driver One');
+    await waitForFixtureReady(page, { email: personas.operator, driverName: fixtureDrivers.primaryMichigan, accessMode: 'VIEW', requireSupervisor: false, requireVehicle: false });
     const firstDrive = page.locator('#drive-list [data-drive-detail-id]').first();
     await expect(firstDrive).toBeVisible({ timeout: 20_000 });
     await firstDrive.click();
@@ -209,7 +200,7 @@ test.describe('BKLG-0132 critical browser regression', () => {
 
   test('administrator content and skill edits never certify a drive', async ({ page }) => {
     const assertNoPageFailures=installPageGuards(page);
-    await signIn(page,personas.operator);await selectDriverByName(page,fixtureDrivers.boundedMichigan);
+    await signIn(page,personas.operator);await waitForFixtureReady(page,{email:personas.operator,driverName:fixtureDrivers.boundedMichigan,accessMode:'VIEW',requireSupervisor:false,requireVehicle:false});
     const result=await page.evaluate(async()=>{
       const app=window.DV_LOG_APP,driverId=app.getDriverId(),cutoff=Date.now()-120000,ids=(app.getModel()?.recent_drives||[]).filter(d=>d.driver_id===driverId&&new Date(d.created_at).getTime()<cutoff).map(d=>d.id);
       let detail=null;

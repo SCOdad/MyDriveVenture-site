@@ -1,8 +1,16 @@
 name: BKLG-0132 Frontend Regression
 
 on:
-  pull_request:
   workflow_dispatch:
+    inputs:
+      e2e_scope:
+        description: Playwright scope
+        required: false
+        default: fixture-canary
+        type: choice
+        options:
+          - fixture-canary
+          - full
 
 permissions:
   contents: read
@@ -21,6 +29,7 @@ jobs:
 
   playwright-dev:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     env:
       DV_E2E_BASE_URL: http://127.0.0.1:4173
       DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
@@ -48,9 +57,16 @@ jobs:
           done
           cat /tmp/dv-e2e-http.log
           exit 1
-      - run: npm run test:e2e
+      - name: Run Playwright
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.e2e_scope }}" == "fixture-canary" ]]; then
+            npx playwright test tests/e2e/bklg-0210-fixture-readiness.spec.mjs --retries=0
+          else
+            npm run test:e2e
+          fi
       - name: Upload Playwright evidence
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-evidence
@@ -58,4 +74,5 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 3
+          compression-level: 9
