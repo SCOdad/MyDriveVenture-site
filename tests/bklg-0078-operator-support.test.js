@@ -164,6 +164,7 @@ async function lifecycleChecks(){
         if(args?.p_driver_id==='slow')return slowStatus;
         return Promise.resolve({data:{...statusPayload},error:null});
       }
+      if(name==='get_authenticated_driver_overlap_summary_v1')return Promise.resolve({data:[],error:null});
       throw new Error('Unexpected RPC '+name);
     },
     auth:{
@@ -187,11 +188,13 @@ async function lifecycleChecks(){
     const start=Date.now();
     while(!predicate()){if(Date.now()-start>ms)throw new Error('Timed out waiting for dashboard test state');await new Promise(r=>setTimeout(r,5))}
   };
-  await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length===1);
+  await waitFor(()=>window.DV_LOG_APP?.getDriverId()==='manage'&&rendered.length>=1);
 
   const app=window.DV_LOG_APP;
   assert.strictEqual(calls.filter(c=>c.name==='get_authenticated_dashboard_v1').length,1,'initial dashboard should load once');
   assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_status_v1').map(c=>c.args.p_driver_id),['manage'],'initial load must fetch status only for the active driver');
+  assert.deepStrictEqual(calls.filter(c=>c.name==='get_authenticated_driver_overlap_summary_v1').map(c=>c.args.p_driver_id),['manage'],'initial overlap hydration must be bounded to the active driver');
+  assert.ok(rendered.length<=2,'initial auxiliary overlap hydration may repaint at most once');
   assert.strictEqual(app.getAccessMode('view'),'VIEW');
   assert.strictEqual(app.getAccessMode('missing'),'VIEW','operator access must fail closed to VIEW when metadata is missing');
 
@@ -214,7 +217,9 @@ async function lifecycleChecks(){
   resolveSlow({data:{...statusPayload},error:null});
   await new Promise(r=>setTimeout(r,0));
   assert.strictEqual(app.getDriverId(),'manage','later selection must win over a slow earlier selection');
-  assert.strictEqual(renderedAfterManage,renderedBeforeSlow+2,'both explicit selections should render immediately');
+  assert.ok(renderedAfterManage>=renderedBeforeSlow+2&&renderedAfterManage<=renderedBeforeSlow+3,'both explicit selections should render immediately, with at most one auxiliary overlap repaint');
+  const manageRenderCount=rendered.filter((driverId,index)=>index>=renderedBeforeSlow&&driverId==='manage').length;
+  assert.ok(manageRenderCount>=1&&manageRenderCount<=2,'the winning selection may repaint once for overlap hydration');
   assert.strictEqual(rendered.length,renderedAfterManage,'late slow status must not trigger an extra dashboard render');
   assert.strictEqual(rendered.at(-1),'manage','stale async work must not repaint the prior driver');
   assert.strictEqual(changing.at(-1),'manage');
