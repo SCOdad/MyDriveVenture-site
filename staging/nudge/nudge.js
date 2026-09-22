@@ -1,0 +1,72 @@
+(()=>{
+  const cfg=window.DV_APP_CONFIG||{},endpoint=String(window.DV_LIFECYCLE_NUDGE_ENDPOINT||'');
+  if(!endpoint||!document.getElementById('nudge-dashboard'))return;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const label=s=>String(s||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+  let client,otpClient,token='',payload=null,activeEditor=null,otpCooldownTimer=null;
+
+  async function auth(){if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await client.auth.getSession();token=data.session?.access_token||'';return token}
+  async function api(body,retried=false){await auth();if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Nudge request failed (${r.status})`),{status:r.status,validation:out.validation});return out}
+
+  function recipientList(rows,kind){if(!rows?.length)return '<p class="meta">None.</p>';return '<ul>'+rows.map(row=>`<li><strong>${esc(row.recipient_name)}</strong>${row.driver_name?` · ${esc(row.driver_name)}`:''}<small>${esc(row.recipient_email||'')}</small>${row.suppression_reason?`<small>${esc(label(row.suppression_reason))}</small>`:''}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${row.message_preview?`<details class="recipient-preview"><summary>Resolved email</summary><pre>Subject: ${esc(row.message_preview.subject)}\n\n${esc(row.message_preview.heading)}\n\n${esc(row.message_preview.body)}\n\nCTA: ${esc(row.message_preview.cta_label)}</pre></details>`:''}</li>`).join('')+'</ul>'}
+
+  function templateEditor(group){
+    const t=group.template_version||{},meta=group.template||{},tokens=meta.allowed_tokens||[],key=meta.template_key||group.rule.template_key;
+    return `<div class="template-editor" data-template="${esc(key)}"><div class="template-row"><label>Subject<input class="template-field" data-field="subject_template" value="${esc(t.subject_template||'')}"></label><label>Heading<input class="template-field" data-field="heading_template" value="${esc(t.heading_template||'')}"></label></div><label>Message body<textarea class="template-field" data-field="body_template">${esc(t.body_template||'')}</textarea></label><label>CTA / button label<input class="template-field" data-field="cta_label_template" value="${esc(t.cta_label_template||'')}"></label><div><strong>Available tokens</strong><div class="token-list">${tokens.map(token=>`<button type="button" class="token-chip" data-template="${esc(key)}" data-token="${esc(token)}">[[${esc(token)}]]</button>`).join('')||'<span class="meta">No tokens for this message.</span>'}</div></div><div class="template-actions"><button type="button" class="button button-primary template-save" data-template="${esc(key)}">Save new message version</button><span class="template-version">Current: v${esc(t.version_number||'?')}</span><span class="save-status" data-status="${esc(key)}" role="status"></span></div></div>`;
+  }
+
+  function groupCard(group){
+    const r=group.rule,selected=group.selected||[],superRows=group.eligible_superseded||[],suppressed=group.suppressed||[];
+    return `<details class="nudge-card" data-rule="${esc(r.rule_key)}" ${selected.length?'open':''}><summary><span class="nudge-priority-badge">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${group.managed_externally?' · Delivery handled by certification workflow':''}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count superseded">${superRows.length} superseded</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body"><div class="nudge-config"><label>Priority<input class="rule-priority" type="number" min="1" step="1" value="${esc(r.priority)}"></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save rule</button></div><p class="meta">Trigger: ${esc(label(r.trigger_primitive))} · Post-send: ${esc(label(r.post_send_behavior))}${r.once_only?' · Once only':''}</p>${templateEditor(group)}<div class="recipient-columns"><div class="recipient-box"><h4>Selected (${selected.length})</h4>${recipientList(selected,'selected')}</div><div class="recipient-box"><h4>Eligible but superseded (${superRows.length})</h4>${recipientList(superRows,'superseded')}</div><div class="recipient-box"><h4>Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'suppressed')}</div></div></div></details>`;
+  }
+
+  function render(){
+    const groups=payload?.groups||[],selected=groups.reduce((n,g)=>n+(g.selected?.length||0),0),superseded=groups.reduce((n,g)=>n+(g.eligible_superseded?.length||0),0),suppressed=groups.reduce((n,g)=>n+(g.suppressed?.length||0),0);
+    document.getElementById('nudge-summary').innerHTML=`<span><strong>${selected}</strong> selected</span><span><strong>${superseded}</strong> eligible but superseded</span><span><strong>${suppressed}</strong> suppressed</span><span><strong>${groups.filter(g=>g.rule.enabled).length}</strong> enabled messages</span>`;
+    document.getElementById('nudge-groups').innerHTML=groups.map(groupCard).join('')||'<p>No nudge rules configured.</p>';
+    document.getElementById('nudge-history').innerHTML=(payload?.recent_dispatches||[]).map(row=>`<tr><td>${esc(row.sent_at||row.created_at||'—')}</td><td>${esc(row.recipient_email_normalized||row.intended_recipient||'—')}</td><td>${esc(label(row.communication_type||row.rule_key))}</td><td>${esc(label(row.status))}${row.suppression_reason?`<small>${esc(label(row.suppression_reason))}</small>`:''}</td><td>${esc(row.template_version||'—')}</td></tr>`).join('')||'<tr><td colspan="5">No communication history yet.</td></tr>';
+    document.querySelectorAll('.rule-save').forEach(b=>b.addEventListener('click',saveRule));
+    document.querySelectorAll('.template-save').forEach(b=>b.addEventListener('click',saveTemplate));
+    document.querySelectorAll('.template-field').forEach(el=>el.addEventListener('focus',()=>{activeEditor=el}));
+    document.querySelectorAll('.token-chip').forEach(b=>b.addEventListener('click',insertToken));
+  }
+
+  async function load(){const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
+
+  async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,priority=Number(card.querySelector('.rule-priority').value),enabled=card.querySelector('.rule-enabled').checked;ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,priority,enabled});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
+
+  async function saveTemplate(ev){const editor=ev.currentTarget.closest('.template-editor'),key=ev.currentTarget.dataset.template,status=editor.querySelector(`[data-status="${CSS.escape(key)}"]`),fields={};editor.querySelectorAll('.template-field').forEach(el=>fields[el.dataset.field]=el.value);status.textContent='Validating and saving…';ev.currentTarget.disabled=true;try{const out=await api({action:'save_template',template_key:key,...fields});status.textContent='Saved as v'+out.version.version_number+'.';await load()}catch(e){status.textContent=e.message}finally{ev.currentTarget.disabled=false}}
+
+  function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target}
+
+  document.getElementById('nudge-refresh').addEventListener('click',load);
+  function startOtpCooldown(button,status,seconds=60,message=''){
+    if(otpCooldownTimer)clearInterval(otpCooldownTimer);
+    let remaining=Math.max(1,Math.ceil(seconds));
+    const render=()=>{button.disabled=true;if(status)status.textContent=(message?message+' ':'')+'Please wait '+remaining+'s before requesting another link.'};
+    render();
+    otpCooldownTimer=setInterval(()=>{remaining--;if(remaining<=0){clearInterval(otpCooldownTimer);otpCooldownTimer=null;button.disabled=false;if(status)status.textContent='You can request another sign-in link now.'}else render()},1000);
+  }
+  function retrySeconds(error){
+    const text=String(error?.message||'');
+    const match=text.match(/(?:after|wait)\s+(\d+)\s*(?:seconds?|s)/i);
+    return match?Number(match[1]):(Number(error?.status)===429?60:null);
+  }
+  document.getElementById('nudge-signin')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const email=document.getElementById('nudge-signin-email')?.value.trim(),button=e.currentTarget.querySelector('button'),status=document.getElementById('nudge-signin-status');
+    if(!email||button.disabled)return;
+    button.disabled=true;if(status)status.textContent='Sending sign-in link… This can take a little while in DEV.';
+    try{
+      if(!otpClient)otpClient=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'dv-nudge-otp-request'}});
+      const result=await otpClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/log/?return='+encodeURIComponent('/staging/nudge/'),shouldCreateUser:false}});
+      if(result.error)throw result.error;
+      if(status)status.textContent='Check your email for a secure sign-in link. After verification, Drive Venture will return you to Nudges.';
+      startOtpCooldown(button,status,60,'The request was accepted.');
+    }catch(error){
+      const wait=retrySeconds(error);
+      if(wait){startOtpCooldown(button,status,wait,'Supabase is rate-limiting magic-link requests.')}else{button.disabled=false;if(status)status.textContent=error?.message||'We could not send a sign-in link right now. Please try again.'}
+    }
+  });
+  auth().then(()=>{client.auth.onAuthStateChange((_event,session)=>{if(!session){token='';payload=null;document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false;document.getElementById('nudge-access-status').textContent='Sign in with an Operator account to continue.'}});load()}).catch(e=>{document.getElementById('nudge-access-status').textContent=e.message});
+})();
