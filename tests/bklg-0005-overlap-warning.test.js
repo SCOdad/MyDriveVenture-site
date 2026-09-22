@@ -60,3 +60,19 @@ test('reconciled dashboard keeps overlap hydration asynchronous and generation g
   assert.match(dashboard,/generation===renderGeneration&&currentDriverId===nextDriverId/);
   assert.doesNotMatch(dashboard,/await ensureOverlapSummary\(nextDriverId\)/);
 });
+
+test('presentation layer preserves hydrated overlap warnings in Recent Drives',()=>{
+  const presenter=fs.readFileSync('assets/js/log-prepilot-v2.js','utf8');
+  assert.match(presenter,/overlap=d\.overlap\|\|null/);
+  assert.match(presenter,/drive-overlap-eyebrow/);
+  assert.match(presenter,/drive-item\$\{warning\?' drive-item-overlap':''\}/);
+});
+
+test('Current Experience links Classic directly to DV00',()=>{
+  const controls=fs.readFileSync('assets/js/log-driving-log-v1.js','utf8');
+  assert.match(controls,/route === 'dv03'[\s\S]*href="\/log\/DV00\/"[\s\S]*Classic Experience/);
+  assert.doesNotMatch(controls,/route === 'dv03'[\s\S]*href="\/log\/DV02\/"[\s\S]*Old Experience/);
+  const classic=fs.readFileSync('log/DV00/index.html','utf8');
+  assert.match(classic,/data-dv-route="dv00"/);
+  assert.doesNotMatch(classic,/data-experience="game"/);
+});
