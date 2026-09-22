@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   static:
+    name: Static regression
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +28,8 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:js
 
-  playwright-dev:
+  fixture-readiness:
+    name: Playwright / Fixture readiness canary
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -57,19 +59,100 @@ jobs:
           done
           cat /tmp/dv-e2e-http.log
           exit 1
-      - name: Run Playwright
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.e2e_scope }}" == "fixture-canary" ]]; then
-            npx playwright test tests/e2e/bklg-0210-fixture-readiness.spec.mjs --retries=0
-          else
-            npm run test:e2e
-          fi
-      - name: Upload Playwright evidence
+      - name: Run fixture readiness canary
+        run: npx playwright test tests/e2e/bklg-0210-fixture-readiness.spec.mjs --retries=0
+      - name: Upload fixture canary failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-evidence
+          name: playwright-evidence-fixture-canary
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 9
+
+  # The full regression is intentionally partitioned into bounded functional groups.
+  # The fixture-readiness canary must pass first so shared DEV prerequisites fail
+  # before feature assertions. Each group remains single-worker via playwright.config.mjs.
+  # For a complete local fallback, npm run test:e2e still runs the entire E2E suite.
+  playwright-full:
+    name: Playwright Full / ${{ matrix.group }}
+    if: ${{ inputs.e2e_scope == 'full' }}
+    needs: fixture-readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout_minutes }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: smoke-ui
+            timeout_minutes: 10
+            specs: >-
+              tests/e2e/bklg-0084-hotfix.spec.mjs
+              tests/e2e/bklg-0090-visual.spec.mjs
+              tests/e2e/bklg-0148-dv03-integration.spec.mjs
+          - group: driver-navigation
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs
+          - group: drive-mutations
+            timeout_minutes: 10
+            specs: >-
+              tests/e2e/bklg-0106-delete-rehydrate.spec.mjs
+              tests/e2e/bklg-0151-notes-persistence.spec.mjs
+          - group: drive-recovery
+            timeout_minutes: 15
+            specs: tests/e2e/bklg-0194-drive-save-recovery.spec.mjs
+          - group: experience-contract
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0151-experiences.spec.mjs
+          - group: core-regression
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0132-regression.spec.mjs
+          - group: operator-family
+            timeout_minutes: 10
+            specs: >-
+              tests/e2e/bklg-0143-operator-backlog.spec.mjs
+              tests/e2e/bklg-0198-family-hub.spec.mjs
+              tests/e2e/operator-leads.spec.mjs
+          - group: production-readonly
+            timeout_minutes: 10
+            specs: tests/e2e/bklg-0148-dv03-production.spec.mjs
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+      DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
+      DV_E2E_BOUNDED_MI_DRIVER_NAME: Synthetic Driver Three
+      DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL: guardian.single@dev.driveventure.example.invalid
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Require DEV test credential
+        shell: bash
+        run: test -n "$DV_DEV_TEST_PASSWORD" || (echo 'Repository secret DV_DEV_TEST_PASSWORD is required.' && exit 1)
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-e2e-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/log/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-e2e-http.log
+          exit 1
+      - name: Run ${{ matrix.group }} E2E group
+        run: npx playwright test ${{ matrix.specs }}
+      - name: Upload ${{ matrix.group }} failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-evidence-${{ matrix.group }}
           path: |
             playwright-report/
             test-results/
