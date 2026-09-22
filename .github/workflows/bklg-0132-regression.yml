@@ -80,7 +80,7 @@ jobs:
 
   playwright-targeted:
     name: Playwright Targeted / ${{ github.event.inputs.e2e_scope }}
-    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.e2e_scope == 'drive-mutations' || github.event.inputs.e2e_scope == 'drive-recovery') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && (github.event.inputs.e2e_scope == 'drive-mutations' || github.event.inputs.e2e_scope == 'drive-recovery')) || (github.event_name == 'pull_request' && github.head_ref == 'bklg-0005-reconciled') }}
     needs: fixture-readiness
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -114,7 +114,7 @@ jobs:
       - name: Run targeted E2E group
         shell: bash
         run: |
-          case "${{ github.event.inputs.e2e_scope }}" in
+          case "${{ github.event_name == 'pull_request' && 'drive-recovery' || github.event.inputs.e2e_scope }}" in
             drive-mutations)
               npx playwright test tests/e2e/bklg-0106-delete-rehydrate.spec.mjs tests/e2e/bklg-0151-notes-persistence.spec.mjs
               ;;
