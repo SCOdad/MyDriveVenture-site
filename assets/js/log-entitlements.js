@@ -12,6 +12,17 @@
   function isEntitlementCode(code) { return clean(code) === EXHAUSTED_CODE; }
   function entitlementMessage(status) { return clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE; }
 
+  function readableError(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return clean(value);
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    if (Array.isArray(value)) return value.map(readableError).filter(Boolean).join('; ');
+    if (typeof value === 'object') {
+      return clean(value.message) || clean(value.error) || clean(value.details) || clean(value.detail) || clean(value.code) || 'Driving log could not be generated.';
+    }
+    return clean(value);
+  }
+
   function ensurePanel() {
     const form = document.getElementById('drive-form');
     if (!form) return null;
@@ -80,7 +91,7 @@
   function isEntitlementDenial(info) {
     if (!info) return false;
     if (isEntitlementCode(info.code)) return true;
-    const message = clean(info.message || info.error || info.details || info.detail);
+    const message = readableError(info.message || info.error || info.details || info.detail || info);
     return message.includes(EXHAUSTED_CODE) || message.includes('free drives') || message.includes('FREE_EXHAUSTED');
   }
 
@@ -113,6 +124,32 @@
     recovery.isAmbiguous = patched;
   }
 
+  function patchPdfFetch() {
+    if (window.fetch?.__dvEntitlementPdfPatched) return;
+    const original = window.fetch.bind(window);
+    const patched = async (input, options) => {
+      const response = await original(input, options);
+      const url = typeof input === 'string' ? input : input?.url || '';
+      if (!url.includes('/functions/v1/driving-log-renderer') || response.ok) return response;
+      try {
+        const body = await response.clone().json();
+        const message = readableError(body?.error || body?.message || body);
+        if (!message || message === '[object Object]') return response;
+        const headers = new Headers(response.headers);
+        headers.set('content-type', 'application/json');
+        return new Response(JSON.stringify({ ...body, error: message }), {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      } catch (_) {
+        return response;
+      }
+    };
+    patched.__dvEntitlementPdfPatched = true;
+    window.fetch = patched;
+  }
+
   function guardSubmit(e) {
     const form = document.getElementById('drive-form');
     if (!form || form.dataset.editDrive || !isExhaustedStatus(lastStatus)) return;
@@ -137,6 +174,7 @@
 
   patchInvoke();
   patchRecovery();
+  patchPdfFetch();
   document.addEventListener('submit', guardSubmit, true);
   window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh(); });
   window.addEventListener('dv:driver-changing', () => { lastStatus = null; const panel = ensurePanel(); if (panel) panel.hidden = true; setSubmitBlocked(false); });
