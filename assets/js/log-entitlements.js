@@ -2,62 +2,77 @@
   if (window.DV_ENTITLEMENTS || window.DV_ENTITLEMENTS_INSTALLING) return;
   window.DV_ENTITLEMENTS_INSTALLING = true;
 
-  let attempts = 0;
-  const MAX_ATTEMPTS = 80;
-  const RETRY_MS = 100;
+  const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED';
+  const DEFAULT_EXHAUSTED_MESSAGE = 'You have used your free Drive Venture drives. Your dashboard, edit/delete tools, and driving-log PDF remain available, but new drives and Text Parker logging are paused until a family license is active.';
+  const MAX_READY_ATTEMPTS = 100;
+  const READY_RETRY_MS = 100;
+  const MAX_DRIVER_ATTEMPTS = 100;
+  const DRIVER_RETRY_MS = 150;
 
-  function install() {
-    const app = window.DV_LOG_APP;
-    const form = document.getElementById('drive-form');
+  let readyAttempts = 0;
+
+  const clean = v => v == null ? '' : String(v).trim();
+
+  function getApp() { return window.DV_LOG_APP; }
+  function getForm() { return document.getElementById('drive-form'); }
+
+  function installWhenReady() {
+    const app = getApp();
+    const form = getForm();
     if (!app?.client || !form) {
-      if (attempts++ < MAX_ATTEMPTS) setTimeout(install, RETRY_MS);
+      if (readyAttempts++ < MAX_READY_ATTEMPTS) setTimeout(installWhenReady, READY_RETRY_MS);
       else window.DV_ENTITLEMENTS_INSTALLING = false;
       return;
     }
+    install(app);
+  }
+
+  function install(app) {
     if (window.DV_ENTITLEMENTS) {
       window.DV_ENTITLEMENTS_INSTALLING = false;
       return;
     }
 
     const client = app.client;
-    const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED';
-    const DEFAULT_EXHAUSTED_MESSAGE = 'You have used your free Drive Venture drives. Your dashboard, edit/delete tools, and driving-log PDF remain available, but new drives and Text Parker logging are paused until a family license is active.';
     let lastStatus = null;
+    let driverRefreshAttempts = 0;
+    let refreshTimer = null;
+    let resyncQueued = false;
     const originalControlState = new WeakMap();
 
-    const clean = v => v == null ? '' : String(v).trim();
-    const getForm = () => document.getElementById('drive-form');
     const submit = () => getForm()?.querySelector('button[type="submit"]') || null;
     const editContext = () => document.getElementById('drive-edit-context');
     const editDriveFromUrl = () => clean(new URLSearchParams(window.location.search).get('editDrive'));
     const activeEditDrive = () => clean(getForm()?.dataset.editDrive);
-    const hasVisibleEditContext = () => {
+    const exhausted = status => clean(status?.commercial_state) === 'FREE_EXHAUSTED';
+    const message = status => clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE;
+
+    function hasVisibleEditContext() {
       const context = editContext();
       if (!context || context.hidden) return false;
       if (context.offsetParent === null && getComputedStyle(context).display === 'none') return false;
       return clean(context.textContent).startsWith('Editing:');
-    };
-    const editMode = () => {
+    }
+
+    function editMode() {
       const urlEditDrive = editDriveFromUrl();
       const formEditDrive = activeEditDrive();
       return !!urlEditDrive && !!formEditDrive && urlEditDrive === formEditDrive && hasVisibleEditContext();
-    };
-    const exhausted = status => clean(status?.commercial_state) === 'FREE_EXHAUSTED';
-    const message = status => clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE;
+    }
 
-    function panel() {
-      const f = getForm();
-      if (!f) return null;
-      let p = document.getElementById('drive-entitlement-status');
-      if (!p) {
-        p = document.createElement('div');
-        p.id = 'drive-entitlement-status';
-        p.className = 'app-status drive-entitlement-status';
-        p.setAttribute('role', 'status');
-        p.hidden = true;
-        f.prepend(p);
+    function ensurePanel() {
+      const form = getForm();
+      if (!form) return null;
+      let panel = document.getElementById('drive-entitlement-status');
+      if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'drive-entitlement-status';
+        panel.className = 'app-status drive-entitlement-status';
+        panel.setAttribute('role', 'status');
+        panel.hidden = true;
+        form.prepend(panel);
       }
-      return p;
+      return panel;
     }
 
     function readableError(value) {
@@ -69,21 +84,25 @@
     }
 
     function writeDriveStatus() {
-      const s = document.getElementById('drive-status');
-      if (!s) return;
-      s.textContent = message(lastStatus);
-      s.className = 'app-status error';
+      const statusEl = document.getElementById('drive-status');
+      if (!statusEl) return;
+      statusEl.textContent = message(lastStatus);
+      statusEl.className = 'app-status error';
     }
 
     function driveControls() {
-      const f = getForm();
-      if (!f) return [];
-      return [...f.querySelectorAll('input, select, textarea')];
+      const form = getForm();
+      if (!form) return [];
+      return [...form.querySelectorAll('input, select, textarea')];
     }
 
     function rememberControl(el) {
       if (originalControlState.has(el)) return;
-      originalControlState.set(el, { disabled: !!el.disabled, readOnly: !!el.readOnly, ariaDisabled: el.getAttribute('aria-disabled') });
+      originalControlState.set(el, {
+        disabled: !!el.disabled,
+        readOnly: !!el.readOnly,
+        ariaDisabled: el.getAttribute('aria-disabled'),
+      });
     }
 
     function restoreControl(el) {
@@ -96,9 +115,9 @@
       originalControlState.delete(el);
     }
 
-    function setFieldsBlocked(unavailable) {
+    function setFieldsBlocked(blocked) {
       for (const el of driveControls()) {
-        if (unavailable) {
+        if (blocked) {
           rememberControl(el);
           el.disabled = true;
           if ('readOnly' in el) el.readOnly = true;
@@ -111,31 +130,35 @@
 
     function setElementHidden(el, hidden) {
       if (!el) return;
-      el.hidden = hidden;
-      el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
-      if (hidden) el.style.setProperty('display', 'none', 'important');
-      else el.style.removeProperty('display');
+      const hiddenValue = hidden ? 'true' : 'false';
+      if (el.hidden !== hidden) el.hidden = hidden;
+      if (el.getAttribute('aria-hidden') !== hiddenValue) el.setAttribute('aria-hidden', hiddenValue);
+      if (hidden) {
+        if (el.style.getPropertyValue('display') !== 'none') el.style.setProperty('display', 'none', 'important');
+      } else {
+        if (el.style.getPropertyValue('display')) el.style.removeProperty('display');
+      }
     }
 
-    function setActionControlsBlocked(unavailable) {
-      const b = submit();
-      if (b) {
-        b.disabled = unavailable;
-        b.setAttribute('aria-disabled', unavailable ? 'true' : 'false');
-        b.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
-        setElementHidden(b, unavailable);
+    function setActionControlsBlocked(blocked) {
+      const saveButton = submit();
+      if (saveButton) {
+        saveButton.disabled = blocked;
+        saveButton.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+        saveButton.dataset.dvEntitlementBlocked = blocked ? 'true' : 'false';
+        setElementHidden(saveButton, blocked);
       }
       const deleteButton = document.getElementById('drive-delete');
       if (deleteButton) {
-        deleteButton.dataset.dvEntitlementHidden = unavailable ? 'true' : 'false';
-        setElementHidden(deleteButton, unavailable);
+        deleteButton.dataset.dvEntitlementHidden = blocked ? 'true' : 'false';
+        setElementHidden(deleteButton, blocked);
       }
     }
 
     function blockNewDrive(blocked) {
       const unavailable = !!blocked && !editMode();
-      const f = getForm();
-      if (f) f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
+      const form = getForm();
+      if (form) form.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false';
       setFieldsBlocked(unavailable);
       setActionControlsBlocked(unavailable);
       if (unavailable) writeDriveStatus();
@@ -143,32 +166,44 @@
 
     function render(status = lastStatus) {
       lastStatus = status || lastStatus;
-      const p = panel();
-      if (!p || !lastStatus) return;
+      const panel = ensurePanel();
+      if (!panel || !lastStatus) return;
+
       const isExhausted = exhausted(lastStatus);
-      p.hidden = false;
-      p.className = `app-status drive-entitlement-status${isExhausted ? ' error' : ' success'}`;
+      panel.hidden = false;
+      panel.className = `app-status drive-entitlement-status${isExhausted ? ' error' : ' success'}`;
       if (isExhausted) {
-        p.textContent = message(lastStatus);
+        panel.textContent = message(lastStatus);
         blockNewDrive(true);
         return;
       }
+
       const remaining = Number(lastStatus.accepted_drives_remaining ?? NaN);
       const used = Number(lastStatus.accepted_drive_count ?? NaN);
       const usedText = Number.isFinite(used) ? `${used} accepted drive${used === 1 ? '' : 's'} logged` : '';
       if (clean(lastStatus.commercial_state) === 'FREE' && Number.isFinite(remaining)) {
         const freeText = `${remaining} free drive${remaining === 1 ? '' : 's'} remaining`;
-        p.textContent = usedText ? `${freeText} · ${usedText}.` : `${freeText}.`;
+        panel.textContent = usedText ? `${freeText} · ${usedText}.` : `${freeText}.`;
       } else if (clean(lastStatus.commercial_state) === 'PAID') {
-        p.textContent = usedText ? `Family license active · ${usedText}.` : 'Family license active.';
+        panel.textContent = usedText ? `Family license active · ${usedText}.` : 'Family license active.';
       } else {
-        p.textContent = usedText ? `Drive logging available · ${usedText}.` : 'Drive logging available.';
+        panel.textContent = usedText ? `Drive logging available · ${usedText}.` : 'Drive logging available.';
       }
       blockNewDrive(false);
     }
 
+    function scheduleRefresh(delay = DRIVER_RETRY_MS) {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => refresh(), delay);
+    }
+
     async function refresh() {
-      if (!app.getDriverId?.()) return null;
+      const driverId = app.getDriverId?.();
+      if (!driverId) {
+        if (driverRefreshAttempts++ < MAX_DRIVER_ATTEMPTS) scheduleRefresh();
+        return null;
+      }
+      driverRefreshAttempts = 0;
       try {
         const { data, error } = await client.rpc('get_family_entitlement_status_v1', {});
         if (error) throw error;
@@ -176,11 +211,11 @@
         render(lastStatus);
         return lastStatus;
       } catch (_) {
-        const p = panel();
-        if (p) {
-          p.hidden = false;
-          p.className = 'app-status drive-entitlement-status error';
-          p.textContent = 'Drive Venture could not load family entitlement status. New drive logging may be unavailable until this refreshes.';
+        const panel = ensurePanel();
+        if (panel) {
+          panel.hidden = false;
+          panel.className = 'app-status drive-entitlement-status error';
+          panel.textContent = 'Drive Venture could not load family entitlement status. New drive logging may be unavailable until this refreshes.';
         }
         return null;
       }
@@ -217,27 +252,30 @@
       recovery.isAmbiguous = patched;
     }
 
-    function guard(e) {
+    function guard(event) {
       if (!exhausted(lastStatus) || editMode()) return;
-      e.preventDefault();
-      e.stopImmediatePropagation();
+      event.preventDefault();
+      event.stopImmediatePropagation();
       render(lastStatus);
       writeDriveStatus();
       window.DV_DRIVE_SAVE_RECOVERY?.clear?.();
     }
 
-    function resync() {
-      if (lastStatus) render(lastStatus);
+    function queueResync() {
+      if (resyncQueued) return;
+      resyncQueued = true;
+      setTimeout(() => {
+        resyncQueued = false;
+        if (lastStatus) render(lastStatus);
+      }, 0);
     }
 
-    const observer = new MutationObserver(() => resync());
+    const observer = new MutationObserver(queueResync);
     function observeWhenReady() {
-      const f = getForm();
-      if (!f || f.dataset.dvEntitlementObserved === 'true') return;
-      f.dataset.dvEntitlementObserved = 'true';
-      observer.observe(f, { attributes: true, childList: true, subtree: true, attributeFilter: ['disabled', 'hidden', 'style', 'data-edit-drive'] });
-      const context = editContext();
-      if (context) observer.observe(context, { attributes: true, childList: true, subtree: true, attributeFilter: ['hidden', 'style'] });
+      const form = getForm();
+      if (!form || form.dataset.dvEntitlementObserved === 'true') return;
+      form.dataset.dvEntitlementObserved = 'true';
+      observer.observe(form, { attributes: true, childList: true, subtree: true, attributeFilter: ['disabled', 'hidden', 'style', 'data-edit-drive'] });
     }
 
     window.DV_ENTITLEMENTS = { refresh, render, getStatus: () => lastStatus, isEntitlementDenial: isDenial, code: EXHAUSTED_CODE };
@@ -246,15 +284,24 @@
     patchRecovery();
     document.addEventListener('submit', event => { if (event.target === getForm()) guard(event); }, true);
     document.addEventListener('click', event => { if (event.target?.closest?.('#drive-form button[type="submit"], #drive-delete')) guard(event); }, true);
-    window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh().then(resync); observeWhenReady(); });
-    window.addEventListener('dv:drive-edit-mode', () => setTimeout(resync, 0));
-    window.addEventListener('dv:dashboard-rendered', () => { setTimeout(resync, 0); observeWhenReady(); });
-    window.addEventListener('popstate', () => setTimeout(resync, 0));
-    window.addEventListener('dv:driver-changing', () => { lastStatus = null; const p = panel(); if (p) p.hidden = true; blockNewDrive(false); });
+    window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh(); observeWhenReady(); });
+    window.addEventListener('dv:drive-edit-mode', () => queueResync());
+    window.addEventListener('dv:dashboard-rendered', () => { refresh(); observeWhenReady(); });
+    window.addEventListener('popstate', () => refresh());
+    window.addEventListener('dv:driver-changing', () => {
+      lastStatus = null;
+      driverRefreshAttempts = 0;
+      const panel = ensurePanel();
+      if (panel) panel.hidden = true;
+      blockNewDrive(false);
+      scheduleRefresh(0);
+    });
+
+    ensurePanel();
     observeWhenReady();
     refresh();
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
-  install();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installWhenReady, { once: true });
+  installWhenReady();
 })();
