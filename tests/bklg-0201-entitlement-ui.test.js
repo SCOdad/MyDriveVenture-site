@@ -23,8 +23,14 @@ assert(source.includes("const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED'"), 
 assert(source.includes('recovery.isAmbiguous = patched'), 'entitlement adapter must patch save-recovery ambiguity classification');
 assert(source.includes('document.addEventListener(\'submit\', guardSubmit, true)'), 'entitlement adapter must capture blocked new-drive submits before the RPC handler');
 assert(source.includes('document.addEventListener(\'click\''), 'entitlement adapter must also intercept exhausted submit clicks in capture phase');
-assert(source.includes('submit.hidden = unavailable'), 'exhausted new-drive mode must hide the submit affordance rather than leaving a dead button');
+assert(source.includes('function setDriveFormBlocked(blocked)'), 'exhausted new-drive mode must disable the new-drive input controls, not only intercept submit');
+assert(source.includes("form.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false'"), 'drive form must expose entitlement-blocked state for UAT/debugging');
+assert(source.includes("el.dataset.dvEntitlementOriginalDisabled"), 'entitlement block must preserve prior disabled state before disabling controls');
+assert(source.includes("submit.style.setProperty('display', unavailable ? 'none' : '', unavailable ? 'important' : '')"), 'exhausted new-drive mode must force-hide the submit affordance even if CSS overrides hidden');
 assert(source.includes('function isEditMode()'), 'submit affordance blocking must distinguish new-drive mode from edit mode');
+assert(source.includes('function showEntitlementStatusMessage()'), 'blocked click/submit must show entitlement copy, not fail silently');
+assert(source.includes('new MutationObserver'), 'entitlement adapter must resync if another script re-renders or re-enables the form');
+assert(source.includes("attributeFilter: ['hidden', 'disabled', 'style', 'data-edit-drive']"), 'entitlement observer must watch affordance/edit-mode attributes');
 assert(source.includes("window.addEventListener('dv:drive-edit-mode'"), 'entitlement adapter must resync the submit affordance when edit mode changes');
 assert(source.includes("window.addEventListener('dv:dashboard-rendered'"), 'entitlement adapter must resync after dashboard/form scripts render');
 assert(source.includes("client.rpc('get_family_entitlement_status_v1'"), 'entitlement adapter must use canonical entitlement status RPC');
