@@ -42,7 +42,6 @@
 
     const submit = () => getForm()?.querySelector('button[type="submit"]') || null;
     const editContext = () => document.getElementById('drive-edit-context');
-    const editDriveFromUrl = () => clean(new URLSearchParams(window.location.search).get('editDrive'));
     const activeEditDrive = () => clean(getForm()?.dataset.editDrive);
     const exhausted = status => clean(status?.commercial_state) === 'FREE_EXHAUSTED';
     const message = status => clean(status?.message) || DEFAULT_EXHAUSTED_MESSAGE;
@@ -54,10 +53,15 @@
       return clean(context.textContent).startsWith('Editing:');
     }
 
+    function hasVisibleCancelEdit() {
+      const cancel = document.getElementById('drive-edit-cancel');
+      if (!cancel || cancel.hidden || cancel.disabled) return false;
+      if (cancel.offsetParent === null && getComputedStyle(cancel).display === 'none') return false;
+      return clean(cancel.textContent).includes('Exit edit');
+    }
+
     function editMode() {
-      const urlEditDrive = editDriveFromUrl();
-      const formEditDrive = activeEditDrive();
-      return !!urlEditDrive && !!formEditDrive && urlEditDrive === formEditDrive && hasVisibleEditContext();
+      return !!activeEditDrive() && (hasVisibleEditContext() || hasVisibleCancelEdit());
     }
 
     function ensurePanel() {
