@@ -26,7 +26,7 @@ const source = fs.readFileSync(path.join(root, 'assets/js/log-entitlements-safe.
 assert(source.includes("const EXHAUSTED_CODE = 'DV_FREE_DRIVE_LIMIT_REACHED'"), 'entitlement adapter must recognize canonical exhausted-family code');
 assert(source.includes('recovery.isAmbiguous = patched'), 'entitlement adapter must patch save-recovery ambiguity classification');
 assert(source.includes("client.rpc('get_family_entitlement_status_v1'"), 'entitlement adapter must use canonical entitlement status RPC');
-assert(source.includes("form()?.querySelector('button[type=\"submit\"]')"), 'entitlement adapter must locate the visible save/submit control');
+assert(source.includes("getForm()?.querySelector('button[type=\"submit\"]')"), 'entitlement adapter must locate the visible save/submit control');
 assert(source.includes('function setFieldsBlocked(unavailable)'), 'exhausted new-drive mode must disable the new-drive input controls, not only intercept submit');
 assert(source.includes('function setActionControlsBlocked(unavailable)'), 'exhausted new-drive mode must manage save/delete affordances');
 assert(source.includes("f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false'"), 'drive form must expose entitlement-blocked state for UAT/debugging');
