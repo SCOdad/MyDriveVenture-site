@@ -11,6 +11,8 @@ assert.match(html,/live\.css/);
 assert.match(js,/cayoyqwrmouxuttloemc/,'live preview must point explicitly to PROD');
 assert.match(js,/lifecycle-nudge-preview/);
 assert.match(js,/action:'preview'/);
+assert.match(js,/nudge-sequence-badge/,'live preview must present numeric ordering as Sequence');
+assert.match(js,/Another message selected/,'live preview must explain recipient arbitration with the selected winner');
 assert.doesNotMatch(js,/update_rule|save_template|send_live|send_test/,'live preview UI must expose no write\/send actions');
 assert.match(js,/payload\.read_only/,'live preview must fail closed unless endpoint declares read-only');
 assert.match(js,/payload\.environment!=='PROD'/,'live preview must fail closed unless endpoint declares PROD');
