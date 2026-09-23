@@ -53,17 +53,49 @@
   function render(){
     const groups=payload?.groups||[],selected=groups.reduce((n,g)=>n+(g.selected?.length||0),0),superseded=groups.reduce((n,g)=>n+(g.eligible_superseded?.length||0),0),suppressed=groups.reduce((n,g)=>n+(g.suppressed?.length||0),0);
     document.getElementById('nudge-summary').innerHTML=`<span><strong>${selected}</strong> selected</span><span><strong>${superseded}</strong> eligible but superseded</span><span><strong>${suppressed}</strong> suppressed</span><span><strong>${groups.filter(g=>g.rule.enabled).length}</strong> enabled messages</span>`;
-    document.getElementById('nudge-groups').innerHTML=groups.map(groupCard).join('')||'<p>No nudge rules configured.</p>';
+    document.getElementById('nudge-groups').innerHTML=sequenceSections(groups)||'<p>No nudge rules configured.</p>';
     document.getElementById('nudge-history').innerHTML=(payload?.recent_dispatches||[]).map(row=>`<tr><td>${esc(row.sent_at||row.created_at||'—')}</td><td>${esc(row.recipient_email_normalized||row.intended_recipient||'—')}</td><td>${esc(label(row.communication_type||row.rule_key))}</td><td>${esc(label(row.status))}${row.suppression_reason?`<small>${esc(label(row.suppression_reason))}</small>`:''}</td><td>${esc(row.template_version||'—')}</td></tr>`).join('')||'<tr><td colspan="5">No communication history yet.</td></tr>';
     document.querySelectorAll('.rule-save').forEach(b=>b.addEventListener('click',saveRule));
     document.querySelectorAll('.template-save').forEach(b=>b.addEventListener('click',saveTemplate));
     document.querySelectorAll('.template-field').forEach(el=>el.addEventListener('focus',()=>{activeEditor=el}));
     document.querySelectorAll('.token-chip').forEach(b=>b.addEventListener('click',insertToken));
+    document.querySelectorAll('.nudge-drag-handle').forEach(h=>h.addEventListener('dragstart',startDrag));
+    document.querySelectorAll('.nudge-sort-list').forEach(list=>{list.addEventListener('dragover',dragOver);list.addEventListener('drop',dropOrder)});
+    document.querySelectorAll('.nudge-move').forEach(b=>b.addEventListener('click',moveRule));
   }
 
   async function load(){const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
 
-  async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,priority=Number(card.querySelector('.rule-priority').value),enabled=card.querySelector('.rule-enabled').checked;ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,priority,enabled});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
+  async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked;ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
+
+  function startDrag(ev){draggedCard=ev.currentTarget.closest('.nudge-card');if(!draggedCard)return;draggedCard.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',draggedCard.dataset.rule||'')}
+  function dragOver(ev){
+    if(!draggedCard)return;
+    const list=ev.currentTarget;
+    if(list.dataset.sequenceClass!==draggedCard.dataset.sequenceClass)return;
+    ev.preventDefault();
+    const target=ev.target.closest('.nudge-card');
+    if(!target||target===draggedCard)return;
+    const box=target.getBoundingClientRect();
+    list.insertBefore(draggedCard,ev.clientY<box.top+box.height/2?target:target.nextSibling);
+  }
+  async function persistOrder(list){
+    const sequenceClassKey=list.dataset.sequenceClass,ordered=[...list.querySelectorAll(':scope > .nudge-card')].map(card=>card.dataset.rule);
+    const status=list.closest('.nudge-sequence-section')?.querySelector('.sequence-save-status');
+    if(status)status.textContent='Saving order…';
+    try{await api({action:'reorder_rules',sequence_class:sequenceClassKey,ordered_rule_keys:ordered});if(status)status.textContent='Order saved.';await load()}
+    catch(e){if(status)status.textContent=e.message;await load()}
+  }
+  async function dropOrder(ev){if(!draggedCard)return;const list=ev.currentTarget;if(list.dataset.sequenceClass!==draggedCard.dataset.sequenceClass)return;ev.preventDefault();draggedCard.classList.remove('dragging');draggedCard=null;await persistOrder(list)}
+  async function moveRule(ev){
+    ev.preventDefault();ev.stopPropagation();
+    const card=ev.currentTarget.closest('.nudge-card'),list=card?.parentElement,dir=Number(ev.currentTarget.dataset.dir||0);
+    if(!card||!list||!dir)return;
+    const cards=[...list.querySelectorAll(':scope > .nudge-card')],index=cards.indexOf(card),swap=cards[index+dir];
+    if(!swap)return;
+    if(dir<0)list.insertBefore(card,swap);else list.insertBefore(swap,card);
+    await persistOrder(list);
+  }
 
   async function saveTemplate(ev){const editor=ev.currentTarget.closest('.template-editor'),key=ev.currentTarget.dataset.template,status=editor.querySelector(`[data-status="${CSS.escape(key)}"]`),fields={};editor.querySelectorAll('.template-field').forEach(el=>fields[el.dataset.field]=el.value);status.textContent='Validating and saving…';ev.currentTarget.disabled=true;try{const out=await api({action:'save_template',template_key:key,...fields});status.textContent='Saved as v'+out.version.version_number+'.';await load()}catch(e){status.textContent=e.message}finally{ev.currentTarget.disabled=false}}
 
