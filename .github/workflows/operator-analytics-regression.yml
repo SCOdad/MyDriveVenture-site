@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'operator/**'
+      - 'operator/nudge/**'
       - 'assets/css/operator-dashboard.css'
       - 'staging/operator-leads/**'
       - 'staging/nudge/**'
@@ -35,6 +36,7 @@ jobs:
       - run: node --check operator/dashboard.js
       - run: node --check staging/operator-leads/leads.js
       - run: node --check staging/nudge/nudge.js
+      - run: node --check operator/nudge/nudge.js
       - run: node tests/operator-analytics-ui-regression.test.mjs
       - run: node tests/operator-leads-ui-regression.test.mjs
       - run: node tests/bklg-0130-nudge-ui.test.mjs
