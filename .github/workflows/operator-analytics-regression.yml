@@ -35,4 +35,4 @@ jobs:
       - run: node --check staging/nudge/nudge.js
       - run: node tests/operator-analytics-ui-regression.test.mjs
       - run: node tests/operator-leads-ui-regression.test.mjs
-      - run: node tests/bklg-0130-nudge-ui.test.mjs
+      - run: node tests/bklg-0130-nudge-ui.test.mjs\n          node tests/bklg-0130-prod-preview-ui.test.mjs
