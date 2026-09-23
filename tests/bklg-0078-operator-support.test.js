@@ -160,6 +160,7 @@ async function lifecycleChecks(){
       calls.push({name,args});
       if(name==='claim_authenticated_access_v1')return Promise.resolve({data:{ok:true},error:null});
       if(name==='get_authenticated_dashboard_v1')return Promise.resolve({data:JSON.parse(JSON.stringify(model)),error:null});
+      if(name==='get_authenticated_driver_overlap_summary_v1')return new Promise(()=>{});
       if(name==='get_authenticated_driver_status_v1'){
         if(args?.p_driver_id==='slow')return slowStatus;
         return Promise.resolve({data:{...statusPayload},error:null});
