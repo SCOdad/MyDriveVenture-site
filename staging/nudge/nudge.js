@@ -3,7 +3,25 @@
   if(!endpoint||!document.getElementById('nudge-dashboard'))return;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const label=s=>String(s||'').replaceAll('_',' ').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
-  let client,otpClient,token='',payload=null,activeEditor=null,otpCooldownTimer=null;
+  const SEQUENCE_CLASSES=[
+    {key:'CRITICAL_ACTIVATION',min:1,max:99,title:'Required / activation',range:'000–099'},
+    {key:'JOURNEY_PROGRESS',min:100,max:299,title:'Journey progress / licensing',range:'100–299'},
+    {key:'FEATURE_ADOPTION',min:700,max:799,title:'Feature adoption / enrichment',range:'700–799'},
+    {key:'COMMUNITY_PRODUCT',min:800,max:899,title:'Community / product asks',range:'800–899'},
+    {key:'REENGAGEMENT',min:900,max:999,title:'Re-engagement',range:'900–999'}
+  ];
+  const sequenceClass=priority=>SEQUENCE_CLASSES.find(x=>Number(priority)>=x.min&&Number(priority)<=x.max)||null;
+  function suppressionText(row){
+    const reason=String(row?.suppression_reason||'');
+    if(reason==='ANOTHER_MESSAGE_SELECTED'||reason==='LOWER_PRIORITY_SAME_RECIPIENT'){
+      const winner=row?.selected_rule_key?label(row.selected_rule_key):'another message';
+      return row?.selected_sequence?'Another message selected: '+row.selected_sequence+' · '+winner:'Another message selected for this recipient: '+winner;
+    }
+    if(reason.startsWith('SUPERSEDED_BY_HIGHER_MILESTONE:'))return 'More advanced milestone selected: '+label(reason.split(':')[1]||'');
+    if(reason==='HIGHER_PRIORITY_CERTIFICATION_PENDING')return 'Certification takes precedence';
+    return label(reason);
+  }
+  let client,otpClient,token='',payload=null,activeEditor=null,otpCooldownTimer=null,draggedCard=null;
 
   async function auth(){if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await client.auth.getSession();token=data.session?.access_token||'';return token}
   async function api(body,retried=false){await auth();if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Nudge request failed (${r.status})`),{status:r.status,validation:out.validation});return out}
