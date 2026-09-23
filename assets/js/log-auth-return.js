@@ -6,7 +6,7 @@
     const u=new URL(raw,location.origin);
     const familyReturn=u.pathname==='/family/'&&!u.hash;
     const operatorLeadsReturn=u.pathname==='/staging/operator-leads/'&&!u.search&&!u.hash;
-    const operatorNudgeReturn=u.pathname==='/staging/nudge/'&&!u.search&&!u.hash;
+    const operatorNudgeReturn=(u.pathname==='/operator/nudge/'||u.pathname==='/staging/nudge/')&&!u.search&&!u.hash;
     if(u.origin===location.origin&&(familyReturn||operatorLeadsReturn||operatorNudgeReturn))target=u.pathname+u.search;
   }catch{return}
   if(!target)return;
