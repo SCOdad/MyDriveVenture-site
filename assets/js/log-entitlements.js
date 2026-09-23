@@ -189,7 +189,7 @@
         const freeText = `${remaining} free drive${remaining === 1 ? '' : 's'} remaining`;
         panel.textContent = usedText ? `${freeText} · ${usedText}.` : `${freeText}.`;
       } else if (clean(lastStatus.commercial_state) === 'PAID') {
-        panel.textContent = usedText ? `Family license active · ${usedText}.` : 'Family license active.';
+        panel.textContent = 'Family license active.';
       } else {
         panel.textContent = usedText ? `Drive logging available · ${usedText}.` : 'Drive logging available.';
       }
