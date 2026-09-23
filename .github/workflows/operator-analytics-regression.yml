@@ -7,9 +7,11 @@ on:
       - 'assets/css/operator-dashboard.css'
       - 'staging/operator-leads/**'
       - 'staging/nudge/**'
+      - 'staging/nudge-live/**'
       - 'tests/operator-analytics-ui-regression.test.mjs'
       - 'tests/operator-leads-ui-regression.test.mjs'
       - 'tests/bklg-0130-nudge-ui.test.mjs'
+      - 'tests/bklg-0130-prod-preview-ui.test.mjs'
       - '.github/workflows/operator-analytics-regression.yml'
   push:
     branches: [main]
@@ -35,4 +37,6 @@ jobs:
       - run: node --check staging/nudge/nudge.js
       - run: node tests/operator-analytics-ui-regression.test.mjs
       - run: node tests/operator-leads-ui-regression.test.mjs
-      - run: node tests/bklg-0130-nudge-ui.test.mjs\n          node tests/bklg-0130-prod-preview-ui.test.mjs
+      - run: node tests/bklg-0130-nudge-ui.test.mjs
+      - run: node tests/bklg-0130-prod-preview-ui.test.mjs
+      - run: node --check staging/nudge-live/live.js
