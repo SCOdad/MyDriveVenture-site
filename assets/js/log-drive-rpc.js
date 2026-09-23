@@ -144,6 +144,7 @@
         if(error||!data?.ok){
           const info=await errorInfo(error,data);
           if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this save. Your original submission is protected; no different drive was sent. Try “Check unfinished save” again when the connection is stable.','error');
+          if(info.code===PRE_PERMIT_CODE){clearPending();setSubmitting(false);return showPrePermitDecision(info,{operation:'CREATE',driverId,requested:pending.requested})}
           if(info.code==='CONFLICT')return setStatus('Drive Venture found a save-identity conflict and stopped rather than risk a duplicate. Check Recent drives for this trip before taking any further action.','error');
           clearPending();setSubmitting(false);return setStatus(`Drive: ${info.message}`,'error',researchFor(info));
         }
@@ -179,6 +180,7 @@
       if(error||!data?.ok){
         const info=await errorInfo(error,data);
         if(recovery.isAmbiguous(info))return setStatus('Drive Venture still cannot confirm this edit. The original edit remains protected for another recovery check.','error');
+        if(info.code===PRE_PERMIT_CODE){clearPending();setSubmitting(false);const latest=await authoritativeDrive(driverId,pending.drive_id);if(latest.ok){app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=latest.drive;enterEdit(latest.drive,{scroll:false,preservePriorDraft:false,allowPending:true});keepRequestedLoaded(pending.requested)}return showPrePermitDecision(info,{operation:'EDIT',driverId,driveId:pending.drive_id,requested:pending.requested})}
         if(info.code==='CONFLICT'){
           const latest=await authoritativeDrive(driverId,pending.drive_id);
           if(latest.ok){app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=latest.drive;clearPending();enterEdit(latest.drive,{scroll:false,preservePriorDraft:false});setSubmitting(false)}
@@ -237,7 +239,8 @@
         app.detailDrives[id]=reread.drive;
         if(app.getDriverId()!==driverId)return;
         clearPending();clearPrePermitDecision();resetAfterEdit();setSubmitting(false);
-        return setStatus(`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated. Ready to log another drive.${nightMessage(data.night_classification)}`,'success')
+        const editSuccess=`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated. Ready to log another drive.${nightMessage(data.night_classification)}`;
+        return setStatus(data.pre_permit?.is_pre_permit?`${editSuccess} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:editSuccess,'success')
       }catch(error){
         const info=await errorInfo(error,null);
         if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the edit finished. Your exact edit is protected; choose “Check unfinished save” to resolve it safely.','error')}
