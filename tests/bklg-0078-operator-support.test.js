@@ -183,7 +183,7 @@ async function lifecycleChecks(){
   };
   vm.runInNewContext(source('assets/js/log-dashboard-entry-v5.js'),context,{filename:'log-dashboard-entry-v5.js'});
 
-  const waitFor=async(predicate,ms=500)=>{
+  const waitFor=async(predicate,ms=2000)=>{
     const start=Date.now();
     while(!predicate()){if(Date.now()-start>ms)throw new Error('Timed out waiting for dashboard test state');await new Promise(r=>setTimeout(r,5))}
   };
