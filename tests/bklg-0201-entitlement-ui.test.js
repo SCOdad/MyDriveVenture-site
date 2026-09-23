@@ -31,7 +31,7 @@ assert(source.includes('function setFieldsBlocked(unavailable)'), 'exhausted new
 assert(source.includes('function setActionControlsBlocked(unavailable)'), 'exhausted new-drive mode must manage save/delete affordances');
 assert(source.includes("f.dataset.dvEntitlementBlocked = unavailable ? 'true' : 'false'"), 'drive form must expose entitlement-blocked state for UAT/debugging');
 assert(source.includes('originalControlState = new WeakMap()'), 'entitlement block must preserve prior disabled/read-only state before disabling controls');
-assert(source.includes("b.style.setProperty('display', 'none', 'important')"), 'exhausted new-drive mode must force-hide the submit affordance even if CSS overrides hidden');
+assert(source.includes("el.style.setProperty('display', 'none', 'important')"), 'exhausted new-drive mode must force-hide blocked action controls even if CSS overrides hidden');
 assert(source.includes("document.getElementById('drive-delete')"), 'exhausted new-drive mode must hide stale delete controls outside real edit mode');
 assert(source.includes('function writeDriveStatus()'), 'blocked click/submit must show entitlement copy, not fail silently');
 assert(source.includes('new MutationObserver'), 'entitlement adapter must resync if another script re-renders or re-enables the form');
