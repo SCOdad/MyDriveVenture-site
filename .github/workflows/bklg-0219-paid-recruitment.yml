@@ -1,0 +1,71 @@
+name: BKLG-0219 Paid Recruitment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'join/recruit/**'
+      - 'assets/css/recruit.css'
+      - 'assets/js/join-v2.js'
+      - 'tests/bklg-0197-onboarding-v2.test.js'
+      - 'tests/bklg-0219-paid-recruitment.test.js'
+      - 'tests/e2e/bklg-0219-paid-recruitment.spec.mjs'
+      - '.github/workflows/bklg-0219-paid-recruitment.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Paid recruitment contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - name: Verify acquisition and landing contracts
+        run: node --test tests/bklg-0197-onboarding-v2.test.js tests/bklg-0219-paid-recruitment.test.js
+      - name: Verify JavaScript syntax
+        run: npm run test:js
+
+  browser:
+    name: Paid recruitment Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-bklg-0219-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/join/recruit/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-bklg-0219-http.log
+          exit 1
+      - name: Run paid recruitment browser checks
+        run: npx playwright test tests/e2e/bklg-0219-paid-recruitment.spec.mjs --retries=0
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bklg-0219-playwright-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 9
