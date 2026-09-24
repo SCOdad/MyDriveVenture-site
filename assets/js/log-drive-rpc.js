@@ -49,23 +49,23 @@
     clearPrePermitDecision();
     const panel=document.createElement('div');
     panel.id='drive-prepermit-decision';
-    panel.className='app-status error';
+    panel.className='drive-prepermit-warning';
     panel.setAttribute('role','alert');
-    const title=document.createElement('strong');title.textContent='This drive is before the permit/current-stage effective date.';
+    const eyebrow=document.createElement('div');eyebrow.className='drive-prepermit-eyebrow';eyebrow.textContent='Before permit date';
+    const title=document.createElement('strong');title.textContent='This drive can be saved, but it will not count.';
     const detail=document.createElement('p');
     detail.textContent=info?.license_stage_start_date
-      ? `The recorded drive date is ${info.drive_date||requested.drive_date}; the current stage begins ${info.license_stage_start_date}. This record can be kept for history, but it will count zero toward licensing totals.`
-      : 'This record can be kept for history, but it will count zero toward licensing totals.';
-    const actions=document.createElement('div');actions.className='form-row';
-    const editButton=document.createElement('button');editButton.type='button';editButton.className='button secondary';editButton.textContent='Edit drive date/time';
-    editButton.addEventListener('click',()=>{clearPrePermitDecision();field('drive-date')?.focus();setStatus('Adjust the drive date/time, then save again.','error')});
-    const licenseLink=document.createElement('a');licenseLink.className='button secondary';licenseLink.textContent='Update permit date';licenseLink.target='_blank';licenseLink.rel='noopener';licenseLink.href=`/profile/?driver=${encodeURIComponent(driverId)}#license-card`;
-    const keepButton=document.createElement('button');keepButton.type='button';keepButton.className='button primary';keepButton.textContent='Keep as non-certifying';
-    keepButton.addEventListener('click',()=>{prePermitAcknowledgement=prePermitKey(operation,driverId,driveId,requested);panel.hidden=true;form.requestSubmit()});
-    actions.append(editButton,licenseLink,keepButton);
-    panel.append(title,detail,actions);
+      ? `The recorded drive date is ${info.drive_date||requested.drive_date}; the current stage begins ${info.license_stage_start_date}. Drive Venture will keep this drive in the log, but it will count zero toward licensing totals and certification.`
+      : 'Drive Venture will keep this drive in the log, but it will count zero toward licensing totals and certification.';
+    const actions=document.createElement('div');actions.className='form-row drive-prepermit-actions';
+    const backButton=document.createElement('button');backButton.type='button';backButton.className='button secondary';backButton.textContent='Go back';
+    backButton.addEventListener('click',()=>{clearPrePermitDecision();field('drive-date')?.focus();setStatus('Drive not saved. You can change the date or other details and try again.','error')});
+    const proceedButton=document.createElement('button');proceedButton.type='button';proceedButton.className='button primary';proceedButton.textContent='Proceed anyway';
+    proceedButton.addEventListener('click',()=>{prePermitAcknowledgement=prePermitKey(operation,driverId,driveId,requested);panel.hidden=true;form.requestSubmit()});
+    actions.append(backButton,proceedButton);
+    panel.append(eyebrow,title,detail,actions);
     statusEl.before(panel);
-    setStatus('Choose how to handle this pre-permit drive. Nothing has been saved yet.','error');
+    setStatus('Pre-permit drive warning: go back to make changes, or proceed knowing this drive will not count.','error');
     return false;
   }
   async function withSaveTimeout(promise,message='Drive save outcome is unknown.'){
