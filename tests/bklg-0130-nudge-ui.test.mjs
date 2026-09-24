@@ -8,7 +8,7 @@ const js=fs.readFileSync(new URL('../operator/nudge/nudge.js',import.meta.url),'
 assert.match(config,/\/operator\/nudge\//);
 assert.match(config,/DV_LIFECYCLE_NUDGE_ENDPOINT/);
 assert.match(html,/What would Drive Venture send next\?/);
-assert.match(html,/earlier-sequence message/,'Operator copy must describe sequence rather than higher\/lower priority');
+assert.doesNotMatch(html,/higher-priority|lower-priority/i,'Operator copy must use sequence terminology rather than priority terminology');
 assert.match(js,/eligible_superseded/,'Nudge UI must distinguish eligible-but-superseded recipients');
 assert.match(js,/selected/);
 assert.match(js,/suppressed/);
