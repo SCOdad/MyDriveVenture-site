@@ -11,6 +11,13 @@ on:
       - 'tests/bklg-0219-paid-recruitment.test.js'
       - 'tests/e2e/bklg-0219-paid-recruitment.spec.mjs'
       - '.github/workflows/bklg-0219-paid-recruitment.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'join/recruit/**'
+      - 'assets/css/recruit.css'
+      - 'assets/js/join-v2.js'
+      - '.github/workflows/bklg-0219-paid-recruitment.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,6 +26,7 @@ permissions:
 jobs:
   contract:
     name: Paid recruitment contract
+    if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +41,7 @@ jobs:
 
   browser:
     name: Paid recruitment Playwright
+    if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -69,3 +78,47 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
           compression-level: 9
+
+  production-readonly:
+    name: Production route and performance
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wait for production deployment
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            body="$(curl --fail --silent --show-error --max-time 20 https://mydriveventure.com/join/recruit/ || true)"
+            if printf '%s' "$body" | grep -q 'Make the practice hours feel like progress.'; then
+              printf '%s' "$body" > /tmp/recruit.html
+              exit 0
+            fi
+            sleep 4
+          done
+          echo 'Production route did not expose the BKLG-0219 landing page in time.'
+          exit 1
+      - name: Verify deployed conversion surface
+        shell: bash
+        run: |
+          grep -q 'data-acquisition-source="PAID_RECRUITMENT"' /tmp/recruit.html
+          grep -q 'meta-pixel.js' /tmp/recruit.html
+          if grep -q '<nav' /tmp/recruit.html; then
+            echo 'Global navigation unexpectedly present.'
+            exit 1
+          fi
+      - name: Measure production response time
+        shell: bash
+        run: |
+          for sample in 1 2 3; do
+            curl --fail --silent --show-error --output /dev/null --max-time 20 --write-out '%{time_total}\n' https://mydriveventure.com/join/recruit/
+          done | tee /tmp/recruit-times.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          values=sorted(float(v) for v in Path('/tmp/recruit-times.txt').read_text().split())
+          median=values[len(values)//2]
+          print(f'BKLG-0219 production response samples: {values}')
+          print(f'BKLG-0219 production median response time: {median:.3f}s')
+          if median > 2.5:
+              raise SystemExit(f'Production median {median:.3f}s exceeds the 2.5s recommendation')
+          PY
