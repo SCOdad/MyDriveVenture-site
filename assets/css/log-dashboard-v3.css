@@ -7,3 +7,8 @@
 /* Keep long driver names from displacing the dashboard below the first viewport. */
 .app-topline{gap:24px}.app-topline>div:first-child{min-width:0;flex:1}.app-topline h1{max-width:100%;overflow-wrap:anywhere;font-size:64px;line-height:1}
 @media(max-width:760px){.app-topline h1{font-size:36px;line-height:1.05}}
+
+/* BKLG-0195 pre-permit warning mirrors overlap treatment with red semantics. */
+.drive-prepermit-warning{margin:.35rem 0 1rem;padding:0;border:2px solid #d94343;border-left:6px solid #d94343;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%);color:#f8f4e9}.drive-prepermit-eyebrow{margin:0 0 .8rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 Orbitron,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}.drive-prepermit-warning>strong,.drive-prepermit-warning>p,.drive-prepermit-actions{margin-left:.8rem;margin-right:.8rem}.drive-prepermit-warning>strong{display:block}.drive-prepermit-warning>p{margin-top:.45rem;margin-bottom:.9rem;color:#b7c0c5;line-height:1.45}.drive-prepermit-actions{margin-bottom:.8rem}
+
+.drive-item-prepermit{position:relative;display:block!important;border:2px solid #d94343!important;border-left:6px solid #d94343!important;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%)!important}.drive-item-prepermit .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}.drive-item-prepermit .drive-prepermit-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 Orbitron,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}

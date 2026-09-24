@@ -6,3 +6,10 @@
 
 /* BKLG-0005 overlap treatment shared by DV00 and DV03. */
 .drive-item-overlap{position:relative;display:block!important;border:2px solid #f8ba20!important;border-left:6px solid #f8ba20!important;background:linear-gradient(90deg,rgba(248,186,32,.18),rgba(23,34,43,.96) 42%)!important}.drive-item-overlap .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}.drive-overlap-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#f8ba20;color:#17130a;font:800 .66rem/1.25 var(--heading-font);letter-spacing:.04em;text-transform:uppercase}.dv03-body .drive-item-overlap{box-shadow:inset 4px 0 0 #f8ba20,0 0 0 1px rgba(248,186,32,.28)}.dv03-body .drive-overlap-eyebrow{background:#f8ba20;color:#111820;text-shadow:none}
+
+/* BKLG-0195 pre-permit warning mirrors overlap treatment but uses stop/red semantics. */
+.drive-prepermit-warning{margin:.35rem 0 1rem;padding:0;border:2px solid #d94343;border-left:6px solid #d94343;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%);color:var(--warm-white)}
+.drive-prepermit-eyebrow{margin:0 0 .8rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 var(--heading-font);letter-spacing:.04em;text-transform:uppercase}
+.drive-prepermit-warning>strong,.drive-prepermit-warning>p,.drive-prepermit-actions{margin-left:.8rem;margin-right:.8rem}.drive-prepermit-warning>strong{display:block}.drive-prepermit-warning>p{margin-top:.45rem;margin-bottom:.9rem;color:var(--silver);line-height:1.45}.drive-prepermit-actions{margin-bottom:.8rem}
+
+.drive-item-prepermit{position:relative;display:block!important;border:2px solid #d94343!important;border-left:6px solid #d94343!important;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%)!important}.drive-item-prepermit .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}.drive-item-prepermit .drive-prepermit-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 var(--heading-font);letter-spacing:.04em;text-transform:uppercase}
