@@ -24,6 +24,12 @@ assert.match(js,/action:'reorder_rules'/,'Nudge UI must reorder through the serv
 assert.match(js,/SEQUENCE_CLASSES/,'Nudge UI must present the approved sequence classes');
 assert.match(js,/nudge-drag-handle/,'Nudge UI must expose drag-to-reorder controls');
 assert.match(js,/Another message selected/,'Nudge UI must use recipient-friendly supersession language');
+assert.match(js,/WEEKLY_COMMUNICATION_CAP_USED/,'Operator must explain weekly-cap suppression');
+assert.match(js,/Weekly Certification/,'Certification suppression copy must identify the weekly certification workflow');
+assert.match(js,/system-managed-badge/,'Sequence 10 must be visibly system-managed');
+assert.match(js,/data-reorderable="\$\{managed\?'false':'true'\}"/,'System communications must be excluded from reorder persistence');
+assert.match(js,/Rule controls/,'System communication rule controls must be presented read-only');
+assert.match(js,/Monday · 3 PM local/,'Certification schedule must be visible in Operator');
 assert.doesNotMatch(js,/rule-priority/,'Nudge UI must not require raw priority-number editing');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator Nudge UI must not expose delivery controls');
 assert.match(html,/id="nudge-signin-email"/,'Dedicated Nudge surface must provide its own Operator email sign-in field');
