@@ -31,6 +31,17 @@ test('canonical join records view and submits to the acquisition endpoint',()=>{
   assert.match(js,/action:'view'/);
   assert.match(js,/action:'submit'/);
   assert.match(js,/crypto\.randomUUID/);
+  assert.match(js,/form\.dataset\.acquisitionSource\|\|'JOIN_V2'/);
+  assert.match(js,/action:'view',flow_id:flowId,source/);
+  assert.match(js,/action:'submit',flow_id:flowId,source,name,email,website/);
+});
+
+test('paid recruitment route reuses the canonical acquisition client with explicit source attribution',()=>{
+  const html=read('join/recruit/index.html');
+  assert.match(html,/id="dv-acquisition-v2-form"/);
+  assert.match(html,/data-acquisition-source="PAID_RECRUITMENT"/);
+  assert.match(html,/assets\/js\/join-v2\.js/);
+  assert.doesNotMatch(html,/<nav\b/i);
 });
 
 test('welcome handoff persists acquisition flow before returning to Family Hub',()=>{
