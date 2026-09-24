@@ -35,5 +35,6 @@
   function fillCockpit(progress){const xp=document.getElementById('dash-xp');if(xp)xp.textContent=String(progress.xp||0)}
   window.addEventListener('dv:driver-changing',()=>{weatherToken+=1;lastWeatherKey=''});
   window.addEventListener('dv:dashboard-rendered',e=>{const {model,driverId,driver,progress}=e.detail||{};if(!model||!driverId||!driver)return;lastModel=model;lastDriverId=driverId;lastDriver=driver;showAllAwards=false;showAllDrives=false;lastWeatherKey='';ensureWeather();fillCockpit(progress||{});renderAwards(model,driverId,driver);renderDrives(model,driverId,driver);renderWeather(driver)});
+  window.addEventListener('dv:historical-vehicles-updated',e=>{const {model,driverId}=e.detail||{};if(!model||!lastDriver||String(driverId)!==String(lastDriverId))return;lastModel=model;renderDrives(model,lastDriverId,lastDriver)});
   window.addEventListener('dv:reveal-drive',e=>{const {driverId,driveId}=e.detail||{};if(!driveId||!lastModel||String(driverId)!==String(lastDriverId)||!lastDriver)return;showAllDrives=true;renderDrives(lastModel,lastDriverId,lastDriver);requestAnimationFrame(()=>requestAnimationFrame(()=>{const row=document.querySelector(`[data-drive-detail-id="${CSS.escape(String(driveId))}"]`);if(!row)return;row.scrollIntoView({behavior:'smooth',block:'center'});row.focus({preventScroll:true})}))});
 })();
