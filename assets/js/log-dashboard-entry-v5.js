@@ -179,6 +179,18 @@
     return true;
   }
 
+  async function hydrateHistoricalVehicles(epoch=modelEpoch){
+    try{
+      const result=await Promise.race([
+        client.rpc('get_authenticated_historical_vehicles_v1'),
+        new Promise(resolve=>setTimeout(()=>resolve({data:null,error:{message:'Historical vehicle lookup timed out'}}),3000))
+      ]);
+      if(epoch!==modelEpoch||result?.error||!Array.isArray(result?.data))return;
+      model.historical_vehicles=result.data;
+      window.dispatchEvent(new CustomEvent('dv:historical-vehicles-updated',{detail:{model,driverId:currentDriverId,epoch}}));
+    }catch(_){ }
+  }
+
   async function loadDashboard({quiet=false}={}){
     if(!quiet)status(loginStatus,'Access linked. Loading dashboard…');
     const result=await Promise.race([client.rpc('get_authenticated_dashboard_v1'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Dashboard request timed out after 15 seconds.')),15000))]);
@@ -186,8 +198,7 @@
     if(error)throw new Error(`Dashboard: ${error.message||'Unable to load dashboard'}`);
     if(!data||data.ok!==true)throw new Error(`Dashboard: ${data?.error||'Unable to load dashboard'}`);
     model=data;
-    const historicalResult=await client.rpc('get_authenticated_historical_vehicles_v1');
-    model.historical_vehicles=!historicalResult.error&&Array.isArray(historicalResult.data)?historicalResult.data:[];
+    model.historical_vehicles=[];
     modelEpoch+=1;
     model.license_statuses=[];
     licenseStatusCache.clear();
@@ -199,6 +210,7 @@
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
     if(driverSwitcher)driverSwitcher.hidden=model.drivers.length<=1;
     await selectDriver(currentDriverId,{persist:false});
+    hydrateHistoricalVehicles(modelEpoch).catch(()=>{});
     return model;
   }
 
