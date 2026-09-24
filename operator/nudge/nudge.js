@@ -79,7 +79,7 @@
   async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked;ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
   async function saveRuntime(){
     const toggle=document.getElementById('nudge-runtime-enabled'),button=document.getElementById('nudge-runtime-save'),status=document.getElementById('nudge-runtime-status'),enabled=Boolean(toggle?.checked);
-    if(enabled&&!confirm('Enable live lifecycle nudge delivery? The server will allow send_live requests once this is active.')){toggle.checked=false;return}
+    if(enabled&&!confirm('Enable live lifecycle nudge delivery? Once active, authorized server delivery requests will be allowed.')){toggle.checked=false;return}
     button.disabled=true;if(status)status.textContent=enabled?'Enabling live lifecycle delivery…':'Pausing live lifecycle delivery…';
     try{await api({action:'set_runtime_enabled',enabled});if(status)status.textContent=enabled?'Lifecycle delivery is active.':'Lifecycle delivery is paused.';await load()}
     catch(e){if(status)status.textContent=e.message;await load()}
