@@ -240,7 +240,7 @@
         if(app.getDriverId()!==driverId)return;
         clearPending();clearPrePermitDecision();resetAfterEdit();setSubmitting(false);
         const editSuccess=`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated. Ready to log another drive.${nightMessage(data.night_classification)}`;
-        return setStatus(data.pre_permit?.is_pre_permit?`${editSuccess} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:editSuccess,'success')
+        if(data.pre_permit?.is_pre_permit)window.dispatchEvent(new CustomEvent('dv:reveal-drive',{detail:{driverId,driveId:id}}));return setStatus(data.pre_permit?.is_pre_permit?`${editSuccess} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:editSuccess,'success')
       }catch(error){
         const info=await errorInfo(error,null);
         if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the edit finished. Your exact edit is protected; choose “Check unfinished save” to resolve it safely.','error')}
@@ -264,7 +264,7 @@
       await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));const reread=await authoritativeDriveAfterSave(driverId,id);
       if(!reread.ok){setFields(requested);setRecoveryPending(true);return setStatus(`Drive: ${reread.error}`,'error')}
       if(!same(requested,reread.drive)){setFields(requested);setRecoveryPending(true);return setStatus('Drive was saved, but the authoritative values did not match your submission. Your submitted values and recovery record remain protected.','error')}
-      app.detailDrives[id]=reread.drive;clearPending();clearSubmissionId();resetAfterCreate();clearPrePermitDecision();setSubmitting(false);setStatus(data.pre_permit?.is_pre_permit?`${successMessage} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:successMessage,'success')
+      app.detailDrives[id]=reread.drive;clearPending();clearSubmissionId();resetAfterCreate();clearPrePermitDecision();setSubmitting(false);if(data.pre_permit?.is_pre_permit)window.dispatchEvent(new CustomEvent('dv:reveal-drive',{detail:{driverId,driveId:id}}));setStatus(data.pre_permit?.is_pre_permit?`${successMessage} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:successMessage,'success')
     }catch(error){
       const info=await errorInfo(error,null);
       if(recovery.isAmbiguous(info)){setRecoveryPending(true);return setStatus('Drive Venture could not confirm whether the drive finished saving. Your exact submission is protected; choose “Check unfinished save” to resolve it without creating a duplicate.','error')}
