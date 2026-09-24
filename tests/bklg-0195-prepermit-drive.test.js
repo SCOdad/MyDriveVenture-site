@@ -39,3 +39,13 @@ test('BKLG-0195 preserves overlap and save-recovery behavior around the pre-perm
   assert.match(rpc,/showPrePermitDecision\(info,\{operation:'CREATE'/);
   assert.match(rpc,/showPrePermitDecision\(info,\{operation:'EDIT'/);
 });
+
+test('BKLG-0195 trip archive flags pre-permit drives and reveals the saved row',()=>{
+  const archive=fs.readFileSync('assets/js/log-prepilot-v2.js','utf8');
+  assert.match(archive,/drive-item-prepermit/);
+  assert.match(archive,/Before permit date · Does not count/);
+  assert.match(archive,/dv:reveal-drive/);
+  assert.match(archive,/showAllDrives=true/);
+  assert.match(archive,/scrollIntoView\(\{behavior:'smooth',block:'center'\}\)/);
+  assert.match(rpc,/new CustomEvent\('dv:reveal-drive'/);
+});
