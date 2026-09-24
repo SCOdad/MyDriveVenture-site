@@ -18,6 +18,9 @@ test('BKLG-0111 trip archive resolves historical vehicle names before generic fa
   assert.match(archive,/v\?\.name\|\|'Vehicle'/);
 });
 
-test('BKLG-0111 historical vehicle lookup failure does not block dashboard access',()=>{
-  assert.match(dashboard,/model\.historical_vehicles=!historicalResult\.error&&Array\.isArray\(historicalResult\.data\)\?historicalResult\.data:\[\]/);
+test('BKLG-0111 historical vehicle hydration is bounded and does not block dashboard access',()=>{
+  assert.match(dashboard,/hydrateHistoricalVehicles\(modelEpoch\)\.catch\(\(\)=>\{\}\)/);
+  assert.match(dashboard,/Historical vehicle lookup timed out/);
+  assert.match(dashboard,/dv:historical-vehicles-updated/);
+  assert.match(archive,/dv:historical-vehicles-updated/);
 });
