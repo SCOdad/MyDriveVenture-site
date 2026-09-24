@@ -19,7 +19,11 @@
       return row?.selected_sequence?'Another message selected: '+row.selected_sequence+' · '+winner:'Another message selected for this recipient: '+winner;
     }
     if(reason.startsWith('SUPERSEDED_BY_HIGHER_MILESTONE:'))return 'More advanced milestone selected: '+label(reason.split(':')[1]||'');
-    if(reason==='HIGHER_PRIORITY_CERTIFICATION_PENDING')return 'Certification takes precedence';
+    if(reason==='WEEKLY_COMMUNICATION_CAP_USED'){
+      const slot=row?.weekly_slot||{},when=slot.sent_at||slot.created_at||'';
+      if(slot.workflow==='DRIVE_CERTIFICATION')return 'Weekly communication slot already used — Weekly Certification'+(when?' · '+when:'');
+      return 'Weekly communication slot already used'+(slot.communication_type?' — '+label(slot.communication_type):'')+(when?' · '+when:'');
+    }
     return label(reason);
   }
   let client,otpClient,token='',payload=null,activeEditor=null,otpCooldownTimer=null,draggedCard=null;
@@ -40,8 +44,13 @@
   }
 
   function groupCard(group){
-    const r=group.rule,selected=group.selected||[],superRows=group.eligible_superseded||[],suppressed=group.suppressed||[],cls=sequenceClass(r.priority);
-    return `<details class="nudge-card" data-rule="${esc(r.rule_key)}" data-sequence-class="${esc(cls?.key||'UNCLASSIFIED')}" ${selected.length?'open':''}><summary><span class="nudge-reorder-controls"><button type="button" class="nudge-drag-handle" draggable="true" aria-label="Drag to reorder ${esc(r.display_name)}" title="Drag to reorder">↕</button><button type="button" class="nudge-move" data-dir="-1" aria-label="Move earlier">↑</button><button type="button" class="nudge-move" data-dir="1" aria-label="Move later">↓</button></span><span class="nudge-sequence-badge" title="Sequence">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${group.managed_externally?' · Delivery handled by certification workflow':''}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count superseded">${superRows.length} superseded</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body"><div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save rule</button></div><p class="meta">Trigger: ${esc(label(r.trigger_primitive))} · Post-send: ${esc(label(r.post_send_behavior))}${r.once_only?' · Once only':''}</p>${templateEditor(group)}<div class="recipient-columns"><div class="recipient-box"><h4>Selected (${selected.length})</h4>${recipientList(selected,'selected')}</div><div class="recipient-box"><h4>Eligible but superseded (${superRows.length})</h4>${recipientList(superRows,'superseded')}</div><div class="recipient-box"><h4>Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'suppressed')}</div></div></div></details>`;
+    const r=group.rule,selected=group.selected||[],superRows=group.eligible_superseded||[],suppressed=group.suppressed||[],cls=sequenceClass(r.priority),managed=Boolean(group.managed_externally);
+    const reorder=managed?'<span class="system-managed-badge" title="System communication">SYSTEM</span>':`<span class="nudge-reorder-controls"><button type="button" class="nudge-drag-handle" draggable="true" aria-label="Drag to reorder ${esc(r.display_name)}" title="Drag to reorder">↕</button><button type="button" class="nudge-move" data-dir="-1" aria-label="Move earlier">↑</button><button type="button" class="nudge-move" data-dir="1" aria-label="Move later">↓</button></span>`;
+    const config=managed
+      ?`<div class="nudge-config system-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Rule controls<span class="system-readonly">Read only</span></label><span class="meta">Monday · 3 PM local · certification workflow</span></div>`
+      :`<div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save rule</button></div>`;
+    const ruleMeta=managed?'System communication · rule and schedule are fixed · message template remains editable':`Trigger: ${label(r.trigger_primitive)} · Post-send: ${label(r.post_send_behavior)}${r.once_only?' · Once only':''}`;
+    return `<details class="nudge-card ${managed?'system-communication':''}" data-rule="${esc(r.rule_key)}" data-sequence-class="${esc(cls?.key||'UNCLASSIFIED')}" data-reorderable="${managed?'false':'true'}" ${selected.length?'open':''}><summary>${reorder}<span class="nudge-sequence-badge" title="Sequence">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${managed?' · System-managed weekly certification':''}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count superseded">${superRows.length} superseded</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body">${config}<p class="meta">${esc(ruleMeta)}</p>${templateEditor(group)}<div class="recipient-columns"><div class="recipient-box"><h4>Selected (${selected.length})</h4>${recipientList(selected,'selected')}</div><div class="recipient-box"><h4>Eligible but superseded (${superRows.length})</h4>${recipientList(superRows,'superseded')}</div><div class="recipient-box"><h4>Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'suppressed')}</div></div></div></details>`;
   }
 
   function sequenceSections(groups){
@@ -98,7 +107,7 @@
     list.insertBefore(draggedCard,ev.clientY<box.top+box.height/2?target:target.nextSibling);
   }
   async function persistOrder(list){
-    const sequenceClassKey=list.dataset.sequenceClass,ordered=[...list.querySelectorAll(':scope > .nudge-card')].map(card=>card.dataset.rule);
+    const sequenceClassKey=list.dataset.sequenceClass,ordered=[...list.querySelectorAll(':scope > .nudge-card[data-reorderable="true"]')].map(card=>card.dataset.rule);
     const status=list.closest('.nudge-sequence-section')?.querySelector('.sequence-save-status');
     if(status)status.textContent='Saving order…';
     try{await api({action:'reorder_rules',sequence_class:sequenceClassKey,ordered_rule_keys:ordered});if(status)status.textContent='Order saved.';await load()}
@@ -109,7 +118,7 @@
     ev.preventDefault();ev.stopPropagation();
     const card=ev.currentTarget.closest('.nudge-card'),list=card?.parentElement,dir=Number(ev.currentTarget.dataset.dir||0);
     if(!card||!list||!dir)return;
-    const cards=[...list.querySelectorAll(':scope > .nudge-card')],index=cards.indexOf(card),swap=cards[index+dir];
+    const cards=[...list.querySelectorAll(':scope > .nudge-card[data-reorderable="true"]')],index=cards.indexOf(card),swap=cards[index+dir];
     if(!swap)return;
     if(dir<0)list.insertBefore(card,swap);else list.insertBefore(swap,card);
     await persistOrder(list);
