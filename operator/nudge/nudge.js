@@ -20,6 +20,11 @@
     }
     if(reason.startsWith('SUPERSEDED_BY_HIGHER_MILESTONE:'))return 'More advanced milestone selected: '+label(reason.split(':')[1]||'');
     if(reason==='HIGHER_PRIORITY_CERTIFICATION_PENDING')return 'Certification takes precedence';
+    if(reason==='WEEKLY_COMMUNICATION_CAP_USED'){
+      const workflow=row?.blocking_workflow==='DRIVE_CERTIFICATION'?'Weekly Certification':label(row?.blocking_communication_type||row?.blocking_workflow||'another automated communication');
+      const when=row?.blocking_at?' on '+String(row.blocking_at):'';
+      return 'Weekly communication slot already used — '+workflow+when;
+    }
     return label(reason);
   }
   let client,otpClient,token='',payload=null,activeEditor=null,otpCooldownTimer=null,draggedCard=null;
@@ -40,8 +45,10 @@
   }
 
   function groupCard(group){
-    const r=group.rule,selected=group.selected||[],superRows=group.eligible_superseded||[],suppressed=group.suppressed||[],cls=sequenceClass(r.priority);
-    return `<details class="nudge-card" data-rule="${esc(r.rule_key)}" data-sequence-class="${esc(cls?.key||'UNCLASSIFIED')}" ${selected.length?'open':''}><summary><span class="nudge-reorder-controls"><button type="button" class="nudge-drag-handle" draggable="true" aria-label="Drag to reorder ${esc(r.display_name)}" title="Drag to reorder">↕</button><button type="button" class="nudge-move" data-dir="-1" aria-label="Move earlier">↑</button><button type="button" class="nudge-move" data-dir="1" aria-label="Move later">↓</button></span><span class="nudge-sequence-badge" title="Sequence">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${group.managed_externally?' · Delivery handled by certification workflow':''}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count superseded">${superRows.length} superseded</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body"><div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save rule</button></div><p class="meta">Trigger: ${esc(label(r.trigger_primitive))} · Post-send: ${esc(label(r.post_send_behavior))}${r.once_only?' · Once only':''}</p>${templateEditor(group)}<div class="recipient-columns"><div class="recipient-box"><h4>Selected (${selected.length})</h4>${recipientList(selected,'selected')}</div><div class="recipient-box"><h4>Eligible but superseded (${superRows.length})</h4>${recipientList(superRows,'superseded')}</div><div class="recipient-box"><h4>Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'suppressed')}</div></div></div></details>`;
+    const r=group.rule,selected=group.selected||[],superRows=group.eligible_superseded||[],suppressed=group.suppressed||[],cls=sequenceClass(r.priority),managed=Boolean(group.managed_externally);
+    const controls=managed?'<span class="system-lock" title="System communication rule is fixed">🔒</span>':`<span class="nudge-reorder-controls"><button type="button" class="nudge-drag-handle" draggable="true" aria-label="Drag to reorder ${esc(r.display_name)}" title="Drag to reorder">↕</button><button type="button" class="nudge-move" data-dir="-1" aria-label="Move earlier">↑</button><button type="button" class="nudge-move" data-dir="1" aria-label="Move later">↓</button></span>`;
+    const ruleControls=managed?`<div class="system-managed-rule"><strong>System communication</strong><span>Fixed at Sequence ${esc(r.priority)} · ${esc(group.schedule_label||'System-managed schedule')}</span><small>Rule, trigger, sequence, and enabled state are read-only. Message template remains editable.</small></div>`:`<div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save rule</button></div>`;
+    return `<details class="nudge-card${managed?' system-managed':''}" data-rule="${esc(r.rule_key)}" data-sequence-class="${esc(cls?.key||'UNCLASSIFIED')}" data-system-managed="${managed?'true':'false'}" ${selected.length?'open':''}><summary>${controls}<span class="nudge-sequence-badge" title="Sequence">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${managed?' · System communication · '+esc(group.schedule_label||'Monday · 3 PM local'):''}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count superseded">${superRows.length} superseded</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body">${ruleControls}<p class="meta">Trigger: ${esc(label(r.trigger_primitive))} · Post-send: ${esc(label(r.post_send_behavior))}${r.once_only?' · Once only':''}</p>${templateEditor(group)}<div class="recipient-columns"><div class="recipient-box"><h4>Selected (${selected.length})</h4>${recipientList(selected,'selected')}</div><div class="recipient-box"><h4>Eligible but superseded (${superRows.length})</h4>${recipientList(superRows,'superseded')}</div><div class="recipient-box"><h4>Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'suppressed')}</div></div></div></details>`;
   }
 
   function sequenceSections(groups){
@@ -50,7 +57,8 @@
       const rows=groups.filter(g=>Number(g.rule.priority)>=cls.min&&Number(g.rule.priority)<=cls.max).sort((a,b)=>a.rule.priority-b.rule.priority);
       rows.forEach(g=>known.add(g.rule.rule_key));
       if(!rows.length)return '';
-      return `<section class="nudge-sequence-section" data-sequence-class="${esc(cls.key)}"><div class="sequence-section-head"><div><h3>${esc(cls.title)}</h3><p class="meta">Sequence ${esc(cls.range)} · drag within this class to reorder</p></div><span class="sequence-save-status" role="status"></span></div><div class="nudge-sort-list" data-sequence-class="${esc(cls.key)}">${rows.map(groupCard).join('')}</div></section>`;
+      const hasManaged=rows.some(g=>g.managed_externally);
+      return `<section class="nudge-sequence-section" data-sequence-class="${esc(cls.key)}"><div class="sequence-section-head"><div><h3>${esc(cls.title)}</h3><p class="meta">Sequence ${esc(cls.range)} · ${hasManaged?'system communications are fixed; drag lifecycle rules to reorder':'drag within this class to reorder'}</p></div><span class="sequence-save-status" role="status"></span></div><div class="nudge-sort-list" data-sequence-class="${esc(cls.key)}">${rows.map(groupCard).join('')}</div></section>`;
     }).join('');
     const extra=groups.filter(g=>!known.has(g.rule.rule_key));
     return sections+(extra.length?`<section class="nudge-sequence-section"><h3>Unclassified</h3>${extra.map(groupCard).join('')}</section>`:'');
@@ -98,7 +106,7 @@
     list.insertBefore(draggedCard,ev.clientY<box.top+box.height/2?target:target.nextSibling);
   }
   async function persistOrder(list){
-    const sequenceClassKey=list.dataset.sequenceClass,ordered=[...list.querySelectorAll(':scope > .nudge-card')].map(card=>card.dataset.rule);
+    const sequenceClassKey=list.dataset.sequenceClass,ordered=[...list.querySelectorAll(':scope > .nudge-card:not([data-system-managed="true"])')].map(card=>card.dataset.rule);
     const status=list.closest('.nudge-sequence-section')?.querySelector('.sequence-save-status');
     if(status)status.textContent='Saving order…';
     try{await api({action:'reorder_rules',sequence_class:sequenceClassKey,ordered_rule_keys:ordered});if(status)status.textContent='Order saved.';await load()}
@@ -109,7 +117,8 @@
     ev.preventDefault();ev.stopPropagation();
     const card=ev.currentTarget.closest('.nudge-card'),list=card?.parentElement,dir=Number(ev.currentTarget.dataset.dir||0);
     if(!card||!list||!dir)return;
-    const cards=[...list.querySelectorAll(':scope > .nudge-card')],index=cards.indexOf(card),swap=cards[index+dir];
+    if(card.dataset.systemManaged==='true')return;
+    const cards=[...list.querySelectorAll(':scope > .nudge-card:not([data-system-managed="true"])')],index=cards.indexOf(card),swap=cards[index+dir];
     if(!swap)return;
     if(dir<0)list.insertBefore(card,swap);else list.insertBefore(swap,card);
     await persistOrder(list);
