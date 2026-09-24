@@ -83,7 +83,7 @@ jobs:
     name: Production route and performance
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Wait for production deployment
         shell: bash
@@ -119,6 +119,43 @@ jobs:
           median=values[len(values)//2]
           print(f'BKLG-0219 production response samples: {values}')
           print(f'BKLG-0219 production median response time: {median:.3f}s')
-          if median > 2.5:
-              raise SystemExit(f'Production median {median:.3f}s exceeds the 2.5s recommendation')
           PY
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Measure production browser page load
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from '@playwright/test';
+          const browser = await chromium.launch({ headless: true });
+          const samples = [];
+          try {
+            for (let i = 0; i < 3; i += 1) {
+              const context = await browser.newContext();
+              const page = await context.newPage();
+              await page.goto('https://mydriveventure.com/join/recruit/', { waitUntil: 'load', timeout: 20000 });
+              const nav = await page.evaluate(() => {
+                const entry = performance.getEntriesByType('navigation')[0];
+                return entry ? entry.loadEventEnd - entry.startTime : null;
+              });
+              if (!(typeof nav === 'number' && Number.isFinite(nav) && nav > 0)) {
+                throw new Error('Navigation Timing did not return a valid load duration');
+              }
+              samples.push(nav);
+              await context.close();
+            }
+          } finally {
+            await browser.close();
+          }
+          samples.sort((a,b)=>a-b);
+          const median = samples[Math.floor(samples.length/2)];
+          console.log('BKLG-0219 production browser load samples (ms):', samples.map(v=>Math.round(v)));
+          console.log('BKLG-0219 production browser median load:', Math.round(median), 'ms');
+          if (median > 2500) {
+            throw new Error(`Production browser median ${Math.round(median)}ms exceeds the 2500ms recommendation`);
+          }
+          NODE
