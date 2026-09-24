@@ -5,22 +5,21 @@ const fs=require('node:fs');
 const dashboard=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
 const archive=fs.readFileSync('assets/js/log-prepilot-v2.js','utf8');
 
-test('BKLG-0111 loads archived vehicles as historical lookup data without expanding selectable vehicles',()=>{
-  assert.match(dashboard,/historical_vehicles:\[\]/);
-  assert.match(dashboard,/get_authenticated_historical_vehicles_v1/);
+test('BKLG-0111 Trip Archive reads canonical vehicle presentation from recent drive records',()=>{
+  assert.match(dashboard,/const vehicleName=d\.vehicle_name\|\|'Vehicle'/);
+  assert.match(archive,/const vehicleName=d\.vehicle_name\|\|'Vehicle'/);
+  assert.match(dashboard,/\$\{esc\(vehicleName\)\}/);
+  assert.match(archive,/\$\{esc\(vehicleName\)\}/);
+});
+
+test('BKLG-0111 keeps selectable Garage vehicles active-only',()=>{
   assert.match(dashboard,/activeVehicles=\(\)=>model\.vehicles\.filter\(v=>v\.driver_id===currentDriverId&&v\.status!=='ARCHIVED'\)/);
-  assert.match(dashboard,/vehicleForDrive=vehicleId=>\(model\.vehicles\|\|\[\]\).*historical_vehicles/s);
 });
 
-test('BKLG-0111 trip archive resolves historical vehicle names before generic fallback',()=>{
-  assert.match(dashboard,/const v=vehicleForDrive\(d\.vehicle_id\)/);
-  assert.match(archive,/model\.historical_vehicles\|\|\[\]/);
-  assert.match(archive,/v\?\.name\|\|'Vehicle'/);
-});
-
-test('BKLG-0111 historical vehicle hydration is bounded and does not block dashboard access',()=>{
-  assert.match(dashboard,/hydrateHistoricalVehicles\(modelEpoch\)\.catch\(\(\)=>\{\}\)/);
-  assert.match(dashboard,/Historical vehicle lookup timed out/);
-  assert.match(dashboard,/dv:historical-vehicles-updated/);
-  assert.match(archive,/dv:historical-vehicles-updated/);
+test('BKLG-0111 no longer maintains a second historical vehicle read model',()=>{
+  assert.doesNotMatch(dashboard,/historical_vehicles/);
+  assert.doesNotMatch(dashboard,/get_authenticated_historical_vehicles_v1/);
+  assert.doesNotMatch(dashboard,/hydrateHistoricalVehicles/);
+  assert.doesNotMatch(archive,/historical_vehicles/);
+  assert.doesNotMatch(archive,/dv:historical-vehicles-updated/);
 });

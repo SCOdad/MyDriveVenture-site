@@ -20,7 +20,7 @@
   const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
   window.DV_SUPABASE_CLIENT=client;
 
-  let model={drivers:[],vehicles:[],historical_vehicles:[],progress:[],recent_drives:[],quest_awards:[],license_requirements:[],license_statuses:[]};
+  let model={drivers:[],vehicles:[],progress:[],recent_drives:[],quest_awards:[],license_requirements:[],license_statuses:[]};
   let currentDriverId='';
   let accessInFlight=null;
   let accessReady=false;
@@ -36,7 +36,6 @@
   const currentDriver=()=>model.drivers.find(d=>d.id===currentDriverId)||model.drivers[0]||null;
   const currentProgress=()=>model.progress.find(p=>p.driver_id===currentDriverId)||{};
   const activeVehicles=()=>model.vehicles.filter(v=>v.driver_id===currentDriverId&&v.status!=='ARCHIVED');
-  const vehicleForDrive=vehicleId=>(model.vehicles||[]).find(v=>v.id===vehicleId)||(model.historical_vehicles||[]).find(v=>v.id===vehicleId)||null;
   const currentDrives=()=>model.recent_drives.filter(d=>d.driver_id===currentDriverId);
   const currentAwards=()=>model.quest_awards.filter(q=>q.driver_id===currentDriverId);
   const getAccessMode=driverId=>(model.driver_access||[]).find(a=>a.driver_id===driverId)?.mode||(model.is_operator===true?'VIEW':'MANAGE');
@@ -86,7 +85,7 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const v=vehicleForDrive(d.vehicle_id),overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(v?.name||'Vehicle')} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
@@ -179,18 +178,6 @@
     return true;
   }
 
-  async function hydrateHistoricalVehicles(epoch=modelEpoch){
-    try{
-      const result=await Promise.race([
-        client.rpc('get_authenticated_historical_vehicles_v1'),
-        new Promise(resolve=>setTimeout(()=>resolve({data:null,error:{message:'Historical vehicle lookup timed out'}}),3000))
-      ]);
-      if(epoch!==modelEpoch||result?.error||!Array.isArray(result?.data))return;
-      model.historical_vehicles=result.data;
-      window.dispatchEvent(new CustomEvent('dv:historical-vehicles-updated',{detail:{model,driverId:currentDriverId,epoch}}));
-    }catch(_){ }
-  }
-
   async function loadDashboard({quiet=false}={}){
     if(!quiet)status(loginStatus,'Access linked. Loading dashboard…');
     const result=await Promise.race([client.rpc('get_authenticated_dashboard_v1'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Dashboard request timed out after 15 seconds.')),15000))]);
@@ -198,7 +185,6 @@
     if(error)throw new Error(`Dashboard: ${error.message||'Unable to load dashboard'}`);
     if(!data||data.ok!==true)throw new Error(`Dashboard: ${data?.error||'Unable to load dashboard'}`);
     model=data;
-    model.historical_vehicles=[];
     modelEpoch+=1;
     model.license_statuses=[];
     licenseStatusCache.clear();
@@ -210,7 +196,6 @@
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
     if(driverSwitcher)driverSwitcher.hidden=model.drivers.length<=1;
     await selectDriver(currentDriverId,{persist:false});
-    hydrateHistoricalVehicles(modelEpoch).catch(()=>{});
     return model;
   }
 
