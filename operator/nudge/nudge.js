@@ -6,6 +6,7 @@
   const SEQUENCE_CLASSES=[
     {key:'CRITICAL_ACTIVATION',min:1,max:99,title:'Required / activation',range:'000–099'},
     {key:'JOURNEY_PROGRESS',min:100,max:299,title:'Journey progress / licensing',range:'100–299'},
+    {key:'COACHING',min:300,max:699,title:'Coaching / progress gaps',range:'300–699'},
     {key:'FEATURE_ADOPTION',min:700,max:799,title:'Feature adoption / enrichment',range:'700–799'},
     {key:'COMMUNITY_PRODUCT',min:800,max:899,title:'Community / product asks',range:'800–899'},
     {key:'REENGAGEMENT',min:900,max:999,title:'Re-engagement',range:'900–999'}
@@ -26,7 +27,12 @@
   async function auth(){if(!client)client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await client.auth.getSession();token=data.session?.access_token||'';return token}
   async function api(body,retried=false){await auth();if(!token)throw Object.assign(new Error('Sign in with an Operator account to continue.'),{status:401});const r=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${token}`,apikey:cfg.publishableKey},body:JSON.stringify(body)});if(r.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session)throw Object.assign(new Error('Operator session expired. Sign in again.'),{status:401});token=data.session.access_token;return api(body,true)}const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw Object.assign(new Error(out.error||`Nudge request failed (${r.status})`),{status:r.status,validation:out.validation});return out}
 
-  function recipientList(rows,kind){if(!rows?.length)return '<p class="meta">None.</p>';return '<ul>'+rows.map(row=>`<li><strong>${esc(row.recipient_name)}</strong>${row.driver_name?` · ${esc(row.driver_name)}`:''}<small>${esc(row.recipient_email||'')}</small>${row.suppression_reason?`<small>${esc(suppressionText(row))}</small>`:''}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${row.message_preview?`<details class="recipient-preview"><summary>Resolved email</summary><pre>Subject: ${esc(row.message_preview.subject)}\n\n${esc(row.message_preview.heading)}\n\n${esc(row.message_preview.body)}\n\nCTA: ${esc(row.message_preview.cta_label)}</pre></details>`:''}</li>`).join('')+'</ul>'}
+  function resolvedEmail(row){
+    const preview=row?.message_preview;if(!preview)return '';
+    const html=preview.html?'<iframe class="resolved-email-frame" sandbox="" title="Resolved email preview" srcdoc="'+esc(preview.html)+'"></iframe>':'<pre>'+esc(preview.text||'')+'</pre>';
+    return '<details class="recipient-preview"><summary>Resolved email</summary><div class="resolved-email-shell"><div class="resolved-email-subject"><strong>Subject</strong><span>'+esc(preview.subject||'')+'</span></div>'+html+'<details class="resolved-email-text"><summary>Plain-text version</summary><pre>'+esc(preview.text||'')+'</pre></details></div></details>';
+  }
+  function recipientList(rows,kind){if(!rows?.length)return '<p class="meta">None.</p>';return '<ul>'+rows.map(row=>`<li><strong>${esc(row.recipient_name)}</strong>${row.driver_name?` · ${esc(row.driver_name)}`:''}<small>${esc(row.recipient_email||'')}</small>${row.suppression_reason?`<small>${esc(suppressionText(row))}</small>`:''}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${resolvedEmail(row)}</li>`).join('')+'</ul>'}
 
   function templateEditor(group){
     const t=group.template_version||{},meta=group.template||{},tokens=meta.allowed_tokens||[],key=meta.template_key||group.rule.template_key;
@@ -51,6 +57,10 @@
   }
 
   function render(){
+    const runtime=payload?.runtime_setting||{},runtimeEnabled=runtime.enabled===true,badge=document.getElementById('nudge-runtime-badge'),toggle=document.getElementById('nudge-runtime-enabled');
+    if(toggle)toggle.checked=runtimeEnabled;
+    if(badge){badge.textContent=runtimeEnabled?'ACTIVE':'PAUSED';badge.classList.toggle('active',runtimeEnabled);badge.classList.toggle('paused',!runtimeEnabled)}
+    const updated=document.getElementById('nudge-runtime-updated');if(updated)updated.textContent=runtime.updated_at?'Last changed '+runtime.updated_at:'No delivery-state history yet.';
     const groups=payload?.groups||[],selected=groups.reduce((n,g)=>n+(g.selected?.length||0),0),superseded=groups.reduce((n,g)=>n+(g.eligible_superseded?.length||0),0),suppressed=groups.reduce((n,g)=>n+(g.suppressed?.length||0),0);
     document.getElementById('nudge-summary').innerHTML=`<span><strong>${selected}</strong> selected</span><span><strong>${superseded}</strong> eligible but superseded</span><span><strong>${suppressed}</strong> suppressed</span><span><strong>${groups.filter(g=>g.rule.enabled).length}</strong> enabled messages</span>`;
     document.getElementById('nudge-groups').innerHTML=sequenceSections(groups)||'<p>No nudge rules configured.</p>';
@@ -67,6 +77,14 @@
   async function load(){const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
 
   async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked;ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
+  async function saveRuntime(){
+    const toggle=document.getElementById('nudge-runtime-enabled'),button=document.getElementById('nudge-runtime-save'),status=document.getElementById('nudge-runtime-status'),enabled=Boolean(toggle?.checked);
+    if(enabled&&!confirm('Enable live lifecycle nudge delivery? The server will allow send_live requests once this is active.')){toggle.checked=false;return}
+    button.disabled=true;if(status)status.textContent=enabled?'Enabling live lifecycle delivery…':'Pausing live lifecycle delivery…';
+    try{await api({action:'set_runtime_enabled',enabled});if(status)status.textContent=enabled?'Lifecycle delivery is active.':'Lifecycle delivery is paused.';await load()}
+    catch(e){if(status)status.textContent=e.message;await load()}
+    finally{button.disabled=false}
+  }
 
   function startDrag(ev){draggedCard=ev.currentTarget.closest('.nudge-card');if(!draggedCard)return;draggedCard.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',draggedCard.dataset.rule||'')}
   function dragOver(ev){
@@ -102,6 +120,7 @@
   function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target}
 
   document.getElementById('nudge-refresh').addEventListener('click',load);
+  document.getElementById('nudge-runtime-save')?.addEventListener('click',saveRuntime);
   function startOtpCooldown(button,status,seconds=60,message=''){
     if(otpCooldownTimer)clearInterval(otpCooldownTimer);
     let remaining=Math.max(1,Math.ceil(seconds));
