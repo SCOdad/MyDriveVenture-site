@@ -31,7 +31,6 @@
     publishableKey: selected.publishableKey,
     functionUrl,
   });
-
   const publicPixelPaths = new Set(['/join/', '/waitlist/']);
   const path = (window.location.pathname || '/').replace(/\/index\.html$/, '/');
   if (name === 'prod' && publicPixelPaths.has(path) && !window.__DV_META_PIXEL_V1_REQUESTED) {
@@ -39,6 +38,13 @@
     const script = document.createElement('script');
     script.src = '/assets/js/meta-pixel.js?v=20260915-bklg0190';
     script.async = true;
+    document.head.appendChild(script);
+  }
+  if (/^\/log(?:\/|$)/.test(window.location.pathname) && !document.querySelector('script[data-dv-location-shadow]')) {
+    const script = document.createElement('script');
+    script.src = '/assets/js/location-shadow.js?v=20260925-0224';
+    script.defer = true;
+    script.dataset.dvLocationShadow = 'true';
     document.head.appendChild(script);
   }
 })();
