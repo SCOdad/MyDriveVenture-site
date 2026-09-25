@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'location-shadow.js'), 'utf8');
 const driverId = '11111111-1111-4111-8111-111111111111';
 
-function harness(geolocation) {
+function harness(geolocation, endpointStatus = 204) {
   const listeners = new Map();
   const storage = new Map();
   const calls = [];
@@ -15,6 +15,11 @@ function harness(geolocation) {
     addEventListener: (name, callback) => listeners.set(name, callback),
     crypto: { randomUUID: () => '22222222-2222-4222-8222-222222222222' },
     navigator: { geolocation },
+    fetch: async () => ({ status: endpointStatus }),
+    DV_ENVIRONMENT_CONFIG: {
+      publishableKey: 'test-key',
+      functionUrl: slug => `https://example.test/functions/v1/${slug}`,
+    },
     sessionStorage: {
       getItem: key => storage.get(key) || null,
       setItem: (key, value) => storage.set(key, value),
@@ -66,4 +71,13 @@ test('unavailable geolocation and backend failures do not affect dashboard execu
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(failing.calls.length, 1);
   assert.equal(source.includes('watchPosition'), false);
+});
+
+test('missing collection endpoint does not request browser permission', async () => {
+  let permissionRequests = 0;
+  const h = harness({ getCurrentPosition: () => { permissionRequests += 1; } }, 404);
+  h.fire();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(permissionRequests, 0);
+  assert.equal(h.calls.length, 0);
 });
