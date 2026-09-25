@@ -25,10 +25,20 @@
     return `fallback_${Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')}`;
   }
 
-  function collect(driverId) {
+  async function collect(driverId) {
     const app = window.DV_LOG_APP;
     if (!driverId || !app?.client?.functions?.invoke || !claimSession(driverId)) return;
     if (!window.navigator?.geolocation?.getCurrentPosition) return;
+    const config = window.DV_ENVIRONMENT_CONFIG;
+    try {
+      const response = await window.fetch(config.functionUrl('browser-location-snapshot'), {
+        method: 'OPTIONS',
+        headers: { apikey: config.publishableKey },
+      });
+      if (response.status !== 204) return;
+    } catch (_) {
+      return;
+    }
     const sessionId = randomSessionId();
     try {
       window.navigator.geolocation.getCurrentPosition(position => {
@@ -55,8 +65,8 @@
   }
 
   window.addEventListener('dv:dashboard-rendered', event => {
-    collect(event?.detail?.driverId || window.DV_LOG_APP?.getDriverId?.());
+    collect(event?.detail?.driverId || window.DV_LOG_APP?.getDriverId?.()).catch(() => {});
   });
   const activeDriver = window.DV_LOG_APP?.getDriverId?.();
-  if (activeDriver) collect(activeDriver);
+  if (activeDriver) collect(activeDriver).catch(() => {});
 })();
