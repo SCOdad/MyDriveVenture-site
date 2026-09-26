@@ -110,3 +110,8 @@ test('environment configuration loads the weather collector only on log routes',
   assert.match(config, /weather-context-shadow\.js\?v=20260926-0100/);
   assert.match(config, /data-dv-weather-context-shadow/);
 });
+
+test('log page cache-busts environment configuration for production collector changes', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'log', 'index.html'), 'utf8');
+  assert.match(html, /environment-config\.js\?v=20260926-0100-prod1/);
+});
