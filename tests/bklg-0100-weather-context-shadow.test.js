@@ -107,7 +107,7 @@ test('weather shadow backend failure never escapes into dashboard execution', as
 
 test('environment configuration loads the weather collector only on log routes', () => {
   const config = fs.readFileSync(path.join(__dirname, '..', 'assets', 'js', 'environment-config.js'), 'utf8');
-  assert.match(config, /weather-context-shadow\.js\?v=20260926-0100/);
+  assert.match(config, /weather-context-shadow\.js\?v=20260926-0100-lateinit2/);
   assert.match(config, /data-dv-weather-context-shadow/);
 });
 
