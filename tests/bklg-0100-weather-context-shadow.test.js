@@ -11,8 +11,13 @@ function harness({ invoke = async () => ({ data: { ok: true }, error: null }), s
   const listeners = new Map();
   const storage = new Map();
   const calls = [];
+  const timers = [];
   const window = {
     addEventListener: (name, callback) => listeners.set(name, callback),
+    setTimeout: callback => {
+      timers.push(callback);
+      return timers.length;
+    },
     sessionStorage: {
       getItem: key => {
         if (storageThrows) throw new Error('storage unavailable');
@@ -38,7 +43,10 @@ function harness({ invoke = async () => ({ data: { ok: true }, error: null }), s
   vm.runInNewContext(source, { window, Set, Promise });
   return {
     calls,
+    window,
     fire: id => listeners.get('dv:dashboard-rendered')({ detail: { driverId: id ?? driverId } }),
+    runNextTimer: () => timers.shift()?.(),
+    timerCount: () => timers.length,
   };
 }
 
@@ -54,6 +62,31 @@ test('dashboard weather shadow invokes drive-ops once per driver per session', a
   h.fire('22222222-2222-4222-8222-222222222222');
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(h.calls.length, 2);
+});
+
+
+test('weather shadow retries boundedly when app readiness is late', async () => {
+  const h = harness();
+  assert.equal(h.calls.length, 0);
+  assert.equal(h.timerCount(), 1);
+
+  h.window.DV_LOG_APP.getDriverId = () => driverId;
+  h.runNextTimer();
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].name, 'drive-ops');
+  assert.equal(h.timerCount(), 0);
+});
+
+test('weather shadow late retry and dashboard event still invoke only once', async () => {
+  const h = harness();
+  h.window.DV_LOG_APP.getDriverId = () => driverId;
+  h.runNextTimer();
+  h.fire();
+  await new Promise(resolve => setImmediate(resolve));
+
+  assert.equal(h.calls.length, 1);
 });
 
 test('weather shadow remains bounded when session storage is unavailable', async () => {
