@@ -1,7 +1,7 @@
 // Drive Venture GA4 page-view loader. Loaded only on approved public production routes.
 (() => {
   const host = String(location.hostname || "").toLowerCase();
-  const path = (location.pathname || "/").replace(/index\.html$/, "/");
+  const path = (location.pathname || "/").replace(/\/index\.html$/, "/");
   const productionHost = host === "mydriveventure.com" || host === "www.mydriveventure.com";
   const publicPages = new Set(["/","/faq/","/feedback/","/help/","/join/","/privacy/","/research/","/research/teen-drowsy-driving/","/terms/","/text-parker/","/waitlist/"]);
 
