@@ -71,6 +71,7 @@ test('unavailable geolocation and backend failures do not affect dashboard execu
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(failing.calls.length, 1);
   assert.equal(source.includes('watchPosition'), false);
+  assert.equal(source.includes('timeout: 30000'), true);
 });
 
 test('missing collection endpoint does not request browser permission', async () => {
