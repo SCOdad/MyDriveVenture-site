@@ -7,7 +7,7 @@ const redirects=fs.readFileSync('_redirects','utf8');
 
 test('BKLG-0072 publishes the approved low-risk Cloudflare Pages security headers',()=>{
   assert.match(headers,/\/\*\s*[\r\n]+\s+X-Frame-Options: SAMEORIGIN/);
-  assert.match(headers,/Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(\)/);
+  assert.match(headers,/Permissions-Policy: camera=\(\), microphone=\(\), geolocation=\(self\)/);
 });
 
 test('BKLG-0072 does not silently activate HSTS or CSP',()=>{
