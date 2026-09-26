@@ -49,7 +49,7 @@
   }
   if (/^\/log(?:\/|$)/.test(window.location.pathname) && !document.querySelector('script[data-dv-weather-context-shadow]')) {
     const script = document.createElement('script');
-    script.src = '/assets/js/weather-context-shadow.js?v=20260926-0100';
+    script.src = '/assets/js/weather-context-shadow.js?v=20260926-0100-lateinit2';
     script.defer = true;
     script.dataset.dvWeatherContextShadow = 'true';
     document.head.appendChild(script);
