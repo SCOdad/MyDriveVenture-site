@@ -1,6 +1,6 @@
 (()=>{
-  const cfg=window.DV_APP_CONFIG||{},endpoint=window.DV_OPERATOR_DICTIONARY_ENDPOINT;
-  let client=null,token='',data=null,selectedCategory=null,selectedPolicyTermId=null,selectedAllowlistId=null,currentImpact=null,suppressAutosave=false;
+  const cfg=window.DV_APP_CONFIG||{},endpoint=window.DV_OPERATOR_DICTIONARY_ENDPOINT,questEndpoint=window.DV_OPERATOR_QUESTS_ENDPOINT;
+  let client=null,token='',data=null,quests=[],selectedCategory=null,selectedPolicyTermId=null,selectedAllowlistId=null,currentImpact=null,suppressAutosave=false;
   const timers=new Map(),$=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -12,7 +12,29 @@
     if(r.status===401&&!retried){const{data:refreshed,error}=await client.auth.refreshSession();if(error||!refreshed.session?.access_token)throw new Error('Your operator session expired. Sign in again.');token=refreshed.session.access_token;return api(action,payload,true)}
     const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok){const e=new Error(out.error||`Dictionary request failed (${r.status})`);e.status=r.status;throw e}return out
   }
+  async function questApi(retried=false){
+    const r=await fetch(questEndpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token,apikey:cfg.publishableKey},body:JSON.stringify({action:'list'})});
+    if(r.status===401&&!retried){const{data:refreshed,error}=await client.auth.refreshSession();if(error||!refreshed.session?.access_token)throw new Error('Your operator session expired. Sign in again.');token=refreshed.session.access_token;return questApi(true)}
+    const out=await r.json().catch(()=>({}));if(!r.ok||!out.ok)throw new Error(out.error||`Quest request failed (${r.status})`);return out
+  }
   function show(view){for(const name of ['discoveries','destinations','policy']){$(`${name}-view`).hidden=name!==view;document.querySelector(`[data-view="${name}"]`)?.setAttribute('aria-pressed',String(name===view))}}
+  function questByKey(key){return quests.find(q=>q.quest_key===key)||null}
+  function questSummary(q){return q?`${q.quest_key} — ${q.name} · ${q.quest_type} · target: ${q.target??'—'} · ${q.xp} XP · ${q.active?'Active':'Inactive'}`:'No quest linked.'}
+  function renderSelectedQuest(){
+    const form=$('category-form'),key=form?.elements.quest_key?.value||'',q=questByKey(key),box=$('selected-quest');
+    if(!box)return;
+    box.innerHTML=q?`<strong>${esc(q.quest_key)} — ${esc(q.name)}</strong><br><small>${esc(q.quest_type)} · target: ${esc(q.target??'—')} · ${esc(q.xp)} XP · ${q.active?'Active':'Inactive'} · ${q.repeatable?'Repeatable':'One-time'}</small><br><a href="/operator/quests/?quest=${encodeURIComponent(q.quest_key)}">View in Quest Catalog</a>`:key?`<strong>${esc(key)}</strong><br><small>Quest definition not found.</small>`:'No quest linked.';
+  }
+  function renderQuestSearch(){
+    const input=$('quest-search'),box=$('quest-search-results');if(!input||!box)return;
+    const query=input.value.trim().toLowerCase();
+    let rows=quests.filter(q=>{const hay=[q.quest_key,q.name,q.description,q.quest_type,q.target].join(' ').toLowerCase();return !query||hay.includes(query)});
+    rows.sort((a,b)=>Number(b.quest_type==='Destination')-Number(a.quest_type==='Destination')||Number(b.active)-Number(a.active)||(a.display_order??99999)-(b.display_order??99999)||a.quest_key.localeCompare(b.quest_key));
+    rows=rows.slice(0,12);
+    box.hidden=false;
+    box.innerHTML=rows.map(q=>`<button type="button" class="dictionary-row ${q.active?'':'inactive'}" data-quest-key="${esc(q.quest_key)}"><strong>${esc(q.quest_key)} — ${esc(q.name)}</strong><br><small>${esc(q.quest_type)} · target: ${esc(q.target??'—')} · ${esc(q.xp)} XP · ${q.active?'Active':'Inactive'}</small></button>`).join('')||'<p>No matching quests.</p>';
+    box.querySelectorAll('[data-quest-key]').forEach(button=>button.onclick=async()=>{const key=button.dataset.questKey,form=$('category-form');form.elements.quest_key.value=key;input.value=questSummary(questByKey(key));box.hidden=true;renderSelectedQuest();await saveCategory()});
+  }
 
   function renderDiscoveries(){
     const rows=data.discoveries||[];
@@ -36,7 +58,7 @@
     selectedCategory=(data.categories||[]).find(c=>c.category_key===categoryKey)||null;if(!selectedCategory)return;
     suppressAutosave=true;const form=$('category-form');
     for(const k of ['category_key','label','description','quest_key'])form.elements[k].value=selectedCategory[k]||'';
-    form.elements.category_key.disabled=true;form.elements.is_active.checked=selectedCategory.is_active!==false;renderAliases();saveState('category-save-state','Saved');suppressAutosave=false;
+    form.elements.category_key.disabled=true;form.elements.is_active.checked=selectedCategory.is_active!==false;$('quest-search').value=selectedCategory.quest_key?questSummary(questByKey(selectedCategory.quest_key)):'';$('quest-search-results').hidden=true;renderSelectedQuest();renderAliases();saveState('category-save-state','Saved');suppressAutosave=false;
   }
   function renderAliases(){
     const aliases=(data.aliases||[]).filter(a=>a.category_key===selectedCategory?.category_key);
@@ -77,15 +99,17 @@
   }
 
   function render(){renderDiscoveries();renderCategories();renderPolicy()}
-  async function load(){data=await api('list');render()}
+  async function load(){const [dictionary,questData]=await Promise.all([api('list'),questApi()]);data=dictionary;quests=questData.quests||[];render()}
 
-  $('category-form').addEventListener('input',()=>debounce('category',saveCategory));
-  $('category-form').addEventListener('change',()=>debounce('category',saveCategory,150));
+  $('quest-search').addEventListener('input',renderQuestSearch);
+  $('quest-search').addEventListener('focus',renderQuestSearch);
+  $('category-form').addEventListener('input',e=>{if(e.target.id!=='quest-search')debounce('category',saveCategory)});
+  $('category-form').addEventListener('change',e=>{if(e.target.id!=='quest-search')debounce('category',saveCategory,150)});
   $('alias-form').addEventListener('input',()=>{if($('alias-form').elements.id.value)debounce('alias',saveAliasExisting)});
   $('alias-form').addEventListener('change',()=>{if($('alias-form').elements.id.value)debounce('alias',saveAliasExisting,150)});
   $('alias-form').onsubmit=async e=>{e.preventDefault();try{if(!selectedCategory)throw new Error('Choose a category first');const form=e.currentTarget;if(form.elements.id.value)return saveAliasExisting();saveState('alias-save-state','Adding…');await api('save_alias',{category_key:selectedCategory.category_key,alias_text:form.elements.alias_text.value,match_strategy:form.elements.match_strategy.value,priority:form.elements.priority.value,is_active:form.elements.is_active.checked});suppressAutosave=true;form.reset();form.elements.match_strategy.value='PHRASE';form.elements.priority.value='100';form.elements.is_active.checked=true;$('alias-add').hidden=false;suppressAutosave=false;await load();openCategory(selectedCategory.category_key);saveState('alias-save-state','Added')}catch(err){saveState('alias-save-state',err.message,true)}};
   $('preview-form').onsubmit=async e=>{e.preventDefault();try{const form=e.currentTarget,out=await api('classify_preview',{destination:form.elements.destination.value,notes:form.elements.notes.value}),box=$('preview');box.hidden=false;box.textContent=(out.result?.categories||[]).map(c=>`${c.label} (${c.category_key}) via ${c.alias_text} in ${c.source}`).join(', ')||'No category matched.'}catch(err){status(err.message,true)}};
-  $('new-category').onclick=()=>{selectedCategory=null;suppressAutosave=true;const form=$('category-form');form.reset();form.elements.category_key.disabled=false;form.elements.is_active.checked=true;$('aliases').innerHTML='';$('alias-add').hidden=false;saveState('category-save-state','Enter key and label to create');suppressAutosave=false;form.elements.category_key.focus()};
+  $('new-category').onclick=()=>{selectedCategory=null;suppressAutosave=true;const form=$('category-form');form.reset();form.elements.category_key.disabled=false;form.elements.is_active.checked=true;$('quest-search').value='';$('quest-search-results').hidden=true;renderSelectedQuest();$('aliases').innerHTML='';$('alias-add').hidden=false;saveState('category-save-state','Enter key and label to create');suppressAutosave=false;form.elements.category_key.focus()};
 
   $('policy-term-form').addEventListener('input',()=>debounce('policy-term',savePolicyTerm));
   $('policy-term-form').addEventListener('change',()=>debounce('policy-term',savePolicyTerm,150));
@@ -98,5 +122,5 @@
   $('impact-apply').onclick=async()=>{if(!currentImpact?.signature||!currentImpact.rows?.length)return;const ok=window.confirm(`Award ${currentImpact.award_count} quest${currentImpact.award_count===1?'':'s'} to ${currentImpact.driver_count} driver${currentImpact.driver_count===1?'':'s'}? Existing awards will not be revoked or duplicated.`);if(!ok)return;try{status('Applying previewed awards...');const out=await api('apply_impact',{preview_token:currentImpact.signature});status(`Applied ${out.result?.inserted_awards??0} retroactive award(s).`);currentImpact=null;$('impact-apply').hidden=true;await $('impact-refresh').onclick()}catch(err){status(err.message,true)}};
 
   document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>show(b.dataset.view));
-  (async()=>{try{if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey||!endpoint)throw new Error('Drive Venture operator configuration is unavailable.');client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});const{data:{session}}=await client.auth.getSession();if(!session?.access_token)throw Object.assign(new Error('Sign in with an operator account to continue.'),{status:401});token=session.access_token;await load();$('checking').hidden=true;$('main').hidden=false}catch(e){$('checking').hidden=true;$('denied').hidden=false;$('denied-detail').textContent=e.message||'Operator access required.'}})()
+  (async()=>{try{if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey||!endpoint||!questEndpoint)throw new Error('Drive Venture operator configuration is unavailable.');client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});const{data:{session}}=await client.auth.getSession();if(!session?.access_token)throw Object.assign(new Error('Sign in with an operator account to continue.'),{status:401});token=session.access_token;await load();$('checking').hidden=true;$('main').hidden=false}catch(e){$('checking').hidden=true;$('denied').hidden=false;$('denied-detail').textContent=e.message||'Operator access required.'}})()
 })();
