@@ -13,11 +13,11 @@ function loadPresentationRules(){
 }
 
 const readyAssets=[
-  ['Q000086','shopping-center','Shopping Center','DV03-L10-SHOPPING-CENTER-BACKGROUND.png'],
-  ['Q000087','coffee-shop','Coffee Shop','DV03-L11-COFFEE-SHOP-BACKGROUND.png'],
-  ['Q000088','salon-barber','Salon / Barber','DV03-L12-SALON-BARBER.png'],
-  ['Q000089','salon-barber','Salon / Barber','DV03-L12-SALON-BARBER.png'],
-  ['Q000090','movie-theater','Movie Theater','DV03-L13-MOVIE-THEATER-BACKGROUND.png']
+  ['Q000086','shopping-center','Shopping Center','DV03-BACKGROUND-BASE-L10-SHOPPING-CENTER.png'],
+  ['Q000087','coffee-shop','Coffee Shop','DV03-BACKGROUND-BASE-L11-COFFEE-SHOP.png'],
+  ['Q000088','salon-barber','Salon / Barber','DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'],
+  ['Q000089','salon-barber','Salon / Barber','DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'],
+  ['Q000090','movie-theater','Movie Theater','DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png']
 ];
 
 test('BKLG-0187 moves the DV03 milestone card out of the windshield artwork',()=>{
