@@ -36,7 +36,7 @@ test('Hero remains canonical and normal assets resolve to real repository files'
   assert.equal(hero.seasonal,false);
   assert.equal(hero.theme,'normal');
   const missing=registry.assets.filter(asset=>asset.kind==='image'&&asset.src).filter(asset=>!fs.existsSync(asset.src.replace(/^\//,''))).map(asset=>asset.src);
-  assert.deepEqual(missing,[]);
+  assert.equal(missing.length,0,`Missing registered image paths: ${missing.join(', ')}`);
 });
 
 test('operator home exposes the durable visual asset tool',()=>{
