@@ -45,8 +45,7 @@ test('operator home exposes the durable visual asset tool',()=>{
   assert.match(html,/Visual Asset Gallery/);
 });
 
-test('BKLG-0183 composer uses production DV03 Hero geometry',()=>{
+test('BKLG-0183 composer renders Hero as an authored full-scene overlay',()=>{
   const css=read('assets/css/operator-visual-assets.css');
-  assert.match(css,/\.stage-layer\.hero\{left:1\.5%;top:auto;right:auto;bottom:-2%;width:auto;height:72%/);
-  assert.match(css,/@media\(max-width:760px\)\{\.stage-layer\.hero\{left:-2%;bottom:-3%;height:80%\}\}/);
+  assert.match(css,/\.stage-layer\.hero\{inset:0;width:100%;height:100%;object-fit:fill;object-position:center\}/);
 });
