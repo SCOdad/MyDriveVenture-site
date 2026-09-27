@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941" shape-rendering="crispEdges">
   <title>DV03 Park — Halloween seasonal derivative</title>
   <desc>Canonical Park background with restrained family-friendly Halloween decorations. Transparent sky remains governed by the canonical base asset.</desc>
-  <image href="/assets/images/dv03/layers/DV-UX-DV03-BACKGROUND-PARK.png" x="0" y="0" width="1672" height="941" preserveAspectRatio="none"/>
+  <image href="/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L01-PARK.png" x="0" y="0" width="1672" height="941" preserveAspectRatio="none"/>
 
   <!-- Pumpkins along the park edge -->
   <g id="pumpkins" stroke="#2a1b12" stroke-width="5">
