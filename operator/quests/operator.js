@@ -1,5 +1,5 @@
 (()=>{
-  const cfg=window.DV_APP_CONFIG||{},endpoint=window.DV_OPERATOR_QUESTS_ENDPOINT;
+  const cfg=window.DV_APP_CONFIG||{},endpoint=window.DV_OPERATOR_QUESTS_ENDPOINT||window.DV_ENVIRONMENT_CONFIG?.functionUrl?.('operator-quests');
   let client=null,token='',quests=[];
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
