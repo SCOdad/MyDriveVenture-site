@@ -5,4 +5,5 @@ window.DV_OPERATOR_PRODUCT_SIGNALS_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functio
 window.DV_OPERATOR_ANALYTICS_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-analytics');
 window.DV_OPERATOR_CLASSIFICATION_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-classification');
 window.DV_OPERATOR_DICTIONARY_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-dictionary');
+window.DV_OPERATOR_QUESTS_ENDPOINT=window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-quests');
 if(document.querySelector('.site-header')&&!document.querySelector('script[data-dv-canonical-header]')){const h=document.createElement('script');h.src='/assets/js/canonical-header.js?v=20260825-0062c';h.defer=true;h.dataset.dvCanonicalHeader='true';document.head.appendChild(h)}
