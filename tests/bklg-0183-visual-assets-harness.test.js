@@ -52,8 +52,8 @@ test('BKLG-0183 composer renders Hero as an authored full-scene overlay',()=>{
 
 test('BKLG-0183 harness uses cache-busted asset versions after Hero overlay repair',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/operator-visual-assets\.css\?v=20260927-0183-hero-overlay/);
-  assert.match(html,/operator-visual-assets\.js\?v=20260927-0183-hero-overlay/);
+  assert.match(html,/operator-visual-assets\.css\?v=20260927-theme-calendar/);
+  assert.match(html,/operator-visual-assets\.js\?v=20260927-theme-calendar/);
 });
 
 test('BKLG-0183 registers Halloween Park canary without changing canonical Park or Hero',()=>{
