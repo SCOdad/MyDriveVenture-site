@@ -54,7 +54,7 @@
 
   function renderPolicy(){
     const terms=data.profanity?.terms||[],allow=data.profanity?.allowlist||[];
-    $('policy-terms').innerHTML=terms.map(t=>`<button class="dictionary-row ${t.is_active?'':'inactive'}" data-policy-term="${esc(t.id)}"><strong>${esc(t.normalized_term)}</strong><br><small>${esc(t.match_strategy)} · severity ${esc(t.severity)} · ${esc(t.category||'GENERAL')}</small></button>`).join('')||'<p>No policy terms.</p>';
+    $('policy-terms').innerHTML=terms.map(t=>`<button class="dictionary-row ${t.is_active?'':'inactive'}" data-policy-term="${esc(t.id)}"><strong>${esc(t.normalized_term)}</strong><br><small>${esc(t.review_status||'PENDING')} · ${t.is_active?'Active':'Inactive'} · ${esc(t.match_strategy)} · severity ${esc(t.severity)} · ${esc(t.category||'GENERAL')}</small></button>`).join('')||'<p>No policy terms.</p>';
     $('allowlist').innerHTML=allow.map(a=>`<button class="dictionary-row ${a.is_active?'':'inactive'}" data-allowlist="${esc(a.id)}"><strong>${esc(a.normalized_value)}</strong><br><small>${esc(a.reason||'')}</small></button>`).join('')||'<p>No exceptions.</p>';
     $('policy-terms').querySelectorAll('[data-policy-term]').forEach(b=>b.onclick=()=>openPolicyTerm(b.dataset.policyTerm));
     $('allowlist').querySelectorAll('[data-allowlist]').forEach(b=>b.onclick=()=>openAllowlist(b.dataset.allowlist));
@@ -62,14 +62,14 @@
     if(selectedAllowlistId&&allow.some(a=>a.id===selectedAllowlistId))openAllowlist(selectedAllowlistId);
   }
   function openPolicyTerm(id){
-    const row=(data.profanity?.terms||[]).find(x=>x.id===id);if(!row)return;selectedPolicyTermId=id;suppressAutosave=true;const form=$('policy-term-form');for(const k of ['id','normalized_term','match_strategy','severity','category'])form.elements[k].value=row[k]??'';form.elements.is_active.checked=row.is_active!==false;saveState('policy-save-state','Saved');suppressAutosave=false;
+    const row=(data.profanity?.terms||[]).find(x=>x.id===id);if(!row)return;selectedPolicyTermId=id;suppressAutosave=true;const form=$('policy-term-form');for(const k of ['id','normalized_term','match_strategy','severity','category','review_status'])form.elements[k].value=row[k]??(k==='review_status'?'PENDING':'');form.elements.is_active.checked=row.is_active===true;saveState('policy-save-state','Saved');suppressAutosave=false;
   }
   function openAllowlist(id){
     const row=(data.profanity?.allowlist||[]).find(x=>x.id===id);if(!row)return;selectedAllowlistId=id;suppressAutosave=true;const form=$('allowlist-form');for(const k of ['id','normalized_value','reason'])form.elements[k].value=row[k]??'';form.elements.is_active.checked=row.is_active!==false;saveState('allowlist-save-state','Saved');suppressAutosave=false;
   }
   async function savePolicyTerm(){
     if(suppressAutosave)return;const form=$('policy-term-form'),term=form.elements.normalized_term.value.trim();if(!term)return;
-    try{saveState('policy-save-state','Saving…');const out=await api('save_policy_term',{id:form.elements.id.value,normalized_term:term,match_strategy:form.elements.match_strategy.value,severity:form.elements.severity.value,category:form.elements.category.value,is_active:form.elements.is_active.checked});selectedPolicyTermId=out.row.id;await load();saveState('policy-save-state','Saved')}catch(err){saveState('policy-save-state',err.message,true)}
+    try{saveState('policy-save-state','Saving…');const out=await api('save_policy_term',{id:form.elements.id.value,normalized_term:term,match_strategy:form.elements.match_strategy.value,severity:form.elements.severity.value,category:form.elements.category.value,review_status:form.elements.review_status.value,is_active:form.elements.is_active.checked});selectedPolicyTermId=out.row.id;await load();saveState('policy-save-state','Saved')}catch(err){saveState('policy-save-state',err.message,true)}
   }
   async function saveAllowlist(){
     if(suppressAutosave)return;const form=$('allowlist-form'),value=form.elements.normalized_value.value.trim(),reason=form.elements.reason.value.trim();if(!value||!reason)return;
@@ -91,7 +91,7 @@
   $('policy-term-form').addEventListener('change',()=>debounce('policy-term',savePolicyTerm,150));
   $('allowlist-form').addEventListener('input',()=>debounce('allowlist',saveAllowlist));
   $('allowlist-form').addEventListener('change',()=>debounce('allowlist',saveAllowlist,150));
-  $('new-policy-term').onclick=()=>{selectedPolicyTermId=null;suppressAutosave=true;const form=$('policy-term-form');form.reset();form.elements.match_strategy.value='TOKEN';form.elements.severity.value='1';form.elements.category.value='GENERAL';form.elements.is_active.checked=true;saveState('policy-save-state','Enter a term to create');suppressAutosave=false;form.elements.normalized_term.focus()};
+  $('new-policy-term').onclick=()=>{selectedPolicyTermId=null;suppressAutosave=true;const form=$('policy-term-form');form.reset();form.elements.match_strategy.value='TOKEN';form.elements.severity.value='1';form.elements.category.value='GENERAL';form.elements.review_status.value='PENDING';form.elements.is_active.checked=false;saveState('policy-save-state','Enter a term to create');suppressAutosave=false;form.elements.normalized_term.focus()};
   $('new-allowlist').onclick=()=>{selectedAllowlistId=null;suppressAutosave=true;const form=$('allowlist-form');form.reset();form.elements.is_active.checked=true;saveState('allowlist-save-state','Enter value and reason to create');suppressAutosave=false;form.elements.normalized_value.focus()};
 
   $('impact-refresh').onclick=async()=>{try{status('Calculating historical quest impact...');const out=await api('impact_preview');currentImpact=out;const summary=$('impact-summary');summary.hidden=false;summary.textContent=`${out.award_count} additional quest award${out.award_count===1?'':'s'} across ${out.driver_count} driver${out.driver_count===1?'':'s'}.`;$('impact-results').innerHTML=out.rows.length?`<table class="impact-table"><thead><tr><th>Driver</th><th>Date</th><th>Drive text</th><th>Matched</th><th>Quest</th></tr></thead><tbody>${out.rows.map(r=>`<tr><td>${esc(r.driver_name)}</td><td>${esc(r.drive_date)}</td><td>${esc(r.destination||'')}${r.notes?`<br><small>${esc(r.notes)}</small>`:''}</td><td>${esc(r.alias_text)} → ${esc(r.category_label)}<br><small>${esc(r.match_source)}</small></td><td>${esc(r.quest_name)}<br><small>${esc(r.quest_key)} · ${esc(r.xp)} XP</small></td></tr>`).join('')}</tbody></table>`:'<p>No new historical awards under the current dictionary.</p>';$('impact-apply').hidden=!out.rows.length;status('Impact preview ready.')}catch(err){status(err.message,true)}};

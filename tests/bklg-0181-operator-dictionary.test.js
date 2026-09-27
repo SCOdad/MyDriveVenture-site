@@ -39,6 +39,14 @@ test('BKLG-0181 uses autosave rather than category or policy Save buttons', () =
   assert.doesNotMatch(html, />Save exception</);
 });
 
+test('policy term editor exposes review status and creates candidates pending and inactive', () => {
+  assert.match(html, /name="review_status"[\s\S]*value="PENDING"[\s\S]*value="REVIEWED"[\s\S]*value="REJECTED"/);
+  assert.match(js, /review_status:form\.elements\.review_status\.value/);
+  assert.match(js, /form\.elements\.review_status\.value='PENDING'/);
+  assert.match(js, /form\.elements\.is_active\.checked=false/);
+  assert.match(js, /\$\{esc\(t\.review_status\|\|'PENDING'\)\}/);
+});
+
 test('BKLG-0181 exposes historical impact preview and controlled retroactive awards', () => {
   assert.match(html, /Historical quest impact/);
   assert.match(html, /Preview impact/);
