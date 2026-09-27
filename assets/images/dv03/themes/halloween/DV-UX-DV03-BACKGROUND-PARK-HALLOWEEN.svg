@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1672" height="941" viewBox="0 0 1672 941" shape-rendering="crispEdges">
+  <title>DV03 Park — Halloween seasonal derivative</title>
+  <desc>Canonical Park background with restrained family-friendly Halloween decorations. Transparent sky remains governed by the canonical base asset.</desc>
+  <image href="/assets/images/dv03/layers/DV-UX-DV03-BACKGROUND-PARK.png" x="0" y="0" width="1672" height="941" preserveAspectRatio="none"/>
+
+  <!-- Pumpkins along the park edge -->
+  <g id="pumpkins" stroke="#2a1b12" stroke-width="5">
+    <g transform="translate(1180 690)">
+      <rect x="18" y="-16" width="10" height="20" fill="#50723a"/>
+      <rect x="0" y="0" width="52" height="38" rx="8" fill="#d96b1d"/>
+      <rect x="10" y="8" width="8" height="8" fill="#2a1b12"/>
+      <rect x="34" y="8" width="8" height="8" fill="#2a1b12"/>
+      <rect x="16" y="24" width="20" height="6" fill="#2a1b12"/>
+    </g>
+    <g transform="translate(1270 704) scale(.82)">
+      <rect x="18" y="-16" width="10" height="20" fill="#50723a"/>
+      <rect x="0" y="0" width="52" height="38" rx="8" fill="#ef8a24"/>
+      <rect x="10" y="8" width="8" height="8" fill="#2a1b12"/>
+      <rect x="34" y="8" width="8" height="8" fill="#2a1b12"/>
+      <rect x="18" y="25" width="16" height="5" fill="#2a1b12"/>
+    </g>
+    <g transform="translate(1078 710) scale(.68)">
+      <rect x="18" y="-16" width="10" height="20" fill="#50723a"/>
+      <rect x="0" y="0" width="52" height="38" rx="8" fill="#c85b1c"/>
+    </g>
+  </g>
+
+  <!-- Purple/orange string lights on the shelter -->
+  <g id="lights" stroke="#34243f" stroke-width="4" fill="none">
+    <path d="M1210 500 L1290 515 L1370 502 L1450 518 L1530 504"/>
+  </g>
+  <g>
+    <rect x="1224" y="507" width="10" height="10" fill="#f28a1c"/>
+    <rect x="1304" y="510" width="10" height="10" fill="#8b5bd2"/>
+    <rect x="1384" y="507" width="10" height="10" fill="#f28a1c"/>
+    <rect x="1464" y="511" width="10" height="10" fill="#8b5bd2"/>
+    <rect x="1522" y="501" width="10" height="10" fill="#f28a1c"/>
+  </g>
+
+  <!-- Tasteful cobweb tucked into shelter corner -->
+  <g id="cobweb" stroke="#d8d2c6" stroke-width="3" fill="none" opacity=".82">
+    <path d="M1515 520 L1572 520 M1515 520 L1515 574 M1515 520 L1558 558"/>
+    <path d="M1526 520 Q1526 535 1515 535 M1540 520 Q1540 549 1515 549 M1555 520 Q1555 564 1515 564"/>
+  </g>
+
+  <!-- Small harvest hay bale -->
+  <g transform="translate(1020 724)" stroke="#5e431f" stroke-width="4">
+    <rect x="0" y="0" width="74" height="34" fill="#bd8a35"/>
+    <rect x="10" y="5" width="4" height="24" fill="#d9b457" stroke="none"/>
+    <rect x="34" y="5" width="4" height="24" fill="#d9b457" stroke="none"/>
+    <rect x="58" y="5" width="4" height="24" fill="#d9b457" stroke="none"/>
+  </g>
+</svg>
