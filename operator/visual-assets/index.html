@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Visual Assets | Drive Venture Operator</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/operator-visual-assets.css?v=20260926-0183">
+<script src="/assets/js/environment-config.js"></script>
+</head><body>
+<main id="visual-checking" class="visual-check"><p>Checking credentials…</p><h1>DV03 Visual Assets</h1><p>Verifying registered operator access.</p></main>
+<main id="visual-denied" class="visual-check" hidden><p class="warning">U-turn</p><h1>Operator access only.</h1><p id="visual-denied-detail">This visual asset tool is restricted to registered Drive Venture operators.</p><p><a href="/log/">Return to Drive Venture</a></p></main>
+<div id="visual-shell" hidden>
+<header class="visual-topbar"><div><strong>DV03 VISUAL ASSETS · GALLERY & TEST HARNESS</strong><div>BKLG-0183 · operator-only · noindex</div></div><nav><a href="/operator/">Operator home</a><a href="/log/DV03/staging/BKLG-0128/">Legacy BKLG-0128 UAT</a><a href="/log/">Driver console</a></nav></header>
+<main class="visual-shell">
+<section class="visual-intro"><h1>Parkerworld visual asset gallery</h1><p>Inspect governed DV03 layers, compare normal and seasonal variants as they are registered, and compose real assets together before they are considered for production selection rules. Seasonal themes decorate Parkerworld; Hero identity remains canonical and is never regenerated for a theme.</p><p><strong>Theme precedence:</strong> Holiday → Season → Fallback.</p></section>
+<div id="theme-strip" class="theme-strip" aria-label="Theme inventory"></div>
+<section class="controls" aria-label="Gallery filters">
+<label>Layer<select id="layer-filter"></select></label>
+<label>Theme<select id="theme-filter"></select></label>
+<label>Search<input id="asset-search" type="search" placeholder="Asset ID, destination, status, file…"></label>
+</section>
+<div class="workspace">
+<section class="panel" aria-labelledby="gallery-title"><h2 id="gallery-title">Gallery <span id="asset-count" class="asset-sub"></span></h2><div id="asset-grid" class="gallery-grid"></div></section>
+<aside id="asset-detail" class="panel" aria-live="polite"><h2>Asset detail</h2><div class="empty">Select an asset to inspect its actual file, metadata, transparency treatment, and related variants.</div></aside>
+</div>
+<section class="panel composer" aria-labelledby="composer-title"><h2 id="composer-title">Layer composer</h2><p class="stage-note">Choose one asset per canonical layer. Image layers are stacked in DV03 order; code-native Sign/HUD references are rendered as safe test approximations. This does not change production behavior.</p><div id="composer-controls" class="composer-controls"></div><div class="stage-wrap"><div id="composer-stage" class="stage" aria-label="DV03 composed scene preview"></div></div><p id="composer-summary" class="stage-note"></p></section>
+</main></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/log/config.js"></script>
+<script src="/assets/js/dv03-visual-asset-registry.js?v=20260926-0183"></script>
+<script src="/assets/js/operator-visual-assets.js?v=20260926-0183"></script>
+</body></html>
