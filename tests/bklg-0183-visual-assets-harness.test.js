@@ -70,7 +70,7 @@ test('BKLG-0183 registers Halloween Park canary without changing canonical Park 
   assert.equal(halloween.parentAssetId,canonical.assetId);
   assert.equal(hero.theme,'normal');
   assert.equal(hero.seasonal,false);
-  assert.ok(fs.existsSync('assets/images/dv03/themes/halloween/DV03-BACKGROUND-HALLOWEEN-L01-PARK.svg'));
+  assert.ok(fs.existsSync('assets/images/dv03/layers/DV03-BACKGROUND-HALLOWEEN-L01-PARK.png'));
 });
 
 test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
