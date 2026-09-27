@@ -49,7 +49,7 @@
 
   function renderCategories(){
     const rows=data.categories||[];
-    $('categories').innerHTML=rows.map(c=>`<button class="dictionary-row ${c.is_active?'':'inactive'}" data-category="${esc(c.category_key)}"><strong>${esc(c.label)}</strong><br><small>${esc(c.category_key)}${c.quest_key?` · ${esc(c.quest_key)}`:''}</small></button>`).join('')||'<p>No destination categories yet.</p>';
+    $('categories').innerHTML=rows.map(c=>{const q=c.quest_key?questByKey(c.quest_key):null;return `<button class="dictionary-row ${c.is_active?'':'inactive'}" data-category="${esc(c.category_key)}"><strong>${esc(c.label)}</strong><br><small>${esc(c.category_key)}${c.quest_key?` · ${esc(c.quest_key)}${q?` — ${esc(q.name)}`:''}`:''}</small></button>`}).join('')||'<p>No destination categories yet.</p>';
     $('categories').querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>openCategory(b.dataset.category));
     if(selectedCategory){const still=rows.find(c=>c.category_key===selectedCategory.category_key);if(still)openCategory(still.category_key);else selectedCategory=null}
     if(!selectedCategory&&rows[0])openCategory(rows[0].category_key);
