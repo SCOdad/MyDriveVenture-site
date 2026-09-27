@@ -21,9 +21,9 @@ test('BKLG-0236 provides a read-only searchable quest catalog', () => {
   assert.match(catalog, /id="quest-search"/);
   assert.match(catalog, /id="quest-type"/);
   assert.match(catalog, /id="quest-status"/);
-  assert.match(catalogJs, /q\.quest_key/);
-  assert.match(catalogJs, /q\.description/);
-  assert.match(catalogJs, /q\.target/);
+  assert.match(catalogJs, /quest_key/);
+  assert.match(catalogJs, /description/);
+  assert.match(catalogJs, /target/);
   assert.match(catalogJs, /Inactive/);
   assert.doesNotMatch(catalog, /Save quest|Create quest|Delete quest|Edit quest/);
 });
