@@ -49,3 +49,9 @@ test('BKLG-0183 composer renders Hero as an authored full-scene overlay',()=>{
   const css=read('assets/css/operator-visual-assets.css');
   assert.match(css,/\.stage-layer\.hero\{inset:0;width:100%;height:100%;object-fit:fill;object-position:center\}/);
 });
+
+test('BKLG-0183 harness uses cache-busted asset versions after Hero overlay repair',()=>{
+  const html=read('operator/visual-assets/index.html');
+  assert.match(html,/operator-visual-assets\.css\?v=20260927-0183-hero-overlay/);
+  assert.match(html,/operator-visual-assets\.js\?v=20260927-0183-hero-overlay/);
+});
