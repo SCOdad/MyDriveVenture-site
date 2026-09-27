@@ -10,7 +10,7 @@ const dictionary = fs.readFileSync('operator/dictionary/index.html','utf8');
 const dictionaryJs = fs.readFileSync('operator/dictionary/operator.js','utf8');
 
 test('BKLG-0236 exposes Quests as a first-class Operator Home tool', () => {
-  assert.match(home, /href="\\/operator\\/quests\\/\\?v=20260927-0236c">Quests<\\/a>/);
+  assert.ok(home.includes('href="/operator/quests/?v=20260927-0236c">Quests</a>'));
   assert.match(home, /<h3>Quests<\/h3>/);
   assert.match(home, /Quest Catalog/);
   assert.match(config, /DV_OPERATOR_QUESTS_ENDPOINT/);
