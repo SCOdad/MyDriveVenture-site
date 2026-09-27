@@ -3,19 +3,19 @@
   const NIGHT_START_HOUR = 18;
   const DEFAULT_SCENERY = null;
   const SCENERY_BY_QUEST = Object.freeze({
-    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-L6-SNACK-RUN-BACKGROUND.png?v=56aafef-snack-run'},
-    Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/park.png'},
-    Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-L2-SCHOOL-BACKGROUND.png'},
-    Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-L4-GROCERY-STORE-BACKGROUND.png'},
-    Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-L5-LIBRARY-BACKGROUND.png?v=721c2d7-library'},
-    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-L7-DRIVE-THRU-BACKGROUND.png?v=721c2d7-drive-thru'},
-    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-L8-CAR-WASH-BACKGROUND.png?v=e83616b-car-wash'},
-    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-L9-GAS-STATION-BACKGROUND.png'},
-    Q000086:{scene:'shopping-center',label:'Shopping Center',src:'/assets/images/dv03/layers/DV03-L10-SHOPPING-CENTER-BACKGROUND.png'},
-    Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-L11-COFFEE-SHOP-BACKGROUND.png'},
-    Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
-    Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-L12-SALON-BARBER.png'},
-    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-L13-MOVIE-THEATER-BACKGROUND.png'}
+    Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L06-SNACK-RUN.png?v=56aafef-snack-run'},
+    Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L01-PARK.png'},
+    Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L02-SCHOOL.png'},
+    Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L04-GROCERY-STORE.png'},
+    Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L05-LIBRARY.png?v=721c2d7-library'},
+    Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L07-DRIVE-THRU.png?v=721c2d7-drive-thru'},
+    Q000044:{scene:'car-wash',label:'Car Wash',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L08-CAR-WASH.png?v=e83616b-car-wash'},
+    Q000046:{scene:'gas-station',label:'Gas Station',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L09-GAS-STATION.png'},
+    Q000086:{scene:'shopping-center',label:'Shopping Center',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L10-SHOPPING-CENTER.png'},
+    Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L11-COFFEE-SHOP.png'},
+    Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'},
+    Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'},
+    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png'}
   });
 
   const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
