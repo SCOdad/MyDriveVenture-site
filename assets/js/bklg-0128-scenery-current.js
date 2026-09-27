@@ -1,16 +1,16 @@
 (() => {
   const CURRENT = [
-    {value:'school',sortKey:'03-BACKGROUND-SCHOOL',id:'L2-FINAL',name:'School Background',file:'DV03-L2-SCHOOL-BACKGROUND.png'},
-    {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-FINAL',name:'Grocery Store Background',file:'DV03-L4-GROCERY-STORE-BACKGROUND.png'},
-    {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-FINAL',name:'Library Background',file:'DV03-L5-LIBRARY-BACKGROUND.png',version:'721c2d7-library'},
-    {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-FINAL',name:'Snack Run Background',file:'DV03-L6-SNACK-RUN-BACKGROUND.png',version:'56aafef-snack-run'},
-    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L7-FINAL',name:'Drive Thru Background',file:'DV03-L7-DRIVE-THRU-BACKGROUND.png',version:'721c2d7-drive-thru'},
-    {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L8-FINAL',name:'Car Wash Background',file:'DV03-L8-CAR-WASH-BACKGROUND.png',version:'e83616b-car-wash'},
-    {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L9-FINAL',name:'Gas Station Background',file:'DV03-L9-GAS-STATION-BACKGROUND.png'},
-    {value:'shopping-center',sortKey:'03-BACKGROUND-SHOPPING-CENTER',id:'L10-FINAL',name:'Shopping Center Background',file:'DV03-L10-SHOPPING-CENTER-BACKGROUND.png'},
-    {value:'coffee-shop',sortKey:'03-BACKGROUND-COFFEE-SHOP',id:'L11-FINAL',name:'Coffee Shop Background',file:'DV03-L11-COFFEE-SHOP-BACKGROUND.png'},
-    {value:'salon-barber',sortKey:'03-BACKGROUND-SALON-BARBER',id:'L12-FINAL',name:'Salon / Barber Background',file:'DV03-L12-SALON-BARBER.png'},
-    {value:'movie-theater',sortKey:'03-BACKGROUND-MOVIE-THEATER',id:'L13-FINAL',name:'Movie Theater Background',file:'DV03-L13-MOVIE-THEATER-BACKGROUND.png'}
+    {value:'school',sortKey:'03-BACKGROUND-SCHOOL',id:'L2-FINAL',name:'School Background',file:'DV03-BACKGROUND-BASE-L02-SCHOOL.png'},
+    {value:'grocery-store',sortKey:'03-BACKGROUND-GROCERY-STORE',id:'L4-FINAL',name:'Grocery Store Background',file:'DV03-BACKGROUND-BASE-L04-GROCERY-STORE.png'},
+    {value:'library',sortKey:'03-BACKGROUND-LIBRARY',id:'L5-FINAL',name:'Library Background',file:'DV03-BACKGROUND-BASE-L05-LIBRARY.png',version:'721c2d7-library'},
+    {value:'snack-run',sortKey:'03-BACKGROUND-SNACK-RUN',id:'L6-FINAL',name:'Snack Run Background',file:'DV03-BACKGROUND-BASE-L06-SNACK-RUN.png',version:'56aafef-snack-run'},
+    {value:'drive-thru',sortKey:'03-BACKGROUND-DRIVE-THRU',id:'L7-FINAL',name:'Drive Thru Background',file:'DV03-BACKGROUND-BASE-L07-DRIVE-THRU.png',version:'721c2d7-drive-thru'},
+    {value:'car-wash',sortKey:'03-BACKGROUND-CAR-WASH',id:'L8-FINAL',name:'Car Wash Background',file:'DV03-BACKGROUND-BASE-L08-CAR-WASH.png',version:'e83616b-car-wash'},
+    {value:'gas-station',sortKey:'03-BACKGROUND-GAS-STATION',id:'L9-FINAL',name:'Gas Station Background',file:'DV03-BACKGROUND-BASE-L09-GAS-STATION.png'},
+    {value:'shopping-center',sortKey:'03-BACKGROUND-SHOPPING-CENTER',id:'L10-FINAL',name:'Shopping Center Background',file:'DV03-BACKGROUND-BASE-L10-SHOPPING-CENTER.png'},
+    {value:'coffee-shop',sortKey:'03-BACKGROUND-COFFEE-SHOP',id:'L11-FINAL',name:'Coffee Shop Background',file:'DV03-BACKGROUND-BASE-L11-COFFEE-SHOP.png'},
+    {value:'salon-barber',sortKey:'03-BACKGROUND-SALON-BARBER',id:'L12-FINAL',name:'Salon / Barber Background',file:'DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'},
+    {value:'movie-theater',sortKey:'03-BACKGROUND-MOVIE-THEATER',id:'L13-FINAL',name:'Movie Theater Background',file:'DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png'}
   ];
   const srcFor=item=>`/assets/images/dv03/layers/${item.file}${item.version?`?v=${item.version}`:''}`;
 
