@@ -48,3 +48,16 @@ test('BKLG-0181 exposes historical impact preview and controlled retroactive awa
   assert.match(js, /preview_token/);
   assert.match(js, /Existing awards will not be revoked or duplicated/);
 });
+
+
+test('BKLG-0181 discovery dispositions expose only the intended operator choices with definitions', () => {
+  assert.match(js, /Quest Candidate/);
+  assert.match(js, /Meaningful destination or activity that may deserve a new quest or category/);
+  assert.match(js, /Dismiss/);
+  assert.match(js, /This specific drive text is not useful evidence/);
+  assert.match(js, /Ignore/);
+  assert.match(js, /intentionally outside Drive Venture classification or quest coverage/);
+  assert.match(js, /No separate “Alias Added” disposition is needed/);
+  assert.doesNotMatch(js, /<option>ALIAS_ADDED<\/option>/);
+  assert.doesNotMatch(js, /value="ALIAS_ADDED"/);
+});
