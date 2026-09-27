@@ -55,3 +55,25 @@ test('BKLG-0183 harness uses cache-busted asset versions after Hero overlay repa
   assert.match(html,/operator-visual-assets\.css\?v=20260927-0183-hero-overlay/);
   assert.match(html,/operator-visual-assets\.js\?v=20260927-0183-hero-overlay/);
 });
+
+test('BKLG-0183 registers Halloween Park canary without changing canonical Park or Hero',()=>{
+  const source=read('assets/js/dv03-visual-asset-registry.js');
+  const context={window:{}};
+  vm.runInNewContext(source,context);
+  const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
+  const canonical=registry.find('DV-UX-DV03-BACKGROUND-PARK');
+  const halloween=registry.find('DV-UX-DV03-BACKGROUND-PARK-HALLOWEEN');
+  const hero=registry.find('DV-CHAR-PARKER-DV03-HERO');
+  assert.ok(canonical);
+  assert.ok(halloween);
+  assert.equal(halloween.theme,'halloween');
+  assert.equal(halloween.parentAssetId,canonical.assetId);
+  assert.equal(hero.theme,'normal');
+  assert.equal(hero.seasonal,false);
+  assert.ok(fs.existsSync('assets/images/dv03/themes/halloween/DV-UX-DV03-BACKGROUND-PARK-HALLOWEEN.svg'));
+});
+
+test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
+  const html=read('operator/visual-assets/index.html');
+  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260927-0183-halloween-canary/);
+});
