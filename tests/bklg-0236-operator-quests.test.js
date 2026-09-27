@@ -38,3 +38,9 @@ test('BKLG-0236 Dictionary searches and selects existing quests with Destination
   assert.match(dictionaryJs, /View in Quest Catalog/);
   assert.match(dictionaryJs, /questEndpoint=window\.DV_OPERATOR_QUESTS_ENDPOINT/);
 });
+
+
+test('BKLG-0236 derives operator-quests endpoint when cached operator config is stale', () => {
+  assert.match(catalogJs, /DV_OPERATOR_QUESTS_ENDPOINT\|\|window\.DV_ENVIRONMENT_CONFIG\?\.functionUrl\?\.\('operator-quests'\)/);
+  assert.match(dictionaryJs, /DV_OPERATOR_QUESTS_ENDPOINT\|\|window\.DV_ENVIRONMENT_CONFIG\?\.functionUrl\?\.\('operator-quests'\)/);
+});
