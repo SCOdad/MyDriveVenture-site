@@ -28,7 +28,7 @@ test('BKLG-0128 exposes the seven canonical layer rows with OFF controls',()=>{
 
 test('BKLG-0128 canonical layers use simple same-origin runtime aliases',()=>{
   assert.match(js,/\/assets\/images\/dv03\/layers\/night\.png/);
-  assert.match(js,/\\/assets\\/images\\/dv03\\/layers\\/DV03-BACKGROUND-BASE-L01-PARK\\.png/);
+  assert.match(js,/DV-UX-DV03-BACKGROUND-PARK/);
   assert.doesNotMatch(js,/drive\.google\.com/);
 });
 
