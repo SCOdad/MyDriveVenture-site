@@ -11,12 +11,24 @@
   const search=document.getElementById('asset-search');
   let selectedId=null;
   let calendarTheme='normal';
+  let questMetadata=new Map();
 
   const show=(el,value)=>{if(el)el.hidden=!value};
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
   function themeName(id){return registry.themes.find(theme=>theme.id===id)?.label||id}
   function layerName(id){return registry.layers.find(layer=>layer.id===id)?.label||id}
+  function hasQuestMapping(asset){return asset.layer!=='background'||(asset.questKeys||[]).length>0}
+  function questMarkup(asset){
+    const keys=asset.questKeys||[];
+    if(asset.layer!=='background')return 'Not applicable';
+    if(!keys.length)return '<span class="construction-text">NOT CONNECTED TO A QUEST</span>';
+    return keys.map(key=>{
+      const q=questMetadata.get(key);
+      if(!q)return `<span class="quest-missing">${esc(key)} · definition not found</span>`;
+      return `<span class="${q.active===false?'quest-inactive':''}">${esc(key)} · ${esc(q.name||'Unnamed quest')}${q.active===false?' (inactive)':''}</span>`;
+    }).join('<br>');
+  }
   function codePreview(asset){
     if(asset.composer?.type==='sky-day')return '<div class="code-thumb">Code-native<br>Day sky</div>';
     if(asset.composer?.type==='milestone-sign')return '<div class="code-thumb">Code-native<br>Milestone sign</div>';
@@ -48,7 +60,7 @@
       <div class="asset-thumb">${previewMarkup(asset)}</div>
       <div class="asset-title">${esc(asset.slot?asset.slot+' · ':'')}${esc(asset.name)}</div>
       <div class="asset-sub">${esc(layerName(asset.layer))} · ${esc(themeName(asset.theme))}</div>
-      <span class="badge ${asset.locked?'locked':''}">${esc(asset.status)}</span>
+      ${hasQuestMapping(asset)?`<span class="badge ${asset.locked?'locked':''}">${esc(asset.status)}</span>`:'<span class="badge construction">NOT CONNECTED TO A QUEST</span>'}
     </button>`).join(''):'<div class="empty">No assets match these filters. Halloween and later seasonal variants will appear here as they are registered.</div>';
     grid.querySelectorAll('[data-asset-id]').forEach(card=>card.onclick=()=>selectAsset(card.dataset.assetId));
     const visible=assets.some(asset=>asset.assetId===selectedId);
@@ -77,6 +89,7 @@
         <dt>Locked</dt><dd>${asset.locked?'Yes':'No / reference'}</dd>
         <dt>Seasonal Hero?</dt><dd>${asset.layer==='hero'?'No — Hero identity remains canonical':'Not applicable'}</dd>
         <dt>Related variants</dt><dd>${variants.length?variants.map(v=>esc(themeName(v.theme))).join(', '):'None registered yet'}</dd>
+        <dt>Quest mapping</dt><dd>${questMarkup(asset)}</dd>
         <dt>Notes</dt><dd>${esc(asset.notes||'—')}</dd>
       </dl>
       <div class="detail-actions">
@@ -166,13 +179,21 @@
     document.getElementById('cal-save').onclick=()=>{
       const theme=document.getElementById('cal-theme').value;let rule;
       if(mode.value==='thanksgiving')rule=window.DV_THEME_CALENDAR.thanksgivingRule(-Math.abs(+document.getElementById('cal-before').value),Math.abs(+document.getElementById('cal-after').value));
-      else{const s=document.getElementById('cal-start').value.match(/^(\\d{2})-(\\d{2})$/),e=document.getElementById('cal-end').value.match(/^(\\d{2})-(\\d{2})$/);if(!s||!e){document.getElementById('calendar-message').textContent='Use MM-DD for fixed annual dates.';return}rule=window.DV_THEME_CALENDAR.normalizeRule({mode:'fixed',startMonth:s[1],startDay:s[2],endMonth:e[1],endDay:e[2]})}
+      else{const s=document.getElementById('cal-start').value.match(/^(\d{2})-(\d{2})$/),e=document.getElementById('cal-end').value.match(/^(\d{2})-(\d{2})$/);if(!s||!e){document.getElementById('calendar-message').textContent='Use MM-DD for fixed annual dates.';return}try{rule=window.DV_THEME_CALENDAR.normalizeRule({mode:'fixed',startMonth:s[1],startDay:s[2],endMonth:e[1],endDay:e[2]})}catch(_){document.getElementById('calendar-message').textContent='Enter real fixed annual dates in MM-DD format.';return}}
       const candidate={id:'theme-'+Date.now(),theme,label:calendarLabel(theme),enabled:true,rule};
       const year=+document.getElementById('calendar-year').value;
       const test=window.DV_THEME_CALENDAR.resolveCalendar(year,[...calendarRules,candidate]);
       if(!test.valid){document.getElementById('calendar-message').textContent='Theme overlaps an existing range. Resolve the conflict before saving.';renderCalendar([...calendarRules,candidate]);return}
       calendarRules.push(candidate);saveCalendar();host.hidden=true;document.getElementById('calendar-message').textContent='';renderCalendar();
     };
+  }
+
+  async function loadQuestMetadata(client){
+    const keys=registry.questKeys?.()||[];
+    if(!keys.length)return;
+    const {data,error}=await client.from('quest_definitions').select('quest_key,name,active').in('quest_key',keys);
+    if(error)throw new Error(error.message||'Unable to load quest definitions.');
+    questMetadata=new Map((data||[]).map(row=>[row.quest_key,row]));
   }
   function renderCalendar(override){
     const api=window.DV_THEME_CALENDAR,year=+document.getElementById('calendar-year').value||new Date().getFullYear(),rules=override||calendarRules;
@@ -202,6 +223,7 @@
     const {data,error}=await client.rpc('get_authenticated_dashboard_v1');
     if(error||!data?.ok)throw new Error(error?.message||data?.error||'Unable to verify operator access.');
     if(data.is_operator!==true){show(checking,false);show(denied,true);return}
+    await loadQuestMetadata(client);
     setupFilters();setupCalendar();setupComposer();renderGallery();
     show(checking,false);show(denied,false);show(shell,true);
   }

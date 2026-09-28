@@ -5,6 +5,11 @@
   const dateUTC=(y,m,d)=>new Date(Date.UTC(y,m-1,d));
   const addDays=(d,n)=>new Date(d.getTime()+n*DAY_MS);
   const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
+  function fixedDate(year,month,day){
+    const d=dateUTC(year,+month,+day);
+    if(d.getUTCFullYear()!==year||d.getUTCMonth()+1!==+month||d.getUTCDate()!==+day)throw new Error('Invalid fixed annual date');
+    return d;
+  }
 
   function nthWeekday(year,month,weekday,ordinal){
     const first=dateUTC(year,month,1);
@@ -12,7 +17,7 @@
     return addDays(first,delta+(ordinal-1)*7);
   }
   function resolveAnchor(year,anchor){
-    if(anchor.kind==='FIXED_DATE') return dateUTC(year,anchor.month,anchor.day);
+    if(anchor.kind==='FIXED_DATE') return fixedDate(year,anchor.month,anchor.day);
     if(anchor.kind==='NTH_WEEKDAY') return nthWeekday(year,anchor.month,anchor.weekday,anchor.ordinal);
     throw new Error('Unsupported calendar anchor: '+anchor.kind);
   }
@@ -21,7 +26,7 @@
     return {start:addDays(anchor,rule.start_offset_days||0),end:addDays(anchor,rule.end_offset_days||0)};
   }
   function normalizeRule(input){
-    if(input.mode==='fixed') return {anchor:{kind:'FIXED_DATE',month:+input.startMonth,day:+input.startDay},start_offset_days:0,end_offset_days:Math.round((dateUTC(2000,+input.endMonth,+input.endDay)-dateUTC(2000,+input.startMonth,+input.startDay))/DAY_MS)};
+    if(input.mode==='fixed') return {anchor:{kind:'FIXED_DATE',month:+input.startMonth,day:+input.startDay},start_offset_days:0,end_offset_days:Math.round((fixedDate(2000,input.endMonth,input.endDay)-fixedDate(2000,input.startMonth,input.startDay))/DAY_MS)};
     return {anchor:{kind:'NTH_WEEKDAY',month:+input.month,weekday:+input.weekday,ordinal:+input.ordinal},start_offset_days:+input.startOffset,end_offset_days:+input.endOffset};
   }
   function resolveCalendar(year,rules){
@@ -41,7 +46,7 @@
     return cal.rows.find(r=>d>=r.start&&d<=r.end)?.theme||'normal';
   }
   const thanksgivingRule=(startOffset=-7,endOffset=3)=>({anchor:{kind:'NTH_WEEKDAY',month:11,weekday:4,ordinal:4},start_offset_days:startOffset,end_offset_days:endOffset});
-  const api={addDays,fmt,iso,nthWeekday,resolveRule,normalizeRule,resolveCalendar,themeForDate,thanksgivingRule};
+  const api={addDays,fmt,iso,nthWeekday,fixedDate,resolveRule,normalizeRule,resolveCalendar,themeForDate,thanksgivingRule};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV_THEME_CALENDAR=Object.freeze(api);
 })();
