@@ -175,19 +175,71 @@
 
 
   const CAL_KEY='dv03-theme-calendar-v1';
-  let calendarRules=[];
-  function loadCalendar(){try{calendarRules=JSON.parse(localStorage.getItem(CAL_KEY)||'[]')}catch(_){calendarRules=[]}}
-  function saveCalendar(){localStorage.setItem(CAL_KEY,JSON.stringify(calendarRules))}
+  let calendarRules=[],calendarVersion=0,calendarRemoteReady=false,calendarHasShared=false,calendarDirty=false,browserDraft=null,calendarClient=null;
+  function loadCalendar(){
+    try{const raw=localStorage.getItem(CAL_KEY);if(!raw)return null;const parsed=JSON.parse(raw);return Array.isArray(parsed)?parsed:null}
+    catch(_){return null}
+  }
+  function renderSharedCalendarStatus(){
+    const status=document.getElementById('calendar-shared-status'),save=document.getElementById('calendar-save-shared');
+    if(!status||!save)return;
+    if(!calendarRemoteReady){status.textContent='Shared calendar could not be loaded. Browser draft is preserved; shared saving is disabled.';save.disabled=true;return}
+    status.textContent=calendarHasShared?`Shared version ${calendarVersion}${calendarDirty?' · unsaved browser draft':''}`:calendarDirty?'Initial browser draft ready to publish':'No shared calendar has been published yet.';
+    save.textContent=calendarHasShared?'Save Shared Calendar':'Publish Shared Calendar';
+    save.disabled=!calendarDirty||!calendarRemoteReady;
+  }
+  function saveCalendar(){
+    localStorage.setItem(CAL_KEY,JSON.stringify(calendarRules));calendarDirty=true;renderSharedCalendarStatus();
+  }
   function calendarLabel(theme){return registry.themes.find(t=>t.id===theme)?.label||theme}
   function calendarLevel(theme){return registry.themes.find(t=>t.id===theme)?.level||'season'}
   function enrichedRules(rules){return rules.map(rule=>({...rule,level:calendarLevel(rule.theme)}))}
-  function setupCalendar(){
-    loadCalendar();
+  async function setupCalendar(client){
+    calendarClient=client;browserDraft=loadCalendar();
     const year=document.getElementById('calendar-year'),date=document.getElementById('calendar-date');
     year.value=new Date().getFullYear();date.value=new Date().toISOString().slice(0,10);
     year.onchange=renderCalendar;date.onchange=()=>{year.value=date.value.slice(0,4);renderCalendar();themeFilter.value='calendar';renderGallery()};
     document.getElementById('calendar-add').onclick=()=>showCalendarEditor();
-    renderCalendar();
+    document.getElementById('calendar-save-shared').onclick=saveSharedCalendar;
+    const restore=document.getElementById('calendar-restore-draft');
+    restore.onclick=()=>{if(!browserDraft)return;calendarRules=JSON.parse(JSON.stringify(browserDraft));calendarDirty=true;restore.hidden=true;renderSharedCalendarStatus();renderCalendar();renderGallery()};
+    try{
+      const {data,error}=await client.functions.invoke('dv03-theme-calendar',{method:'GET'});
+      if(error||!data?.ok)throw error||new Error('Shared calendar is unavailable');
+      calendarRemoteReady=true;calendarVersion=Number(data.version)||0;calendarHasShared=data.exists===true;
+      if(calendarHasShared){
+        calendarRules=Array.isArray(data.rules)?data.rules:[];
+        calendarDirty=false;
+        if(browserDraft&&JSON.stringify(browserDraft)!==JSON.stringify(calendarRules))restore.hidden=false;
+      }else{
+        calendarRules=browserDraft||[];calendarDirty=calendarRules.length>0;
+      }
+      renderSharedCalendarStatus();renderCalendar();
+    }catch(error){
+      calendarRemoteReady=false;calendarRules=browserDraft||[];
+      document.getElementById('calendar-message').textContent=error?.message||'Unable to load the shared Theme Calendar.';
+      renderSharedCalendarStatus();renderCalendar();
+    }
+  }
+  async function saveSharedCalendar(){
+    if(!calendarRemoteReady||!calendarClient){document.getElementById('calendar-message').textContent='The shared calendar is unavailable; no changes were saved.';return}
+    const year=+document.getElementById('calendar-year').value||new Date().getFullYear();
+    const check=window.DV_THEME_CALENDAR.resolveCalendar(year,enrichedRules(calendarRules));
+    if(!check.valid){document.getElementById('calendar-message').textContent='Resolve same-precedence conflicts before saving the shared calendar.';return}
+    const save=document.getElementById('calendar-save-shared');save.disabled=true;
+    try{
+      const {data,error}=await calendarClient.functions.invoke('dv03-theme-calendar',{method:'POST',body:{action:'save',expectedVersion:calendarVersion,rules:calendarRules}});
+      if(error||!data?.ok)throw error||new Error(data?.error||'Shared calendar save failed');
+      calendarVersion=Number(data.version)||calendarVersion+1;calendarHasShared=true;calendarDirty=false;browserDraft=null;
+      localStorage.removeItem(CAL_KEY);document.getElementById('calendar-restore-draft').hidden=true;
+      document.getElementById('calendar-message').textContent='Shared Theme Calendar saved.';
+      renderSharedCalendarStatus();renderCalendar();renderGallery();
+    }catch(error){
+      let message=error?.message||'Shared calendar save failed. No shared changes were made.';
+      if(error?.context?.clone){const body=await error.context.clone().json().catch(()=>({}));message=body?.error||message}
+      document.getElementById('calendar-message').textContent=message;
+      renderSharedCalendarStatus();
+    }
   }
   function fixedValues(rule){
     const api=window.DV_THEME_CALENDAR,anchor=api.fixedDate(2000,rule.anchor.month,rule.anchor.day);
@@ -259,7 +311,8 @@
     if(error||!data?.ok)throw new Error(error?.message||data?.error||'Unable to verify operator access.');
     if(data.is_operator!==true){show(checking,false);show(denied,true);return}
     await loadQuestCatalog(client,session.access_token);
-    setupFilters();setupCalendar();setupComposer();renderGallery();
+    window.DV_SUPABASE_CLIENT=client;
+    setupFilters();await setupCalendar(client);setupComposer();renderGallery();
     show(checking,false);show(denied,false);show(shell,true);
   }
 
