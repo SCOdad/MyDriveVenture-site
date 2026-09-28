@@ -146,9 +146,8 @@ test('DV03 registry includes deployed sky variants',()=>{
 test('operator visual assets resolves current quest definitions at runtime and renders construction treatment',()=>{
   const js=read('assets/js/operator-visual-assets.js');
   const css=read('assets/css/operator-visual-assets.css');
-  assert.match(js,/quest_definitions/);
-  assert.match(js,/select\('quest_key,name,active'\)/);
-  assert.match(js,/registry\.questKeys/);
+  assert.doesNotMatch(js,/client\.from\('quest_definitions'\)/);
+  assert.match(js,/questMetadata=new Map\(questCatalog\.map/);
   assert.match(js,/NOT CONNECTED TO A QUEST/);
   assert.match(js,/definition not found/);
   assert.match(js,/inactive/);

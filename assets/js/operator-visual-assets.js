@@ -218,13 +218,6 @@
     };
   }
 
-  async function loadQuestMetadata(client){
-    const keys=registry.questKeys?.()||[];
-    if(!keys.length)return;
-    const {data,error}=await client.from('quest_definitions').select('quest_key,name,active').in('quest_key',keys);
-    if(error)throw new Error(error.message||'Unable to load quest definitions.');
-    questMetadata=new Map((data||[]).map(row=>[row.quest_key,row]));
-  }
   async function loadQuestCatalog(client,accessToken,retried=false){
     const endpoint=window.DV_OPERATOR_QUESTS_ENDPOINT||window.DV_ENVIRONMENT_CONFIG?.functionUrl?.('operator-quests');
     if(!endpoint)throw new Error('Quest catalog endpoint is unavailable.');
@@ -232,6 +225,7 @@
     if(response.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session?.access_token)throw new Error('Your operator session expired. Sign in again.');return loadQuestCatalog(client,data.session.access_token,true)}
     const out=await response.json().catch(()=>({}));if(!response.ok||!out.ok)throw new Error(out.error||`Quest catalog request failed (${response.status})`);
     questCatalog=out.quests||[];
+    questMetadata=new Map(questCatalog.map(row=>[row.quest_key,row]));
   }
   function renderCalendar(override){
     const api=window.DV_THEME_CALENDAR,year=+document.getElementById('calendar-year').value||new Date().getFullYear(),rules=override||calendarRules;
@@ -264,7 +258,7 @@
     const {data,error}=await client.rpc('get_authenticated_dashboard_v1');
     if(error||!data?.ok)throw new Error(error?.message||data?.error||'Unable to verify operator access.');
     if(data.is_operator!==true){show(checking,false);show(denied,true);return}
-    await Promise.all([loadQuestMetadata(client),loadQuestCatalog(client,session.access_token)]);
+    await loadQuestCatalog(client,session.access_token);
     setupFilters();setupCalendar();setupComposer();renderGallery();
     show(checking,false);show(denied,false);show(shell,true);
   }
