@@ -190,23 +190,25 @@
     renderCalendar();
   }
   function fixedValues(rule){
-    const api=window.DV_THEME_CALENDAR,start=api.fixedDate(2000,rule.anchor.month,rule.anchor.day),end=api.addDays(start,rule.end_offset_days||0);
-    return {start:api.iso(start).slice(5),end:api.iso(end).slice(5)};
+    const api=window.DV_THEME_CALENDAR,anchor=api.fixedDate(2000,rule.anchor.month,rule.anchor.day);
+    const legacy=rule.base_end_offset_days===undefined;
+    const end=api.addDays(anchor,legacy?(rule.end_offset_days||0):(rule.base_end_offset_days||0));
+    return {start:api.iso(anchor).slice(5),end:api.iso(end).slice(5),before:Math.abs(rule.start_offset_days||0),after:legacy?0:Math.abs(rule.end_offset_days||0)};
   }
   function showCalendarEditor(ruleId=null){
     const existing=calendarRules.find(rule=>rule.id===ruleId)||null;
     const host=document.getElementById('calendar-editor');host.hidden=false;
     const choices=registry.themes.filter(t=>t.id!=='normal').map(t=>`<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('');
-    const isMoving=existing?.rule?.anchor?.kind==='NTH_WEEKDAY',fixed=existing&&!isMoving?fixedValues(existing.rule):{start:'10-15',end:'10-31'};
-    host.innerHTML=`<label>Theme<select id="cal-theme">${choices}</select></label><label>Rule<select id="cal-rule"><option value="fixed">Fixed annual dates</option><option value="thanksgiving">Thanksgiving (4th Thursday)</option></select></label><label id="cal-start-wrap">Start (MM-DD)<input id="cal-start" value="${esc(fixed.start)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-end-wrap">End (MM-DD)<input id="cal-end" value="${esc(fixed.end)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-before-wrap" hidden>Days before<input id="cal-before" type="number" value="${isMoving?Math.abs(existing.rule.start_offset_days||0):7}" min="0" max="60"></label><label id="cal-after-wrap" hidden>Days after<input id="cal-after" type="number" value="${isMoving?Math.abs(existing.rule.end_offset_days||0):3}" min="0" max="60"></label><button id="cal-save" class="buttonish" type="button">${existing?'Save Changes':'Save Theme'}</button><button id="cal-cancel" class="buttonish" type="button">Cancel</button>`;
+    const isMoving=existing?.rule?.anchor?.kind==='NTH_WEEKDAY',fixed=existing&&!isMoving?fixedValues(existing.rule):{start:'10-15',end:'10-31',before:0,after:0};
+    host.innerHTML=`<label>Theme<select id="cal-theme">${choices}</select></label><label>Rule<select id="cal-rule"><option value="fixed">Fixed annual dates</option><option value="thanksgiving">Thanksgiving (4th Thursday)</option></select></label><label id="cal-start-wrap">Start (MM-DD)<input id="cal-start" value="${esc(fixed.start)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-end-wrap">End (MM-DD)<input id="cal-end" value="${esc(fixed.end)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-before-wrap">Days before<input id="cal-before" type="number" value="${isMoving?Math.abs(existing.rule.start_offset_days||0):fixed.before}" min="0" max="60"></label><label id="cal-after-wrap">Days after<input id="cal-after" type="number" value="${isMoving?Math.abs(existing.rule.end_offset_days||0):fixed.after}" min="0" max="60"></label><button id="cal-save" class="buttonish" type="button">${existing?'Save Changes':'Save Theme'}</button><button id="cal-cancel" class="buttonish" type="button">Cancel</button>`;
     const mode=document.getElementById('cal-rule');
-    mode.onchange=()=>{const moving=mode.value==='thanksgiving';['cal-start-wrap','cal-end-wrap'].forEach(id=>document.getElementById(id).hidden=moving);['cal-before-wrap','cal-after-wrap'].forEach(id=>document.getElementById(id).hidden=!moving)};
+    mode.onchange=()=>{const moving=mode.value==='thanksgiving';['cal-start-wrap','cal-end-wrap'].forEach(id=>document.getElementById(id).hidden=moving);if(moving&&!existing){document.getElementById('cal-before').value=7;document.getElementById('cal-after').value=3}};
     document.getElementById('cal-theme').value=existing?.theme||registry.themes.find(t=>t.id!=='normal'&&!t.future)?.id||'halloween';mode.value=isMoving?'thanksgiving':'fixed';mode.onchange();
     document.getElementById('cal-cancel').onclick=()=>{host.hidden=true;host.innerHTML='';document.getElementById('calendar-message').textContent=''};
     document.getElementById('cal-save').onclick=()=>{
       const theme=document.getElementById('cal-theme').value;let rule;
       if(mode.value==='thanksgiving')rule=window.DV_THEME_CALENDAR.thanksgivingRule(-Math.abs(+document.getElementById('cal-before').value),Math.abs(+document.getElementById('cal-after').value));
-      else{const s=document.getElementById('cal-start').value.match(/^(\d{2})-(\d{2})$/),e=document.getElementById('cal-end').value.match(/^(\d{2})-(\d{2})$/);if(!s||!e){document.getElementById('calendar-message').textContent='Use MM-DD for fixed annual dates.';return}try{rule=window.DV_THEME_CALENDAR.normalizeRule({mode:'fixed',startMonth:s[1],startDay:s[2],endMonth:e[1],endDay:e[2]})}catch(_){document.getElementById('calendar-message').textContent='Enter real fixed annual dates in MM-DD format.';return}}
+      else{const s=document.getElementById('cal-start').value.match(/^(\d{2})-(\d{2})$/),e=document.getElementById('cal-end').value.match(/^(\d{2})-(\d{2})$/);if(!s||!e){document.getElementById('calendar-message').textContent='Use MM-DD for fixed annual dates.';return}try{rule=window.DV_THEME_CALENDAR.normalizeRule({mode:'fixed',startMonth:s[1],startDay:s[2],endMonth:e[1],endDay:e[2],startOffset:-Math.abs(+document.getElementById('cal-before').value),endOffset:Math.abs(+document.getElementById('cal-after').value)})}catch(_){document.getElementById('calendar-message').textContent='Enter real fixed annual dates in MM-DD format.';return}}
       const candidate={id:existing?.id||'theme-'+Date.now(),theme,label:calendarLabel(theme),level:calendarLevel(theme),enabled:true,rule};
       const year=+document.getElementById('calendar-year').value;
       const nextRules=existing?calendarRules.map(item=>item.id===existing.id?candidate:item):[...calendarRules,candidate];
