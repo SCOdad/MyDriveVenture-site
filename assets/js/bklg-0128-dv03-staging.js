@@ -17,7 +17,7 @@
     {key:'01',id:'sky',label:'Sky / Atmosphere',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base Sky',sortKey:'01-SKY-BASE'},
-      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'/assets/images/dv03/layers/night.png'}]},
+      {value:'night',label:'Night',sortKey:'01-SKY-NIGHT',assetId:'DV-UX-DV03-SKY-NIGHT',src:'/assets/images/dv03/layers/DV03-SKY-BASE-NIGHT-MOON-FULL.png'}]},
     {key:'02',id:'road',label:'Road / Ground',options:[
       {value:'off',label:'OFF'},
       {value:'base',label:'Base Ground / Approach',sortKey:'02-ROAD-GROUND-BASE'}]},
