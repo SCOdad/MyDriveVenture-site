@@ -9,7 +9,8 @@
   const layerFilter=document.getElementById('layer-filter');
   const themeFilter=document.getElementById('theme-filter');
   const search=document.getElementById('asset-search');
-  let selectedId=null;\n  let calendarTheme='normal';
+  let selectedId=null;
+  let calendarTheme='normal';
 
   const show=(el,value)=>{if(el)el.hidden=!value};
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -30,10 +31,13 @@
     const layer=layerFilter.value,theme=themeFilter.value,q=search.value.trim().toLowerCase();
     let result=registry.assets.filter(asset=>{
       if(layer!=='all'&&asset.layer!==layer)return false;
-      if(theme!=='all'&&theme!=='calendar'&&asset.theme!==theme)return false;\n      if(theme==='calendar'&&asset.theme!==calendarTheme&&asset.theme!=='normal')return false;
+      if(theme!=='all'&&theme!=='calendar'&&asset.theme!==theme)return false;
+      if(theme==='calendar'&&asset.theme!==calendarTheme&&asset.theme!=='normal')return false;
       if(q&&!([asset.assetId,asset.name,asset.status,asset.file,asset.slot,asset.notes].join(' ').toLowerCase().includes(q)))return false;
       return true;
-    });\n    if(theme==='calendar'&&calendarTheme!=='normal'){const themed=new Set(result.filter(a=>a.theme===calendarTheme).map(a=>a.layer+'|'+(a.slot||a.name)));result=result.filter(a=>a.theme===calendarTheme||!themed.has(a.layer+'|'+(a.slot||a.name)));}\n    return result.sort((a,b)=>{
+    });
+    if(theme==='calendar'&&calendarTheme!=='normal'){const themed=new Set(result.filter(a=>a.theme===calendarTheme).map(a=>a.layer+'|'+(a.slot||a.name)));result=result.filter(a=>a.theme===calendarTheme||!themed.has(a.layer+'|'+(a.slot||a.name)));}
+    return result.sort((a,b)=>{
       const la=(registry.layers.find(x=>x.id===a.layer)?.order||99)-(registry.layers.find(x=>x.id===b.layer)?.order||99);
       return la||String(a.slot||a.name).localeCompare(String(b.slot||b.name));
     });
@@ -183,7 +187,8 @@
     body.innerHTML=cal.rows.map(r=>`<tr class="${r.base?'base':''} ${dateValue&&dateValue>=api.iso(r.start)&&dateValue<=api.iso(r.end)?'active':''}"><td>${esc(r.label)}</td><td>${api.fmt(r.start)}</td><td>${api.fmt(r.end)}</td><td>${r.base?'':`<button class="buttonish" data-delete-rule="${esc(r.id)}" type="button">Delete</button>`}</td></tr>`).join('');
     body.querySelectorAll('[data-delete-rule]').forEach(btn=>btn.onclick=()=>{calendarRules=calendarRules.filter(r=>r.id!==btn.dataset.deleteRule);saveCalendar();renderCalendar();renderGallery()});
   }
-\n  async function authorize(){
+
+  async function authorize(){
     if(!registry)throw new Error('DV03 visual asset registry is unavailable.');
     if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey)throw new Error('Supabase configuration is unavailable.');
     const client=window.DV_SUPABASE_CLIENT||window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
