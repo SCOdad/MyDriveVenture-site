@@ -43,10 +43,15 @@ test('BKLG-0181 exposes historical impact preview and controlled retroactive awa
   assert.match(html, /Historical quest impact/);
   assert.match(html, /Preview impact/);
   assert.match(html, /Apply previewed awards/);
+  assert.match(html, /id="impact-status"[^>]*role="status"[^>]*aria-live="polite"/);
   assert.match(js, /impact_preview/);
   assert.match(js, /apply_impact/);
   assert.match(js, /preview_token/);
   assert.match(js, /Existing awards will not be revoked or duplicated/);
+  assert.match(js, /impactStatus\('Calculating historical quest impact\.\.\.'\)/);
+  assert.match(js, /impactStatus\(err\.message,true\)/);
+  assert.match(js, /button\.disabled=true/);
+  assert.match(js, /button\.disabled=false/);
 });
 
 
