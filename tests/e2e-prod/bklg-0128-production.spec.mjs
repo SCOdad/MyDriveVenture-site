@@ -11,7 +11,7 @@ const assets = [
   '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L07-DRIVE-THRU.png',
   '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L08-CAR-WASH.png',
   '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L09-GAS-STATION.png',
-  '/assets/images/dv03/world/l9-neighborhood.png'
+  '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L10-SHOPPING-CENTER.png'
 ];
 
 test('BKLG-0128 production publishes fresh harness and viable layer assets', async ({ page }) => {
