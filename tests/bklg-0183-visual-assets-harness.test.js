@@ -191,6 +191,26 @@ test('theme calendar UI accepts valid fixed MM-DD input and persists without ove
   assert.doesNotMatch(js,/match\(\/\^\(\\\\d\{2\}\)-\(\\\\d\{2\}\)\$\/\)/);
 });
 
+test('fixed annual dates support before and after offsets around the authored range',()=>{
+  const cal=require('../assets/js/dv03-theme-calendar.js');
+  const halloween={id:'h',theme:'halloween',label:'Halloween',rule:cal.normalizeRule({mode:'fixed',startMonth:10,startDay:31,endMonth:10,endDay:31,startOffset:-14,endOffset:0})};
+  const resolved=cal.resolveRule(2026,halloween.rule);
+  assert.equal(cal.iso(resolved.start),'2026-10-17');
+  assert.equal(cal.iso(resolved.end),'2026-10-31');
+  const result=cal.resolveCalendar(2026,[halloween]);
+  assert.deepEqual(result.rows.map(r=>[r.label,cal.iso(r.start),cal.iso(r.end)]),[
+    ['BASE','2026-01-01','2026-10-16'],['Halloween','2026-10-17','2026-10-31'],['BASE','2026-11-01','2026-12-31']
+  ]);
+});
+
+test('fixed-date editor exposes offsets and passes them into normalized rules',()=>{
+  const js=read('assets/js/operator-visual-assets.js');
+  assert.match(js,/id="cal-before-wrap">Days before/);
+  assert.match(js,/id="cal-after-wrap">Days after/);
+  assert.match(js,/startOffset:-Math\.abs/);
+  assert.match(js,/endOffset:Math\.abs/);
+});
+
 test('theme calendar splits a season around a higher-precedence holiday and restores it afterward',()=>{
   const cal=require('../assets/js/dv03-theme-calendar.js');
   const fixed=(id,theme,sM,sD,eM,eD)=>({id,theme,label:theme,rule:cal.normalizeRule({mode:'fixed',startMonth:sM,startDay:sD,endMonth:eM,endDay:eD})});
