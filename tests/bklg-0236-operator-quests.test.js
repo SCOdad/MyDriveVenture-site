@@ -49,7 +49,7 @@ test('BKLG-0236 derives operator-quests endpoint when cached operator config is 
 test('BKLG-0236 cache-busts Quest Catalog and Dictionary runtime scripts', () => {
   assert.match(catalog, /operator\/config\.js\?v=20260927-0236c/);
   assert.match(catalog, /operator\/quests\/operator\.js\?v=20260927-0236c/);
-  assert.match(dictionary, /operator\/config\.js\?v=20260927-0236c/);
-  assert.match(dictionary, /operator\/dictionary\/operator\.js\?v=20260927-0236c/);
+  assert.match(dictionary, /operator\/config\.js\?v=20260928-0181e/);
+  assert.match(dictionary, /operator\/dictionary\/operator\.js\?v=20260928-0181e/);
   assert.match(home, /\/operator\/quests\/\?v=20260927-0236c/);
 });

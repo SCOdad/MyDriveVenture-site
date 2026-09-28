@@ -38,8 +38,10 @@
   }
 
   function renderDiscoveries(){
-    const rows=data.discoveries||[];
-    $('discoveries').innerHTML=rows.map(x=>`<button class="discovery-row ${x.status==='NEW'?'new':'dispositioned'}" data-discovery="${esc(x.id)}"><strong>${esc(x.driver_name)}</strong> · ${esc(x.drive?.drive_date||'Unknown date')}<br><small>${esc(x.status)} · surfaced ${esc(x.surfaced_count)} time${Number(x.surfaced_count)===1?'':'s'}</small><br>${esc(x.destination_snapshot||'')}${x.notes_snapshot?`<br><small>${esc(x.notes_snapshot.slice(0,160))}</small>`:''}</button>`).join('')||'<p>No unclassified drives are waiting.</p>';
+    const rank={QUEST_CANDIDATE:0,NEW:1,IGNORED:2,ALIAS_ADDED:2,DISMISSED:3};
+    const rows=(data.discoveries||[]).filter(x=>x.status!=='RESOLVED').sort((a,b)=>(rank[a.status]??2)-(rank[b.status]??2)||new Date(b.last_seen_at)-new Date(a.last_seen_at));
+    const rowClass=x=>x.status==='QUEST_CANDIDATE'?'quest-candidate':x.status==='DISMISSED'?'dismissed':x.status==='NEW'?'new':'dispositioned';
+    $('discoveries').innerHTML=rows.map(x=>`<button class="discovery-row ${rowClass(x)}" data-discovery="${esc(x.id)}"><strong>${esc(x.driver_name)}</strong> · ${esc(x.drive?.drive_date||'Unknown date')}<br><small>${esc(x.status)} · surfaced ${esc(x.surfaced_count)} time${Number(x.surfaced_count)===1?'':'s'}</small><br>${esc(x.destination_snapshot||'')}${x.notes_snapshot?`<br><small>${esc(x.notes_snapshot.slice(0,160))}</small>`:''}</button>`).join('')||'<p>No unclassified drives are waiting.</p>';
     $('discoveries').querySelectorAll('[data-discovery]').forEach(b=>b.onclick=()=>openDiscovery(b.dataset.discovery));
   }
   function openDiscovery(id){
