@@ -1,7 +1,7 @@
 (() => {
   const FALLBACK_URL='/assets/images/dv03/hero/parker-seated.png';
   const DERIVATIVE_FILENAME='avatar-dv03.png';
-  const NIGHT_SKY_URL='/assets/images/dv03/layers/night.png';
+  const NIGHT_SKY_URL='/assets/images/dv03/layers/DV03-SKY-BASE-NIGHT-MOON-FULL.png';
   const FEATURE_DURATION_MS=10000;
   const SKY_REFRESH_MS=60000;
   const signedUrlCache=new Map();
