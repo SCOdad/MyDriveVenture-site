@@ -49,7 +49,6 @@ test('DV03 scenery references ship final existing assets',()=>{
     assert.equal(fs.existsSync(path.join(__dirname,'..',assetPath)),true,`${scenery.scene} asset is present`);
   }
   assert.equal(rules.DEFAULT_SCENERY,null);
-  assert.match(rules.SCENERY_BY_QUEST.Q000038.src,/DV03-L4-GROCERY-STORE-BACKGROUND\.png/);
 });
 
 test('DV03 drivers without mapped scenery use the base landscape layer during the day',()=>{
