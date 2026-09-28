@@ -12,6 +12,8 @@
   let selectedId=null;
   let calendarTheme='normal';
   let questMetadata=new Map();
+  let questCatalog=[];
+  let questDraftKeys=[];
 
   const show=(el,value)=>{if(el)el.hidden=!value};
   const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -28,6 +30,20 @@
       if(!q)return `<span class="quest-missing">${esc(key)} · definition not found</span>`;
       return `<span class="${q.active===false?'quest-inactive':''}">${esc(key)} · ${esc(q.name||'Unnamed quest')}${q.active===false?' (inactive)':''}</span>`;
     }).join('<br>');
+  }
+  function questSummary(q){return `${q.quest_key} — ${q.name} · ${q.quest_type} · target: ${q.target??'—'} · ${q.xp} XP · ${q.active?'Active':'Inactive'}`}
+  function renderQuestDraft(){
+    const box=document.getElementById('quest-mapping-draft');if(!box)return;
+    box.innerHTML=questDraftKeys.length?`<strong>Draft selection:</strong> ${questDraftKeys.map(esc).join(', ')}<br><small>Reference only. Update the JavaScript registry in source control to make this mapping durable.</small>`:'<strong>Draft selection is empty.</strong><br><small>Reference only. This assistant never changes the registry.</small>';
+  }
+  function renderQuestSearch(){
+    const input=document.getElementById('quest-mapping-search'),box=document.getElementById('quest-mapping-results');if(!input||!box)return;
+    const query=input.value.trim().toLowerCase();
+    let rows=questCatalog.filter(q=>!query||[q.quest_key,q.name,q.description,q.quest_type,q.target].join(' ').toLowerCase().includes(query));
+    rows.sort((a,b)=>Number(b.quest_type==='Destination')-Number(a.quest_type==='Destination')||Number(b.active)-Number(a.active)||(a.display_order??99999)-(b.display_order??99999)||a.quest_key.localeCompare(b.quest_key));
+    rows=rows.slice(0,12);box.hidden=false;
+    box.innerHTML=rows.map(q=>`<button type="button" class="quest-search-row ${q.active?'':'inactive'} ${questDraftKeys.includes(q.quest_key)?'selected':''}" data-quest-key="${esc(q.quest_key)}"><strong>${esc(q.quest_key)} — ${esc(q.name)}</strong><br><small>${esc(q.quest_type)} · target: ${esc(q.target??'—')} · ${esc(q.xp)} XP · ${q.active?'Active':'Inactive'}</small></button>`).join('')||'<p>No matching quests.</p>';
+    box.querySelectorAll('[data-quest-key]').forEach(button=>button.onclick=()=>{const key=button.dataset.questKey;questDraftKeys=questDraftKeys.includes(key)?questDraftKeys.filter(x=>x!==key):[...questDraftKeys,key];input.value=questSummary(questCatalog.find(q=>q.quest_key===key));renderQuestDraft();renderQuestSearch()});
   }
   function codePreview(asset){
     if(asset.composer?.type==='sky-day')return '<div class="code-thumb">Code-native<br>Day sky</div>';
@@ -73,7 +89,7 @@
   function selectAsset(assetId,rerender=true){
     const asset=registry.find(assetId);if(!asset)return;
     selectedId=assetId;
-    const variants=variantsFor(asset);
+    const variants=variantsFor(asset);questDraftKeys=[...(asset.questKeys||[])];
     detail.innerHTML=`<h2>${esc(asset.name)}</h2>
       <div class="detail-preview">${previewMarkup(asset,true)}</div>
       <dl class="detail-grid">
@@ -92,17 +108,19 @@
         <dt>Quest mapping</dt><dd>${questMarkup(asset)}</dd>
         <dt>Notes</dt><dd>${esc(asset.notes||'—')}</dd>
       </dl>
+      ${asset.layer==='background'?`<section class="quest-mapping-assistant"><h3>Quest mapping assistant</h3><p class="stage-note">Search the current quest catalog and select candidate keys. Selections are a temporary reference and do not change the registry.</p><input id="quest-mapping-search" type="search" placeholder="Quest key, name, description, type, or target" autocomplete="off"><div id="quest-mapping-results" class="quest-search-results" hidden></div><div id="quest-mapping-draft" class="quest-mapping-draft"></div></section>`:''}
       <div class="detail-actions">
         ${asset.src?`<a class="buttonish" href="${esc(asset.src)}" target="_blank" rel="noopener">Open actual asset</a>`:''}
         <button class="buttonish" id="use-in-composer" type="button">Use in composer</button>
       </div>`;
     document.getElementById('use-in-composer').onclick=()=>setComposerAsset(asset);
+    const questSearch=document.getElementById('quest-mapping-search');if(questSearch){questSearch.oninput=renderQuestSearch;questSearch.onfocus=renderQuestSearch;renderQuestDraft()}
     if(rerender)renderGallery();
   }
   function setupFilters(){
     layerFilter.innerHTML='<option value="all">All layers</option>'+registry.layers.map(layer=>`<option value="${esc(layer.id)}">${esc(layer.label)}</option>`).join('');
     themeFilter.innerHTML='<option value="all">All themes</option><option value="calendar">Calendar preview</option>'+registry.themes.map(theme=>`<option value="${esc(theme.id)}">${esc(theme.label)}${theme.future?' (future)':''}</option>`).join('');
-    document.getElementById('theme-strip').innerHTML=registry.themes.map(theme=>`<span class="theme-chip ${theme.future?'future':''}" data-level="${esc(theme.level)}">${esc(theme.label)} · ${registry.assets.filter(asset=>asset.theme===theme.id).length}</span>`).join('');
+    document.getElementById('theme-strip').innerHTML=registry.themes.map(theme=>{const themed=registry.assets.filter(asset=>asset.theme===theme.id),backgrounds=themed.filter(asset=>asset.layer==='background');return `<span class="theme-chip ${theme.future?'future':''}" data-level="${esc(theme.level)}">${esc(theme.label)} · ${backgrounds.length} backgrounds · ${themed.length} total assets</span>`}).join('');
     layerFilter.onchange=renderGallery;themeFilter.onchange=renderGallery;search.oninput=renderGallery;
   }
 
@@ -161,30 +179,40 @@
   function loadCalendar(){try{calendarRules=JSON.parse(localStorage.getItem(CAL_KEY)||'[]')}catch(_){calendarRules=[]}}
   function saveCalendar(){localStorage.setItem(CAL_KEY,JSON.stringify(calendarRules))}
   function calendarLabel(theme){return registry.themes.find(t=>t.id===theme)?.label||theme}
+  function calendarLevel(theme){return registry.themes.find(t=>t.id===theme)?.level||'season'}
+  function enrichedRules(rules){return rules.map(rule=>({...rule,level:calendarLevel(rule.theme)}))}
   function setupCalendar(){
     loadCalendar();
     const year=document.getElementById('calendar-year'),date=document.getElementById('calendar-date');
     year.value=new Date().getFullYear();date.value=new Date().toISOString().slice(0,10);
     year.onchange=renderCalendar;date.onchange=()=>{year.value=date.value.slice(0,4);renderCalendar();themeFilter.value='calendar';renderGallery()};
-    document.getElementById('calendar-add').onclick=showCalendarEditor;
+    document.getElementById('calendar-add').onclick=()=>showCalendarEditor();
     renderCalendar();
   }
-  function showCalendarEditor(){
+  function fixedValues(rule){
+    const api=window.DV_THEME_CALENDAR,start=api.fixedDate(2000,rule.anchor.month,rule.anchor.day),end=api.addDays(start,rule.end_offset_days||0);
+    return {start:api.iso(start).slice(5),end:api.iso(end).slice(5)};
+  }
+  function showCalendarEditor(ruleId=null){
+    const existing=calendarRules.find(rule=>rule.id===ruleId)||null;
     const host=document.getElementById('calendar-editor');host.hidden=false;
     const choices=registry.themes.filter(t=>t.id!=='normal').map(t=>`<option value="${esc(t.id)}">${esc(t.label)}</option>`).join('');
-    host.innerHTML=`<label>Theme<select id="cal-theme">${choices}</select></label><label>Rule<select id="cal-rule"><option value="fixed">Fixed annual dates</option><option value="thanksgiving">Thanksgiving (4th Thursday)</option></select></label><label id="cal-start-wrap">Start (MM-DD)<input id="cal-start" value="10-15" pattern="\\d{2}-\\d{2}"></label><label id="cal-end-wrap">End (MM-DD)<input id="cal-end" value="10-31" pattern="\\d{2}-\\d{2}"></label><label id="cal-before-wrap" hidden>Days before<input id="cal-before" type="number" value="7" min="0" max="60"></label><label id="cal-after-wrap" hidden>Days after<input id="cal-after" type="number" value="3" min="0" max="60"></label><button id="cal-save" class="buttonish" type="button">Save Theme</button><button id="cal-cancel" class="buttonish" type="button">Cancel</button>`;
+    const isMoving=existing?.rule?.anchor?.kind==='NTH_WEEKDAY',fixed=existing&&!isMoving?fixedValues(existing.rule):{start:'10-15',end:'10-31'};
+    host.innerHTML=`<label>Theme<select id="cal-theme">${choices}</select></label><label>Rule<select id="cal-rule"><option value="fixed">Fixed annual dates</option><option value="thanksgiving">Thanksgiving (4th Thursday)</option></select></label><label id="cal-start-wrap">Start (MM-DD)<input id="cal-start" value="${esc(fixed.start)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-end-wrap">End (MM-DD)<input id="cal-end" value="${esc(fixed.end)}" pattern="\\d{2}-\\d{2}"></label><label id="cal-before-wrap" hidden>Days before<input id="cal-before" type="number" value="${isMoving?Math.abs(existing.rule.start_offset_days||0):7}" min="0" max="60"></label><label id="cal-after-wrap" hidden>Days after<input id="cal-after" type="number" value="${isMoving?Math.abs(existing.rule.end_offset_days||0):3}" min="0" max="60"></label><button id="cal-save" class="buttonish" type="button">${existing?'Save Changes':'Save Theme'}</button><button id="cal-cancel" class="buttonish" type="button">Cancel</button>`;
     const mode=document.getElementById('cal-rule');
     mode.onchange=()=>{const moving=mode.value==='thanksgiving';['cal-start-wrap','cal-end-wrap'].forEach(id=>document.getElementById(id).hidden=moving);['cal-before-wrap','cal-after-wrap'].forEach(id=>document.getElementById(id).hidden=!moving)};
-    document.getElementById('cal-cancel').onclick=()=>host.hidden=true;
+    document.getElementById('cal-theme').value=existing?.theme||registry.themes.find(t=>t.id!=='normal'&&!t.future)?.id||'halloween';mode.value=isMoving?'thanksgiving':'fixed';mode.onchange();
+    document.getElementById('cal-cancel').onclick=()=>{host.hidden=true;host.innerHTML='';document.getElementById('calendar-message').textContent=''};
     document.getElementById('cal-save').onclick=()=>{
       const theme=document.getElementById('cal-theme').value;let rule;
       if(mode.value==='thanksgiving')rule=window.DV_THEME_CALENDAR.thanksgivingRule(-Math.abs(+document.getElementById('cal-before').value),Math.abs(+document.getElementById('cal-after').value));
       else{const s=document.getElementById('cal-start').value.match(/^(\d{2})-(\d{2})$/),e=document.getElementById('cal-end').value.match(/^(\d{2})-(\d{2})$/);if(!s||!e){document.getElementById('calendar-message').textContent='Use MM-DD for fixed annual dates.';return}try{rule=window.DV_THEME_CALENDAR.normalizeRule({mode:'fixed',startMonth:s[1],startDay:s[2],endMonth:e[1],endDay:e[2]})}catch(_){document.getElementById('calendar-message').textContent='Enter real fixed annual dates in MM-DD format.';return}}
-      const candidate={id:'theme-'+Date.now(),theme,label:calendarLabel(theme),enabled:true,rule};
+      const candidate={id:existing?.id||'theme-'+Date.now(),theme,label:calendarLabel(theme),level:calendarLevel(theme),enabled:true,rule};
       const year=+document.getElementById('calendar-year').value;
-      const test=window.DV_THEME_CALENDAR.resolveCalendar(year,[...calendarRules,candidate]);
-      if(!test.valid){document.getElementById('calendar-message').textContent='Theme overlaps an existing range. Resolve the conflict before saving.';renderCalendar([...calendarRules,candidate]);return}
-      calendarRules.push(candidate);saveCalendar();host.hidden=true;document.getElementById('calendar-message').textContent='';renderCalendar();
+      const nextRules=existing?calendarRules.map(item=>item.id===existing.id?candidate:item):[...calendarRules,candidate];
+      const test=window.DV_THEME_CALENDAR.resolveCalendar(year,enrichedRules(nextRules));
+      if(!test.valid){document.getElementById('calendar-message').textContent='Themes at the same precedence overlap. Adjust or remove one of the conflicting authored rules.';return}
+      calendarRules=nextRules;saveCalendar();host.hidden=true;host.innerHTML='';document.getElementById('calendar-message').textContent='';renderCalendar();renderGallery();
     };
   }
 
@@ -195,17 +223,28 @@
     if(error)throw new Error(error.message||'Unable to load quest definitions.');
     questMetadata=new Map((data||[]).map(row=>[row.quest_key,row]));
   }
+  async function loadQuestCatalog(client,accessToken,retried=false){
+    const endpoint=window.DV_OPERATOR_QUESTS_ENDPOINT||window.DV_ENVIRONMENT_CONFIG?.functionUrl?.('operator-quests');
+    if(!endpoint)throw new Error('Quest catalog endpoint is unavailable.');
+    const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+accessToken,apikey:cfg.publishableKey},body:JSON.stringify({action:'list'})});
+    if(response.status===401&&!retried){const {data,error}=await client.auth.refreshSession();if(error||!data.session?.access_token)throw new Error('Your operator session expired. Sign in again.');return loadQuestCatalog(client,data.session.access_token,true)}
+    const out=await response.json().catch(()=>({}));if(!response.ok||!out.ok)throw new Error(out.error||`Quest catalog request failed (${response.status})`);
+    questCatalog=out.quests||[];
+  }
   function renderCalendar(override){
     const api=window.DV_THEME_CALENDAR,year=+document.getElementById('calendar-year').value||new Date().getFullYear(),rules=override||calendarRules;
-    const cal=api.resolveCalendar(year,rules),body=document.getElementById('calendar-body'),dateValue=document.getElementById('calendar-date').value;
-    calendarTheme=api.themeForDate(year,rules,dateValue||year+'-01-01');
+    const resolvedRules=enrichedRules(rules),cal=api.resolveCalendar(year,resolvedRules),body=document.getElementById('calendar-body'),dateValue=document.getElementById('calendar-date').value;
+    calendarTheme=api.themeForDate(year,resolvedRules,dateValue||year+'-01-01');
     document.getElementById('calendar-status').textContent=cal.valid?`· ${year} · preview: ${calendarLabel(calendarTheme)}`:'· INVALID · BASE fallback';
     if(!cal.valid){
       const conflictIds=new Set(cal.conflicts.flat());
-      body.innerHTML=rules.map(r=>{const rr=api.resolveRule(year,r.rule);return `<tr class="${conflictIds.has(r.id)?'conflict':''}"><td>${esc(r.label)}</td><td>${api.fmt(rr.start)}</td><td>${api.fmt(rr.end)}</td><td>Conflict</td></tr>`}).join('');
+      body.innerHTML=rules.map(r=>{const rr=api.resolveRule(year,r.rule);return `<tr class="${conflictIds.has(r.id)?'conflict':''}"><td>${esc(r.label)}${conflictIds.has(r.id)?'<br><small>Same-precedence conflict</small>':''}</td><td>${api.fmt(rr.start)}</td><td>${api.fmt(rr.end)}</td><td><button class="buttonish" data-edit-rule="${esc(r.id)}" type="button">Edit</button> <button class="buttonish" data-delete-rule="${esc(r.id)}" type="button">Delete</button></td></tr>`}).join('');
+      body.querySelectorAll('[data-edit-rule]').forEach(btn=>btn.onclick=()=>showCalendarEditor(btn.dataset.editRule));
+      body.querySelectorAll('[data-delete-rule]').forEach(btn=>btn.onclick=()=>{calendarRules=calendarRules.filter(r=>r.id!==btn.dataset.deleteRule);saveCalendar();renderCalendar();renderGallery()});
       calendarTheme='normal';return;
     }
-    body.innerHTML=cal.rows.map(r=>`<tr class="${r.base?'base':''} ${dateValue&&dateValue>=api.iso(r.start)&&dateValue<=api.iso(r.end)?'active':''}"><td>${esc(r.label)}</td><td>${api.fmt(r.start)}</td><td>${api.fmt(r.end)}</td><td>${r.base?'':`<button class="buttonish" data-delete-rule="${esc(r.id)}" type="button">Delete</button>`}</td></tr>`).join('');
+    body.innerHTML=cal.rows.map(r=>`<tr class="${r.base?'base':''} ${dateValue&&dateValue>=api.iso(r.start)&&dateValue<=api.iso(r.end)?'active':''}"><td>${esc(r.label)}${r.sourceRuleId&&cal.rows.filter(row=>row.sourceRuleId===r.sourceRuleId).length>1?'<br><small>Effective segment</small>':''}</td><td>${api.fmt(r.start)}</td><td>${api.fmt(r.end)}</td><td>${r.base?'':`<button class="buttonish" data-edit-rule="${esc(r.sourceRuleId)}" type="button">Edit</button> <button class="buttonish" data-delete-rule="${esc(r.sourceRuleId)}" type="button">Delete</button>`}</td></tr>`).join('');
+    body.querySelectorAll('[data-edit-rule]').forEach(btn=>btn.onclick=()=>showCalendarEditor(btn.dataset.editRule));
     body.querySelectorAll('[data-delete-rule]').forEach(btn=>btn.onclick=()=>{calendarRules=calendarRules.filter(r=>r.id!==btn.dataset.deleteRule);saveCalendar();renderCalendar();renderGallery()});
   }
 
@@ -223,7 +262,7 @@
     const {data,error}=await client.rpc('get_authenticated_dashboard_v1');
     if(error||!data?.ok)throw new Error(error?.message||data?.error||'Unable to verify operator access.');
     if(data.is_operator!==true){show(checking,false);show(denied,true);return}
-    await loadQuestMetadata(client);
+    await Promise.all([loadQuestMetadata(client),loadQuestCatalog(client,session.access_token)]);
     setupFilters();setupCalendar();setupComposer();renderGallery();
     show(checking,false);show(denied,false);show(shell,true);
   }

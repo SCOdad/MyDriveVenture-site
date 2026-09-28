@@ -36,13 +36,13 @@
     {slot:'L11',slug:'coffee-shop',name:'Coffee Shop',questKeys:['Q000087']},
     {slot:'L12',slug:'salon-barber',name:'Salon / Barber',questKeys:['Q000088','Q000089']},
     {slot:'L13',slug:'movie-theater',name:'Movie Theater',questKeys:['Q000090']},
-    {slot:'L14',slug:'wrestling-training-center',name:'Wrestling Training Center',questKeys:[]},
-    {slot:'L15',slug:'karate-dojo',name:'Karate Dojo',questKeys:[]},
-    {slot:'L16',slug:'pizzeria',name:'Pizzeria',questKeys:[]},
-    {slot:'L17',slug:'sushi-restaurant',name:'Sushi Restaurant',questKeys:[]},
-    {slot:'L18',slug:'ice-cream-shop',name:'Ice Cream Shop',questKeys:[]},
-    {slot:'L19',slug:'taco-shop',name:'Taco Shop',questKeys:[]},
-    {slot:'L20',slug:'airport',name:'Airport',questKeys:[]}
+    {slot:'L14',slug:'wrestling-training-center',name:'Wrestling Training Center',questKeys:['Q000091']},
+    {slot:'L15',slug:'karate-dojo',name:'Karate Dojo',questKeys:['Q000092']},
+    {slot:'L16',slug:'pizzeria',name:'Pizzeria',questKeys:['Q000093']},
+    {slot:'L17',slug:'sushi-restaurant',name:'Sushi Restaurant',questKeys:['Q000094']},
+    {slot:'L18',slug:'ice-cream-shop',name:'Ice Cream Shop',questKeys:['Q000095']},
+    {slot:'L19',slug:'taco-shop',name:'Taco Shop',questKeys:['Q000096']},
+    {slot:'L20',slug:'airport',name:'Airport',questKeys:['Q000097']}
   ]);
 
   const BACKGROUND_THEMES = Object.freeze([

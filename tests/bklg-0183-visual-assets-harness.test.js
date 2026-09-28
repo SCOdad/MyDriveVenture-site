@@ -53,8 +53,8 @@ test('BKLG-0183 composer renders Hero as an authored full-scene overlay',()=>{
 
 test('BKLG-0183 harness uses cache-busted asset versions after Hero overlay repair',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/operator-visual-assets\.css\?v=20260928-dv03-registry/);
-  assert.match(html,/operator-visual-assets\.js\?v=20260928-dv03-registry/);
+  assert.match(html,/operator-visual-assets\.css\?v=20260928-dv03-uat2/);
+  assert.match(html,/operator-visual-assets\.js\?v=20260928-dv03-uat2/);
 });
 
 test('BKLG-0183 registers Halloween Park canary without changing canonical Park or Hero',()=>{
@@ -109,24 +109,26 @@ test('DV03 registry stores quest keys only and seasonal backgrounds inherit dest
   assert.equal('quest' in park,false);
 });
 
-test('DV03 registry marks only zero-mapped backgrounds as unconnected',()=>{
+test('DV03 registry maps all deployed background destinations including Q000091 through Q000097',()=>{
   const source=read('assets/js/dv03-visual-asset-registry.js');
   const context={window:{}};
   vm.runInNewContext(source,context);
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const unconnected=registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length===0);
-  const names=[...new Set(unconnected.map(x=>x.name))].sort();
-  assert.deepEqual(names,[
-    'Airport',
-    'Ice Cream Shop',
-    'Karate Dojo',
-    'Pizzeria',
-    'Sushi Restaurant',
-    'Taco Shop',
-    'Wrestling Training Center'
-  ]);
-  assert.ok(unconnected.every(x=>x.status==='Deployed / Not connected'));
+  assert.equal(unconnected.length,0);
+  assert.deepEqual(Array.from(registry.destinations.slice(12).map(x=>x.questKeys[0])),['Q000091','Q000092','Q000093','Q000094','Q000095','Q000096','Q000097']);
   assert.ok(registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length>0).every(x=>!x.status.includes('Not connected')));
+});
+
+test('theme inventory distinguishes deployed background counts from total assets',()=>{
+  const source=read('assets/js/dv03-visual-asset-registry.js');
+  const context={window:{}};vm.runInNewContext(source,context);
+  const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
+  const count=theme=>({backgrounds:registry.assets.filter(x=>x.theme===theme&&x.layer==='background').length,total:registry.assets.filter(x=>x.theme===theme).length});
+  assert.deepEqual(count('normal'),{backgrounds:18,total:27});
+  assert.deepEqual(count('autumn'),{backgrounds:19,total:19});
+  assert.deepEqual(count('halloween'),{backgrounds:19,total:20});
+  assert.match(read('assets/js/operator-visual-assets.js'),/backgrounds\.length} backgrounds · \$\{themed\.length} total assets/);
 });
 
 test('DV03 registry includes deployed sky variants',()=>{
@@ -153,9 +155,22 @@ test('operator visual assets resolves current quest definitions at runtime and r
   assert.match(css,/\.badge\.construction/);
 });
 
+test('visual assets reuses Dictionary-style live quest search as a non-persistent mapping assistant',()=>{
+  const html=read('operator/visual-assets/index.html'),js=read('assets/js/operator-visual-assets.js');
+  assert.match(html,/operator\/config\.js\?v=20260928-dv03-uat2/);
+  assert.match(js,/DV_OPERATOR_QUESTS_ENDPOINT/);
+  assert.match(js,/JSON\.stringify\(\{action:'list'\}\)/);
+  assert.match(js,/q\.quest_key,q\.name,q\.description,q\.quest_type,q\.target/);
+  assert.match(js,/quest_type==='Destination'/);
+  assert.match(js,/target:.*XP/);
+  assert.match(js,/Active':'Inactive/);
+  assert.match(js,/temporary reference and do not change the registry/);
+  assert.doesNotMatch(js,/questDraftKeys.*localStorage\.setItem/);
+});
+
 test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260928-dv03-registry/);
+  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260928-dv03-uat2/);
 });
 
 test('theme calendar partitions BASE around a fixed annual theme',()=>{
@@ -171,19 +186,54 @@ test('theme calendar partitions BASE around a fixed annual theme',()=>{
 test('theme calendar UI accepts valid fixed MM-DD input and persists without overlap',()=>{
   const js=read('assets/js/operator-visual-assets.js');
   assert.match(js,/match\(\s*\/\^\(\\d\{2\}\)-\(\\d\{2\}\)\$\/\s*\)/);
-  assert.match(js,/calendarRules\.push\(candidate\);saveCalendar\(\)/);
-  assert.match(js,/Theme overlaps an existing range/);
+  assert.match(js,/calendarRules=nextRules;saveCalendar\(\)/);
+  assert.match(js,/same precedence overlap/i);
   assert.doesNotMatch(js,/match\(\/\^\(\\\\d\{2\}\)-\(\\\\d\{2\}\)\$\/\)/);
 });
 
-test('theme calendar rejects overlap and defensively resolves invalid dates to BASE',()=>{
+test('theme calendar splits a season around a higher-precedence holiday and restores it afterward',()=>{
   const cal=require('../assets/js/dv03-theme-calendar.js');
   const fixed=(id,theme,sM,sD,eM,eD)=>({id,theme,label:theme,rule:cal.normalizeRule({mode:'fixed',startMonth:sM,startDay:sD,endMonth:eM,endDay:eD})});
-  const rules=[fixed('a','autumn',9,15,10,20),fixed('h','halloween',10,15,10,31)];
-  assert.equal(cal.resolveCalendar(2026,rules).valid,false);
+  const rules=[fixed('a','autumn',9,23,11,30),fixed('h','halloween',10,17,10,31)];
+  const result=cal.resolveCalendar(2026,rules);
+  assert.equal(result.valid,true);
+  assert.deepEqual(result.rows.map(r=>[r.label,cal.iso(r.start),cal.iso(r.end),r.sourceRuleId]),[
+    ['BASE','2026-01-01','2026-09-22',null],
+    ['autumn','2026-09-23','2026-10-16','a'],
+    ['halloween','2026-10-17','2026-10-31','h'],
+    ['autumn','2026-11-01','2026-11-30','a'],
+    ['BASE','2026-12-01','2026-12-31',null]
+  ]);
+  assert.equal(cal.themeForDate(2026,rules,'2026-10-18'),'halloween');
+  assert.equal(cal.themeForDate(2026,rules,'2026-11-01'),'autumn');
+});
+
+test('theme calendar rejects same-precedence overlap and impossible fixed dates',()=>{
+  const cal=require('../assets/js/dv03-theme-calendar.js');
+  const fixed=(id,theme,sM,sD,eM,eD)=>({id,theme,label:theme,rule:cal.normalizeRule({mode:'fixed',startMonth:sM,startDay:sD,endMonth:eM,endDay:eD})});
+  const rules=[fixed('a','autumn',9,15,10,20),fixed('w','winter',10,15,10,31)];
+  const result=cal.resolveCalendar(2026,rules);
+  assert.equal(result.valid,false);
+  assert.deepEqual(result.conflicts,[['a','w']]);
   assert.equal(cal.themeForDate(2026,rules,'2026-10-18'),'normal');
   assert.throws(()=>cal.normalizeRule({mode:'fixed',startMonth:2,startDay:30,endMonth:3,endDay:1}),/Invalid fixed annual date/);
   assert.throws(()=>cal.normalizeRule({mode:'fixed',startMonth:10,startDay:15,endMonth:13,endDay:1}),/Invalid fixed annual date/);
+  assert.throws(()=>cal.normalizeRule({mode:'fixed',startMonth:10,startDay:31,endMonth:10,endDay:15}),/must not precede/);
+});
+
+test('calendar conflict recovery edits authored rules and mutates storage only after successful save',()=>{
+  const js=read('assets/js/operator-visual-assets.js');
+  assert.match(js,/data-edit-rule/);
+  assert.match(js,/data-delete-rule/);
+  assert.match(js,/showCalendarEditor\(btn\.dataset\.editRule\)/);
+  assert.match(js,/sourceRuleId/);
+  assert.match(js,/const nextRules=existing\?calendarRules\.map/);
+  const validation=js.indexOf('if(!test.valid)');
+  const assignment=js.indexOf('calendarRules=nextRules',validation);
+  const persistence=js.indexOf('saveCalendar()',assignment);
+  assert.ok(validation>=0&&assignment>validation&&persistence>assignment);
+  const cancel=js.match(/cal-cancel'[\s\S]{0,260}/)?.[0]||'';
+  assert.doesNotMatch(cancel,/saveCalendar|calendarRules\s*=/);
 });
 
 test('theme calendar uses CalendarWindow-compatible NTH_WEEKDAY semantics for Thanksgiving',()=>{
@@ -198,8 +248,9 @@ test('visual assets page exposes collapsible theme calendar and browser-draft wa
   const js=read('assets/js/operator-visual-assets.js');
   assert.match(html,/Theme Calendar/);
   assert.match(html,/BASE automatically fills uncovered dates/);
+  assert.match(html,/Holiday themes take precedence over seasons/);
   assert.match(html,/saved in this browser only/);
-  assert.match(html,/dv03-theme-calendar\.js\?v=20260928-dv03-registry/);
+  assert.match(html,/dv03-theme-calendar\.js\?v=20260928-dv03-uat2/);
   assert.match(js,/dv03-theme-calendar-v1/);
   assert.match(js,/Calendar preview/);
 });
