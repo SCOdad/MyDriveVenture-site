@@ -53,8 +53,8 @@ test('BKLG-0183 composer renders Hero as an authored full-scene overlay',()=>{
 
 test('BKLG-0183 harness uses cache-busted asset versions after Hero overlay repair',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/operator-visual-assets\.css\?v=20260928-dv03-uat3/);
-  assert.match(html,/operator-visual-assets\.js\?v=20260928-dv03-uat3/);
+  assert.match(html,/operator-visual-assets\.css\?v=20260928-bklg0238/);
+  assert.match(html,/operator-visual-assets\.js\?v=20260928-bklg0238/);
 });
 
 test('BKLG-0183 registers Halloween Park canary without changing canonical Park or Hero',()=>{
@@ -156,7 +156,7 @@ test('operator visual assets resolves current quest definitions at runtime and r
 
 test('visual assets reuses Dictionary-style live quest search as a non-persistent mapping assistant',()=>{
   const html=read('operator/visual-assets/index.html'),js=read('assets/js/operator-visual-assets.js');
-  assert.match(html,/operator\/config\.js\?v=20260928-dv03-uat3/);
+  assert.match(html,/operator\/config\.js\?v=20260928-bklg0238/);
   assert.match(js,/DV_OPERATOR_QUESTS_ENDPOINT/);
   assert.match(js,/JSON\.stringify\(\{action:'list'\}\)/);
   assert.match(js,/q\.quest_key,q\.name,q\.description,q\.quest_type,q\.target/);
@@ -169,7 +169,7 @@ test('visual assets reuses Dictionary-style live quest search as a non-persisten
 
 test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260928-dv03-uat3/);
+  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260928-bklg0238/);
 });
 
 test('theme calendar partitions BASE around a fixed annual theme',()=>{
@@ -268,8 +268,8 @@ test('visual assets page exposes collapsible theme calendar and browser-draft wa
   assert.match(html,/Theme Calendar/);
   assert.match(html,/BASE automatically fills uncovered dates/);
   assert.match(html,/Holiday themes take precedence over seasons/);
-  assert.match(html,/saved in this browser only/);
-  assert.match(html,/dv03-theme-calendar\.js\?v=20260928-dv03-uat3/);
+  assert.match(html,/Unsaved edits stay in this browser/);
+  assert.match(html,/dv03-theme-calendar\.js\?v=20260928-bklg0238/);
   assert.match(js,/dv03-theme-calendar-v1/);
   assert.match(js,/Calendar preview/);
 });

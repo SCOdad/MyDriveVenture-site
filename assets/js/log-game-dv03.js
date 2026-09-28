@@ -14,19 +14,22 @@
   let skyTimer=0;
   let billboardRestore=null;
 
-  function ensureRules(){
-    if(window.DV03_PRESENTATION_RULES)return Promise.resolve(window.DV03_PRESENTATION_RULES);
+  function loadScript(src,globalName,dataKey){
+    if(window[globalName])return Promise.resolve(window[globalName]);
     if(!document?.querySelector||!document?.createElement||!document?.head)return Promise.resolve(null);
     return new Promise((resolve,reject)=>{
-      const existing=document.querySelector('script[data-dv03-presentation-rules]');
-      if(existing){existing.addEventListener('load',()=>resolve(window.DV03_PRESENTATION_RULES),{once:true});existing.addEventListener('error',reject,{once:true});return}
-      const script=document.createElement('script');
-      script.src='/assets/js/dv03-presentation-rules.js?v=20260918-0187-scenery3';
-      script.dataset.dv03PresentationRules='true';
-      script.onload=()=>resolve(window.DV03_PRESENTATION_RULES);
-      script.onerror=reject;
-      document.head.appendChild(script);
+      const existing=Array.from(document.querySelectorAll('script')).find(node=>node.dataset?.[dataKey]);
+      if(existing){existing.addEventListener('load',()=>resolve(window[globalName]),{once:true});existing.addEventListener('error',reject,{once:true});return}
+      const script=document.createElement('script');script.src=src;script.dataset[dataKey]='true';
+      script.onload=()=>resolve(window[globalName]);script.onerror=reject;document.head.appendChild(script);
     });
+  }
+  function ensureRules(){
+    return loadScript('/assets/js/dv03-presentation-rules.js?v=20260928-bklg0238','DV03_PRESENTATION_RULES','dv03PresentationRules')
+      .then(rules=>Promise.all([
+        loadScript('/assets/js/dv03-theme-calendar.js?v=20260928-bklg0238','DV_THEME_CALENDAR','dv03ThemeCalendar'),
+        loadScript('/assets/js/dv03-visual-asset-registry.js?v=20260928-bklg0238','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
+      ]).then(()=>rules));
   }
 
   function hero(){return document.getElementById('dv03-hero')}
@@ -93,11 +96,13 @@
     if(phaseReady&&phase==='BEGINS')return 'day';
     return 'day';
   }
-  function applySky(detail,rules){
+  function applySky(detail,rules,theme='normal'){
     const sky=document.querySelector?.('.dv03-sky');if(!sky||!rules)return 'day';
     const mode=resolvedSkyMode(detail,rules);
+    const nightSky=rules.nightSkyForTheme?.(theme)||NIGHT_SKY_URL;
     sky.dataset.dvSky=mode;
-    sky.style.backgroundImage=mode==='night'?`url("${NIGHT_SKY_URL}")`:'';
+    sky.dataset.dvTheme=theme||'normal';
+    sky.style.backgroundImage=mode==='night'?`url("${nightSky}")`:'';
     sky.querySelectorAll('.dv03-cloud').forEach(node=>node.style.display=mode==='night'?'none':'');
     return mode;
   }
@@ -140,8 +145,9 @@
   function applyPresentation(detail,featuredAwards=[]){
     const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
     const layer=sceneLayer(),sign=signLayer();if(!layer)return;
-    const skyMode=applySky(detail,rules);
-    const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone:detail?.driver?.timezone||null,skyMode});
+    const timeZone=detail?.driver?.timezone||null,now=new Date(),theme=rules.resolveTheme(timeZone,now);
+    const skyMode=applySky(detail,rules,theme);
+    const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone,now,skyMode,themeOverride:theme});
     const scenery=presentation.activeScenery;
     const landscape=document.querySelector?.('.dv03-landscape');
     if(landscape)landscape.style.display=scenery?'none':'';
@@ -179,11 +185,13 @@
     renderScene(event.detail);
     resolveHero(event.detail).catch(()=>showFallback(event.detail?.driver?.display_name||'Driver'));
     refreshPersistentScenery(event.detail).catch(()=>{});
+    window.DV03_PRESENTATION_RULES?.loadThemeCalendar(window.DV_LOG_APP?.client).then(()=>{if(latestDetail?.driverId===event.detail?.driverId)renderScene(latestDetail)});
     if(newAwards.length)featureAwards(newAwards);
   });
   window.addEventListener('dv:drive-awards-earned',event=>featureAwards(event.detail?.awards||[]));
   window.addEventListener('dv:night-phase-updated',event=>{if(latestDetail&&(!event.detail?.driverId||event.detail.driverId===latestDetail.driverId))renderScene(latestDetail)});
   ensureRules().then(rules=>{
+    if(rules){rules.loadThemeCalendar(window.DV_LOG_APP?.client).then(()=>{if(latestDetail)renderScene(latestDetail)})}
     if(rules&&latestDetail){renderScene(latestDetail);refreshPersistentScenery(latestDetail).catch(()=>{})}
     if(rules&&!skyTimer)skyTimer=window.setInterval(()=>{if(latestDetail)renderScene(latestDetail)},SKY_REFRESH_MS);
   }).catch(()=>{});

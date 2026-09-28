@@ -18,7 +18,54 @@
     Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png'}
   });
 
-  const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
+  let themeCalendarState={loaded:false,exists:false,version:0,rules:[]};
+  let themeCalendarPromise=null;
+  const DETROIT_TZ='America/Detroit';
+  function localDateKey(timeZone,now=new Date()){
+    let zone=timeZone||DETROIT_TZ;
+    const partsFor=z=>new Intl.DateTimeFormat('en-US',{timeZone:z,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+    try{const p=partsFor(zone),get=k=>p.find(x=>x.type===k)?.value;return `${get('year')}-${get('month')}-${get('day')}`}
+    catch(_){const p=partsFor(DETROIT_TZ),get=k=>p.find(x=>x.type===k)?.value;return `${get('year')}-${get('month')}-${get('day')}`}
+  }
+  function setThemeCalendar(config){
+    themeCalendarState={loaded:config?.ok===true,exists:config?.exists===true,version:Number(config?.version)||0,rules:Array.isArray(config?.rules)?config.rules:[]};
+    return themeCalendarState;
+  }
+  async function loadThemeCalendar(client){
+    if(themeCalendarPromise)return themeCalendarPromise;
+    if(!client?.functions?.invoke){setThemeCalendar({ok:false});return false}
+    themeCalendarPromise=(async()=>{
+      try{
+        const {data,error}=await client.functions.invoke('dv03-theme-calendar',{method:'GET'});
+        if(error||!data?.ok)throw error||new Error('Theme Calendar unavailable');
+        setThemeCalendar(data);return true;
+      }catch(_){setThemeCalendar({ok:false});return false}
+      finally{if(!themeCalendarState.loaded)themeCalendarPromise=null}
+    })();
+    return themeCalendarPromise;
+  }
+  function resolveTheme(timeZone=null,now=new Date()){
+    if(!themeCalendarState.loaded||!themeCalendarState.exists||!window.DV_THEME_CALENDAR)return 'normal';
+    const date=localDateKey(timeZone,now),year=Number(date.slice(0,4));
+    try{
+      const calendar=window.DV_THEME_CALENDAR.resolveCalendar(year,themeCalendarState.rules);
+      return calendar.valid?window.DV_THEME_CALENDAR.themeForDate(year,themeCalendarState.rules,date):'normal';
+    }catch(_){return 'normal'}
+  }
+  function themeVariant(scenery,award,theme){
+    if(!scenery||!theme||theme==='normal')return scenery;
+    const questKey=questKeyOf(award),assets=window.DV03_VISUAL_ASSET_REGISTRY?.assets||[];
+    const variant=assets.find(asset=>asset.layer==='background'&&asset.theme===theme&&asset.kind==='image'&&asset.src&&(asset.questKeys||[]).includes(questKey));
+    return variant?Object.freeze({...scenery,src:variant.src,theme}):scenery;
+  }
+  function nightSkyForTheme(theme){
+    const assets=window.DV03_VISUAL_ASSET_REGISTRY?.assets||[];
+    const themed=assets.find(asset=>asset.layer==='sky'&&asset.theme===theme&&asset.kind==='image'&&asset.src);
+    const base=assets.find(asset=>asset.layer==='sky'&&asset.theme==='normal'&&asset.kind==='image'&&asset.src);
+    return themed?.src||base?.src||null;
+  }
+
+    const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
   const displayOrderOf=award=>numberOr(award?.quest?.display_order ?? award?.display_order,Number.POSITIVE_INFINITY);
   const xpOf=award=>numberOr(award?.xp_awarded ?? award?.xp,0);
   const questKeyOf=award=>String(award?.quest_key ?? award?.quest?.quest_key ?? '');
@@ -63,16 +110,17 @@
     return (sceneryList||[]).find(scenery=>sceneryAvailableForSky(scenery,skyMode))||DEFAULT_SCENERY;
   }
 
-  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date(),skyMode=null}={}){
-    const sky=skyMode||skyFor(timeZone,now);
+  function resolvePresentation({awards=[],driverId=null,featuredAwards=[],timeZone=null,now=new Date(),skyMode=null,themeOverride=null}={}){
+    const sky=skyMode||skyFor(timeZone,now),theme=themeOverride||resolveTheme(timeZone,now);
     const persistentAward=selectPersistentSceneryAward(awards,driverId);
-    const persistentScenery=sceneryFor(persistentAward);
+    const persistentScenery=themeVariant(sceneryFor(persistentAward),persistentAward,theme);
     const featuredAward=selectFeaturedAward(featuredAwards);
-    const featuredScenery=sceneryFor(featuredAward);
+    const featuredScenery=themeVariant(sceneryFor(featuredAward),featuredAward,theme);
     const activeScenery=firstAvailableScenery([featuredScenery,persistentScenery],sky);
     const featuredMode=featuredAward?(activeScenery&&activeScenery===featuredScenery?'scenery':'billboard'):null;
     return Object.freeze({
       sky,
+      theme,
       persistentAward,
       persistentScenery,
       featuredAward,
@@ -83,7 +131,7 @@
     });
   }
 
-  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,resolvePresentation});
+  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,localDateKey,setThemeCalendar,loadThemeCalendar,resolveTheme,themeVariant,nightSkyForTheme,resolvePresentation});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV03_PRESENTATION_RULES=api;
 })();

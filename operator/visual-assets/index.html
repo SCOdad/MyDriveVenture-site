@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
 <title>Visual Assets | Drive Venture Operator</title><link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/operator-visual-assets.css?v=20260928-dv03-uat3">
+<link rel="stylesheet" href="/assets/css/operator-visual-assets.css?v=20260928-bklg0238">
 <script src="/assets/js/environment-config.js"></script>
 </head><body>
 <main id="visual-checking" class="visual-check"><p>Checking credentials…</p><h1>DV03 Visual Assets</h1><p>Verifying registered operator access.</p></main>
@@ -14,11 +14,12 @@
 <section class="visual-intro"><h1>Parkerworld visual asset gallery</h1><p>Inspect governed DV03 layers, compare normal and seasonal variants as they are registered, and compose real assets together before they are considered for production selection rules. Seasonal themes decorate Parkerworld; Hero identity remains canonical and is never regenerated for a theme.</p><p><strong>Theme precedence:</strong> Holiday → Season → Fallback.</p></section>
 <details class="theme-calendar" open>
 <summary>Theme Calendar <span id="calendar-status"></span></summary>
-<div class="calendar-toolbar"><label>Preview year <input id="calendar-year" type="number" min="2026" max="2100"></label><label>Preview date <input id="calendar-date" type="date"></label><button id="calendar-add" class="buttonish" type="button">Insert Theme</button></div>
+<div class="calendar-toolbar"><label>Preview year <input id="calendar-year" type="number" min="2026" max="2100"></label><label>Preview date <input id="calendar-date" type="date"></label><button id="calendar-add" class="buttonish" type="button">Insert Theme</button><button id="calendar-save-shared" class="buttonish" type="button" disabled>Save Shared Calendar</button><button id="calendar-restore-draft" class="buttonish" type="button" hidden>Restore Browser Draft</button></div>
+<p id="calendar-shared-status" class="stage-note" aria-live="polite">Loading shared calendar…</p>
 <div id="calendar-editor" class="calendar-editor" hidden></div>
-<div id="calendar-message" class="calendar-message"></div>
+<div id="calendar-message" class="calendar-message" role="status" aria-live="polite"></div>
 <div class="calendar-table-wrap"><table class="calendar-table"><thead><tr><th>Theme</th><th>Start</th><th>End</th><th></th></tr></thead><tbody id="calendar-body"></tbody></table></div>
-<p class="stage-note">BASE automatically fills uncovered dates. Holiday themes take precedence over seasons; equal-precedence overlaps remain conflicts. Effective rows may split one authored rule. Draft configuration is saved in this browser only.</p>
+<p class="stage-note">BASE automatically fills uncovered dates. Holiday themes take precedence over seasons; equal-precedence overlaps remain conflicts. Effective rows may split one authored rule. Unsaved edits stay in this browser. Publish or save explicitly to update the shared production calendar. Version conflicts leave the shared calendar unchanged.</p>
 </details>
 <div id="theme-strip" class="theme-strip" aria-label="Theme inventory"></div>
 <section class="controls" aria-label="Gallery filters">
@@ -34,8 +35,8 @@
 </main></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/log/config.js"></script>
-<script src="/operator/config.js?v=20260928-dv03-uat3"></script>
-<script src="/assets/js/dv03-visual-asset-registry.js?v=20260928-dv03-uat3"></script>
-<script src="/assets/js/dv03-theme-calendar.js?v=20260928-dv03-uat3"></script>
-<script src="/assets/js/operator-visual-assets.js?v=20260928-dv03-uat3"></script>
+<script src="/operator/config.js?v=20260928-bklg0238"></script>
+<script src="/assets/js/dv03-visual-asset-registry.js?v=20260928-bklg0238"></script>
+<script src="/assets/js/dv03-theme-calendar.js?v=20260928-bklg0238"></script>
+<script src="/assets/js/operator-visual-assets.js?v=20260928-bklg0238"></script>
 </body></html>
