@@ -66,3 +66,14 @@ test('BKLG-0181 discovery dispositions expose only the intended operator choices
   assert.doesNotMatch(js, /<option>ALIAS_ADDED<\/option>/);
   assert.doesNotMatch(js, /value="ALIAS_ADDED"/);
 });
+
+
+test('BKLG-0181 discovery queue prioritizes candidates and renders dismissed rows as grey/deemphasized', () => {
+  assert.match(js, /QUEST_CANDIDATE:0,NEW:1/)
+  assert.match(js, /DISMISSED:3/)
+  assert.match(js, /filter\(x=>x\.status!=='RESOLVED'\)/)
+  assert.match(js, /new Date\(b\.last_seen_at\)-new Date\(a\.last_seen_at\)/)
+  assert.match(js, /x\.status==='DISMISSED'\?'dismissed'/)
+  assert.match(html, /\.discovery-row\.dismissed\{border-left-color:#7d8790/)
+  assert.match(html, /\.discovery-row\.quest-candidate\{border-left-color:#f7c948/)
+})
