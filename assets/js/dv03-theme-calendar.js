@@ -25,13 +25,14 @@
   }
   function resolveRule(year,rule){
     const anchor=resolveAnchor(year,rule.anchor);
-    return {start:addDays(anchor,rule.start_offset_days||0),end:addDays(anchor,rule.end_offset_days||0)};
+    const baseEndOffset=rule.anchor.kind==='FIXED_DATE'&&Number.isFinite(rule.base_end_offset_days)?rule.base_end_offset_days:0;
+    return {start:addDays(anchor,rule.start_offset_days||0),end:addDays(anchor,baseEndOffset+(rule.end_offset_days||0))};
   }
   function normalizeRule(input){
     if(input.mode==='fixed'){
       const start=fixedDate(2000,input.startMonth,input.startDay),end=fixedDate(2000,input.endMonth,input.endDay);
       if(end<start)throw new Error('Fixed annual end date must not precede start date');
-      return {anchor:{kind:'FIXED_DATE',month:+input.startMonth,day:+input.startDay},start_offset_days:0,end_offset_days:Math.round((end-start)/DAY_MS)};
+      return {anchor:{kind:'FIXED_DATE',month:+input.startMonth,day:+input.startDay},base_end_offset_days:Math.round((end-start)/DAY_MS),start_offset_days:+input.startOffset||0,end_offset_days:+input.endOffset||0};
     }
     return {anchor:{kind:'NTH_WEEKDAY',month:+input.month,weekday:+input.weekday,ordinal:+input.ordinal},start_offset_days:+input.startOffset,end_offset_days:+input.endOffset};
   }
