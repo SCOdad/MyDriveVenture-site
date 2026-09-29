@@ -9,6 +9,15 @@
   if(!/^[0-9a-f-]{36}$/i.test(flowId)){flowId=crypto.randomUUID();try{sessionStorage.setItem(storageKey,flowId)}catch(_){}}
   const request=(body,token='')=>fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)}).then(async r=>{const b=await r.json().catch(()=>({}));if(!r.ok||b.ok!==true)throw new Error(typeof b.error==='string'?b.error:'Drive Venture could not complete this step.');return b});
   request({action:'view',flow_id:flowId,source}).catch(()=>{});
+  const trackMetaCompleteRegistration=()=>{
+   if(source!=='PAID_RECRUITMENT'||typeof window.fbq!=='function')return;
+   const key=`dv:meta:CompleteRegistration:${flowId}`;
+   let alreadyTracked=false;
+   try{alreadyTracked=sessionStorage.getItem(key)==='1'}catch(_){}
+   if(alreadyTracked)return;
+   window.fbq('track','CompleteRegistration');
+   try{sessionStorage.setItem(key,'1')}catch(_){}
+ };
 
   form.addEventListener('submit',async e=>{
     e.preventDefault();
@@ -18,6 +27,7 @@
     button.disabled=true;button.textContent=busyLabel;
     try{
       await request({action:'submit',flow_id:flowId,source,name,email,website});
+      trackMetaCompleteRegistration();
       document.getElementById('acquisition-v2-email').textContent=email;
       form.hidden=true;success.hidden=false;success.focus();
     }catch(error){
