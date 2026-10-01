@@ -6,3 +6,26 @@
 /* Short labels still provide a complete 48 × 48px target. */
 nav a{min-width:48px}
 @media(max-width:360px){.nav-shell{gap:8px}.brand,.brand img{width:82px}.header-join{padding-inline:12px}}
+/* Responsive product proof: real mobile capture on phones; manual desktop carousel. */
+.proof-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.proof-heading .proof-label { padding:4px; }
+.proof-controls { display:flex; gap:4px; flex-shrink:0; }
+.proof-controls[hidden] { display:none; }
+.proof-controls button { min-height:48px; min-width:64px; padding:8px 12px; color:var(--dv-text-primary); background:transparent; border:1px solid var(--dv-text-secondary); border-radius:var(--dv-radius-small); cursor:pointer; font-size:.8rem; }
+.proof-controls button[aria-pressed="true"] { background:var(--dv-accent-primary); color:var(--dv-border-strong); border-color:var(--dv-accent-primary); }
+.proof-stage { height:390px; display:flex; align-items:center; justify-content:center; background:var(--dv-border-strong); }
+.proof-viewport { width:100%; max-height:100%; overflow:auto; overscroll-behavior:contain; scrollbar-color:var(--dv-accent-primary) var(--dv-bg-canvas); scrollbar-width:thin; }
+.proof-viewport:focus-visible { outline:3px solid var(--dv-accent-primary); outline-offset:3px; }
+.product-proof .proof-viewport img { width:100%; height:auto; }
+.proof-stage[data-preview-state="mobile"] .proof-viewport { width:260px; height:100%; border:2px solid var(--dv-text-secondary); border-radius:12px; }
+.preview-caption-mobile { display:none; }
+.product-proof:has([data-preview-state="mobile"]) .preview-caption-web { display:none; }
+.product-proof:has([data-preview-state="mobile"]) .preview-caption-mobile { display:inline; }
+@media(max-width:760px) {
+  .proof-controls { display:none; }
+  .proof-stage { height:520px; }
+  .proof-stage .proof-viewport,.proof-stage[data-preview-state="mobile"] .proof-viewport { width:100%; height:100%; border:0; border-radius:0; }
+  .preview-caption-web { display:none; }
+  .preview-caption-mobile { display:inline; }
+  .product-proof .proof-viewport img { aspect-ratio:772 / 3090; }
+}

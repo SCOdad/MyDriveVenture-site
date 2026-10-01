@@ -35,3 +35,13 @@ The screenshot is the accepted current DV03 homepage asset, not an interactive c
 Chrome, 390 × 844, DPR 1, mobile/touch context; a new context per run; HTTP cache disabled; CDP network latency 150 ms, download 200,000 bytes/sec (1.6 Mbps), upload 93,750 bytes/sec; CPU slowdown 4×; no scroll or interaction; observe until five seconds after load. Report the median of three runs. Target: LCP <= 2,500 ms. CLS and transferred bytes are secondary checks. Local before/after uses the same server and analytics-off environment, with external fonts allowed. Results are a controlled synthetic comparison, not field performance or a real-device guarantee. The LCP element changes from original hero art to indexV2 introductory text on mobile; image transfer reduction is reported separately.
 
 Raw measurement artifacts and final test/UAT results accompany the operator handoff.
+
+## Operator revision: responsive cockpit proof and three benefits
+
+The operator-supplied mobile screenshot now supplies the phone cockpit view. `indexv2-cockpit-mobile.webp` is a 772 × 3090 cockpit-only delivery crop (208,252 bytes); operator tools, family controls, drive-entry forms, vehicle records and trip history from the full attachment are excluded. No screenshot text or product UI is regenerated. Phones select it through responsive `<picture>` markup and do not request the desktop image. The preview is a keyboard/touch-scrollable region so the full cockpit remains readable without making the hero several screens tall.
+
+Desktop gets manual Web/Mobile carousel selectors with pressed-state announcements and no automatic rotation. The selected desktop view survives viewport changes; phones always show mobile. Preview dimensions remain stable when switching views. This is mobile web, not a claim of an available native app.
+
+The benefit strip now follows Requirements / Fun / Motivation: the log you need, the fun you add, and the motivation to keep going. The copy connects the log to state licensing requirements without claiming universal legal acceptance.
+
+Additional UAT: on phone, scroll within the cockpit preview to see progress gauges; on desktop, switch Web → Mobile → Web by mouse or keyboard. Expect the matching actual screenshot and a stable preview frame. The revised targeted suite has 13 tests, all passing locally; accessibility audits at 390px/1440px still show zero WCAG violations. The existing unrelated backlog-style failure remains unchanged.

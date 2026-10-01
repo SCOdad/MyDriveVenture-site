@@ -76,3 +76,37 @@ test('navigation and conversion still work without JavaScript',async({browser,ba
   await expect(page).toHaveURL(/\/join\/$/);
   await context.close();
 });
+
+test('phones load the mobile cockpit and can scroll its full content',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  const assets=[];
+  page.on('request',r=>{if(r.url().includes('indexv2-cockpit'))assets.push(r.url());});
+  await page.goto('/indexV2.html');
+  await expect(page.locator('.product-proof img')).toHaveJSProperty('currentSrc',new URL('/assets/images/indexv2-cockpit-mobile.webp',page.url()).href);
+  expect(assets.some(url=>url.endsWith('/indexv2-cockpit.webp'))).toBe(false);
+  await expect(page.locator('.proof-controls')).toBeHidden();
+  const viewport=page.locator('.proof-viewport');
+  await viewport.focus();
+  await page.keyboard.press('PageDown');
+  await expect.poll(()=>viewport.evaluate(e=>e.scrollTop)).toBeGreaterThan(0);
+});
+
+test('desktop cockpit carousel changes view manually and survives resizing',async({page})=>{
+  await page.setViewportSize({width:1440,height:900});
+  await page.goto('/indexV2.html');
+  const mobile=page.getByRole('button',{name:'Mobile',exact:true});
+  const web=page.getByRole('button',{name:'Web',exact:true});
+  await expect(web).toHaveAttribute('aria-pressed','true');
+  const before=await page.locator('.product-proof').boundingBox();
+  await mobile.focus();await page.keyboard.press('Enter');
+  await expect(mobile).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('.product-proof img')).toHaveAttribute('src','/assets/images/indexv2-cockpit-mobile.webp');
+  const after=await page.locator('.product-proof').boundingBox();
+  expect(Math.abs(after.height-before.height)).toBeLessThan(2);
+  await page.setViewportSize({width:390,height:844});
+  await expect(page.locator('.proof-controls')).toBeHidden();
+  await page.setViewportSize({width:1440,height:900});
+  await expect(mobile).toHaveAttribute('aria-pressed','true');
+  await web.click();
+  await expect(page.locator('.product-proof img')).toHaveAttribute('src','/assets/images/indexv2-cockpit.webp');
+});

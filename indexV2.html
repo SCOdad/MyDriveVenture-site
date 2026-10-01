@@ -36,9 +36,26 @@
         <div class="hero-actions"><a class="button primary" href="/join/">Join Now <span aria-hidden="true">→</span></a><a class="secondary-link" href="#how-it-works">See How It Works <span aria-hidden="true">↓</span></a></div>
         <p class="signup-note">Start with a grown-up’s name and email.<br>A secure link takes you to your Family Hub.</p>
       </div>
-      <figure class="product-proof"><div class="proof-label"><span class="status-dot" aria-hidden="true"></span>Inside Drive Venture</div><img src="/assets/images/indexv2-cockpit.webp" width="1491" height="1055" fetchpriority="high" alt="Drive Venture cockpit with practice and night-driving progress, quests, road conditions, and achievements."><figcaption>The current DV03 cockpit. Your logged practice, goals, and achievements in one view.</figcaption></figure>
+      <figure class="product-proof" aria-label="Drive Venture product preview">
+        <div class="proof-heading"><div class="proof-label"><span class="status-dot" aria-hidden="true"></span>Inside Drive Venture</div>
+          <div class="proof-controls" role="group" aria-label="Choose cockpit preview" hidden>
+            <button type="button" data-preview-view="web" aria-pressed="true" aria-controls="cockpit-preview">Web</button>
+            <button type="button" data-preview-view="mobile" aria-pressed="false" aria-controls="cockpit-preview">Mobile</button>
+          </div>
+        </div>
+        <div class="proof-stage" data-preview-state="web">
+          <div id="cockpit-preview" class="proof-viewport" tabindex="0" role="region" aria-label="Cockpit screenshot; scroll to explore the mobile view">
+            <picture><source media="(max-width: 760px)" srcset="/assets/images/indexv2-cockpit-mobile.webp"><img src="/assets/images/indexv2-cockpit.webp" width="1491" height="1055" fetchpriority="high" alt="Drive Venture cockpit showing the road scene, Mission Control quests, practice hours, and night-driving progress."></picture>
+          </div>
+        </div>
+        <figcaption><span class="preview-caption-web">The current web cockpit. Your logged practice, goals, and achievements in one view.</span><span class="preview-caption-mobile">The current mobile cockpit. Scroll inside the preview to explore quests and driving progress.</span></figcaption>
+      </figure>
     </section>
-    <section class="value-strip section-shell" aria-label="What you get"><div><span aria-hidden="true">01 /</span><h2>A useful driving log</h2><p>Keep completed practice in one place.</p></div><div><span aria-hidden="true">02 /</span><h2>Progress worth seeing</h2><p>Hours, Road XP, and milestones add up.</p></div><div><span aria-hidden="true">03 /</span><h2>A reason to try more</h2><p>Quests encourage varied experience.</p></div></section>
+    <section class="value-strip section-shell" aria-label="What you get">
+      <div><span>01 / REQUIREMENTS</span><h2>The log you need</h2><p>Keep supervised practice organized as you work toward your state’s licensing requirements.</p></div>
+      <div><span>02 / FUN</span><h2>The fun you add</h2><p>Turn completed drives into Road XP, quests, and achievements. The game starts when you’re parked.</p></div>
+      <div><span>03 / MOTIVATION</span><h2>The motivation to keep going</h2><p>See how far you’ve come—and find a reason to get out and practice again.</p></div>
+    </section>
     <section class="how-section section-shell" id="how-it-works" aria-labelledby="how-title"><p class="eyebrow">Three steps. More miles of experience.</p><h2 id="how-title">Drive. Log. Level up.</h2><p class="section-intro">The driving stays focused on the road. The game begins when you’re parked.</p>
       <ol class="steps"><li><span class="step-number" aria-hidden="true">01</span><h3>Practice together</h3><p>Head out with your grown-up. Build experience on different roads, in different conditions, at your own pace.</p></li><li><span class="step-number" aria-hidden="true">02</span><h3>Save the drive</h3><p>Once safely parked, log the start and end time. Drive Venture calculates daytime and nighttime minutes.</p><a href="/text-parker/">Explore Text Parker <span aria-hidden="true">→</span></a></li><li><span class="step-number" aria-hidden="true">03</span><h3>See what adds up</h3><p>Watch practice become Road XP, quests, and milestones. Use the cockpit to find your next useful practice goal.</p></li></ol>
       <p class="safety-note"><strong>No play while driving.</strong> Drive Venture rewards completed practice and varied experience—never speed, risky maneuvers, or phone use behind the wheel.</p>
