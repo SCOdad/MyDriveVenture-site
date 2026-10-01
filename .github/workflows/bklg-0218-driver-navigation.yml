@@ -1,0 +1,63 @@
+name: BKLG-0218 Driver Navigation Integration
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/log-dashboard-entry-v5.js'
+      - 'assets/js/log-operator-support.js'
+      - 'tests/e2e/helpers.mjs'
+      - 'tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs'
+      - 'tests/e2e/bklg-0218-stale-driver-status.spec.mjs'
+      - '.github/workflows/bklg-0218-driver-navigation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  driver-navigation:
+    name: Tier 2 / Driver navigation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+      DV_DEV_TEST_PASSWORD: ${{ secrets.DV_DEV_TEST_PASSWORD }}
+      DV_E2E_BOUNDED_MI_DRIVER_NAME: Synthetic Driver Three
+      DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL: guardian.single@dev.driveventure.example.invalid
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Require DEV test credential
+        shell: bash
+        run: test -n "$DV_DEV_TEST_PASSWORD" || (echo 'Repository secret DV_DEV_TEST_PASSWORD is required.' && exit 1)
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-e2e-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/log/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-e2e-http.log
+          exit 1
+      - name: Verify fixture readiness
+        run: npx playwright test tests/e2e/bklg-0210-fixture-readiness.spec.mjs --retries=0
+      - name: Verify driver navigation and stale-response safety
+        run: npx playwright test tests/e2e/bklg-0089-deeplink-driver-switch.spec.mjs tests/e2e/bklg-0218-stale-driver-status.spec.mjs --retries=0
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bklg-0218-driver-navigation-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 9
