@@ -28,7 +28,7 @@ test('BKLG-0187 moves the DV03 milestone card out of the windshield artwork',()=
   assert.ok(windshieldStart>=0);
   assert.ok(windshieldEnd>windshieldStart);
   assert.doesNotMatch(html.slice(windshieldStart,windshieldEnd),/class="hours-sign"/);
-  assert.match(html,/class="dv03-milestone-strip"><div class="hours-sign"><span>NEXT LICENSE MILESTONE<\/span><strong id="hours-sign">Loading…<\/strong><\/div><\/div>/);
+  assert.match(html,/class="dv03-milestone-strip"><div class="hours-sign"><span id="hours-sign-label">NEXT LICENSE MILESTONE<\/span><strong id="hours-sign">Loading…<\/strong><\/div><\/div>/);
   assert.match(css,/\.dv03-milestone-strip\{[^}]*display:flex/);
   assert.match(css,/\.dv03-milestone-strip \.hours-sign\{[^}]*width:min\(420px,100%\)/);
   assert.doesNotMatch(css,/\.dv03-windshield \.hours-sign\{/);

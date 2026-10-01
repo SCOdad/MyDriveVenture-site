@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const home = fs.readFileSync('operator/index.html','utf8');
+const canonicalHeader = fs.readFileSync('assets/js/canonical-header.js','utf8');
 const config = fs.readFileSync('operator/config.js','utf8');
 const catalog = fs.readFileSync('operator/quests/index.html','utf8');
 const catalogJs = fs.readFileSync('operator/quests/operator.js','utf8');
@@ -10,7 +11,7 @@ const dictionary = fs.readFileSync('operator/dictionary/index.html','utf8');
 const dictionaryJs = fs.readFileSync('operator/dictionary/operator.js','utf8');
 
 test('BKLG-0236 exposes Quests as a first-class Operator Home tool', () => {
-  assert.ok(home.includes('href="/operator/quests/?v=20260927-0236c">Quests</a>'));
+  assert.ok(canonicalHeader.includes('<a href="/operator/quests/">Quests</a>'));
   assert.match(home, /<h3>Quests<\/h3>/);
   assert.match(home, /Quest Catalog/);
   assert.match(config, /DV_OPERATOR_QUESTS_ENDPOINT/);
