@@ -55,3 +55,16 @@ test('BKLG-0243 state-neutral cockpit uses product goals, not license claims', a
   assert.match(log, /id="hours-sign-label"/);
   assert.match(log, /id="night-goal-label"/);
 });
+
+
+test('BKLG-0243 Family Hub offers state-neutral setup outside supported ZIP ranges', async () => {
+  const [stages, family] = await Promise.all([
+    read('assets/js/family-license-stages.js'),
+    read('assets/js/family.js'),
+  ]);
+  assert.match(stages, /return'STATE_NEUTRAL'/);
+  assert.match(stages, /State-neutral practice tracking/);
+  assert.match(stages, /date\.required=false/);
+  assert.doesNotMatch(stages, /currently supports Michigan and Kansas ZIP codes/);
+  assert.match(family, /STATE_NEUTRAL'\?'Practice tracking'/);
+});
