@@ -10,7 +10,7 @@ Use it for syntax, unit, and static architecture contracts. It must remain fast 
 
 ## Tier 2 — browser integration
 
-Run `BKLG-0132 Frontend Regression` manually with the smallest applicable Playwright scope:
+Driver-navigation integration runs automatically when its dashboard/operator lifecycle paths change. For other browser integration, run `BKLG-0132 Frontend Regression` manually with the smallest applicable Playwright scope:
 
 - `fixture-canary` — validate shared DEV fixture readiness.
 - `driver-navigation` — driver switching and stale asynchronous response behavior.
