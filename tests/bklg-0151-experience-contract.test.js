@@ -41,6 +41,15 @@ test('BKLG-0180 Drive Log renders Skills Practiced from the backend context read
   assert.match(presenter, /Road notes: \$\{esc\(d\.notes\)\}/);
 });
 
+test('BKLG-0235 dashboard weather uses canonical Weather Context, not browser Open-Meteo', () => {
+  const presenter = read('assets/js/log-prepilot-v2.js');
+  assert.match(presenter, /action:'weather_context_current'/);
+  assert.match(presenter, /weather-context-current/);
+  assert.doesNotMatch(presenter, /api\.open-meteo\.com/);
+  assert.doesNotMatch(presenter, /weather_code/);
+  assert.match(presenter, /Conditions unavailable/);
+});
+
 test('CREATE verifies the authoritative saved drive and returns to ordinary log mode', () => {
   const rpc = read('assets/js/log-drive-rpc.js');
   assert.match(rpc, /const reread=await authoritativeDrive\(driverId,id\)/);
