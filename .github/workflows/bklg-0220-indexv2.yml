@@ -1,0 +1,36 @@
+name: BKLG-0220 DEV homepage
+on:
+  pull_request:
+    paths:
+      - 'indexV2.html'
+      - 'assets/css/indexv2.css'
+      - 'assets/js/indexv2.js'
+      - 'assets/images/indexv2-*'
+      - 'tests/**/bklg-0220-*'
+      - '.github/workflows/bklg-0220-indexv2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  homepage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: node --test tests/bklg-0220-indexv2.test.js
+      - name: Serve isolated checkout
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/indexv2-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/indexV2.html > /dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          exit 1
+      - run: npx playwright test tests/e2e/bklg-0220-indexv2.spec.mjs tests/e2e/bklg-0219-paid-recruitment.spec.mjs
