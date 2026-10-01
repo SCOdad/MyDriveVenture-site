@@ -17,7 +17,6 @@ const taggedPages = [
   "research/teen-drowsy-driving/index.html",
   "terms/index.html",
   "text-parker/index.html",
-  "waitlist/index.html",
 ];
 
 function runLoader(hostname, pathname, window = {}) {
@@ -41,7 +40,7 @@ test("GA4 loads once for each approved public route on production", () => {
   for (const pathname of [
     "/", "/faq/", "/feedback/", "/help/", "/join/", "/privacy/",
     "/research/", "/research/teen-drowsy-driving/", "/terms/",
-    "/text-parker/", "/waitlist/",
+    "/text-parker/",
   ]) {
     const { window, scripts } = runLoader("mydriveventure.com", pathname);
     assert.equal(scripts.length, 1, pathname);
