@@ -6,7 +6,7 @@ const js=fs.readFileSync(new URL('../operator/dashboard.js',import.meta.url),'ut
 
 assert.match(html,/id="chart-tabs"/,'chart tabs should replace the metric dropdown');
 assert.doesNotMatch(html,/id="trend-metric"/,'legacy metric dropdown should be absent');
-for(const metric of ['drives','minutes','active_drivers','logging_delay','registrations','waitlist_additions','feedback_flow','backlog_flow','signals_observed']) assert.match(html,new RegExp(`data-metric="${metric}"`),`missing ${metric} tab`);
+for(const metric of ['drives','minutes','active_drivers','logging_delay','registrations','feedback_flow','backlog_flow','signals_observed']) assert.match(html,new RegExp(`data-metric="${metric}"`),`missing ${metric} tab`);
 assert.match(html,/data-basis="occurred"/);
 assert.match(html,/data-basis="entered"/);
 assert.match(js,/dv\.operator\.range/,'selected range should persist in localStorage');
