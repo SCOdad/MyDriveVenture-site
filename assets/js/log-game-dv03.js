@@ -28,7 +28,7 @@
     return loadScript('/assets/js/dv03-presentation-rules.js?v=20261003-destinations1','DV03_PRESENTATION_RULES','dv03PresentationRules')
       .then(rules=>Promise.all([
         loadScript('/assets/js/dv03-theme-calendar.js?v=20260928-bklg0238','DV_THEME_CALENDAR','dv03ThemeCalendar'),
-        loadScript('/assets/js/dv03-visual-asset-registry.js?v=20261003-destinations1','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
+        loadScript('/assets/js/dv03-visual-asset-registry.js?v=20261002-home-l03','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
       ]).then(()=>rules));
   }
 
