@@ -58,7 +58,7 @@ test('DV03 mock mode is DEV-only and disables write controls',()=>{
   assert.match(html,/log-game-dv03-preview\.js\?v=20260901-acceptance2/);
   assert.match(html,/log-game-polish\.js\?v=20260918-0187-phase2/);
   assert.match(html,/log-game-dv03\.js\?v=20261002-home-l03/);
-  assert.match(read('assets/js/log-game-dv03.js'),/dv03-presentation-rules\\.js\\?v=20261003-bklg0234/);
+  assert.match(read('assets/js/log-game-dv03.js'),/dv03-presentation-rules\.js\?v=20261003-bklg0234/);
   assert.match(preview,/querySelectorAll\('#app-main form input,#app-main form select,#app-main form textarea,#app-main form button'\)/);
   assert.match(preview,/el\.disabled=true/);
 });
