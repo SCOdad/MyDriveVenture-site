@@ -16,7 +16,13 @@
     Q000087:{scene:'coffee-shop',label:'Coffee Shop',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L11-COFFEE-SHOP.png'},
     Q000088:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'},
     Q000089:{scene:'salon-barber',label:'Salon / Barber',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L12-SALON-BARBER.png'},
-    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png'}
+    Q000090:{scene:'movie-theater',label:'Movie Theater',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png'},
+    Q000091:{scene:'wrestling-training-center',label:'Wrestling Training Center',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L14-WRESTLING-TRAINING-CENTER.png'},
+    Q000092:{scene:'karate-dojo',label:'Karate Dojo',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L15-KARATE-DOJO.png'},
+    Q000093:{scene:'pizzeria',label:'Pizzeria',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L16-PIZZERIA.png'},
+    Q000094:{scene:'sushi-restaurant',label:'Sushi Restaurant',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'},
+    Q000095:{scene:'ice-cream-shop',label:'Ice Cream Shop',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'},
+    Q000097:{scene:'airport',label:'Airport',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L20-AIRPORT.png'}
   });
 
   let themeCalendarState={loaded:false,exists:false,version:0,rules:[]};
