@@ -26,6 +26,37 @@ test('DV03 persistent scenery is the most recently earned scenery-qualified awar
   assert.equal(rules.sceneryFor(selected).scene,'library');
 });
 
+
+test('DV03 newer destination quests resolve to their governed BASE scenery',()=>{
+  const expected=[
+    ['Q000091','wrestling-training-center','Wrestling Training Center','DV03-BACKGROUND-BASE-L14-WRESTLING-TRAINING-CENTER.png'],
+    ['Q000092','karate-dojo','Karate Dojo','DV03-BACKGROUND-BASE-L15-KARATE-DOJO.png'],
+    ['Q000093','pizzeria','Pizzeria','DV03-BACKGROUND-BASE-L16-PIZZERIA.png'],
+    ['Q000094','sushi-restaurant','Sushi Restaurant','DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'],
+    ['Q000095','ice-cream-shop','Ice Cream Shop','DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'],
+    ['Q000097','airport','Airport','DV03-BACKGROUND-BASE-L20-AIRPORT.png']
+  ];
+  for(const [questKey,scene,label,file] of expected){
+    const scenery=rules.sceneryFor(award(questKey,Number(questKey.slice(1)),100));
+    assert.equal(scenery.scene,scene,questKey);
+    assert.equal(scenery.label,label,questKey);
+    assert.match(scenery.src,new RegExp(file.replaceAll('.','\\\\.')),questKey);
+  }
+});
+
+test('DV03 Pizza quest Q000093 presents Pizzeria scenery for the production failure case',()=>{
+  const pizza=award('Q000093',93,100,'2026-10-03T22:56:58Z');
+  const result=rules.resolvePresentation({awards:[pizza],driverId:'driver-1',skyMode:'day',themeOverride:'normal'});
+  assert.equal(result.persistentAward.quest_key,'Q000093');
+  assert.equal(result.activeScenery.scene,'pizzeria');
+  assert.match(result.activeScenery.src,/DV03-BACKGROUND-BASE-L16-PIZZERIA\.png$/);
+  assert.equal(result.showBillboard,false);
+});
+
+test('DV03 Taco Q000096 remains unmapped until a governed BASE Taco asset exists',()=>{
+  assert.equal(rules.SCENERY_BY_QUEST.Q000096,undefined);
+});
+
 test('DV03 resting scenery suppresses billboard while featured billboard temporarily wins',()=>{
   const scenery=award('Q000039',39,300,'2026-09-10T12:00:00Z');
   const resting=rules.resolvePresentation({awards:[scenery],driverId:'driver-1',timeZone:'America/Detroit',now:new Date('2026-09-11T16:00:00Z'),skyMode:'day'});
