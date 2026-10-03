@@ -20,6 +20,14 @@ jobs:
       DV_E2E_BASE_URL: http://127.0.0.1:4173
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Confirm this PR preserves the production homepage
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: git diff --exit-code "$PR_BASE_SHA...$PR_HEAD_SHA" -- index.html
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
