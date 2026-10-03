@@ -1,8 +1,11 @@
-name: BKLG-0220 DEV homepage
+name: BKLG-0220 homepage
 on:
   pull_request:
     paths:
       - 'indexV2.html'
+      - 'index.html'
+      - 'archive/homepage-2026-10-03/**'
+      - '_headers'
       - 'assets/css/indexv2.css'
       - 'assets/js/indexv2.js'
       - 'assets/images/indexv2-*'
@@ -22,12 +25,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Confirm this PR preserves the production homepage
-        if: github.event_name == 'pull_request'
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: git diff --exit-code "$PR_BASE_SHA...$PR_HEAD_SHA" -- index.html
       - uses: actions/setup-node@v4
         with:
           node-version: '22'

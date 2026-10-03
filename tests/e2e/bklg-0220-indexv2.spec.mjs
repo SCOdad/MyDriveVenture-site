@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+const homepage = process.env.DV_HOMEPAGE_PATH || '/';
 
 for (const width of [320, 390, 768, 1440]) {
   test(`indexV2: hierarchy, semantics, navigation and targets at ${width}px`, async ({ page }) => {
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     await page.setViewportSize({width, height:900});
-    await page.goto('/indexV2.html');
+    await page.goto(homepage);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('h1')).toHaveText('Turn practiceinto progress.');
     await expect(page.locator('a[href*="waitlist"]')).toHaveCount(0);
@@ -28,7 +29,7 @@ for (const width of [320, 390, 768, 1440]) {
 
 test('mobile menu works with keyboard, Escape and viewport changes', async ({page})=>{
   await page.setViewportSize({width:390,height:844});
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   const menu=page.getByRole('button',{name:'Menu'});
   await menu.focus();
   await page.keyboard.press('Enter');
@@ -44,7 +45,7 @@ test('mobile menu works with keyboard, Escape and viewport changes', async ({pag
 });
 
 test('CTA handoff keeps grown-up-first two-field onboarding',async({page})=>{
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   await page.locator('.hero .primary').click();
   await expect(page).toHaveURL(/\/join\/$/);
   await expect(page.getByRole('textbox')).toHaveCount(2);
@@ -54,7 +55,7 @@ test('CTA handoff keeps grown-up-first two-field onboarding',async({page})=>{
 });
 
 test('all local indexV2 destinations and image assets resolve',async({page,request})=>{
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   const paths=await page.locator('a[href^="/"],img').evaluateAll(els=>[...new Set(els.map(e=>e.getAttribute('href')||e.getAttribute('src')))]);
   for(const path of paths) expect((await request.get(path)).status(),path).toBe(200);
 });
@@ -62,15 +63,16 @@ test('all local indexV2 destinations and image assets resolve',async({page,reque
 test('DEV does not send production analytics',async({page})=>{
   const analytics=[];
   page.on('request',r=>{if(/google-analytics.com|googletagmanager.com|connect.facebook.net|facebook.com\/tr/.test(r.url()))analytics.push(r.url());});
-  await page.goto('/indexV2.html');
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex,nofollow');
+  await page.goto(homepage);
+  if (homepage === '/') await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  else await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content','noindex,nofollow');
   expect(analytics).toEqual([]);
 });
 
 test('navigation and conversion still work without JavaScript',async({browser,baseURL})=>{
   const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844},baseURL});
   const page=await context.newPage();
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   await expect(page.getByRole('link',{name:'Log Your Drive',exact:true})).toBeVisible();
   await page.locator('.hero .primary').click();
   await expect(page).toHaveURL(/\/join\/$/);
@@ -81,7 +83,7 @@ test('phones load the mobile cockpit and can scroll its full content',async({pag
   await page.setViewportSize({width:390,height:844});
   const assets=[];
   page.on('request',r=>{if(r.url().includes('indexv2-cockpit'))assets.push(r.url());});
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   await expect(page.locator('.product-proof img')).toHaveJSProperty('currentSrc',new URL('/assets/images/indexv2-cockpit-mobile.webp',page.url()).href);
   expect(assets.some(url=>url.endsWith('/indexv2-cockpit.webp'))).toBe(false);
   await expect(page.getByRole('button',{name:'Text',exact:true})).toBeVisible();
@@ -94,7 +96,7 @@ test('phones load the mobile cockpit and can scroll its full content',async({pag
 
 test('desktop cockpit carousel changes view manually and survives resizing',async({page})=>{
   await page.setViewportSize({width:1440,height:900});
-  await page.goto('/indexV2.html');
+  await page.goto(homepage);
   const mobile=page.getByRole('button',{name:'Mobile',exact:true});
   const web=page.getByRole('button',{name:'Web',exact:true});
   await expect(web).toHaveAttribute('aria-pressed','true');
@@ -118,7 +120,7 @@ for (const width of [390,1440]) {
     const requests=[];
     page.on('request',r=>{if(r.url().endsWith('.mp4'))requests.push(r.url());});
     await page.setViewportSize({width,height:900});
-    await page.goto('/indexV2.html');
+    await page.goto(homepage);
     const video=page.locator('video');
     await expect(video).not.toHaveAttribute('src');
     expect(requests).toEqual([]);
