@@ -26,6 +26,7 @@
   const DESTINATIONS = Object.freeze([
     {slot:'L01',slug:'park',name:'Park',questKeys:['Q000035']},
     {slot:'L02',slug:'school',name:'School',questKeys:['Q000036']},
+    {slot:'L03',slug:'home',name:'Home',questKeys:['Q000037']},
     {slot:'L04',slug:'grocery-store',name:'Grocery Store',questKeys:['Q000038']},
     {slot:'L05',slug:'library',name:'Library',questKeys:['Q000039']},
     {slot:'L06',slug:'snack-run',name:'Snack Run',questKeys:['Q000017']},
