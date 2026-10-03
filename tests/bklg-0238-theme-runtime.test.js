@@ -82,7 +82,7 @@ test('BKLG-0238 selects only registered holiday night skies and preserves the BA
 
 test('BKLG-0238 runtime loads shared calendar and canonical asset registry before resolving scenery',()=>{
   assert.match(runtimeSource,/dv03-theme-calendar\.js\?v=20260928-bklg0238/);
-  assert.match(runtimeSource,/dv03-visual-asset-registry\.js\?v=20260928-bklg0238/);
+  assert.match(runtimeSource,/dv03-visual-asset-registry\.js\?v=20261002-home-l03/);
   assert.match(runtimeSource,/loadThemeCalendar\(window\.DV_LOG_APP\?\.client\)/);
   assert.match(presentationSource,/functions\.invoke\('dv03-theme-calendar'/);
 })
