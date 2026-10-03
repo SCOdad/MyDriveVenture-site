@@ -29,3 +29,26 @@ nav a{min-width:48px}
   .preview-caption-mobile { display:inline; }
   .product-proof .proof-viewport img { aspect-ratio:772 / 3090; }
 }
+/* Road-ahead artwork is deferred below the main message, with reserved geometry. */
+.road-ahead-panel { grid-column:1 / -1; border:2px solid var(--dv-border-strong); overflow:hidden; }
+.road-ahead-panel img { width:100%; aspect-ratio:3 / 1; object-fit:cover; object-position:center 20%; }
+.proof-heading { flex-wrap:wrap; }
+.proof-controls button[hidden],.proof-stage [hidden],.text-demo-details[hidden] { display:none; }
+.text-preview { height:100%; width:100%; text-align:center; }
+.text-preview video { display:block; width:100%; height:100%; object-fit:contain; }
+.preview-caption-text { display:none; }
+.product-proof:has([data-preview-state="text"]) .preview-caption-web,.product-proof:has([data-preview-state="text"]) .preview-caption-mobile { display:none; }
+.product-proof:has([data-preview-state="text"]) .preview-caption-text { display:inline; }
+.text-demo-details { padding:12px 4px 0; font-size:.8rem; }
+.text-demo-details summary { min-height:48px; padding:12px 0; cursor:pointer; }
+.text-demo-details a { display:inline-flex; align-items:center; min-height:48px; }
+.text-demo-details ol { padding-left:20px; }
+.text-demo-details li { margin-bottom:12px; color:var(--dv-text-secondary); }
+.text-demo-details .small { margin-top:8px; }
+@media(max-width:760px) {
+  .hero-copy { grid-row:1; }
+  .road-ahead-panel { grid-row:2; }
+  .product-proof { grid-row:3; }
+  .road-ahead-panel img { aspect-ratio:2 / 1; }
+  .proof-controls { display:flex; }
+}

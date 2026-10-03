@@ -84,7 +84,8 @@ test('phones load the mobile cockpit and can scroll its full content',async({pag
   await page.goto('/indexV2.html');
   await expect(page.locator('.product-proof img')).toHaveJSProperty('currentSrc',new URL('/assets/images/indexv2-cockpit-mobile.webp',page.url()).href);
   expect(assets.some(url=>url.endsWith('/indexv2-cockpit.webp'))).toBe(false);
-  await expect(page.locator('.proof-controls')).toBeHidden();
+  await expect(page.getByRole('button',{name:'Text',exact:true})).toBeVisible();
+  await expect(page.locator('[data-preview-view="web"]')).toBeHidden();
   const viewport=page.locator('.proof-viewport');
   await viewport.focus();
   await page.keyboard.press('PageDown');
@@ -104,9 +105,33 @@ test('desktop cockpit carousel changes view manually and survives resizing',asyn
   const after=await page.locator('.product-proof').boundingBox();
   expect(Math.abs(after.height-before.height)).toBeLessThan(2);
   await page.setViewportSize({width:390,height:844});
-  await expect(page.locator('.proof-controls')).toBeHidden();
+  await expect(page.getByRole('button',{name:'Text',exact:true})).toBeVisible();
+  await expect(page.locator('[data-preview-view="web"]')).toBeHidden();
   await page.setViewportSize({width:1440,height:900});
   await expect(mobile).toHaveAttribute('aria-pressed','true');
   await web.click();
   await expect(page.locator('.product-proof img')).toHaveAttribute('src','/assets/images/indexv2-cockpit.webp');
 });
+
+for (const width of [390,1440]) {
+  test(`Text demo loads on demand, plays and pauses when leaving at ${width}px`,async({page})=>{
+    const requests=[];
+    page.on('request',r=>{if(r.url().endsWith('.mp4'))requests.push(r.url());});
+    await page.setViewportSize({width,height:900});
+    await page.goto('/indexV2.html');
+    const video=page.locator('video');
+    await expect(video).not.toHaveAttribute('src');
+    expect(requests).toEqual([]);
+    await page.getByRole('button',{name:'Text',exact:true}).click();
+    await expect(video).toBeVisible();
+    await expect.poll(()=>video.evaluate(v=>v.currentTime)).toBeGreaterThan(0);
+    expect(await video.evaluate(v=>v.error)).toBeNull();
+    expect(await video.evaluate(v=>v.duration)).toBeGreaterThan(20);
+    await page.getByText('Read the video transcript',{exact:true}).click();
+    await expect(page.locator('.text-demo-details ol')).toBeVisible();
+    await page.getByRole('button',{name:width<760?'Mobile':'Web',exact:true}).click();
+    await expect(video).toBeHidden();
+    await expect(video).toHaveJSProperty('paused',true);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  });
+}

@@ -6,6 +6,7 @@ on:
       - 'assets/css/indexv2.css'
       - 'assets/js/indexv2.js'
       - 'assets/images/indexv2-*'
+      - 'assets/video/text-parker-demo.*'
       - 'tests/**/bklg-0220-*'
       - '.github/workflows/bklg-0220-indexv2.yml'
   workflow_dispatch:

@@ -45,3 +45,13 @@ Desktop gets manual Web/Mobile carousel selectors with pressed-state announcemen
 The benefit strip now follows Requirements / Fun / Motivation: the log you need, the fun you add, and the motivation to keep going. The copy connects the log to state licensing requirements without claiming universal legal acceptance.
 
 Additional UAT: on phone, scroll within the cockpit preview to see progress gauges; on desktop, switch Web → Mobile → Web by mouse or keyboard. Expect the matching actual screenshot and a stable preview frame. The revised targeted suite has 13 tests, all passing locally; accessibility audits at 390px/1440px still show zero WCAG violations. The existing unrelated backlog-style failure remains unchanged.
+
+## October 3 revision: road-ahead artwork and Text Parker
+
+Reuse the existing `road-ahead-hero.webp` (122,600 bytes) in a scenic panel, after the introductory content on desktop and between the introduction and product preview on phones. Dimensions reserve space and lazy loading defers the supporting artwork. The original image is unchanged.
+
+Replace Road XP with experience in indexV2 copy; product screenshots remain genuine captures. The hero and “Log your way” step now explicitly offer browser or text logging with no app required. The existing Text Parker information/opt-in route remains the destination; no SMS signup, consent, or product behavior is modified.
+
+The carousel gains Text on desktop and phones (phones retain Mobile rather than showing Web). Selecting Text loads and plays the approved 20.465-second social demonstration. Browser-compatible MP4 uses the original H.264/AAC streams, repackaged with faststart and no re-encoding. The source MOV is not duplicated in the repository. No MP4 request occurs before the user selects Text. Native playback controls, inline mobile playback, English text captions, a readable transcript, opt-in information and safety copy are included. Selecting another view or hiding the document pauses the video. Playback rejection exposes an instruction to use the native Play control.
+
+Additional UAT: select Text on desktop and phone; expect video playback with controls. Switch to Web/Mobile; expect playback to pause. Read the transcript and follow Text Parker instructions. Verify the road-ahead panel and the new experience/browser-or-text copy. Local targeted suite: 15/15 pass, including actual media playback and no-prefetch assertions. Standard unit suite retains its one pre-existing operator-backlog styling failure; JavaScript syntax passes.
