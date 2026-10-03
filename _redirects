@@ -2,3 +2,6 @@
 /FAQ/* /faq/:splat 301
 /join/v2/ /join/ 301
 /join/v2/* /join/:splat 301
+/waitlist /join/ 301
+/waitlist/ /join/ 301
+/waitlist/* /join/:splat 301

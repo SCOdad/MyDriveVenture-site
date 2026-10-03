@@ -33,6 +33,8 @@
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const hours=m=>(Number(m||0)/60).toFixed(1);
+  const STATE_NEUTRAL_PRACTICE_GOAL_HOURS=50;
+  const STATE_NEUTRAL_NIGHT_GOAL_HOURS=10;
   const currentDriver=()=>model.drivers.find(d=>d.id===currentDriverId)||model.drivers[0]||null;
   const currentProgress=()=>model.progress.find(p=>p.driver_id===currentDriverId)||{};
   const activeVehicles=()=>model.vehicles.filter(v=>v.driver_id===currentDriverId&&v.status!=='ARCHIVED');
@@ -41,7 +43,25 @@
   const getAccessMode=driverId=>(model.driver_access||[]).find(a=>a.driver_id===driverId)?.mode||(model.is_operator===true?'VIEW':'MANAGE');
   const currentLicenseStatus=()=>licenseStatusCache.get(currentDriverId)??model.license_statuses?.find(s=>s.driver_id===currentDriverId)?.status??null;
 
-  function requirement(type,fallback){const s=currentLicenseStatus(),row=(s?.requirements||[]).find(r=>r.requirement_type===type);const n=Number(row?.value_text);return Number.isFinite(n)?n:fallback}
+  function hasSupportedRuleset(driver=currentDriver()){const state=String(driver?.home_state||'').trim().toUpperCase();return !!state&&(model.license_requirements||[]).some(r=>String(r.jurisdiction||'').trim().toUpperCase()===state)}
+  function isStateNeutral(driver=currentDriver()){return !!driver&&!hasSupportedRuleset(driver)}
+  function requirement(type,fallback){if(isStateNeutral())return fallback;const s=currentLicenseStatus(),row=(s?.requirements||[]).find(r=>r.requirement_type===type);const n=Number(row?.value_text);return Number.isFinite(n)?n:fallback}
+  function setCockpitMode(driver,license,progress,practiceTarget,nightTarget){
+    const neutral=isStateNeutral(driver),set=(id,value)=>{const el=document.getElementById(id);if(el)el.innerHTML=value};
+    set('hours-sign-label',neutral?'PRACTICE GOAL':'NEXT LICENSE MILESTONE');
+    set('license-stage-label',neutral?'RULESET':'LICENSE STAGE');
+    set('license-date-label',neutral?'TRACKING':'STAGE SINCE');
+    set('age-gate-label',neutral?'GUIDANCE':'NEXT TIME<br>MILESTONE');
+    set('night-goal-label',neutral?'DV NIGHT GOAL':'NIGHT GOAL');
+    if(!neutral)return false;
+    const stage=document.getElementById('license-stage');if(stage)stage.textContent='State-neutral';
+    const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent='Practice only';
+    const ageGate=document.getElementById('age-gate');if(ageGate)ageGate.textContent='Check your state rules';
+    const lh=document.getElementById('license-hours');if(lh)lh.textContent=`${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
+    const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
+    const sign=document.getElementById('hours-sign');if(sign)sign.textContent=`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO PRACTICE GOAL`;
+    return true
+  }
   function vehicleMarkup(v){return `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color?` · ${esc(v.color)}`:''}${v.is_primary?' · Primary':''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`}
   function orderedDrivers(){return [...(model.drivers||[])].sort((a,b)=>{const av=getAccessMode(a.id)==='VIEW'?1:0,bv=getAccessMode(b.id)==='VIEW'?1:0;if(av!==bv)return av-bv;return String(a.display_name||'Driver').localeCompare(String(b.display_name||'Driver'),undefined,{sensitivity:'base'})})}
 
@@ -63,21 +83,22 @@
 
   function render(generation=renderGeneration){
     const driver=currentDriver();if(!driver||generation!==renderGeneration)return;
-    const progress=currentProgress(),license=currentLicenseStatus(),practiceTarget=requirement('MinimumPracticeHours',50),nightTarget=requirement('MinimumNightHours',10);
+    const progress=currentProgress(),license=currentLicenseStatus(),practiceTarget=requirement('MinimumPracticeHours',STATE_NEUTRAL_PRACTICE_GOAL_HOURS),nightTarget=requirement('MinimumNightHours',STATE_NEUTRAL_NIGHT_GOAL_HOURS);
+    const neutral=setCockpitMode(driver,license,progress,practiceTarget,nightTarget);
     const heading=document.getElementById('driver-heading');if(heading)heading.textContent=driver.display_name||'Drive Venture';
     const kh=document.getElementById('kpi-hours');if(kh)kh.textContent=`${hours(progress.total_minutes)} h`;
     const kn=document.getElementById('kpi-night');if(kn)kn.textContent=`${hours(progress.night_minutes)} h`;
     const kd=document.getElementById('kpi-drives');if(kd)kd.textContent=String(progress.total_drives||0);
     const xp=document.getElementById('kpi-xp');if(xp)xp.textContent=String(progress.xp||0);
     const dashXp=document.getElementById('dash-xp');if(dashXp)dashXp.textContent=String(progress.xp||0);
-    const stage=document.getElementById('license-stage');if(stage)stage.textContent=license?.current_stage_display||driver.license_stage||'—';
-    const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent=license?.stage_start_date||driver.level1_license_date||'—';
-    const ageGate=document.getElementById('age-gate');if(ageGate)ageGate.textContent=license?(license.next_stage_display?`${license.next_stage_display}${license.next_milestone_date?` · ${license.next_milestone_date}`:''}`:'All time milestones reached'):'Loading…';
+    const stage=document.getElementById('license-stage');if(stage&&!neutral)stage.textContent=license?.current_stage_display||driver.license_stage||'—';
+    const stageDate=document.getElementById('license-date');if(stageDate&&!neutral)stageDate.textContent=license?.stage_start_date||driver.level1_license_date||'—';
+    const ageGate=document.getElementById('age-gate');if(ageGate&&!neutral)ageGate.textContent=license?(license.next_stage_display?`${license.next_stage_display}${license.next_milestone_date?` · ${license.next_milestone_date}`:''}`:'All time milestones reached'):'Loading…';
     const lh=document.getElementById('license-hours');if(lh)lh.textContent=`${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
 
     const dash=document.querySelector('.dashboard-console');
-    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'}
+    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign&&!neutral)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'}
 
     const vehicles=activeVehicles(),vehicleList=document.getElementById('vehicle-list');
     if(vehicleList)vehicleList.innerHTML=vehicles.length?vehicles.map(vehicleMarkup).join(''):'<li class="empty-state">No active vehicles yet.</li>';
@@ -96,8 +117,8 @@
   function renderLicenseOnly(generation=renderGeneration){
     if(generation!==renderGeneration)return;
     const driver=currentDriver();if(!driver)return;
-    const progress=currentProgress(),license=currentLicenseStatus();if(!license)return;
-    const practiceTarget=requirement('MinimumPracticeHours',50),nightTarget=requirement('MinimumNightHours',10);
+    const progress=currentProgress(),license=currentLicenseStatus();if(isStateNeutral(driver)){setCockpitMode(driver,null,progress,STATE_NEUTRAL_PRACTICE_GOAL_HOURS,STATE_NEUTRAL_NIGHT_GOAL_HOURS);return}if(!license)return;
+    const practiceTarget=requirement('MinimumPracticeHours',STATE_NEUTRAL_PRACTICE_GOAL_HOURS),nightTarget=requirement('MinimumNightHours',STATE_NEUTRAL_NIGHT_GOAL_HOURS);
     const stage=document.getElementById('license-stage');if(stage)stage.textContent=license.current_stage_display||driver.license_stage||'—';
     const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent=license.stage_start_date||driver.level1_license_date||'—';
     const ageGate=document.getElementById('age-gate');
@@ -167,10 +188,10 @@
     if(persist){try{localStorage.setItem('dv.log.driver',currentDriverId)}catch(_){}}
     window.dispatchEvent(new CustomEvent('dv:driver-changing',{detail:{driverId:nextDriverId,previousDriverId,generation}}));
     resetDriverPresentation();
-    const hasLicense=!!currentLicenseStatus();
+    const neutral=isStateNeutral(currentDriver()),hasLicense=!!currentLicenseStatus();
     render(generation);
     ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
-    if(hasLicense)return true;
+    if(neutral||hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
       renderLicenseOnly(generation);

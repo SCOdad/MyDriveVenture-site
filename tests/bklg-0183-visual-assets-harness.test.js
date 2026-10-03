@@ -74,18 +74,17 @@ test('BKLG-0183 registers Halloween Park canary without changing canonical Park 
   assert.ok(fs.existsSync('assets/images/dv03/layers/DV03-BACKGROUND-HALLOWEEN-L01-PARK.png'));
 });
 
-test('DV03 registry covers deployed BASE Autumn Halloween backgrounds while preserving L03 gap',()=>{
+test('DV03 registry covers deployed BASE Autumn Halloween backgrounds including L03 Home',()=>{
   const source=read('assets/js/dv03-visual-asset-registry.js');
   const context={window:{}};
   vm.runInNewContext(source,context);
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const backgrounds=registry.assets.filter(x=>x.layer==='background');
   const themes=['normal','autumn','halloween'];
-  const expectedSlots=['L01','L02','L04','L05','L06','L07','L08','L09','L10','L11','L12','L13','L14','L15','L16','L17','L18','L20'];
+  const expectedSlots=['L01','L02','L03','L04','L05','L06','L07','L08','L09','L10','L11','L12','L13','L14','L15','L16','L17','L18','L20'];
   for(const theme of themes)for(const slot of expectedSlots){
     assert.ok(backgrounds.some(x=>x.theme===theme&&x.slot===slot),`${theme} ${slot} should be registered`);
   }
-  assert.equal(backgrounds.some(x=>x.slot==='L03'),false,'L03 gap should remain absent');
   assert.ok(backgrounds.some(x=>x.theme==='halloween'&&x.slot==='L19'),'Halloween L19 Taco Shop is deployed and registered');
   assert.ok(backgrounds.some(x=>x.theme==='autumn'&&x.slot==='L19'),'Autumn L19 Taco Shop is deployed and registered');
   assert.equal(backgrounds.some(x=>x.theme==='normal'&&x.slot==='L19'),false,'BASE L19 file is not deployed');
@@ -101,7 +100,9 @@ test('DV03 registry stores quest keys only and seasonal backgrounds inherit dest
   const park=registry.find('DV-UX-DV03-BACKGROUND-PARK');
   const halloweenPark=registry.find('DV-UX-DV03-BACKGROUND-PARK-HALLOWEEN');
   const salon=registry.find('DV-UX-DV03-BACKGROUND-SALON-BARBER');
+  const home=registry.find('DV-UX-DV03-BACKGROUND-HOME');
   assert.deepEqual(Array.from(park.questKeys),['Q000035']);
+  assert.deepEqual(Array.from(home.questKeys),['Q000037']);
   assert.deepEqual(Array.from(halloweenPark.questKeys),['Q000035']);
   assert.equal(halloweenPark.parentAssetId,park.assetId);
   assert.deepEqual(Array.from(salon.questKeys),['Q000088','Q000089']);
@@ -116,7 +117,7 @@ test('DV03 registry maps all deployed background destinations including Q000091 
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const unconnected=registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length===0);
   assert.equal(unconnected.length,0);
-  assert.deepEqual(Array.from(registry.destinations.slice(12).map(x=>x.questKeys[0])),['Q000091','Q000092','Q000093','Q000094','Q000095','Q000096','Q000097']);
+  assert.deepEqual(Array.from(registry.destinations.slice(13).map(x=>x.questKeys[0])),['Q000091','Q000092','Q000093','Q000094','Q000095','Q000096','Q000097']);
   assert.ok(registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length>0).every(x=>!x.status.includes('Not connected')));
 });
 
@@ -125,9 +126,9 @@ test('theme inventory distinguishes deployed background counts from total assets
   const context={window:{}};vm.runInNewContext(source,context);
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const count=theme=>({backgrounds:registry.assets.filter(x=>x.theme===theme&&x.layer==='background').length,total:registry.assets.filter(x=>x.theme===theme).length});
-  assert.deepEqual(count('normal'),{backgrounds:18,total:27});
-  assert.deepEqual(count('autumn'),{backgrounds:19,total:19});
-  assert.deepEqual(count('halloween'),{backgrounds:19,total:20});
+  assert.deepEqual(count('normal'),{backgrounds:19,total:28});
+  assert.deepEqual(count('autumn'),{backgrounds:20,total:20});
+  assert.deepEqual(count('halloween'),{backgrounds:20,total:21});
   assert.match(read('assets/js/operator-visual-assets.js'),/backgrounds\.length} backgrounds · \$\{themed\.length} total assets/);
 });
 
@@ -169,7 +170,7 @@ test('visual assets reuses Dictionary-style live quest search as a non-persisten
 
 test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/dv03-visual-asset-registry\.js\?v=20260928-bklg0238/);
+  assert.match(html,/dv03-visual-asset-registry\.js\?v=20261002-home-l03/);
 });
 
 test('theme calendar partitions BASE around a fixed annual theme',()=>{
