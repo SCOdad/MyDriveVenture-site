@@ -40,7 +40,7 @@ test('DV03 newer destination quests resolve to their governed BASE scenery',()=>
     const scenery=rules.sceneryFor(award(questKey,Number(questKey.slice(1)),100));
     assert.equal(scenery.scene,scene,questKey);
     assert.equal(scenery.label,label,questKey);
-    assert.match(scenery.src,new RegExp(file.replaceAll('.','\\\\.')),questKey);
+    assert.match(scenery.src,new RegExp(file.replaceAll('.','\\.')),questKey);
   }
 });
 
