@@ -117,7 +117,7 @@ test('DV03 registry maps all deployed background destinations including Q000091 
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const unconnected=registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length===0);
   assert.equal(unconnected.length,0);
-  assert.deepEqual(Array.from(registry.destinations.slice(12).map(x=>x.questKeys[0])),['Q000091','Q000092','Q000093','Q000094','Q000095','Q000096','Q000097']);
+  assert.deepEqual(Array.from(registry.destinations.slice(13).map(x=>x.questKeys[0])),['Q000091','Q000092','Q000093','Q000094','Q000095','Q000096','Q000097']);
   assert.ok(registry.assets.filter(x=>x.layer==='background'&&x.questKeys.length>0).every(x=>!x.status.includes('Not connected')));
 });
 
