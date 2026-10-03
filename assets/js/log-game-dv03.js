@@ -25,9 +25,10 @@
     });
   }
   function ensureRules(){
-    return loadScript('/assets/js/dv03-presentation-rules.js?v=20261002-home-l03','DV03_PRESENTATION_RULES','dv03PresentationRules')
+    return loadScript('/assets/js/dv03-presentation-rules.js?v=20261003-bklg0234','DV03_PRESENTATION_RULES','dv03PresentationRules')
       .then(rules=>Promise.all([
         loadScript('/assets/js/dv03-theme-calendar.js?v=20260928-bklg0238','DV_THEME_CALENDAR','dv03ThemeCalendar'),
+        loadScript('/assets/js/dv03-lunar-phase.js?v=20261003-bklg0234','DV03_LUNAR_PHASE','dv03LunarPhase'),
         loadScript('/assets/js/dv03-visual-asset-registry.js?v=20261002-home-l03','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
       ]).then(()=>rules));
   }
@@ -96,10 +97,10 @@
     if(phaseReady&&phase==='BEGINS')return 'day';
     return 'day';
   }
-  function applySky(detail,rules,theme='normal'){
+  function applySky(detail,rules,theme='normal',now=new Date()){
     const sky=document.querySelector?.('.dv03-sky');if(!sky||!rules)return 'day';
     const mode=resolvedSkyMode(detail,rules);
-    const nightSky=rules.nightSkyForTheme?.(theme)||NIGHT_SKY_URL;
+    const nightSky=rules.nightSkyForTheme?.(theme,now)||NIGHT_SKY_URL;
     sky.dataset.dvSky=mode;
     sky.dataset.dvTheme=theme||'normal';
     sky.style.backgroundImage=mode==='night'?`url("${nightSky}")`:'';
@@ -146,7 +147,7 @@
     const rules=window.DV03_PRESENTATION_RULES;if(!rules)return;
     const layer=sceneLayer(),sign=signLayer();if(!layer)return;
     const timeZone=detail?.driver?.timezone||null,now=new Date(),theme=rules.resolveTheme(timeZone,now);
-    const skyMode=applySky(detail,rules,theme);
+    const skyMode=applySky(detail,rules,theme,now);
     const presentation=rules.resolvePresentation({awards:presentationAwards(detail),driverId:detail?.driverId,featuredAwards,timeZone,now,skyMode,themeOverride:theme});
     const scenery=presentation.activeScenery;
     const landscape=document.querySelector?.('.dv03-landscape');
