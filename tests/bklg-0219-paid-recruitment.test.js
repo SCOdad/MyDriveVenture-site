@@ -21,7 +21,7 @@ test('shared acquisition client sends a bounded source with view and submit',()=
   const js=read('assets/js/join-v2.js');
   assert.match(js,/form\.dataset\.acquisitionSource\|\|'JOIN_V2'/);
   assert.match(js,/action:'view',flow_id:flowId,source/);
-  assert.match(js,/action:'submit',flow_id:flowId,source,name,email,website/);
+  assert.match(js,/action:'submit',flow_id:flowId,source,\.\.\.attribution,name,email,website/);
   assert.match(js,/source==='JOIN_V2'/);
 });
 
