@@ -28,6 +28,7 @@ function harness(){
 const season={id:'autumn',theme:'autumn',label:'Autumn',enabled:true,rule:calendar(2026,9,23,0,0,68)}
 const holiday={id:'halloween',theme:'halloween',label:'Halloween',enabled:true,rule:calendar(2026,10,31,-14,0,0)}
 const parkAward={id:'award-park',driver_id:'driver-a',quest_key:'Q000035',awarded_at:'2026-09-01T12:00:00Z'}
+const homeAward={id:'award-home',driver_id:'driver-a',quest_key:'Q000037',awarded_at:'2026-10-02T12:00:00Z'}
 
 test('BKLG-0238 uses the driver local date with America/Detroit fallback at date boundaries',()=>{
   const rules=harness();rules.setThemeCalendar({ok:true,exists:true,version:1,rules:[season,holiday]});
@@ -44,6 +45,14 @@ test('BKLG-0238 applies Halloween override and restores Autumn afterward for an 
   assert.match(halloween.activeScenery.src,/BACKGROUND-HALLOWEEN-L01-PARK\.png/);
   assert.equal(autumn.theme,'autumn');
   assert.match(autumn.activeScenery.src,/BACKGROUND-AUTUMN-L01-PARK\.png/);
+})
+
+test('BKLG-0183 resolves Home to L03 and applies Autumn/Halloween variants',()=>{
+  const rules=harness();rules.setThemeCalendar({ok:true,exists:true,version:4,rules:[season,holiday]});
+  const halloween=rules.resolvePresentation({awards:[homeAward],driverId:'driver-a',timeZone:'America/Detroit',now:new Date('2026-10-20T16:00:00Z')});
+  const autumn=rules.resolvePresentation({awards:[homeAward],driverId:'driver-a',timeZone:'America/Detroit',now:new Date('2026-11-01T16:00:00Z')});
+  assert.match(halloween.activeScenery.src,/BACKGROUND-HALLOWEEN-L03-HOME\.png/);
+  assert.match(autumn.activeScenery.src,/BACKGROUND-AUTUMN-L03-HOME\.png/);
 })
 
 test('BKLG-0238 uses BASE when a themed destination variant is missing',()=>{
