@@ -30,8 +30,6 @@ nav a{min-width:48px}
   .product-proof .proof-viewport img { aspect-ratio:772 / 3090; }
 }
 /* Road-ahead artwork is deferred below the main message, with reserved geometry. */
-.road-ahead-panel { grid-column:1 / -1; border:2px solid var(--dv-border-strong); overflow:hidden; }
-.road-ahead-panel img { width:100%; aspect-ratio:3 / 1; object-fit:cover; object-position:center 20%; }
 .proof-heading { flex-wrap:wrap; }
 .proof-controls button[hidden],.proof-stage [hidden],.text-demo-details[hidden] { display:none; }
 .text-preview { height:100%; width:100%; text-align:center; }
@@ -47,8 +45,23 @@ nav a{min-width:48px}
 .text-demo-details .small { margin-top:8px; }
 @media(max-width:760px) {
   .hero-copy { grid-row:1; }
-  .road-ahead-panel { grid-row:2; }
-  .product-proof { grid-row:3; }
-  .road-ahead-panel img { aspect-ratio:2 / 1; }
+  .product-proof { grid-row:2; }
   .proof-controls { display:flex; }
+}
+
+/* Final invitation sits over the artwork's quiet left side. */
+.final-cta { position:relative; isolation:isolate; overflow:hidden; display:flex; justify-content:flex-start; min-height:500px; padding:48px; background:var(--dv-bg-canvas); }
+.final-road-art { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:-2; }
+.final-cta::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgba(8,11,14,.8),rgba(8,11,14,.5) 40%,transparent 66%); }
+.final-copy { width:44%; max-width:470px; }
+.final-copy h2 { font-size:clamp(2rem,3.2vw,3rem); }
+.final-copy p { color:var(--dv-text-primary); }
+.final-copy .eyebrow { color:var(--dv-accent-primary); }
+.final-copy .button { margin-top:12px; }
+@media(max-width:760px) {
+  .final-cta { min-height:540px; padding:28px 22px; justify-content:flex-start; }
+  .final-copy { width:100%; max-width:340px; }
+  .final-copy h2 { font-size:2rem; }
+  .final-road-art { object-position:70% center; }
+  .final-cta::before { background:linear-gradient(180deg,rgba(8,11,14,.94),rgba(8,11,14,.82) 53%,rgba(8,11,14,.1)); }
 }
