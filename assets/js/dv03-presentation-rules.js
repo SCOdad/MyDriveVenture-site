@@ -6,6 +6,7 @@
     Q000017:{scene:'snack-run',label:'Snack Run',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L06-SNACK-RUN.png?v=56aafef-snack-run'},
     Q000035:{scene:'park',label:'Park',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L01-PARK.png'},
     Q000036:{scene:'school',label:'School',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L02-SCHOOL.png'},
+    Q000037:{scene:'home',label:'Home',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L03-HOME.png'},
     Q000038:{scene:'grocery-store',label:'Grocery Store',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L04-GROCERY-STORE.png'},
     Q000039:{scene:'library',label:'Library',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L05-LIBRARY.png?v=721c2d7-library'},
     Q000043:{scene:'drive-thru',label:'Drive Thru',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L07-DRIVE-THRU.png?v=721c2d7-drive-thru'},
