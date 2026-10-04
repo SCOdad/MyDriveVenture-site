@@ -44,16 +44,24 @@
       </section>
     </form>
 
-    <section id="acquisition-v2-success" class="form-card success-card" hidden tabindex="-1">
-      <p class="eyebrow">Check your email</p>
-      <h2>Your Family Hub is ready to open.</h2>
-      <p>Parker sent a secure sign-in link to <strong id="acquisition-v2-email"></strong>.</p>
-      <p>Open that message and choose <strong>Open your Family Hub</strong>. After your email is verified, you will land in Drive Venture with no driver yet—and the Family Hub will guide you to add the first one.</p>
-      <p class="field-help">If the email takes a minute, check spam or promotions before submitting again.</p>
+    <section id="acquisition-v2-success" class="form-card success-card" hidden tabindex="-1" aria-labelledby="acquisition-v2-success-heading">
+      <p class="eyebrow">Registration complete</p>
+      <h2 id="acquisition-v2-success-heading">You’re registered with Drive Venture.</h2>
+      <p class="success-lede"><strong id="acquisition-v2-name"></strong>, you’re now the registered grown-up for your Drive Venture family.</p>
+      <div class="registration-email">
+        <span>Secure link sent to</span>
+        <strong id="acquisition-v2-email"></strong>
+      </div>
+      <ol class="success-steps" aria-label="What to do next">
+        <li><span class="success-step-number" aria-hidden="true">1</span><div><strong>Check your email.</strong><p>Look for a message from Parker at Drive Venture.</p></div></li>
+        <li><span class="success-step-number" aria-hidden="true">2</span><div><strong>Open your secure link.</strong><p>It verifies your email and signs you into your Family Hub.</p></div></li>
+        <li><span class="success-step-number" aria-hidden="true">3</span><div><strong>Add your first driver.</strong><p>Your Family Hub will guide you through the driver setup.</p></div></li>
+      </ol>
+      <p class="field-help"><strong>Your signup is complete.</strong> You do not need to fill out this form again. If the email takes a minute, check spam or promotions.</p>
     </section>
   </main>
   <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
   <script src="/assets/js/meta-pixel.js?v=20260920-bklg0197-cutover" async></script>
-  <script src="/assets/js/join-v2.js?v=20260920-bklg0197-cutover"></script>
+  <script src="/assets/js/join-v2.js?v=20261004-signup-confirmation"></script>
 </body>
 </html>
