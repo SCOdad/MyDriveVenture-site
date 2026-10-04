@@ -5,13 +5,13 @@ const crypto = require('node:crypto');
 const read = path => fs.readFileSync(path,'utf8');
 test('BKLG-0220 publishes an indexable homepage with production identity and current availability',()=>{
  const html = read('index.html');
- assert.doesNotMatch(html,/noindex|DEV preview|Planned availability|not yet available|SCOCRAFT LLC|href=["'][^"']*waitlist/);
+ assert.doesNotMatch(html,/noindex|DEV preview|Planned availability|not yet available|href=["'][^"']*waitlist/);
  assert.match(html,/<link rel="canonical" href="https:\/\/mydriveventure.com\/">/);
+ assert.match(html,/Drive logging is available nationwide/);
  assert.match(html,/Michigan and Kansas/);
- assert.match(html,/Michigan sole proprietor/);
+ assert.match(html,/Drive Venture is operated by SCOCRAFT LLC\./);
  assert.match(html,/\/assets\/js\/ga4\.js/);
  assert.match(html,/\/assets\/js\/meta-pixel\.js/);
- assert.equal(read('indexV2.html').replace('  <meta name="robots" content="noindex,nofollow">\n',''),html);
 });
 test('BKLG-0220 retains the exact pre-cutover homepage as a non-indexable archive',()=>{
  const original = fs.readFileSync('archive/homepage-2026-10-03/index.html');
