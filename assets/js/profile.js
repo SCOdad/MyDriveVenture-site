@@ -17,7 +17,7 @@
   const emailEl=document.getElementById('profile-email'),mobileEl=document.getElementById('profile-mobile')
   const emailStatus=document.getElementById('profile-email-status'),mobileStatus=document.getElementById('profile-mobile-status')
   const changeEmail=document.getElementById('change-email'),changeMobile=document.getElementById('change-mobile')
-  const smsStateEl=document.getElementById('profile-sms-state'),smsDetail=document.getElementById('profile-sms-detail'),smsAction=document.getElementById('profile-sms-action')
+  const smsStateEl=document.getElementById('profile-sms-state'),smsDetail=document.getElementById('profile-sms-detail'),smsAction=document.getElementById('profile-sms-action'),smsMobile=document.getElementById('text-parker-mobile')
   const scopeNote=document.getElementById('profile-scope-note')
   const avatarCard=document.getElementById('avatar-card'),avatarSummary=document.getElementById('avatar-summary'),avatarPending=document.getElementById('avatar-pending'),avatarPhoto=document.getElementById('avatar-photo'),avatarParker=document.getElementById('avatar-parker'),avatarParkerHelp=document.getElementById('avatar-parker-help'),avatarParkerRow=document.getElementById('avatar-parker-row'),avatarParkerReopt=document.getElementById('avatar-parker-reopt')
   const licenseCard=document.getElementById('license-card'),licenseEffective=document.getElementById('license-effective-date'),licenseTarget=document.getElementById('license-target'),licenseAdvance=document.getElementById('license-advance'),licenseRequirements=document.getElementById('license-requirements')
@@ -173,20 +173,22 @@
     if(!smsStateEl||!smsAction)return
     const state=String(smsState?.state||'')
     const labels={
-      NO_MOBILE:['No mobile','Add and verify a mobile number before enrolling in Text Parker.'],
-      VERIFICATION_PENDING:['Verification pending',smsState?.pending_mobile?`Verify ${smsState.pending_mobile} before enrolling in Text Parker.`:'Verify the pending mobile number before enrolling in Text Parker.'],
-      MOBILE_UNVERIFIED:['Not enrolled','Verify this mobile number before enrolling in Text Parker.'],
-      VERIFIED_NOT_ENROLLED:['Off','This verified number is not enrolled in Text Parker.'],
-      OPTED_IN:['On','Drive Venture / Text Parker messaging is enabled for this number.'],
-      OPTED_OUT:['Off','Text Parker messaging is off for this number.']
+      NO_MOBILE:['Unavailable','Add and verify a mobile number to use Text Parker.'],
+      VERIFICATION_PENDING:['Unavailable',smsState?.pending_mobile?`Verify ${smsState.pending_mobile} to use Text Parker.`:'Verify the pending mobile number to use Text Parker.'],
+      MOBILE_UNVERIFIED:['Unavailable','Verify this mobile number to use Text Parker.'],
+      VERIFIED_NOT_ENROLLED:['Off','This verified mobile number is not enrolled in Text Parker.'],
+      OPTED_IN:['On','Drive Venture / Text Parker messaging is enabled for this mobile number.'],
+      OPTED_OUT:['Off','Text Parker messaging is off for this mobile number.']
     }
     const label=labels[state]||['Unavailable','Text Parker status could not be determined.']
     smsStateEl.textContent=label[0]
     if(smsDetail)smsDetail.textContent=label[1]
     const actionable=state==='VERIFIED_NOT_ENROLLED'||state==='OPTED_OUT'||state==='OPTED_IN'
-    smsAction.hidden=!actionable
+    smsAction.hidden=false
     smsAction.disabled=!actionable
-    if(actionable)smsAction.textContent=state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker'
+    smsAction.setAttribute('aria-disabled',String(!actionable))
+    smsAction.textContent=actionable?(state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker'):'Unavailable'
+    if(smsMobile)smsMobile.classList.toggle('is-disabled',!actionable)
   }
   async function refreshSms(){
     const s=selected()
@@ -204,7 +206,8 @@
       smsState=null
       if(smsStateEl)smsStateEl.textContent='Unavailable'
       if(smsDetail)smsDetail.textContent=err.message||String(err)
-      if(smsAction)smsAction.hidden=true
+      if(smsAction){smsAction.hidden=false;smsAction.disabled=true;smsAction.setAttribute('aria-disabled','true');smsAction.textContent='Unavailable'}
+      if(smsMobile)smsMobile.classList.add('is-disabled')
     }
   }
   function renderSubject(){
