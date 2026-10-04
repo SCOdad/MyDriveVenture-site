@@ -52,11 +52,16 @@ test('Text Parker status and explicit consent actions are part of Contact Inform
   assert.match(js,/Reply HELP for help or STOP to opt out/);
 });
 
-test('driver account mode keeps the unified surface self-focused',()=>{
+test('driver account mode keeps the unified surface self-focused and skips Family data',()=>{
   const js=read('assets/js/profile.js');
+  const family=read('assets/js/family.js');
   const css=read('assets/css/family.css');
   assert.match(js,/driverOnly=Boolean/);
   assert.match(js,/family-driver-profile-mode/);
+  assert.match(family,/viewerProfileMode/);
+  assert.match(family,/if\(mode\.driverOnly&&!hasInvite\)/);
+  const initSource=family.slice(family.indexOf('async function init'),family.indexOf('bindPanelOpeners'));
+  assert.ok(initSource.indexOf('viewerProfileMode')<initSource.indexOf('await refresh()'),'driver role must be checked before Family overview');
   assert.match(css,/body\.family-driver-profile-mode \.family-hub-stack/);
   assert.match(css,/#grownup-panel/);
   assert.match(css,/#driver-panel/);
