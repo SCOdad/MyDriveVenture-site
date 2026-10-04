@@ -25,7 +25,7 @@ test('requirements map distinguishes supported rulesets from nationwide product 
   assert.match(svg, /id="KS" class="state supported"/);
 });
 
-test('legitimate Michigan legal identity remains', () => {
+test('current legal operator identity remains', () => {
   const html = read('index.html');
-  assert.match(html, /Michigan sole proprietor/);
+  assert.match(html, /Drive Venture is operated by SCOCRAFT LLC\./);
 });
