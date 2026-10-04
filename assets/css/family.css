@@ -7,7 +7,7 @@
 .family-grownup-self{position:relative;cursor:pointer;border-color:rgba(244,184,32,.65);box-shadow:0 0 0 1px rgba(244,184,32,.14) inset}
 .family-grownup-self::before{content:"YOU";position:absolute;top:12px;right:14px;font:700 10px/1 Orbitron,sans-serif;letter-spacing:.12em;color:#111;background:#f4b820;padding:5px 7px;border-radius:999px}
 .family-grownup-self:focus-visible,.family-driver-card:focus-visible{outline:3px solid #f4b820;outline-offset:3px}
-.family-grownup-self.is-profile-selected,.family-driver-card.is-profile-selected{box-shadow:0 0 0 2px #f4b820,0 14px 34px rgba(0,0,0,.28)}
+.family-grownup-card[data-profile-person-id].is-profile-selected,.family-driver-card.is-profile-selected{box-shadow:0 0 0 2px #f4b820,0 14px 34px rgba(0,0,0,.28)}
 .family-card-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
 .family-console-open{border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.26);color:#fff;border-radius:999px;padding:7px 10px;font:600 11px/1 Inter,sans-serif;cursor:pointer}
 .family-console-open:hover,.family-console-open:focus-visible{border-color:#f4b820;color:#f4b820}
