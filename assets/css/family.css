@@ -21,3 +21,29 @@ body.family-driver-profile-mode .family-hero h1{font-size:0}
 body.family-driver-profile-mode .family-hero h1::after{content:"Your Drive Venture profile";font-size:clamp(2rem,6vw,3.2rem)}
 body.family-driver-profile-mode .family-hero .lede{display:none}
 @media(max-width:640px){.family-card-actions{align-items:flex-start}.family-console-open{width:100%;padding:10px}}
+
+
+/* BKLG-0240 approved people-grid amendment */
+.family-people-section{margin-bottom:18px;overflow:visible}
+.family-people-head{align-items:flex-end}
+.family-people-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.family-grownup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,320px));gap:16px;margin-top:18px;margin-bottom:18px}
+.family-grownup-landscape{min-height:168px;width:100%;align-items:stretch;padding:18px;position:relative;overflow:hidden}
+.family-grownup-main{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.family-grownup-landscape .family-card-open{margin-top:auto;padding-top:14px}
+.family-driver-grid{margin-top:0}
+.family-pending-list{margin-top:18px}
+.mobile-contact-block{margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.018)}
+.mobile-contact-row{border:0!important;margin:0;padding:16px}
+.text-parker-mobile{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.022)}
+.text-parker-mobile.is-disabled{opacity:.52}
+.text-parker-mobile.is-disabled .button{filter:grayscale(1);cursor:not-allowed}
+@media(max-width:720px){
+  .family-people-head{align-items:flex-start;flex-direction:column}
+  .family-people-actions{width:100%}
+  .family-people-actions .button{flex:1 1 0}
+  .family-grownup-grid{grid-template-columns:1fr}
+  .family-grownup-landscape{min-height:0}
+  .text-parker-mobile{align-items:flex-start;flex-direction:column}
+  .text-parker-mobile .button{width:100%}
+}
