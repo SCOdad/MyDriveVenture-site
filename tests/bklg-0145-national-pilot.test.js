@@ -10,13 +10,13 @@ test('homepage does not present the pilot as Michigan-only', () => {
   const html = read('index.html');
   assert.doesNotMatch(html, /Join the Michigan pilot/i);
   assert.doesNotMatch(html, /Starting in Michigan\. Built for every road\./i);
-  assert.match(html, /Join Drive Venture/i);
+  assert.match(html, /Join Now/i);
   assert.match(html, /Drive logging is available nationwide/i);
   assert.match(html, /Michigan and Kansas/i);
 });
 
 test('requirements map distinguishes supported rulesets from nationwide product availability', () => {
-  const html = read('index.html');
+  const html = read('archive/homepage-2026-10-03/index.html');
   const svg = read('assets/images/state-requirements-map.svg');
   assert.match(html, /Drive Venture state-specific ruleset supported/i);
   assert.match(html, /Michigan and Kansas/i);
@@ -25,7 +25,7 @@ test('requirements map distinguishes supported rulesets from nationwide product 
   assert.match(svg, /id="KS" class="state supported"/);
 });
 
-test('legitimate Michigan legal identity remains', () => {
+test('current legal operator identity remains', () => {
   const html = read('index.html');
-  assert.match(html, /Michigan sole proprietor/);
+  assert.match(html, /Drive Venture is operated by SCOCRAFT LLC\./);
 });

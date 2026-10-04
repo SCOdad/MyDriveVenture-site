@@ -20,6 +20,18 @@ const readyAssets=[
   ['Q000090','movie-theater','Movie Theater','DV03-BACKGROUND-BASE-L13-MOVIE-THEATER.png']
 ];
 
+const newDestinationAssets=[
+  ['Q000091','wrestling-training-center','Wrestling Training Center','DV03-BACKGROUND-BASE-L14-WRESTLING-TRAINING-CENTER.png'],
+  ['Q000092','karate-dojo','Karate Dojo','DV03-BACKGROUND-BASE-L15-KARATE-DOJO.png'],
+  ['Q000093','pizzeria','Pizzeria','DV03-BACKGROUND-BASE-L16-PIZZERIA.png'],
+  ['Q000094','sushi-restaurant','Sushi Restaurant','DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'],
+  ['Q000095','ice-cream-shop','Ice Cream Shop','DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'],
+  ['Q000096','taco-shop','Taco Shop','DV03-BACKGROUND-BASE-L19-TACO-SHOP.png'],
+  ['Q000097','airport','Airport','DV03-BACKGROUND-BASE-L20-AIRPORT.png']
+];
+
+const renderAssets=[...readyAssets,...newDestinationAssets];
+
 test('BKLG-0187 moves the DV03 milestone card out of the windshield artwork',()=>{
   const html=read('log/index.html');
   const css=read('assets/css/log-game-dv03.css');
@@ -36,7 +48,7 @@ test('BKLG-0187 moves the DV03 milestone card out of the windshield artwork',()=
 
 test('BKLG-0183 ready assets render independently from the authoritative sky phase',()=>{
   const rules=loadPresentationRules();
-  for(const [questKey,scene,label,file] of readyAssets){
+  for(const [questKey,scene,label,file] of renderAssets){
     const scenery=rules.SCENERY_BY_QUEST[questKey];
     assert.equal(scenery.scene,scene,questKey);
     assert.equal(scenery.label,label,questKey);
@@ -86,7 +98,7 @@ test('BKLG-0187 cache keys load the updated DV03 presentation files',()=>{
   const dv03=read('assets/js/log-game-dv03.js');
   assert.match(html,/log-game-dv03\.css\?v=20260918-0187-layout2/);
   assert.match(html,/log-game-polish\.js\?v=20260918-0187-phase2/);
-  assert.match(html,/log-game-dv03\.js\?v=20261002-home-l03/);
+  assert.match(html,/log-game-dv03\.js\?v=20261003-destinations1/);
   assert.match(dv03,/dv03-presentation-rules\.js\?v=20261003-bklg0234/);
   assert.match(dv03,/skyMode/);
   assert.match(dv03,/return 'day'/);

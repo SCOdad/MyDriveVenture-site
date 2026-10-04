@@ -33,7 +33,7 @@ test('canonical join records view and submits to the acquisition endpoint',()=>{
   assert.match(js,/crypto\.randomUUID/);
   assert.match(js,/form\.dataset\.acquisitionSource\|\|'JOIN_V2'/);
   assert.match(js,/action:'view',flow_id:flowId,source/);
-  assert.match(js,/action:'submit',flow_id:flowId,source,name,email,website/);
+  assert.match(js,/action:'submit',flow_id:flowId,source,\.\.\.attribution,name,email,website/);
 });
 
 test('paid recruitment route reuses the canonical acquisition client with explicit source attribution',()=>{

@@ -84,7 +84,6 @@
   };
 
   const backgroundAssets = BACKGROUND_THEMES.flatMap(theme => DESTINATIONS
-    .filter(destination => !(theme.id === 'normal' && destination.slot === 'L19'))
     .map(destination => backgroundAsset(theme,destination)));
 
   const assets = [

@@ -29,7 +29,7 @@
       .then(rules=>Promise.all([
         loadScript('/assets/js/dv03-theme-calendar.js?v=20260928-bklg0238','DV_THEME_CALENDAR','dv03ThemeCalendar'),
         loadScript('/assets/js/dv03-lunar-phase.js?v=20261003-bklg0234','DV03_LUNAR_PHASE','dv03LunarPhase'),
-        loadScript('/assets/js/dv03-visual-asset-registry.js?v=20261002-home-l03','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
+        loadScript('/assets/js/dv03-visual-asset-registry.js?v=20261003-destinations2','DV03_VISUAL_ASSET_REGISTRY','dv03VisualAssetRegistry')
       ]).then(()=>rules));
   }
 
