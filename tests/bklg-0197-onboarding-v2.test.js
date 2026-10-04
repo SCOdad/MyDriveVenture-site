@@ -66,3 +66,20 @@ test('Family Hub records acquisition arrival with durable storage fallback',()=>
   assert.match(bootstrap,/bklg0197-cutover1/);
   assert.match(html,/bklg0197-cutover1/);
 });
+
+test('canonical signup success clearly confirms grown-up registration and next steps',()=>{
+  const html=read('join/index.html');
+  const js=read('assets/js/join-v2.js');
+  assert.match(html,/Registration complete/);
+  assert.match(html,/You’re registered with Drive Venture/);
+  assert.match(html,/registered grown-up for your Drive Venture family/);
+  assert.match(html,/Check your email/);
+  assert.match(html,/Open your secure link/);
+  assert.match(html,/Add your first driver/);
+  assert.match(html,/You do not need to fill out this form again/);
+  assert.match(html,/id="acquisition-v2-name"/);
+  assert.match(html,/id="acquisition-v2-email"/);
+  assert.match(js,/nameTarget\.textContent=name/);
+  assert.match(js,/emailTarget\.textContent=email/);
+});
+
