@@ -75,3 +75,9 @@ test('operator account navigation and operator tools remain available',()=>{
     assert.ok(header.includes(label),label+' must remain in operator menu');
   }
 });
+
+test('profile editor remains usable when contact-change status is unavailable',()=>{
+  const js=read('assets/js/profile.js');
+  assert.match(js,/Contact-change status unavailable; continuing with profile editing/);
+  assert.match(js,/try\{const pending=await contactCall\(\{action:'pending_changes'\}\)/);
+});
