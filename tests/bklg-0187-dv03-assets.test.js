@@ -26,6 +26,7 @@ const newDestinationAssets=[
   ['Q000093','pizzeria','Pizzeria','DV03-BACKGROUND-BASE-L16-PIZZERIA.png'],
   ['Q000094','sushi-restaurant','Sushi Restaurant','DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'],
   ['Q000095','ice-cream-shop','Ice Cream Shop','DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'],
+  ['Q000096','taco-shop','Taco Shop','DV03-BACKGROUND-BASE-L19-TACO-SHOP.png'],
   ['Q000097','airport','Airport','DV03-BACKGROUND-BASE-L20-AIRPORT.png']
 ];
 
