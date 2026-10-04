@@ -13,6 +13,7 @@
 .family-console-open:hover,.family-console-open:focus-visible{border-color:#f4b820;color:#f4b820}
 .text-parker-enrollment{border-top:1px solid rgba(255,255,255,.12);padding-top:16px}
 body.family-driver-profile-mode .family-hub-stack,
+body.family-driver-profile-mode .family-people-section,
 body.family-driver-profile-mode #grownup-panel,
 body.family-driver-profile-mode #driver-panel{display:none!important}
 body.family-driver-profile-mode .family-hero .eyebrow{font-size:0}
@@ -27,11 +28,11 @@ body.family-driver-profile-mode .family-hero .lede{display:none}
 .family-people-section{margin-bottom:18px;overflow:visible}
 .family-people-head{align-items:flex-end}
 .family-people-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.family-grownup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,320px));gap:16px;margin-top:18px;margin-bottom:18px}
-.family-grownup-landscape{min-height:168px;width:100%;align-items:stretch;padding:18px;position:relative;overflow:hidden}
+.family-people-section{--family-person-card-axis:340px}.family-grownup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--family-person-card-axis)),var(--family-person-card-axis)));gap:16px;margin-top:18px;margin-bottom:18px}
+.family-grownup-landscape{min-height:168px;width:min(100%,var(--family-person-card-axis));align-items:stretch;padding:18px;position:relative;overflow:hidden}
 .family-grownup-main{display:flex;flex-direction:column;justify-content:center;min-width:0}
 .family-grownup-landscape .family-card-open{margin-top:auto;padding-top:14px}
-.family-driver-grid{margin-top:0}
+.family-driver-grid{margin-top:0}.family-driver-card{min-height:var(--family-person-card-axis)}
 .family-pending-list{margin-top:18px}
 .mobile-contact-block{margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.018)}
 .mobile-contact-row{border:0!important;margin:0;padding:16px}
