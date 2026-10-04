@@ -22,6 +22,7 @@
     Q000093:{scene:'pizzeria',label:'Pizzeria',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L16-PIZZERIA.png'},
     Q000094:{scene:'sushi-restaurant',label:'Sushi Restaurant',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'},
     Q000095:{scene:'ice-cream-shop',label:'Ice Cream Shop',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'},
+    Q000096:{scene:'taco-shop',label:'Taco Shop',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L19-TACO-SHOP.png'},
     Q000097:{scene:'airport',label:'Airport',src:'/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L20-AIRPORT.png'}
   });
 
