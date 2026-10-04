@@ -63,6 +63,7 @@ test('driver account mode keeps the unified surface self-focused and skips Famil
   const initStart=family.indexOf('async function init');const initSource=family.slice(initStart,family.indexOf('bindPanelOpeners',initStart));
   assert.ok(initSource.indexOf('viewerProfileMode')<initSource.indexOf('await refresh()'),'driver role must be checked before Family overview');
   assert.match(css,/body\.family-driver-profile-mode \.family-hub-stack/);
+  assert.match(css,/body\.family-driver-profile-mode \.family-people-section/);
   assert.match(css,/#grownup-panel/);
   assert.match(css,/#driver-panel/);
 });
@@ -88,7 +89,9 @@ test('approved people-grid amendment uses landscape grown-ups and portrait drive
   assert.match(html,/family-grownup-grid/);
   assert.match(html,/family-driver-grid/);
   assert.match(css,/family-grownup-landscape/);
-  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(250px,320px\)\)/);
+  assert.match(css,/--family-person-card-axis:340px/);
+  assert.match(css,/family-grownup-landscape\{min-height:168px;width:min\(100%,var\(--family-person-card-axis\)\)/);
+  assert.match(css,/family-driver-card\{min-height:var\(--family-person-card-axis\)/);
 });
 test('Add Grown-up and Add Driver share one action area',()=>{
   const html=read('family/index.html');
