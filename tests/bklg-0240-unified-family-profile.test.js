@@ -60,7 +60,7 @@ test('driver account mode keeps the unified surface self-focused and skips Famil
   assert.match(js,/family-driver-profile-mode/);
   assert.match(family,/viewerProfileMode/);
   assert.match(family,/if\(mode\.driverOnly&&!hasInvite\)/);
-  const initSource=family.slice(family.indexOf('async function init'),family.indexOf('bindPanelOpeners'));
+  const initStart=family.indexOf('async function init');const initSource=family.slice(initStart,family.indexOf('bindPanelOpeners',initStart));
   assert.ok(initSource.indexOf('viewerProfileMode')<initSource.indexOf('await refresh()'),'driver role must be checked before Family overview');
   assert.match(css,/body\.family-driver-profile-mode \.family-hub-stack/);
   assert.match(css,/#grownup-panel/);
