@@ -81,3 +81,27 @@ test('profile editor remains usable when contact-change status is unavailable',(
   assert.match(js,/Contact-change status unavailable; continuing with profile editing/);
   assert.match(js,/try\{const pending=await contactCall\(\{action:'pending_changes'\}\)/);
 });
+
+test('approved people-grid amendment uses landscape grown-ups and portrait drivers in one people section',()=>{
+  const html=read('family/index.html'),css=read('assets/css/family.css');
+  assert.match(html,/family-people-section/);
+  assert.match(html,/family-grownup-grid/);
+  assert.match(html,/family-driver-grid/);
+  assert.match(css,/family-grownup-landscape/);
+  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(250px,320px\)\)/);
+});
+test('Add Grown-up and Add Driver share one action area',()=>{
+  const html=read('family/index.html');
+  const section=html.slice(html.indexOf('family-people-actions'),html.indexOf('family-grownups'));
+  assert.match(section,/data-open-panel="grownup"/);
+  assert.match(section,/data-open-panel="driver"/);
+});
+test('Text Parker is nested within Mobile and disabled when mobile is unavailable',()=>{
+  const html=read('family/index.html'),js=read('assets/js/profile.js'),css=read('assets/css/family.css');
+  assert.match(html,/id="mobile-contact-block"/);
+  assert.match(html,/id="text-parker-mobile"/);
+  assert.match(js,/Add and verify a mobile number to use Text Parker/);
+  assert.match(js,/smsAction\.disabled=!actionable/);
+  assert.match(js,/smsMobile\.classList\.toggle\('is-disabled',!actionable\)/);
+  assert.match(css,/\.text-parker-mobile\.is-disabled/);
+});
