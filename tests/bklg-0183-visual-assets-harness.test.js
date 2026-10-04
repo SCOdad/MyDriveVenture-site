@@ -169,7 +169,7 @@ test('visual assets reuses Dictionary-style live quest search as a non-persisten
 
 test('BKLG-0183 harness cache-busts the Halloween registry update',()=>{
   const html=read('operator/visual-assets/index.html');
-  assert.match(html,/dv03-visual-asset-registry\.js\?v=20261002-home-l03/);
+  assert.match(html,/dv03-visual-asset-registry\.js\?v=20261003-destinations2/);
 });
 
 test('theme calendar partitions BASE around a fixed annual theme',()=>{
