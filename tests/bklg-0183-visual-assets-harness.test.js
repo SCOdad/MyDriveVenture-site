@@ -81,13 +81,12 @@ test('DV03 registry covers deployed BASE Autumn Halloween backgrounds including 
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const backgrounds=registry.assets.filter(x=>x.layer==='background');
   const themes=['normal','autumn','halloween'];
-  const expectedSlots=['L01','L02','L03','L04','L05','L06','L07','L08','L09','L10','L11','L12','L13','L14','L15','L16','L17','L18','L20'];
+  const expectedSlots=['L01','L02','L03','L04','L05','L06','L07','L08','L09','L10','L11','L12','L13','L14','L15','L16','L17','L18','L19','L20'];
   for(const theme of themes)for(const slot of expectedSlots){
     assert.ok(backgrounds.some(x=>x.theme===theme&&x.slot===slot),`${theme} ${slot} should be registered`);
   }
   assert.ok(backgrounds.some(x=>x.theme==='halloween'&&x.slot==='L19'),'Halloween L19 Taco Shop is deployed and registered');
   assert.ok(backgrounds.some(x=>x.theme==='autumn'&&x.slot==='L19'),'Autumn L19 Taco Shop is deployed and registered');
-  assert.equal(backgrounds.some(x=>x.theme==='normal'&&x.slot==='L19'),false,'BASE L19 file is not deployed');
   const missing=backgrounds.filter(asset=>asset.kind==='image'&&asset.src).filter(asset=>!fs.existsSync(asset.src.replace(/^\//,''))).map(asset=>asset.src);
   assert.equal(missing.length,0,`Missing registered background paths: ${missing.join(', ')}`);
 });
@@ -126,7 +125,7 @@ test('theme inventory distinguishes deployed background counts from total assets
   const context={window:{}};vm.runInNewContext(source,context);
   const registry=context.window.DV03_VISUAL_ASSET_REGISTRY;
   const count=theme=>({backgrounds:registry.assets.filter(x=>x.theme===theme&&x.layer==='background').length,total:registry.assets.filter(x=>x.theme===theme).length});
-  assert.deepEqual(count('normal'),{backgrounds:19,total:28});
+  assert.deepEqual(count('normal'),{backgrounds:20,total:29});
   assert.deepEqual(count('autumn'),{backgrounds:20,total:20});
   assert.deepEqual(count('halloween'),{backgrounds:20,total:21});
   assert.match(read('assets/js/operator-visual-assets.js'),/backgrounds\.length} backgrounds · \$\{themed\.length} total assets/);
