@@ -7,6 +7,7 @@ const path=require('node:path')
 const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8')
 const registrySource=read('../assets/js/dv03-visual-asset-registry.js')
 const calendarSource=read('../assets/js/dv03-theme-calendar.js')
+const lunarSource=read('../assets/js/dv03-lunar-phase.js')
 const presentationSource=read('../assets/js/dv03-presentation-rules.js')
 const runtimeSource=read('../assets/js/log-game-dv03.js')
 const operatorSource=read('../assets/js/operator-visual-assets.js')
@@ -22,6 +23,7 @@ function harness(){
   context.window.window=context.window;
   vm.runInNewContext(registrySource,context);
   vm.runInNewContext(calendarSource,context);
+  vm.runInNewContext(lunarSource,context);
   vm.runInNewContext(presentationSource,context);
   return context.window.DV03_PRESENTATION_RULES;
 }
@@ -77,11 +79,12 @@ test('BKLG-0238 selects only registered holiday night skies and preserves the BA
   const rules=harness();
   assert.match(rules.nightSkyForTheme('halloween'),/DV03-SKY-HALLOWEEN-NIGHT-WITCH\.png/);
   assert.match(rules.nightSkyForTheme('christmas'),/DV03-SKY-CHRISTMAS-NIGHT-SANTA\.png/);
-  assert.match(rules.nightSkyForTheme('autumn'),/DV03-SKY-BASE-NIGHT-MOON-FULL\.png/);
+  assert.match(rules.nightSkyForTheme('autumn',new Date('2026-10-26T04:12:00Z')),/DV03-SKY-BASE-NIGHT-MOON-FULL\.png/);
 })
 
 test('BKLG-0238 runtime loads shared calendar and canonical asset registry before resolving scenery',()=>{
   assert.match(runtimeSource,/dv03-theme-calendar\.js\?v=20260928-bklg0238/);
+  assert.match(runtimeSource,/dv03-lunar-phase\.js\?v=20261003-bklg0234/);
   assert.match(runtimeSource,/dv03-visual-asset-registry\.js\?v=20261003-destinations2/);
   assert.match(runtimeSource,/loadThemeCalendar\(window\.DV_LOG_APP\?\.client\)/);
   assert.match(presentationSource,/functions\.invoke\('dv03-theme-calendar'/);

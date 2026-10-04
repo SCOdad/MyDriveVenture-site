@@ -66,11 +66,20 @@
     const variant=assets.find(asset=>asset.layer==='background'&&asset.theme===theme&&asset.kind==='image'&&asset.src&&(asset.questKeys||[]).includes(questKey));
     return variant?Object.freeze({...scenery,src:variant.src,theme}):scenery;
   }
-  function nightSkyForTheme(theme){
+  const LUNAR_SKY_ASSET_IDS=Object.freeze({
+    NEW:'DV-UX-DV03-SKY-NIGHT-NEW',
+    CRESCENT:'DV-UX-DV03-SKY-NIGHT-CRESCENT',
+    QUARTER:'DV-UX-DV03-SKY-NIGHT-QUARTER',
+    FULL:'DV-UX-DV03-SKY-NIGHT'
+  });
+  function nightSkyForTheme(theme,now=new Date()){
     const assets=window.DV03_VISUAL_ASSET_REGISTRY?.assets||[];
-    const themed=assets.find(asset=>asset.layer==='sky'&&asset.theme===theme&&asset.kind==='image'&&asset.src);
-    const base=assets.find(asset=>asset.layer==='sky'&&asset.theme==='normal'&&asset.kind==='image'&&asset.src);
-    return themed?.src||base?.src||null;
+    const themed=theme&&theme!=='normal'?assets.find(asset=>asset.layer==='sky'&&asset.theme===theme&&asset.kind==='image'&&asset.src):null;
+    if(themed?.src)return themed.src;
+    const bucket=window.DV03_LUNAR_PHASE?.phaseFor?.(now)?.bucket||'FULL';
+    const lunar=assets.find(asset=>asset.assetId===LUNAR_SKY_ASSET_IDS[bucket]&&asset.kind==='image'&&asset.src);
+    const base=assets.find(asset=>asset.assetId==='DV-UX-DV03-SKY-NIGHT'&&asset.kind==='image'&&asset.src);
+    return lunar?.src||base?.src||null;
   }
 
     const numberOr=(value,fallback)=>Number.isFinite(Number(value))?Number(value):fallback;
@@ -139,7 +148,7 @@
     });
   }
 
-  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,localDateKey,setThemeCalendar,loadThemeCalendar,resolveTheme,themeVariant,nightSkyForTheme,resolvePresentation});
+  const api=Object.freeze({DAY_START_HOUR,NIGHT_START_HOUR,DEFAULT_SCENERY,SCENERY_BY_QUEST,LUNAR_SKY_ASSET_IDS,displayOrderOf,xpOf,questKeyOf,sceneryFor,comparePriority,rankAwards,selectFeaturedAward,selectPersistentSceneryAward,localHour,skyFor,sceneryAvailableForSky,firstAvailableScenery,localDateKey,setThemeCalendar,loadThemeCalendar,resolveTheme,themeVariant,nightSkyForTheme,resolvePresentation});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.DV03_PRESENTATION_RULES=api;
 })();
