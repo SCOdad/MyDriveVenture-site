@@ -34,6 +34,7 @@ test('DV03 newer destination quests resolve to their governed BASE scenery',()=>
     ['Q000093','pizzeria','Pizzeria','DV03-BACKGROUND-BASE-L16-PIZZERIA.png'],
     ['Q000094','sushi-restaurant','Sushi Restaurant','DV03-BACKGROUND-BASE-L17-SUSHI-RESTAURANT.png'],
     ['Q000095','ice-cream-shop','Ice Cream Shop','DV03-BACKGROUND-BASE-L18-ICE-CREAM-SHOP.png'],
+    ['Q000096','taco-shop','Taco Shop','DV03-BACKGROUND-BASE-L19-TACO-SHOP.png'],
     ['Q000097','airport','Airport','DV03-BACKGROUND-BASE-L20-AIRPORT.png']
   ];
   for(const [questKey,scene,label,file] of expected){
@@ -53,8 +54,11 @@ test('DV03 Pizza quest Q000093 presents Pizzeria scenery for the production fail
   assert.equal(result.showBillboard,false);
 });
 
-test('DV03 Taco Q000096 remains unmapped until a governed BASE Taco asset exists',()=>{
-  assert.equal(rules.SCENERY_BY_QUEST.Q000096,undefined);
+test('DV03 Taco Q000096 resolves to the governed BASE Taco Shop scenery',()=>{
+  const taco=rules.sceneryFor(award('Q000096',96,100));
+  assert.equal(taco.scene,'taco-shop');
+  assert.equal(taco.label,'Taco Shop');
+  assert.match(taco.src,/DV03-BACKGROUND-BASE-L19-TACO-SHOP\.png$/);
 });
 
 test('DV03 resting scenery suppresses billboard while featured billboard temporarily wins',()=>{
