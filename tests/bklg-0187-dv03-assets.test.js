@@ -98,7 +98,7 @@ test('BKLG-0187 cache keys load the updated DV03 presentation files',()=>{
   const dv03=read('assets/js/log-game-dv03.js');
   assert.match(html,/log-game-dv03\.css\?v=20260918-0187-layout2/);
   assert.match(html,/log-game-polish\.js\?v=20260918-0187-phase2/);
-  assert.match(html,/log-game-dv03\.js\?v=20261003-destinations1/);
+  assert.match(html,/log-game-dv03\.js\?v=20261003-bklg0234-runtime1/);
   assert.match(dv03,/dv03-presentation-rules\.js\?v=20261003-bklg0234/);
   assert.match(dv03,/skyMode/);
   assert.match(dv03,/return 'day'/);
