@@ -18,6 +18,7 @@
 
   async function ensureSession(){if(session?.access_token)return session;session=(await client.auth.getSession()).data.session;if(!session)throw new Error('Please sign in again.');return session}
   async function api(slug,action,payload={}){const s=await ensureSession(),r=await fetch(`${cfg.supabaseUrl}/functions/v1/${slug}`,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${s.access_token}`,apikey:cfg.publishableKey},body:JSON.stringify({action,...payload})}),b=await r.json().catch(()=>({}));if(!r.ok||b.ok!==true)throw new Error(typeof b.error==='string'?b.error:'Update failed');return b}
+  async function avatarCall(form){const s=await ensureSession(),r=await fetch(`${cfg.supabaseUrl}/functions/v1/avatar-request-api`,{method:'POST',headers:{authorization:`Bearer ${s.access_token}`,apikey:cfg.publishableKey},body:form}),b=await r.json().catch(()=>({}));if(!r.ok||b.ok!==true)throw new Error(b.error||'Avatar request failed');return b}
 
   async function loadSubjects(){
     const out=await api('profile-api','overview');
@@ -60,7 +61,9 @@
     renderHourRow(card,target,'MinimumPracticeHours');renderHourRow(card,target,'MinimumNightHours');
     const other=(target.requirements||[]).filter(r=>!HOUR_TYPES.has(r.requirement_type)),met=other.filter(r=>r.met).length;
     if(summary)summary.textContent=`${met} / ${other.length} met`;
-    if(expanded)expanded.innerHTML=other.map(r=>`<div class="family-expanded-requirement"><span>${esc(labelFor(r.requirement_type))}</span><strong class="${r.met?'is-met':'is-unmet'}">${esc(requirementDetail(r,target.effective_date))}</strong></div>`).join('')||'<p class="meta">No additional requirements.</p>';
+    if(expanded)expanded.innerHTML=other.map(r=>{const confirmable=!r.met&&/needs confirmation/i.test(r.reason||'');return `<div class="family-expanded-requirement"><span>${esc(labelFor(r.requirement_type))}</span><div><strong class="${r.met?'is-met':'is-unmet'}">${esc(requirementDetail(r,target.effective_date))}</strong>${confirmable?`<button class="family-requirement-confirm" data-confirm-requirement="${esc(r.requirement_type)}" data-target-stage="${esc(target.target_stage)}" type="button">Confirm</button>`:''}</div></div>`}).join('')||'<p class="meta">No additional requirements.</p>';
+    const action=card.querySelector('[data-expanded-license-action]'),eligible=(license?.eligible_targets||[]).find(x=>x.target_stage===target.target_stage);
+    if(action)action.innerHTML=eligible?`<div class="family-license-advance-inline"><span class="meta">Eligible for ${esc(eligible.target_stage_display||eligible.target_stage)}</span><button class="button secondary" data-advance-stage="${esc(eligible.target_stage)}" type="button">Record stage</button></div>`:'';
   }
   function renderSms(card,sms){
     const state=String(sms?.state||''),value=card.querySelector('[data-card-value="sms_state"]'),detail=card.querySelector('[data-card-sms-detail]'),button=card.querySelector('[data-card-sms-action]');
@@ -101,7 +104,7 @@
 
   async function enrichCards(){
     try{await loadSubjects()}catch(err){console.warn('Card profile data unavailable',err);return}
-    document.querySelectorAll('.family-grownup-card[data-person-id]').forEach(card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile)});
+    await Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}}));
     await Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
   }
 
@@ -136,14 +139,17 @@
     const opening=panel.hidden;panel.hidden=!opening;button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'Collapse full profile':'Expand full profile';if(opening)expandedDrivers.add(String(driverId));else expandedDrivers.delete(String(driverId));
   }
   async function toggleSms(button){
-    const card=button.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),s=subjectByDriver.get(driverId),sms=s? smsByPerson.get(String(s.person_id)):null;if(!card||!s||!sms)return;
+    const card=button.closest('.family-driver-card,.family-grownup-card'),driverId=String(card?.dataset.driverId||''),personId=String(card?.dataset.personId||''),s=driverId?subjectByDriver.get(driverId):subjectByPerson.get(personId),sms=s?smsByPerson.get(String(s.person_id)):null;if(!card||!s||!sms)return;
     const turningOn=button.dataset.smsDesired==='OPT_IN';if(!confirm(turningOn?`Turn on Text Parker for ${sms.mobile||'this verified mobile'}? Message frequency varies; message and data rates may apply. Reply HELP for help or STOP to opt out.`:`Turn off Text Parker for ${sms.mobile||'this mobile'}?`))return;
     button.disabled=true;try{const out=await api('contact-endpoint-api','set_sms_consent',{person_id:s.person_id,event_type:turningOn?'OPT_IN':'OPT_OUT'});const next=out.sms||{};smsByPerson.set(String(s.person_id),next);renderSms(card,next)}catch(err){alert(err.message||String(err))}finally{button.disabled=false}
   }
 
-  document.addEventListener('click',e=>{
+  document.addEventListener('click',async e=>{
     const pencil=e.target.closest?.('[data-inline-edit]');if(pencil){e.preventDefault();e.stopPropagation();beginEdit(pencil);return}
-    const sms=e.target.closest?.('[data-card-sms-action]');if(sms){e.preventDefault();e.stopPropagation();void toggleSms(sms)}
+    const sms=e.target.closest?.('[data-card-sms-action]');if(sms){e.preventDefault();e.stopPropagation();void toggleSms(sms);return}
+    const upload=e.target.closest?.('[data-expanded-avatar-upload]');if(upload){e.preventDefault();e.stopPropagation();const card=upload.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),file=card?.querySelector('[data-expanded-avatar-file]')?.files?.[0],status=card?.querySelector('[data-expanded-avatar-status]');if(!driverId||!file){if(status)status.textContent='Choose a photo first.';return}if(file.size>4*1024*1024){if(status)status.textContent='Photo must be 4 MB or smaller.';return}upload.disabled=true;if(status)status.textContent='Uploading…';try{const form=new FormData();form.append('action','upload_photo');form.append('driver_id',driverId);form.append('photo',file);await avatarCall(form);if(status){status.textContent='Avatar request started.';status.classList.add('family-success')}}catch(err){if(status){status.textContent=err.message||String(err);status.classList.add('family-error')}}finally{upload.disabled=false}return}
+    const confirmButton=e.target.closest?.('[data-confirm-requirement]');if(confirmButton){e.preventDefault();e.stopPropagation();const card=confirmButton.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),stage=confirmButton.dataset.targetStage,requirement=confirmButton.dataset.confirmRequirement,license=licenseByDriver.get(driverId),date=license?.effective_date||new Date().toISOString().slice(0,10);if(!driverId||!stage||!requirement)return;if(!confirm(`Confirm ${labelFor(requirement)} as satisfied on ${date}?`))return;confirmButton.disabled=true;try{await api('profile-api','record_license_requirement',{driver_id:driverId,target_stage:stage,requirement_type:requirement,satisfied_on:date});await enrichDriver(card)}catch(err){alert(err.message||String(err));confirmButton.disabled=false}return}
+    const advance=e.target.closest?.('[data-advance-stage]');if(advance){e.preventDefault();e.stopPropagation();const card=advance.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),target=advance.dataset.advanceStage,license=licenseByDriver.get(driverId),date=prompt('Effective date for this licensing stage:',license?.effective_date||new Date().toISOString().slice(0,10));if(!date)return;if(!confirm(`Record ${target} effective ${date}? This creates an auditable licensing transition.`))return;advance.disabled=true;try{await api('profile-api','advance_license_stage',{driver_id:driverId,target_stage:target,effective_date:date});await window.DVFamily?.refresh?.()}catch(err){alert(err.message||String(err));advance.disabled=false}}
   });
   window.addEventListener('dv:driver-expand-toggle',e=>void toggleExpanded(e.detail?.driver_id));
   window.addEventListener('dv:family-rendered',()=>void enrichCards());
