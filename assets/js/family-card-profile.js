@@ -2,7 +2,7 @@
   const cfg=window.DV_APP_CONFIG||{};
   if(!cfg.supabaseUrl||!cfg.publishableKey||!window.supabase)return;
   const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map();
+  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map();const expandedDrivers=new Set();
 
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const prettyPhone=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11&&d.startsWith('1')?`(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`:v||'Not set'};
@@ -102,7 +102,7 @@
   async function enrichCards(){
     try{await loadSubjects()}catch(err){console.warn('Card profile data unavailable',err);return}
     document.querySelectorAll('.family-grownup-card[data-person-id]').forEach(card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile)});
-    await Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));
+    await Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
   }
 
   function fieldConfig(field,s,card){
@@ -133,7 +133,7 @@
   }
   async function toggleExpanded(driverId){
     const card=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(String(driverId))}"]`);if(!card)return;const panel=card.querySelector('[data-driver-expanded]'),button=card.querySelector('[data-expand-driver]');if(!panel||!button)return;
-    const opening=panel.hidden;panel.hidden=!opening;button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'Collapse full profile':'Expand full profile';
+    const opening=panel.hidden;panel.hidden=!opening;button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'Collapse full profile':'Expand full profile';if(opening)expandedDrivers.add(String(driverId));else expandedDrivers.delete(String(driverId));
   }
   async function toggleSms(button){
     const card=button.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),s=subjectByDriver.get(driverId),sms=s? smsByPerson.get(String(s.person_id)):null;if(!card||!s||!sms)return;
