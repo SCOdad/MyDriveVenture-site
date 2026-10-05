@@ -14,3 +14,10 @@
 .success-steps strong{display:block;margin:.05rem 0 .25rem;color:var(--warm-white)}
 .success-steps p{margin:0;color:#c7d0d6;font-size:.92rem;line-height:1.45}
 @media(max-width:679px){.success-card::before{right:1rem;top:1rem;width:2.35rem;height:2.35rem}.success-card h2{margin-right:3rem}.success-steps li{padding:.85rem}}
+
+[data-acquisition-pre-success][hidden]{display:none!important}
+.success-card{border-color:#2f7d4a;border-top-color:#57c879;box-shadow:.45rem .45rem 0 var(--true-black)}
+.success-card::before{border-color:#57c879;color:#57c879;background:rgba(87,200,121,.08)}
+.success-card .eyebrow{color:#7ee29b}
+.success-card .step-label{border-bottom-color:#57c879;color:#7ee29b}
+.success-step-number{background:#57c879;color:#0d1812}
