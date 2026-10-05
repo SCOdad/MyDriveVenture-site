@@ -90,3 +90,7 @@ body.family-driver-profile-mode .family-hero .lede{display:none}
   .family-license-card-body{grid-template-columns:92px 1fr}
   .family-card-progress{grid-template-columns:1fr auto}.family-card-progress-track{grid-column:1/-1}
 }
+
+.family-license-profile-card.has-driver-accent{background:linear-gradient(155deg,color-mix(in srgb,var(--family-accent-base) 20%,#10161a),rgba(255,255,255,.025) 55%,color-mix(in srgb,var(--family-accent-shadow) 18%,#0d1114))}
+.family-license-profile-card .family-driver-accent{height:10px}
+.family-license-target{padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.08)}
