@@ -131,7 +131,7 @@
       :'<option value="">Next stage is not yet eligible</option>'
     licenseAdvance.disabled=true
     const renderTarget=(t,{interactive=false,kicker='' }={})=>{
-      const reqs=t.requirements||[],unmet=t.unmet_requirements||[]
+      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met&&/needs confirmation/i.test(r.reason||'')):[],unmet=t.unmet_requirements||[]
       return `<div class="license-target-block">
         <div class="license-target-head">
           <div>${kicker?`<small class="license-target-kicker">${esc(kicker)}</small>`:''}<strong>${esc(t.target_stage_display||t.target_stage)}</strong></div>
@@ -163,11 +163,10 @@
       </div>`
     }
     const nextHtml=renderTarget(nextTarget,{interactive:true,kicker:'Next stage'})
-    const laterHtml=laterTargets.length
-      ?`<details class="license-later-stages"><summary>See later licensing stages (${laterTargets.length})</summary><p class="license-later-note">Planning view only. Later-stage requirements may depend on first receiving the next stage, so no confirmations or stage-change controls appear here.</p>${laterTargets.map(t=>renderTarget(t,{interactive:false})).join('')}</details>`
-      :''
-    licenseRequirements.innerHTML=nextHtml+laterHtml
+    const laterHtml=''
+    licenseRequirements.innerHTML=reqsSummary(nextTarget)+nextHtml+laterHtml
   }
+  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&/needs confirmation/i.test(r.reason||''));return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
   function renderSms(){
     if(!smsStateEl||!smsAction)return
