@@ -152,3 +152,25 @@ test('expanded driver profile includes favorite color and preserves expansion th
   assert.match(card,/expandedDrivers/);
   assert.match(card,/Collapse full profile/);
 });
+
+test('grown-up managed family view removes obsolete lower shared profile editor',()=>{
+  const css=read('assets/css/family.css'),family=read('assets/js/family.js'),card=read('assets/js/family-card-profile.js');
+  assert.match(css,/body:not\(\.family-driver-profile-mode\) #family-profile-editor\{display:none!important\}/);
+  assert.match(family,/family-grownup-sms/);
+  assert.match(card,/Grown-up Text Parker status unavailable/);
+});
+test('density cleanup stacks communications and constrains avatar, requirements and color controls',()=>{
+  const css=read('assets/css/family.css'),family=read('assets/js/family.js');
+  assert.match(css,/\.family-driver-comms\{grid-template-columns:1fr!important/);
+  assert.match(css,/\.family-parker-silhouette\{display:none!important\}/);
+  assert.match(css,/\.family-expanded-requirement\{display:grid!important/);
+  assert.match(css,/\.family-expanded-color-swatches \.dv-palette-swatch\{min-width:36px!important/);
+  assert.match(family,/data-expanded-avatar-upload/);
+});
+test('expanded driver profile contains licensing actions instead of lower page licensing panel',()=>{
+  const card=read('assets/js/family-card-profile.js');
+  assert.match(card,/data-confirm-requirement/);
+  assert.match(card,/record_license_requirement/);
+  assert.match(card,/data-advance-stage/);
+  assert.match(card,/advance_license_stage/);
+});
