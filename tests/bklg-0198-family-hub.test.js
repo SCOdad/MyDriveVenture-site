@@ -50,10 +50,11 @@ test('Family Hub includes true-zero and scoped no-driver states',()=>{
   assert.match(js,/Add your first driver before inviting another grown-up/);
 });
 
-test('driver cards avoid sensitive identity fields and preserve scoped grown-up access UI',()=>{
+test('driver cards expose the approved editable profile fields while preserving scoped grown-up access UI',()=>{
   const js=read('assets/js/family.js');
   const cardSource=js.slice(js.indexOf('function driverCard'),js.indexOf('function grownupCard'));
-  assert.doesNotMatch(cardSource,/birth_date|home_zip|email|mobile/i);
+  assert.doesNotMatch(cardSource,/birth_date/i);
+  for(const field of ['home_zip','email','mobile']) assert.match(cardSource,new RegExp(field,'i'));
   assert.match(js,/Manage access/);
   assert.match(js,/primary_driver_ids/);
   assert.match(js,/family-chip/);
