@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#080b0e">
-  <title>Your Family — Drive Venture</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/join.css"><link rel="stylesheet" href="/assets/css/family.css?v=20261005-0240e"><link rel="stylesheet" href="/assets/css/profile.css?v=20261004-0240a"><link rel="stylesheet" href="/assets/css/driver-palettes.css?v=20260831-repair6">
+  <title>Your Family — Drive Venture</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/join.css"><link rel="stylesheet" href="/assets/css/family.css?v=20261005-0240f"><link rel="stylesheet" href="/assets/css/profile.css?v=20261004-0240a"><link rel="stylesheet" href="/assets/css/driver-palettes.css?v=20260831-repair6">
 <script src="/assets/js/environment-config.js"></script></head>
 <body data-family-profile="true">
 <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
@@ -15,8 +15,14 @@
 <div id="family-app" hidden>
 <section class="form-card family-people-section" aria-label="Family profiles">
 <div class="family-card-head family-people-head"><div><p class="step-label">People</p><h2>Family profiles</h2><p class="family-section-intro">Choose a grown-up or driver to manage their profile below.</p></div><div class="family-people-actions"><button class="button secondary family-action" type="button" data-open-panel="grownup">+ Add grown-up</button><button class="button secondary family-action" type="button" data-open-panel="driver">+ Add driver</button></div></div>
-<div id="family-grownups" class="family-grownup-grid" aria-label="Grown-up profiles"></div>
-<div id="family-drivers" class="family-driver-grid" aria-live="polite" aria-label="Driver profiles"></div>
+<section class="family-profile-region family-grownup-region" aria-labelledby="family-grownup-heading">
+  <div class="family-region-head"><h3 id="family-grownup-heading">Grown-up profiles</h3></div>
+  <div id="family-grownups" class="family-grownup-grid" aria-label="Grown-up profiles"></div>
+</section>
+<section class="family-profile-region family-driver-region" aria-labelledby="family-driver-heading">
+  <div class="family-region-head"><h3 id="family-driver-heading">Driver profiles</h3></div>
+  <div id="family-drivers" class="family-driver-grid" aria-live="polite" aria-label="Driver profiles"></div>
+</section>
 <div id="family-pending-invites" class="family-grownup-list family-pending-list"></div>
 <div class="family-see-all-row"><button id="family-see-all-drivers" class="button secondary family-see-all" type="button" aria-controls="family-drivers" aria-expanded="false" hidden>See all drivers</button></div>
 </section>
