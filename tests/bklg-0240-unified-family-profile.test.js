@@ -116,8 +116,8 @@ test('card-first profiles move editable identity and license summary into cards'
   for(const field of ['name','home_zip','email','mobile','license_effective_date']) assert.ok(family.includes('data-inline-edit="'+field+'"'),field);
   assert.match(family,/family-readonly-badge/);
   assert.match(family,/data-license-progress/);
-  assert.match(card,/action:'license_overview'/);
-  assert.match(card,/action:'update_license_effective_date'/);
+  assert.match(card,/api\('profile-api','license_overview'/);
+  assert.match(card,/api\('profile-api','update_license_effective_date'/);
   assert.match(card,/request_contact_change/);
   assert.match(card,/family-card-progress/);
   assert.match(html,/family-promoted-profile-form" hidden/);
