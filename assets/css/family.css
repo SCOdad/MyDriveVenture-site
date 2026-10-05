@@ -48,3 +48,45 @@ body.family-driver-profile-mode .family-hero .lede{display:none}
   .text-parker-mobile{align-items:flex-start;flex-direction:column}
   .text-parker-mobile .button{width:100%}
 }
+
+
+/* BKLG-0240 card-first profile editor */
+.family-grownup-card{align-items:stretch}
+.family-grownup-statusline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.family-readonly-card{opacity:.9}
+.family-readonly-badge{font-size:.72rem;font-weight:800;letter-spacing:.03em;color:var(--muted,#aeb8c2);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 8px;white-space:nowrap}
+.family-inline-field{display:grid;gap:3px;padding:7px 0;border-top:1px solid rgba(255,255,255,.07)}
+.family-inline-field:first-of-type{border-top:0}
+.family-inline-field>div{display:flex;align-items:center;gap:8px;min-width:0}
+.family-inline-field strong{min-width:0;overflow-wrap:anywhere}
+.family-pencil{appearance:none;border:0;background:transparent;color:var(--family-accent-highlight,#f4b820);padding:2px 4px;font-size:1rem;line-height:1;cursor:pointer}
+.family-pencil:hover,.family-pencil:focus-visible{transform:scale(1.12);outline:1px solid currentColor;border-radius:4px}
+.family-verify-badge{font-size:.68rem;font-weight:800;border-radius:999px;padding:3px 6px;white-space:nowrap}
+.family-verify-badge.is-verified{color:#9fe4b7;background:rgba(71,191,116,.13);border:1px solid rgba(71,191,116,.45)}
+.family-verify-badge.is-unverified{color:#ffd49b;background:rgba(209,138,24,.13);border:1px solid rgba(209,138,24,.45)}
+.family-license-profile-card{grid-template-rows:auto auto auto auto auto;min-height:0}
+.family-license-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px 6px}
+.family-license-card-header>div{display:grid;gap:2px}
+.family-license-state{font:800 .72rem/1 Orbitron,Inter,sans-serif;letter-spacing:.12em;color:var(--family-accent-highlight)}
+.family-license-card-header strong{font:800 .9rem/1.2 Orbitron,Inter,sans-serif}
+.family-license-tag{font-size:.62rem;font-weight:800;letter-spacing:.1em;padding:5px 7px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
+.family-license-card-body{display:grid;grid-template-columns:minmax(90px,34%) 1fr;gap:12px;padding:8px 14px 0}
+.family-license-card-body .family-driver-photo{margin:0;aspect-ratio:3/4;align-self:start}
+.family-license-fields{min-width:0}
+.family-license-progress-list{display:grid;gap:7px;padding:12px 14px}
+.family-card-progress{display:grid;grid-template-columns:minmax(100px,1fr) minmax(110px,1.5fr) auto;gap:8px;align-items:center;font-size:.7rem}
+.family-card-progress>span:first-child{font-weight:700}
+.family-card-progress-track{height:7px;border-radius:999px;background:rgba(0,0,0,.25);overflow:hidden}
+.family-card-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,var(--family-accent-base),var(--family-accent-highlight))}
+.family-card-check{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.7rem;padding:5px 0}
+.family-card-check strong.is-met{color:#9fe4b7}.family-card-check strong.is-unmet{color:#ffd49b}
+.family-inline-editor{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
+.family-inline-editor input{min-width:0;flex:1 1 130px;padding:7px 8px}
+.family-inline-editor button{padding:6px 8px}
+.family-inline-message{font-size:.68rem;grid-column:1/-1;color:var(--muted,#aeb8c2)}
+.family-inline-message.is-error{color:#ffb4b4}
+.family-profile-editor:has(.family-promoted-profile-form[hidden]){margin-top:10px}
+@media(max-width:620px){
+  .family-license-card-body{grid-template-columns:92px 1fr}
+  .family-card-progress{grid-template-columns:1fr auto}.family-card-progress-track{grid-column:1/-1}
+}
