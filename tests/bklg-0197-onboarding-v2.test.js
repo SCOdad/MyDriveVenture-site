@@ -83,3 +83,29 @@ test('canonical signup success clearly confirms grown-up registration and next s
   assert.match(js,/emailTarget\.textContent=email/);
 });
 
+
+test('signup success hides intake shell and explains spam and passwordless access',()=>{
+  const html=read('join/index.html');
+  const js=read('assets/js/join-v2.js');
+  const css=read('assets/css/join.css');
+  assert.match(html,/data-acquisition-pre-success/);
+  assert.match(js,/querySelectorAll\('\[data-acquisition-pre-success\]'\)/);
+  assert.match(js,/el\.hidden=true/);
+  assert.match(css,/\[data-acquisition-pre-success\]\[hidden\]\{display:none!important\}/);
+  assert.match(html,/check spam or promotions/i);
+  assert.match(html,/Drive Venture is passwordless/i);
+  assert.match(html,/no password to create or remember/i);
+  assert.match(css,/\.success-card::before\{[^}]*#57c879/);
+  assert.match(css,/\.success-step-number\{background:#57c879/);
+});
+
+test('canonical join keeps Meta PageView loader without treating organic signup as paid conversion',()=>{
+  const html=read('join/index.html');
+  const pixel=read('assets/js/meta-pixel.js');
+  const js=read('assets/js/join-v2.js');
+  assert.match(html,/meta-pixel\.js/);
+  assert.match(pixel,/productionHosts = new Set\(\['mydriveventure\.com', 'www\.mydriveventure\.com'\]\)/);
+  assert.match(pixel,/fbq\('track', 'PageView'\)/);
+  assert.match(js,/if\(source!=='PAID_RECRUITMENT'\|\|typeof window\.fbq!=='function'\)return/);
+  assert.doesNotMatch(js,/fbq\([^\n]*(name|email)/i);
+});
