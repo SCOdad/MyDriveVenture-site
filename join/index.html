@@ -20,7 +20,7 @@
   <a class="skip-link" href="#main">Skip to content</a><div class="racing-stripe" aria-hidden="true"></div>
   <header class="site-header"><div class="nav"><a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a></div></header>
   <main id="main" class="content narrow onboarding-shell">
-    <section class="join-intro" aria-labelledby="join-heading">
+    <section class="join-intro" data-acquisition-pre-success aria-labelledby="join-heading">
       <div class="join-intro-copy">
         <p class="eyebrow">Family setup</p>
         <h1 id="join-heading">Start with the grown-up.</h1>
@@ -29,9 +29,9 @@
       <figure class="join-art"><img src="/assets/images/dv-char-parker-phone.webp" width="768" height="1152" alt="Parker holding a phone displaying the Drive Venture mark."></figure>
     </section>
 
-    <div class="notice"><strong>Two quick fields now.</strong> Driver details stay out of this first step. You will add the driver after securely signing in.</div>
+    <div class="notice" data-acquisition-pre-success><strong>Two quick fields now.</strong> Driver details stay out of this first step. You will add the driver after securely signing in.</div>
 
-    <form id="dv-acquisition-v2-form" class="onboarding-form" novalidate>
+    <form id="dv-acquisition-v2-form" class="onboarding-form" data-acquisition-pre-success novalidate>
       <section class="form-card" aria-labelledby="grownup-heading">
         <p class="step-label">Start here</p>
         <h2 id="grownup-heading">Grown-up</h2>
@@ -44,16 +44,24 @@
       </section>
     </form>
 
-    <section id="acquisition-v2-success" class="form-card success-card" hidden tabindex="-1">
-      <p class="eyebrow">Check your email</p>
-      <h2>Your Family Hub is ready to open.</h2>
-      <p>Parker sent a secure sign-in link to <strong id="acquisition-v2-email"></strong>.</p>
-      <p>Open that message and choose <strong>Open your Family Hub</strong>. After your email is verified, you will land in Drive Venture with no driver yet—and the Family Hub will guide you to add the first one.</p>
-      <p class="field-help">If the email takes a minute, check spam or promotions before submitting again.</p>
+    <section id="acquisition-v2-success" class="form-card success-card" hidden tabindex="-1" aria-labelledby="acquisition-v2-success-heading">
+      <p class="eyebrow">Registration complete</p>
+      <h2 id="acquisition-v2-success-heading">You’re registered with Drive Venture.</h2>
+      <p class="success-lede"><strong id="acquisition-v2-name"></strong>, you’re now the registered grown-up for your Drive Venture family.</p>
+      <div class="registration-email">
+        <span>Secure link sent to</span>
+        <strong id="acquisition-v2-email"></strong>
+      </div>
+      <ol class="success-steps" aria-label="What to do next">
+        <li><span class="success-step-number" aria-hidden="true">1</span><div><strong>Check your email.</strong><p>Look for a message from Parker at Drive Venture. If you do not see it, check spam or promotions.</p></div></li>
+        <li><span class="success-step-number" aria-hidden="true">2</span><div><strong>Open your secure link.</strong><p>Drive Venture is passwordless: the link verifies your email and signs you into your Family Hub, with no password to create or remember.</p></div></li>
+        <li><span class="success-step-number" aria-hidden="true">3</span><div><strong>Add your first driver.</strong><p>Your Family Hub will guide you through the driver setup.</p></div></li>
+      </ol>
+      <p class="field-help"><strong>Your signup is complete.</strong> You do not need to fill out this form again.</p>
     </section>
   </main>
   <footer><div class="footer-inner"><div class="footer-brand"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></div><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="/privacy/">Privacy</a></li><li><a href="/terms/">Terms</a></li></ul><p>&copy; 2026 Drive Venture.</p></div></footer>
   <script src="/assets/js/meta-pixel.js?v=20260920-bklg0197-cutover" async></script>
-  <script src="/assets/js/join-v2.js?v=20260920-bklg0197-cutover"></script>
+  <script src="/assets/js/join-v2.js?v=20261005-success-refinement"></script>
 </body>
 </html>
