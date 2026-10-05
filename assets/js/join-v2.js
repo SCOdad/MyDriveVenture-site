@@ -32,7 +32,8 @@
       const nameTarget=document.getElementById('acquisition-v2-name'),emailTarget=document.getElementById('acquisition-v2-email');
       if(nameTarget)nameTarget.textContent=name;
       if(emailTarget)emailTarget.textContent=email;
-      form.hidden=true;success.hidden=false;success.focus();
+      document.querySelectorAll('[data-acquisition-pre-success]').forEach(el=>{el.hidden=true;});
+      success.hidden=false;success.focus();
     }catch(error){
       message.textContent=error.message||String(error);message.classList.add('error');
     }finally{button.disabled=false;button.textContent=idleLabel}
