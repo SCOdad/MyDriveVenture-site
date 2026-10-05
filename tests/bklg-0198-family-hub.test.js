@@ -65,3 +65,10 @@ test('Family Hub uses canonical palette helper and Parker-style silhouette fallb
   assert.match(css,/family-parker-silhouette/);
   assert.match(css,/family-driver-accent/);
 });
+
+test('driver cards no longer act as whole-card profile selectors',()=>{
+  const js=read('assets/js/family.js');
+  const bind=js.slice(js.indexOf('function bindDriverCards'),js.indexOf('function bindGrownupProfileCards'));
+  assert.doesNotMatch(bind,/openProfile/);
+  assert.match(bind,/dv:driver-expand-toggle/);
+});
