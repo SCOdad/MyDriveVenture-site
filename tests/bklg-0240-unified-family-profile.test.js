@@ -174,3 +174,20 @@ test('expanded driver profile contains licensing actions instead of lower page l
   assert.match(card,/data-advance-stage/);
   assert.match(card,/advance_license_stage/);
 });
+
+test('grown-up and driver cards use distinct landscape and portrait regions',()=>{
+  const html=read('family/index.html'),css=read('assets/css/family.css');
+  assert.match(html,/family-grownup-region/);
+  assert.match(html,/Grown-up profiles/);
+  assert.match(html,/family-driver-region/);
+  assert.match(html,/Driver profiles/);
+  assert.match(css,/family-grownup-grid\{display:grid!important;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+  assert.match(css,/family-driver-width:340px/);
+  assert.match(css,/family-driver-grid\{display:grid!important;grid-template-columns:repeat\(auto-fill,minmax/);
+});
+test('shared 340px axis coupling no longer controls grown-up width',()=>{
+  const css=read('assets/css/family.css');
+  assert.match(css,/--family-grownup-min:420px/);
+  assert.match(css,/family-grownup-landscape\{width:100%!important/);
+  assert.match(css,/family-driver-card\{width:min\(100%,var\(--family-driver-width\)\)/);
+});
