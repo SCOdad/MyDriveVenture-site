@@ -20,10 +20,11 @@ test('Family is the canonical people and profile surface',()=>{
   assert.match(header,/My Profile/);
 });
 
-test('Family cards select profiles while preserving explicit Driver Console access',()=>{
+test('driver cards stay in place while grown-up cards retain profile selection',()=>{
   const js=read('assets/js/family.js');
   assert.doesNotThrow(()=>new vm.Script(js));
-  assert.match(js,/openProfile\(\{driver_id:card\.dataset\.driverId\}\)/);
+  assert.doesNotMatch(js,/openProfile\(\{driver_id:card\.dataset\.driverId\}\)/);
+  assert.match(js,/dv:driver-expand-toggle/);
   assert.match(js,/data-open-console/);
   assert.match(js,/openDriver\(consoleButton\.dataset\.openConsole\)/);
   assert.match(js,/family-grownup-self/);
@@ -129,4 +130,25 @@ test('lower licensing section retains actions but removes duplicated progress di
   assert.match(html,/Current stage, effective date, and progress now live on the driver card/);
   assert.match(js,/allReqs\.filter\(r=>!r\.met&&\/needs confirmation\/i/);
   assert.match(js,/No manual licensing confirmations are currently required/);
+});
+
+test('compact driver card keeps pencils but separates summary, communications, hours and aggregate requirements',()=>{
+  const family=read('assets/js/family.js'),card=read('assets/js/family-card-profile.js'),css=read('assets/css/family.css');
+  for(const field of ['name','home_zip','email','mobile','license_effective_date']) assert.ok(family.includes('data-inline-edit="'+field+'"'),field+' pencil');
+  assert.match(family,/family-driver-comms/);
+  assert.match(family,/data-card-value="sms_state"/);
+  assert.match(family,/family-driver-hours/);
+  assert.match(family,/data-other-requirements/);
+  assert.match(family,/Expand full profile/);
+  assert.match(card,/HOUR_TYPES=new Set/);
+  assert.match(card,/other\.filter\(r=>r\.met\)\.length/);
+  assert.match(css,/body:not\(\.family-driver-profile-mode\) #license-card/);
+});
+test('expanded driver profile includes favorite color and preserves expansion through edits',()=>{
+  const family=read('assets/js/family.js'),card=read('assets/js/family-card-profile.js');
+  assert.match(family,/data-expanded-color-picker/);
+  assert.match(card,/DV_DRIVER_PALETTES/);
+  assert.match(card,/favorite_color:chosen/);
+  assert.match(card,/expandedDrivers/);
+  assert.match(card,/Collapse full profile/);
 });
