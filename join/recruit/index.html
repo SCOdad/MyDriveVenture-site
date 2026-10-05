@@ -26,14 +26,14 @@
 
   <main id="main" class="recruit-main">
     <section class="recruit-hero" aria-labelledby="recruit-heading">
-      <div class="recruit-copy">
+      <div class="recruit-copy" data-acquisition-pre-success>
         <p class="eyebrow">A real-world driving quest</p>
         <h1 id="recruit-heading">Make the practice hours feel like progress.</h1>
         <p class="recruit-lede"><strong>Turn supervised driving into visible progress.</strong> Track practice and night hours, earn Road XP, and keep the road to a license in view.</p>
       </div>
 
       <div class="recruit-conversion" aria-label="Start Drive Venture">
-        <form id="dv-acquisition-v2-form" class="onboarding-form recruit-form" data-acquisition-source="PAID_RECRUITMENT" data-busy-label="Starting your family…" novalidate>
+        <form id="dv-acquisition-v2-form" class="onboarding-form recruit-form" data-acquisition-pre-success data-acquisition-source="PAID_RECRUITMENT" data-busy-label="Starting your family…" novalidate>
           <section class="form-card recruit-form-card" aria-labelledby="grownup-heading">
             <p class="step-label">Free pilot</p>
             <h2 id="grownup-heading">Start with the grown-up.</h2>
@@ -47,16 +47,24 @@
           </section>
         </form>
 
-        <section id="acquisition-v2-success" class="form-card success-card recruit-success" hidden tabindex="-1">
-          <p class="eyebrow">Check your email</p>
-          <h2>Your Family Hub is ready to open.</h2>
-          <p>Parker sent a secure sign-in link to <strong id="acquisition-v2-email"></strong>.</p>
-          <p>Open that message and choose <strong>Open your Family Hub</strong>. After your email is verified, Drive Venture will guide you to add your first driver.</p>
-          <p class="field-help">If the email takes a minute, check spam or promotions before submitting again.</p>
+        <section id="acquisition-v2-success" class="form-card success-card recruit-success" hidden tabindex="-1" aria-labelledby="acquisition-v2-success-heading">
+          <p class="eyebrow">Registration complete</p>
+          <h2 id="acquisition-v2-success-heading">You’re registered with Drive Venture.</h2>
+          <p class="success-lede"><strong id="acquisition-v2-name"></strong>, you’re now the registered grown-up for your Drive Venture family.</p>
+          <div class="registration-email">
+            <span>Secure link sent to</span>
+            <strong id="acquisition-v2-email"></strong>
+          </div>
+          <ol class="success-steps" aria-label="What to do next">
+            <li><span class="success-step-number" aria-hidden="true">1</span><div><strong>Check your email.</strong><p>Look for a message from Parker at Drive Venture. If you do not see it, check spam or promotions.</p></div></li>
+            <li><span class="success-step-number" aria-hidden="true">2</span><div><strong>Open your secure link.</strong><p>Drive Venture is passwordless: the link verifies your email and signs you into your Family Hub, with no password to create or remember.</p></div></li>
+            <li><span class="success-step-number" aria-hidden="true">3</span><div><strong>Add your first driver.</strong><p>Your Family Hub will guide you through the driver setup.</p></div></li>
+          </ol>
+          <p class="field-help"><strong>Your signup is complete.</strong> You do not need to fill out this form again.</p>
         </section>
       </div>
 
-      <div class="recruit-support">
+      <div class="recruit-support" data-acquisition-pre-success>
         <ul class="recruit-benefits" aria-label="Drive Venture benefits">
           <li><strong>Log in seconds.</strong> Use the web or Text Parker after the drive.</li>
           <li><strong>See what counts.</strong> Track total hours, night practice, milestones, and recent drives.</li>
@@ -90,6 +98,6 @@
   </footer>
 
   <script src="/assets/js/meta-pixel.js?v=20260924-bklg0219"></script>
-  <script src="/assets/js/join-v2.js?v=20260929-bklg0214"></script>
+  <script src="/assets/js/join-v2.js?v=20261005-success-refinement"></script>
 </body>
 </html>
