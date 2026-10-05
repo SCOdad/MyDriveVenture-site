@@ -108,3 +108,25 @@ test('Text Parker is nested within Mobile and disabled when mobile is unavailabl
   assert.match(js,/smsMobile\.classList\.toggle\('is-disabled',!actionable\)/);
   assert.match(css,/\.text-parker-mobile\.is-disabled/);
 });
+
+test('card-first profiles move editable identity and license summary into cards',()=>{
+  const family=read('assets/js/family.js'),html=read('family/index.html'),card=read('assets/js/family-card-profile.js'),css=read('assets/css/family.css');
+  assert.doesNotThrow(()=>new vm.Script(family));
+  assert.doesNotThrow(()=>new vm.Script(card));
+  for(const field of ['name','home_zip','email','mobile','license_effective_date']) assert.ok(family.includes('data-inline-edit="'+field+'"'),field);
+  assert.match(family,/family-readonly-badge/);
+  assert.match(family,/data-license-progress/);
+  assert.match(card,/action:'license_overview'/);
+  assert.match(card,/action:'update_license_effective_date'/);
+  assert.match(card,/request_contact_change/);
+  assert.match(card,/family-card-progress/);
+  assert.match(html,/family-promoted-profile-form" hidden/);
+  assert.match(css,/family-license-profile-card\.has-driver-accent/);
+});
+test('lower licensing section retains actions but removes duplicated progress display',()=>{
+  const js=read('assets/js/profile.js'),html=read('family/index.html');
+  assert.match(html,/Licensing actions/);
+  assert.match(html,/Current stage, effective date, and progress now live on the driver card/);
+  assert.match(js,/allReqs\.filter\(r=>!r\.met&&\/needs confirmation\/i/);
+  assert.match(js,/No manual licensing confirmations are currently required/);
+});
