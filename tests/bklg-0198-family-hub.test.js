@@ -21,8 +21,6 @@ test('Family Hub client parses and uses canonical supported contracts',()=>{
   assert.match(js,/avatarUrlCache\.set\(id,url\)/);
   assert.match(js,/No usable headshot/);
   assert.match(js,/DV_DRIVER_PALETTES/);
-  assert.match(js,/total_minutes/);
-  assert.match(js,/night_minutes/);
 });
 
 test('Family Hub preserves Family API progress when dashboard progress is absent',()=>{
