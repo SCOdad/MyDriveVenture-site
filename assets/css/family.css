@@ -94,3 +94,24 @@ body.family-driver-profile-mode .family-hero .lede{display:none}
 .family-license-profile-card.has-driver-accent{background:linear-gradient(155deg,color-mix(in srgb,var(--family-accent-base) 20%,#10161a),rgba(255,255,255,.025) 55%,color-mix(in srgb,var(--family-accent-shadow) 18%,#0d1114))}
 .family-license-profile-card .family-driver-accent{height:10px}
 .family-license-target{padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.08)}
+
+
+/* BKLG-0240 compact driver card density pass */
+.family-driver-comms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.08)}
+.family-driver-comms .family-inline-field{border-top:0;padding:0}
+.family-driver-comms .family-inline-field>div{align-items:flex-start;flex-wrap:wrap}
+.family-text-parker-summary small{flex-basis:100%}
+.family-sms-action{appearance:none;border:1px solid currentColor;border-radius:999px;background:transparent;color:var(--family-accent-highlight);font-weight:800;font-size:.68rem;padding:4px 8px;cursor:pointer}
+.family-driver-hours{display:grid;gap:8px;padding:12px 14px}
+.family-other-requirements{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08)}
+.family-expand-profile{appearance:none;border:0;background:transparent;color:var(--family-accent-highlight);font-weight:800;cursor:pointer}
+.family-driver-expanded{padding:14px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.12)}
+.family-driver-expanded h4{margin:.2rem 0 .6rem}
+.family-expanded-requirements{display:grid;gap:6px}
+.family-expanded-requirement{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.family-expanded-requirement .is-met{color:#9fe4b7}.family-expanded-requirement .is-unmet{color:#ffd49b}
+.family-expanded-color{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}
+.family-expanded-color-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.family-expanded-color-swatches .dv-palette-swatch{width:auto;min-width:48px}
+body:not(.family-driver-profile-mode) #license-card{display:none!important}
+@media(max-width:720px){.family-driver-comms{grid-template-columns:1fr}.family-driver-hours{gap:10px}}
