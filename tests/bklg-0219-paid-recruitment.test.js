@@ -33,3 +33,26 @@ test('paid landing CTA and inputs retain mobile tap/input requirements',()=>{
   assert.match(recruitCss,/@media\(max-width:760px\)/);
   assert.match(recruitCss,/\.recruit-submit\{width:100%;min-height:52px\}/);
 });
+
+test('paid recruitment uses the shared registration-complete success treatment',()=>{
+  const html=read('join/recruit/index.html');
+  assert.match(html,/Registration complete/);
+  assert.match(html,/You’re registered with Drive Venture/);
+  assert.match(html,/registered grown-up for your Drive Venture family/);
+  assert.match(html,/check spam or promotions/i);
+  assert.match(html,/Drive Venture is passwordless/i);
+  assert.match(html,/no password to create or remember/i);
+  assert.match(html,/id="acquisition-v2-name"/);
+  assert.match(html,/id="acquisition-v2-email"/);
+  assert.match(html,/data-acquisition-pre-success/);
+});
+
+test('paid conversion remains CompleteRegistration once per flow with no PII payload',()=>{
+  const js=read('assets/js/join-v2.js');
+  assert.match(js,/source!=='PAID_RECRUITMENT'/);
+  assert.match(js,/dv:meta:CompleteRegistration:/);
+  assert.match(js,/sessionStorage\.getItem\(key\)==='1'/);
+  assert.match(js,/window\.fbq\('track','CompleteRegistration'\)/);
+  assert.match(js,/sessionStorage\.setItem\(key,'1'\)/);
+  assert.doesNotMatch(js,/fbq\([^\n]*(name|email)/i);
+});
