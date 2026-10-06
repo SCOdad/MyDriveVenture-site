@@ -191,3 +191,30 @@ test('shared 340px axis coupling no longer controls grown-up width',()=>{
   assert.match(css,/family-grownup-landscape\{width:100%!important/);
   assert.match(css,/family-driver-card\{width:min\(100%,var\(--family-driver-width\)\)/);
 });
+
+test('grown-up cards use role pill and compact mobile/email rows',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.doesNotMatch(family,/Guardian status/);
+  assert.match(family,/family-role-pill/);
+  assert.match(family,/\| YOU/);
+  assert.match(family,/family-grownup-mobile-row/);
+  assert.match(family,/family-grownup-email-row/);
+  assert.match(css,/family-grownup-mobile-row.*grid-template-columns:74px/s);
+});
+test('driver card density pass compresses issue and communications while preserving pencils',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.match(family,/family-driver-issue-row/);
+  assert.match(family,/family-driver-comm-row/);
+  assert.match(family,/family-inline-sms-label/);
+  assert.match(family,/family-ellipsis-value/);
+  assert.match(css,/family-driver-field-label/);
+  assert.match(css,/text-overflow:ellipsis/);
+  for(const field of ['name','home_zip','email','mobile','license_effective_date']) assert.ok(family.includes('data-inline-edit="'+field+'"'),field);
+});
+test('expand full profile is button-styled and driver console action is suppressed',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  const cardSource=family.slice(family.indexOf('function driverCard'),family.indexOf('function grownupCard'));
+  assert.match(cardSource,/button secondary family-expand-profile/);
+  assert.doesNotMatch(cardSource,/Open console/);
+  assert.match(css,/family-expand-profile.*border:1px/s);
+});
