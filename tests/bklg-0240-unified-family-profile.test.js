@@ -260,3 +260,13 @@ test('verified mobile stays on one line while Text Parker controls compact aroun
   assert.match(css,/\[data-card-sms-action\]\{font-size:\.66rem!important/);
   assert.match(css,/--family-driver-width:360px/);
 });
+
+test('driver phone row separates verified number from Text Parker controls',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.match(family,/family-driver-phone-value/);
+  assert.match(family,/family-driver-sms-line/);
+  const row=family.slice(family.indexOf('family-driver-phone-row'),family.indexOf('family-driver-hours'));
+  assert.ok(row.indexOf('family-driver-phone-value') < row.indexOf('family-driver-sms-line'));
+  assert.match(css,/family-driver-phone-stack\{display:grid!important/);
+  assert.match(css,/family-driver-sms-line\{flex-wrap:nowrap!important/);
+});
