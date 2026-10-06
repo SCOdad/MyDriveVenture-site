@@ -1,14 +1,15 @@
 (()=>{if(document.querySelector('.site-header')&&!document.querySelector('script[data-dv-canonical-header]')){const h=document.createElement('script');h.src='/assets/js/canonical-header.js?v=20260825-0062b';h.defer=true;h.dataset.dvCanonicalHeader='true';document.head.appendChild(h)}})();
 (()=>{
   const cfg=window.DV_APP_CONFIG||{}
+  const embedded=document.body?.dataset?.familyProfile==='true'
   const loading=document.getElementById('profile-loading'),app=document.getElementById('profile-app'),authNeeded=document.getElementById('profile-auth-needed')
   if(!cfg.supabaseUrl||!cfg.publishableKey){loading.innerHTML='<p>Profile settings are not configured.</p>';return}
   const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
   const MAX_AVATAR_BYTES=4*1024*1024
-  let session=null,subjects=[],pendingChanges=[],avatarState=null,licenseState=null,contactChangesAvailable=false
+  let session=null,subjects=[],pendingChanges=[],avatarState=null,licenseState=null,smsState=null,contactChangesAvailable=false
   const subjectSelect=document.getElementById('profile-subject')
   const nameInput=document.getElementById('profile-name'),zipInput=document.getElementById('profile-zip')
-  const zipRequired=document.getElementById('profile-zip-required'),zipHelp=document.getElementById('profile-zip-help')
+  const zipWrap=document.getElementById('profile-zip-wrap'),zipRequired=document.getElementById('profile-zip-required'),zipHelp=document.getElementById('profile-zip-help'),selectedName=document.getElementById('profile-selected-name')
   const colorWrap=document.getElementById('profile-color-wrap'),colorInput=document.getElementById('profile-favorite-color')
   const colorPicker=colorWrap?(colorWrap._dvPalettePicker||window.DV_DRIVER_PALETTES?.mountPicker(colorWrap,{allowEmpty:true})):null
   let colorDirty=false
@@ -16,6 +17,7 @@
   const emailEl=document.getElementById('profile-email'),mobileEl=document.getElementById('profile-mobile')
   const emailStatus=document.getElementById('profile-email-status'),mobileStatus=document.getElementById('profile-mobile-status')
   const changeEmail=document.getElementById('change-email'),changeMobile=document.getElementById('change-mobile')
+  const smsStateEl=document.getElementById('profile-sms-state'),smsDetail=document.getElementById('profile-sms-detail'),smsAction=document.getElementById('profile-sms-action'),smsMobile=document.getElementById('text-parker-mobile')
   const scopeNote=document.getElementById('profile-scope-note')
   const avatarCard=document.getElementById('avatar-card'),avatarSummary=document.getElementById('avatar-summary'),avatarPending=document.getElementById('avatar-pending'),avatarPhoto=document.getElementById('avatar-photo'),avatarParker=document.getElementById('avatar-parker'),avatarParkerHelp=document.getElementById('avatar-parker-help'),avatarParkerRow=document.getElementById('avatar-parker-row'),avatarParkerReopt=document.getElementById('avatar-parker-reopt')
   const licenseCard=document.getElementById('license-card'),licenseEffective=document.getElementById('license-effective-date'),licenseTarget=document.getElementById('license-target'),licenseAdvance=document.getElementById('license-advance'),licenseRequirements=document.getElementById('license-requirements')
@@ -129,7 +131,7 @@
       :'<option value="">Next stage is not yet eligible</option>'
     licenseAdvance.disabled=true
     const renderTarget=(t,{interactive=false,kicker='' }={})=>{
-      const reqs=t.requirements||[],unmet=t.unmet_requirements||[]
+      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met&&/needs confirmation/i.test(r.reason||'')):[],unmet=t.unmet_requirements||[]
       return `<div class="license-target-block">
         <div class="license-target-head">
           <div>${kicker?`<small class="license-target-kicker">${esc(kicker)}</small>`:''}<strong>${esc(t.target_stage_display||t.target_stage)}</strong></div>
@@ -161,18 +163,88 @@
       </div>`
     }
     const nextHtml=renderTarget(nextTarget,{interactive:true,kicker:'Next stage'})
-    const laterHtml=laterTargets.length
-      ?`<details class="license-later-stages"><summary>See later licensing stages (${laterTargets.length})</summary><p class="license-later-note">Planning view only. Later-stage requirements may depend on first receiving the next stage, so no confirmations or stage-change controls appear here.</p>${laterTargets.map(t=>renderTarget(t,{interactive:false})).join('')}</details>`
-      :''
-    licenseRequirements.innerHTML=nextHtml+laterHtml
+    const laterHtml=''
+    licenseRequirements.innerHTML=reqsSummary(nextTarget)+nextHtml+laterHtml
   }
+  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&/needs confirmation/i.test(r.reason||''));return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
-  function renderSubject(){const s=selected();if(!s)return;const driver=s.kind==='DRIVER';const pe=pendingFor(s.person_id,'EMAIL'),pm=pendingFor(s.person_id,'MOBILE');nameInput.value=s.name||'';zipInput.value=s.home_zip||'';zipInput.required=driver;zipRequired.hidden=!driver;zipHelp.textContent=driver?'Required for driver location, weather, and night calculations.':'Optional for your profile.';if(colorWrap){colorWrap.hidden=!driver;colorPicker?.setValue(driver?(s.favorite_color||''):'');window.DV_DRIVER_PALETTES?.apply(document.body,driver?(s.favorite_color||''):'YELLOW');colorDirty=false}emailEl.textContent=pe?.proposed_value||s.email||'Not set';mobileEl.textContent=pm?.proposed_value||s.mobile||'Not set';emailStatus.textContent=pe?`Pending verification — current: ${s.email||'not set'}`:(s.email?`${s.email_verified?'Verified':'Not verified'}`:'');mobileStatus.textContent=pm?`Pending verification — current: ${s.mobile||'not set'}`:(s.mobile?`${s.mobile_verified?'Verified':'Not verified'}`:'');scopeNote.textContent=s.relation==='SELF'?'You are editing your own profile.':'You are editing a driver profile you are authorized to manage.';changeEmail.disabled=!contactChangesAvailable;changeMobile.disabled=!contactChangesAvailable;changeEmail.setAttribute('aria-disabled',String(!contactChangesAvailable));changeMobile.setAttribute('aria-disabled',String(!contactChangesAvailable));status('profile-status','');status('contact-status',contactChangesAvailable?'':'Verified contact changes are not available in this environment.');refreshAvatar();refreshLicense()}
-  function render(){subjectSelect.innerHTML=subjects.map(s=>`<option value="${esc(s.person_id)}">${esc(s.name)}${s.relation==='SELF'?' (you)':''}</option>`).join('');renderSubject()}
-  async function refresh(keepPersonId=null){const result=await call('overview');contactChangesAvailable=result.contact_changes_available===true;subjects=result.subjects||[];if(contactChangesAvailable){const pending=await contactCall({action:'pending_changes'});pendingChanges=pending.pending_changes||[]}else pendingChanges=[];if(!subjects.length)throw new Error('No editable profiles are available to this account.');render();if(keepPersonId&&subjects.some(s=>String(s.person_id)===String(keepPersonId))){subjectSelect.value=String(keepPersonId);renderSubject()}}
+  function renderSms(){
+    if(!smsStateEl||!smsAction)return
+    const state=String(smsState?.state||'')
+    const labels={
+      NO_MOBILE:['Unavailable','Add and verify a mobile number to use Text Parker.'],
+      VERIFICATION_PENDING:['Unavailable',smsState?.pending_mobile?`Verify ${smsState.pending_mobile} to use Text Parker.`:'Verify the pending mobile number to use Text Parker.'],
+      MOBILE_UNVERIFIED:['Unavailable','Verify this mobile number to use Text Parker.'],
+      VERIFIED_NOT_ENROLLED:['Off','This verified mobile number is not enrolled in Text Parker.'],
+      OPTED_IN:['On','Drive Venture / Text Parker messaging is enabled for this mobile number.'],
+      OPTED_OUT:['Off','Text Parker messaging is off for this mobile number.']
+    }
+    const label=labels[state]||['Unavailable','Text Parker status could not be determined.']
+    smsStateEl.textContent=label[0]
+    if(smsDetail)smsDetail.textContent=label[1]
+    const actionable=state==='VERIFIED_NOT_ENROLLED'||state==='OPTED_OUT'||state==='OPTED_IN'
+    smsAction.hidden=false
+    smsAction.disabled=!actionable
+    smsAction.setAttribute('aria-disabled',String(!actionable))
+    smsAction.textContent=actionable?(state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker'):'Unavailable'
+    if(smsMobile)smsMobile.classList.toggle('is-disabled',!actionable)
+  }
+  async function refreshSms(){
+    const s=selected()
+    smsState=null
+    renderSms()
+    if(!s)return
+    const personId=String(s.person_id)
+    try{
+      const out=await contactCall({action:'sms_consent_state',person_id:personId})
+      if(String(selected()?.person_id)!==personId)return
+      smsState=out.sms||null
+      renderSms()
+    }catch(err){
+      if(String(selected()?.person_id)!==personId)return
+      smsState=null
+      if(smsStateEl)smsStateEl.textContent='Unavailable'
+      if(smsDetail)smsDetail.textContent=err.message||String(err)
+      if(smsAction){smsAction.hidden=false;smsAction.disabled=true;smsAction.setAttribute('aria-disabled','true');smsAction.textContent='Unavailable'}
+      if(smsMobile)smsMobile.classList.add('is-disabled')
+    }
+  }
+  function renderSubject(){
+    const s=selected();if(!s)return
+    const driver=s.kind==='DRIVER',pe=pendingFor(s.person_id,'EMAIL'),pm=pendingFor(s.person_id,'MOBILE')
+    nameInput.value=s.name||''
+    zipInput.value=driver?(s.home_zip||''):''
+    if(zipWrap)zipWrap.hidden=!driver
+    zipInput.required=driver
+    zipRequired.hidden=!driver
+    zipHelp.textContent=driver?'Required for driver location, weather, and night calculations.':''
+    if(selectedName)selectedName.textContent=s.name||'Profile details'
+    if(colorWrap){colorWrap.hidden=!driver;colorPicker?.setValue(driver?(s.favorite_color||''):'');window.DV_DRIVER_PALETTES?.apply(document.body,driver?(s.favorite_color||''):'YELLOW');colorDirty=false}
+    emailEl.textContent=pe?.proposed_value||s.email||'Not set'
+    mobileEl.textContent=pm?.proposed_value||s.mobile||'Not set'
+    emailStatus.textContent=pe?`Pending verification — current: ${s.email||'not set'}`:(s.email?`${s.email_verified?'Verified':'Not verified'}`:'')
+    mobileStatus.textContent=pm?`Pending verification — current: ${s.mobile||'not set'}`:(s.mobile?`${s.mobile_verified?'Verified':'Not verified'}`:'')
+    scopeNote.textContent=s.relation==='SELF'?(driver?'You are editing your driver profile.':'You are editing your grown-up profile.'):'You are editing a driver profile you are authorized to manage.'
+    changeEmail.disabled=!contactChangesAvailable;changeMobile.disabled=!contactChangesAvailable
+    changeEmail.setAttribute('aria-disabled',String(!contactChangesAvailable));changeMobile.setAttribute('aria-disabled',String(!contactChangesAvailable))
+    status('profile-status','');status('contact-status',contactChangesAvailable?'':'Verified contact changes are not available in this environment.')
+    void refreshSms();refreshAvatar();refreshLicense()
+    if(embedded){
+      const params=new URLSearchParams(location.search);params.set('person',String(s.person_id));if(s.driver_id)params.set('driver',String(s.driver_id));else params.delete('driver')
+      history.replaceState(null,'',`${location.pathname}?${params.toString()}${location.hash}`)
+    }
+  }
+  function render(){
+    subjectSelect.innerHTML=subjects.map(s=>`<option value="${esc(s.person_id)}">${esc(s.name)}${s.relation==='SELF'?' (you)':''}</option>`).join('')
+    const params=new URLSearchParams(location.search),person=params.get('person'),driver=params.get('driver')
+    const wanted=subjects.find(s=>(person&&String(s.person_id)===person)||(driver&&String(s.driver_id)===driver))
+    if(wanted)subjectSelect.value=String(wanted.person_id)
+    renderSubject()
+  }
+  async function refresh(keepPersonId=null){const result=await call('overview');contactChangesAvailable=result.contact_changes_available===true;subjects=result.subjects||[];pendingChanges=[];if(contactChangesAvailable){try{const pending=await contactCall({action:'pending_changes'});pendingChanges=pending.pending_changes||[]}catch(err){console.warn('Contact-change status unavailable; continuing with profile editing',err)}}if(!subjects.length)throw new Error('No editable profiles are available to this account.');render();if(keepPersonId&&subjects.some(s=>String(s.person_id)===String(keepPersonId))){subjectSelect.value=String(keepPersonId);renderSubject()}if(embedded){const self=subjects.find(s=>s.relation==='SELF');const driverOnly=Boolean(self?.kind==='DRIVER'&&!subjects.some(s=>s.relation==='SELF'&&s.kind==='PERSON'));document.body.classList.toggle('family-driver-profile-mode',driverOnly);window.dispatchEvent(new CustomEvent('dv:profile-mode',{detail:{driverOnly,subjects}}))}}
   async function init(){const result=await client.auth.getSession();session=result.data.session;if(!session){loading.hidden=true;authNeeded.hidden=false;return}try{await refresh();loading.hidden=true;app.hidden=false}catch(e){loading.innerHTML=`<p>${esc(e.message||e)}</p>`}}
   subjectSelect?.addEventListener('change',renderSubject)
-  document.getElementById('profile-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected();if(!s)return;const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;status('profile-status','Saving…');try{const payload={person_id:s.person_id,name:nameInput.value,home_zip:zipInput.value};if(s.kind==='DRIVER'&&colorDirty)payload.favorite_color=colorPicker?.getValue()||null;await call('update_basic',payload);await refresh(s.person_id);status('profile-status','Profile saved.','success')}catch(err){status('profile-status',err.message||String(err),'error')}finally{button.disabled=false}})
+  document.getElementById('profile-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected();if(!s)return;const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;status('profile-status','Saving…');try{const payload={person_id:s.person_id,name:nameInput.value};if(s.kind==='DRIVER')payload.home_zip=zipInput.value;if(s.kind==='DRIVER'&&colorDirty)payload.favorite_color=colorPicker?.getValue()||null;await call('update_basic',payload);await refresh(s.person_id);status('profile-status','Profile saved.','success')}catch(err){status('profile-status',err.message||String(err),'error')}finally{button.disabled=false}})
   licenseEffective?.addEventListener('change',()=>refreshLicense())
   licenseTarget?.addEventListener('change',()=>{licenseAdvance.disabled=!licenseTarget.value})
   licenseRequirements?.addEventListener('click',async e=>{const button=e.target.closest('.license-confirm');if(!button)return;const s=selected(),stage=button.dataset.stage,requirement=button.dataset.requirement;if(!s?.driver_id||!stage||!requirement)return;const ok=confirm(`Confirm that ${requirementLabel(requirement)} was satisfied by ${licenseEffective.value}? This confirmation is recorded in the driver's licensing history.`);if(!ok)return;button.disabled=true;status('license-status','Recording confirmation…');try{await call('record_license_requirement',{driver_id:s.driver_id,target_stage:stage,requirement_type:requirement,satisfied_on:licenseEffective.value});await refreshLicense();status('license-status','Requirement confirmed.','success')}catch(err){status('license-status',err.message||String(err),'error');button.disabled=false}})
@@ -182,6 +254,34 @@
   changeMobile?.addEventListener('click',()=>contactChange('mobile'))
   document.getElementById('avatar-upload-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected(),file=avatarPhoto?.files?.[0];if(!s?.driver_id)return;if(!file){status('avatar-status','Choose a photo first.','error');return}if(file.size>MAX_AVATAR_BYTES){status('avatar-status','Photo must be 4 MB or smaller.','error');return}const button=document.getElementById('avatar-upload');button.disabled=true;status('avatar-status','Uploading photo…');try{const form=new FormData();form.append('action','upload_photo');form.append('driver_id',s.driver_id);form.append('photo',file);const out=await avatarCall({},form);await refreshAvatar();status('avatar-status',out.replacement?'Replacement avatar request started. Your current avatar stays active until the new one is ready.':'Avatar request started. Parker has the photo.','success');avatarPhoto.value=''}catch(err){status('avatar-status',err.message||String(err),'error');button.disabled=false}})
   avatarParker?.addEventListener('click',async()=>{const s=selected();if(!s?.driver_id||avatarState?.parker_mms_reopt_required||avatarState?.parker_mms_one_time)return;avatarParker.disabled=true;status('avatar-status','Asking Parker to text for the photo…');try{await avatarCall({action:'request_parker_photo',driver_id:s.driver_id});await refreshAvatar();status('avatar-status','Parker sent the photo request. Reply to that text with one clear photo.','success')}catch(err){status('avatar-status',err.message||String(err),'error');avatarParker.disabled=false}})
+  smsAction?.addEventListener('click',async()=>{
+    const s=selected();if(!s||!smsState)return
+    const turningOn=smsState.state!=='OPTED_IN'
+    const prompt=turningOn
+      ? `Turn on Text Parker for ${smsState.mobile||'this verified mobile'}? By continuing, you agree to receive Drive Venture / Text Parker SMS messages. Message frequency varies; message and data rates may apply. Reply HELP for help or STOP to opt out.`
+      : `Turn off Text Parker for ${smsState.mobile||'this mobile'}? Drive commands and other Text Parker messages will stop until you opt in again.`
+    if(!confirm(prompt))return
+    smsAction.disabled=true
+    status('contact-status',turningOn?'Turning on Text Parker…':'Turning off Text Parker…')
+    try{
+      const out=await contactCall({action:'set_sms_consent',person_id:s.person_id,event_type:turningOn?'OPT_IN':'OPT_OUT'})
+      smsState=out.sms||null;renderSms()
+      const welcome=out.sms?.welcome
+      status('contact-status',turningOn?(welcome?.failed?'Text Parker is on, but the welcome text could not be sent.':'Text Parker is on.'):'Text Parker is off.','success')
+      await refreshSms()
+    }catch(err){status('contact-status',err.message||String(err),'error')}
+    finally{smsAction.disabled=false}
+  })
+  function selectProfile(detail={}){
+    const target=subjects.find(s=>(detail.person_id&&String(s.person_id)===String(detail.person_id))||(detail.driver_id&&String(s.driver_id)===String(detail.driver_id)))
+    if(!target)return false
+    subjectSelect.value=String(target.person_id);renderSubject()
+    document.getElementById('family-profile-editor')?.scrollIntoView({behavior:'smooth',block:'start'})
+    return true
+  }
+  window.DVProfile={select:selectProfile,refresh:()=>refresh(selected()?.person_id)}
+  window.addEventListener('dv:profile-select',event=>selectProfile(event.detail||{}))
+  window.dispatchEvent(new CustomEvent('dv:profile-ready'))
   document.getElementById('profile-sign-out')?.addEventListener('click',async()=>{await client.auth.signOut();location.replace('/log/')})
   client.auth.onAuthStateChange((_event,next)=>{session=next})
   init()
