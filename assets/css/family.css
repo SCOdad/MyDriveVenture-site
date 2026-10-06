@@ -241,3 +241,18 @@ body:not(.family-driver-profile-mode) #family-profile-editor{display:none!import
   .family-driver-comm-row{grid-template-columns:48px minmax(0,1fr)}
   .family-inline-sms-label{display:none}
 }
+
+
+/* BKLG-0240 UAT repair: grown-up name + driver-self card */
+.family-grownup-name-row{display:grid!important;grid-template-columns:74px minmax(0,1fr);gap:10px!important;align-items:center}
+.family-grownup-name-row>div{display:flex!important;align-items:center!important;gap:8px!important}
+body.family-driver-profile-mode .family-people-section{display:block!important}
+body.family-driver-profile-mode .family-people-head,
+body.family-driver-profile-mode .family-grownup-region,
+body.family-driver-profile-mode .family-people-actions,
+body.family-driver-profile-mode #family-pending-invites,
+body.family-driver-profile-mode .family-see-all-row{display:none!important}
+body.family-driver-profile-mode .family-driver-region{margin-top:0}
+body.family-driver-profile-mode .family-driver-grid{display:grid!important}
+body.family-driver-profile-mode #family-profile-editor{display:none!important}
+@media(max-width:720px){.family-grownup-name-row{grid-template-columns:68px minmax(0,1fr)}}
