@@ -256,3 +256,28 @@ body.family-driver-profile-mode .family-driver-region{margin-top:0}
 body.family-driver-profile-mode .family-driver-grid{display:grid!important}
 body.family-driver-profile-mode #family-profile-editor{display:none!important}
 @media(max-width:720px){.family-grownup-name-row{grid-template-columns:68px minmax(0,1fr)}}
+
+
+/* BKLG-0240 pending verification + compact verified phone */
+.family-contact-pending-row{position:relative}
+.family-contact-pending{grid-column:2;display:flex;align-items:baseline;gap:7px;min-width:0;margin-top:4px;color:var(--family-accent-highlight)}
+.family-contact-pending strong{font-size:.72rem;white-space:nowrap}
+.family-contact-pending small{font-size:.67rem;color:var(--muted,#aeb8c2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.family-driver-comm-row [data-card-value="mobile"]{white-space:nowrap!important;flex:0 0 auto}
+.family-driver-comm-row [data-card-verify="mobile"]{font-size:.66rem!important;padding:4px 6px!important;white-space:nowrap}
+.family-driver-comm-row .family-inline-sms-label{font-size:.56rem!important;margin-left:0!important}
+.family-driver-comm-row [data-card-value="sms_state"]{font-size:.7rem!important}
+.family-driver-comm-row [data-card-sms-action]{font-size:.66rem!important;padding:5px 7px!important;white-space:nowrap}
+.family-driver-comm-row [data-inline-edit="mobile"]{flex:0 0 auto}
+.family-driver-comm-row>div{gap:5px!important}
+.family-driver-card{--family-driver-width:360px}
+@media(max-width:720px){
+  .family-contact-pending{grid-column:1/-1;margin-left:0}
+  .family-driver-comm-row>div{flex-wrap:wrap!important}
+  .family-driver-comm-row [data-card-value="mobile"]{order:0}
+  .family-driver-comm-row [data-card-verify="mobile"]{order:1}
+  .family-driver-comm-row [data-inline-edit="mobile"]{order:2}
+  .family-driver-comm-row .family-inline-sms-label,
+  .family-driver-comm-row [data-card-value="sms_state"],
+  .family-driver-comm-row [data-card-sms-action]{order:3}
+}
