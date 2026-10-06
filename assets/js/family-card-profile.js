@@ -88,7 +88,7 @@
   async function enrichDriver(card){
     const id=String(card.dataset.driverId||''),s=subjectByDriver.get(id);if(!s)return;
     const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};
-    set('name',s.name||'Driver');set('home',locationText(s));set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));
+    set('name',s.name||'Driver');set('home',locationText(s));set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));const emailValue=card.querySelector('[data-card-value="email"]');if(emailValue)emailValue.title=s.email||'Not set';
     setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);
     const stateEl=card.querySelector('[data-license-state]');if(stateEl)stateEl.textContent=s.home_state||'—';
     try{
