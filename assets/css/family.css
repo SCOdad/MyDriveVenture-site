@@ -281,3 +281,18 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
   .family-driver-comm-row [data-card-value="sms_state"],
   .family-driver-comm-row [data-card-sms-action]{order:3}
 }
+
+
+/* BKLG-0240 final phone/Text Parker row alignment */
+.family-driver-phone-row{align-items:start!important}
+.family-driver-phone-stack{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;min-width:0}
+.family-driver-phone-value,.family-driver-sms-line{display:flex!important;align-items:center!important;gap:6px!important;min-width:0}
+.family-driver-phone-value [data-card-value="mobile"]{white-space:nowrap!important;flex:0 0 auto}
+.family-driver-sms-line{flex-wrap:nowrap!important}
+.family-driver-sms-line .family-inline-sms-label{display:inline!important;white-space:nowrap}
+.family-driver-sms-line [data-card-value="sms_state"],
+.family-driver-sms-line [data-card-sms-action],
+.family-driver-sms-line [data-inline-edit="mobile"]{flex:0 0 auto}
+@media(max-width:720px){
+  .family-driver-sms-line{flex-wrap:wrap!important}
+}
