@@ -2,7 +2,7 @@
   const cfg=window.DV_APP_CONFIG||{};
   if(!cfg.supabaseUrl||!cfg.publishableKey||!window.supabase)return;
   const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map();const expandedDrivers=new Set();
+  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map(),pendingByPerson=new Map();const expandedDrivers=new Set();
 
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const prettyPhone=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11&&d.startsWith('1')?`(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`:v||'Not set'};
@@ -25,6 +25,36 @@
     subjects=out.subjects||[];
     subjectByPerson=new Map(subjects.map(s=>[String(s.person_id),s]));
     subjectByDriver=new Map(subjects.filter(s=>s.driver_id).map(s=>[String(s.driver_id),s]));
+  }
+  async function loadPendingChanges(){
+    const out=await api('contact-endpoint-api','pending_changes');
+    pendingByPerson=new Map();
+    for(const change of out.pending_changes||[]){
+      const personId=String(change.person_id||''),type=String(change.endpoint_type||'').toUpperCase();
+      if(!personId||!['EMAIL','MOBILE'].includes(type))continue;
+      const row=pendingByPerson.get(personId)||{};row[type]=change;pendingByPerson.set(personId,row);
+    }
+  }
+  function pendingLabel(change,type){
+    const expiry=new Date(change?.expires_at||0).getTime(),mins=Math.max(1,Math.ceil((expiry-Date.now())/60000));
+    const destination=type==='MOBILE'?prettyPhone(change?.proposed_value):String(change?.proposed_value||'');
+    return {title:type==='MOBILE'?'Check your texts':'Check your email',detail:`${destination} · expires in ${mins} min`};
+  }
+  function renderPendingState(card,s){
+    const pending=pendingByPerson.get(String(s?.person_id||''))||{};
+    for(const [type,field] of [['EMAIL','email'],['MOBILE','mobile']]){
+      const change=pending[type],value=card.querySelector(`[data-card-value="${field}"]`),row=value?.closest('.family-inline-field');
+      if(!row)continue;
+      row.classList.toggle('family-contact-pending-row',!!change);
+      row.querySelectorAll('.family-contact-pending').forEach(el=>el.remove());
+      const pencil=row.querySelector(`[data-inline-edit="${field}"]`);
+      if(pencil){pencil.hidden=!!change;pencil.disabled=!!change}
+      if(change){
+        const copy=pendingLabel(change,type),note=document.createElement('div');note.className='family-contact-pending';
+        note.innerHTML=`<strong>${esc(copy.title)}</strong><small>${esc(copy.detail)}</small>`;
+        row.appendChild(note);
+      }
+    }
   }
 
   function locationText(s){return [s?.home_city,s?.home_state,s?.home_zip].filter(Boolean).join(s?.home_city?', ':' ')||s?.home_zip||'Not set'}
@@ -68,7 +98,7 @@
   function renderSms(card,sms){
     const state=String(sms?.state||''),value=card.querySelector('[data-card-value="sms_state"]'),detail=card.querySelector('[data-card-sms-detail]'),button=card.querySelector('[data-card-sms-action]');
     const labels={NO_MOBILE:['Unavailable','Add a mobile number first.'],VERIFICATION_PENDING:['Unavailable','Mobile verification pending.'],MOBILE_UNVERIFIED:['Unavailable','Verify the mobile number first.'],VERIFIED_NOT_ENROLLED:['Off',''],OPTED_IN:['On',''],OPTED_OUT:['Off','']};
-    const label=labels[state]||['Unavailable',''];if(value)value.textContent=label[0];if(detail)detail.textContent=label[1];
+    const label=labels[state]||['Unavailable',''];if(value){value.textContent=label[0];value.setAttribute('aria-label',`Text Parker ${label[0]}`)}if(detail)detail.textContent=label[1];
     const actionable=['VERIFIED_NOT_ENROLLED','OPTED_IN','OPTED_OUT'].includes(state);
     if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off':'Turn on';button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
   }
@@ -89,7 +119,7 @@
     const id=String(card.dataset.driverId||''),s=subjectByDriver.get(id);if(!s)return;
     const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};
     set('name',s.name||'Driver');set('home',locationText(s));set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));const emailValue=card.querySelector('[data-card-value="email"]');if(emailValue)emailValue.title=s.email||'Not set';
-    setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);
+    setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);renderPendingState(card,s);
     const stateEl=card.querySelector('[data-license-state]');if(stateEl)stateEl.textContent=s.home_state||'—';
     try{
       const [licenseOut,smsOut]=await Promise.all([api('profile-api','license_overview',{driver_id:id}),api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id})]);
@@ -103,8 +133,8 @@
   }
 
   async function enrichCards(){
-    try{await loadSubjects()}catch(err){console.warn('Card profile data unavailable',err);return}
-    await Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}}));
+    try{await Promise.all([loadSubjects(),loadPendingChanges()])}catch(err){console.warn('Card profile data unavailable',err);return}
+    await Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}renderPendingState(card,s)}));
     await Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
   }
 
@@ -120,18 +150,18 @@
     const driverId=String(card.dataset.driverId||''),personId=String(card.dataset.personId||''),s=driverId?subjectByDriver.get(driverId):subjectByPerson.get(personId);if(!s)throw new Error('Profile data is unavailable.');
     if(field==='name'){const payload={person_id:s.person_id,name:value.trim()};if(s.kind==='DRIVER')payload.home_zip=s.home_zip;await api('profile-api','update_basic',payload)}
     else if(field==='home_zip'){if(!/^\d{5}$/.test(value.trim()))throw new Error('ZIP code must be 5 digits.');await api('profile-api','update_basic',{person_id:s.person_id,name:s.name,home_zip:value.trim()})}
-    else if(field==='email'||field==='mobile'){const type=field==='email'?'EMAIL':'MOBILE',out=await api('contact-endpoint-api','request_contact_change',{person_id:s.person_id,endpoint_type:type,value:value.trim()});if(out.change?.status==='ALREADY_CURRENT'){msg.textContent='That value is already current.';return false}msg.textContent='Verification sent. Current verified value remains active until verification completes.';return false}
+    else if(field==='email'||field==='mobile'){const type=field==='email'?'EMAIL':'MOBILE',out=await api('contact-endpoint-api','request_contact_change',{person_id:s.person_id,endpoint_type:type,value:value.trim()});if(out.change?.status==='ALREADY_CURRENT'){msg.textContent='That value is already current.';return false}return 'PENDING'}
     else if(field==='license_effective_date'){await api('profile-api','update_license_effective_date',{driver_id:driverId,effective_date:value})}
     await window.DVFamily?.refresh?.();return true;
   }
   function beginEdit(button){
     const card=button.closest('.family-grownup-card,.family-driver-card'),field=button.dataset.inlineEdit;if(!card||!field)return;
-    const driverId=String(card.dataset.driverId||''),personId=String(card.dataset.personId||''),s=driverId?subjectByDriver.get(driverId):subjectByPerson.get(personId),config=fieldConfig(field,s,card);if(!config)return;
+    const driverId=String(card.dataset.driverId||''),personId=String(card.dataset.personId||''),s=driverId?subjectByDriver.get(driverId):subjectByPerson.get(personId),pending=pendingByPerson.get(String(s?.person_id||''))||{},pendingType=field==='email'?'EMAIL':field==='mobile'?'MOBILE':null,config=fieldConfig(field,s,card);if(!config||pendingType&&pending[pendingType])return;
     const row=button.closest('.family-inline-field'),valueEl=row?.querySelector(`[data-card-value="${field==='home_zip'?'home':field}"]`);if(!row||!valueEl)return;const original=row.innerHTML;
     row.innerHTML=`<span class="field-label">${esc(config.label)}</span><div class="family-inline-editor"><input type="${config.type}" value="${esc(config.value)}" ${config.attrs||''}><button class="button secondary" type="button" data-inline-save>Save</button><button class="button secondary" type="button" data-inline-cancel>Cancel</button><small class="family-inline-message" role="status"></small></div>`;
     const input=row.querySelector('input'),msg=row.querySelector('.family-inline-message');input?.focus();input?.select?.();
     row.querySelector('[data-inline-cancel]').onclick=e=>{e.stopPropagation();row.innerHTML=original};
-    row.querySelector('[data-inline-save]').onclick=async e=>{e.stopPropagation();const save=e.currentTarget;save.disabled=true;msg.textContent='Saving…';msg.classList.remove('is-error');try{const refresh=await saveField(card,field,input.value,msg);if(refresh!==false)return;save.disabled=false}catch(err){msg.textContent=err.message||String(err);msg.classList.add('is-error');save.disabled=false}};
+    row.querySelector('[data-inline-save]').onclick=async e=>{e.stopPropagation();const save=e.currentTarget;save.disabled=true;msg.textContent='Saving…';msg.classList.remove('is-error');try{const refresh=await saveField(card,field,input.value,msg);if(refresh==='PENDING'){row.innerHTML=original;await enrichCards();return}if(refresh!==false)return;save.disabled=false}catch(err){msg.textContent=err.message||String(err);msg.classList.add('is-error');save.disabled=false}};
     input?.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();row.innerHTML=original}});
   }
   async function toggleExpanded(driverId){
