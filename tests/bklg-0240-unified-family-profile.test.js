@@ -235,3 +235,10 @@ test('driver self mode renders the same driver card without fetching family over
   assert.match(css,/body\.family-driver-profile-mode \.family-people-section\{display:block!important\}/);
   assert.match(css,/body\.family-driver-profile-mode \.family-grownup-region/);
 });
+
+test('contact verification page verifies against canonical contact endpoint API in its configured environment',()=>{
+  const verify=read('assets/js/verify-contact.js'),html=read('verify-contact/index.html');
+  assert.match(verify,/contact-endpoint-api\?token=/);
+  assert.doesNotMatch(verify,/contact-endpoint-verify\?token=/);
+  assert.match(html,/verify-contact\.js\?v=20261006-bklg0240a/);
+});
