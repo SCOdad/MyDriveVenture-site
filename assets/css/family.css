@@ -270,7 +270,7 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-driver-comm-row [data-card-sms-action]{font-size:.66rem!important;padding:5px 7px!important;white-space:nowrap}
 .family-driver-comm-row [data-inline-edit="mobile"]{flex:0 0 auto}
 .family-driver-comm-row>div{gap:5px!important}
-.family-driver-card{--family-driver-width:360px}
+.family-people-section{--family-driver-width:360px}
 @media(max-width:720px){
   .family-contact-pending{grid-column:1/-1;margin-left:0}
   .family-driver-comm-row>div{flex-wrap:wrap!important}
