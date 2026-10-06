@@ -242,3 +242,21 @@ test('contact verification page verifies against canonical contact endpoint API 
   assert.doesNotMatch(verify,/contact-endpoint-verify\?token=/);
   assert.match(html,/verify-contact\.js\?v=20261006-bklg0240a/);
 });
+
+test('pending contact changes replace inline editor with channel-specific verification state',()=>{
+  const card=read('assets/js/family-card-profile.js'),css=read('assets/css/family.css');
+  assert.match(card,/loadPendingChanges/);
+  assert.match(card,/pending_changes/);
+  assert.match(card,/Check your texts/);
+  assert.match(card,/Check your email/);
+  assert.match(card,/return 'PENDING'/);
+  assert.match(card,/row\.innerHTML=original;await enrichCards\(\)/);
+  assert.match(css,/family-contact-pending/);
+});
+test('verified mobile stays on one line while Text Parker controls compact around it',()=>{
+  const card=read('assets/js/family-card-profile.js'),css=read('assets/css/family.css');
+  assert.match(card,/prettyPhone/);
+  assert.match(css,/\[data-card-value="mobile"\]\{white-space:nowrap!important/);
+  assert.match(css,/\[data-card-sms-action\]\{font-size:\.66rem!important/);
+  assert.match(css,/--family-driver-width:360px/);
+});
