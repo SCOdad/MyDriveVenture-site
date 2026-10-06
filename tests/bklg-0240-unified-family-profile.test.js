@@ -220,3 +220,18 @@ test('expand full profile is button-styled and driver console action is suppress
   assert.doesNotMatch(cardSource,/Open console/);
   assert.match(css,/family-expand-profile.*border:1px/s);
 });
+
+test('grown-up self landscape card includes inline editable name',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.match(family,/family-grownup-name-row/);
+  assert.match(family,/data-inline-edit="name"/);
+  assert.match(css,/family-grownup-name-row/);
+});
+test('driver self mode renders the same driver card without fetching family overview',()=>{
+  const family=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.match(family,/function renderDriverSelf\(subjects\)/);
+  assert.match(family,/renderDriverSelf\(mode\.subjects\)/);
+  assert.match(family,/dv:family-rendered/);
+  assert.match(css,/body\.family-driver-profile-mode \.family-people-section\{display:block!important\}/);
+  assert.match(css,/body\.family-driver-profile-mode \.family-grownup-region/);
+});
