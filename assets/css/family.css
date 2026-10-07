@@ -296,3 +296,23 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 @media(max-width:720px){
   .family-driver-sms-line{flex-wrap:wrap!important}
 }
+
+
+/* BKLG-0249 / BKLG-0250 Family ownership layout */
+.family-account-section{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.family-account-section:first-of-type{margin-top:10px}
+.family-owned-summary,.family-other-account-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.025)}
+.family-owned-summary h3,.family-other-account-head h4{margin:.2rem 0;font-family:Orbitron,Inter,sans-serif}
+.family-license-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.family-license-meta strong{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.family-people-actions#owned-family-actions{margin:12px 0 6px}
+.family-other-access{margin-top:28px}
+.family-other-account-group{margin-top:14px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.018)}
+.family-other-account-group h5{margin:18px 0 6px;font-family:Orbitron,Inter,sans-serif;font-size:.82rem}
+.family-other-account-group .family-grownup-grid,.family-other-account-group .family-driver-grid{margin-top:10px}
+.family-upgrade-preview[disabled]{opacity:.7;cursor:default}
+#driver-grownup-access{margin-top:8px}
+@media(max-width:720px){
+  .family-owned-summary,.family-other-account-head{align-items:flex-start;flex-direction:column}
+  .family-other-account-head .button,.family-owned-summary .button{width:100%}
+}
