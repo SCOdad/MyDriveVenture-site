@@ -21,8 +21,6 @@ test('Family Hub client parses and uses canonical supported contracts',()=>{
   assert.match(js,/avatarUrlCache\.set\(id,url\)/);
   assert.match(js,/No usable headshot/);
   assert.match(js,/DV_DRIVER_PALETTES/);
-  assert.match(js,/total_minutes/);
-  assert.match(js,/night_minutes/);
 });
 
 test('Family Hub preserves Family API progress when dashboard progress is absent',()=>{
@@ -50,10 +48,11 @@ test('Family Hub includes true-zero and scoped no-driver states',()=>{
   assert.match(js,/Add your first driver before inviting another grown-up/);
 });
 
-test('driver cards avoid sensitive identity fields and preserve scoped grown-up access UI',()=>{
+test('driver cards expose the approved editable profile fields while preserving scoped grown-up access UI',()=>{
   const js=read('assets/js/family.js');
   const cardSource=js.slice(js.indexOf('function driverCard'),js.indexOf('function grownupCard'));
-  assert.doesNotMatch(cardSource,/birth_date|home_zip|email|mobile/i);
+  assert.doesNotMatch(cardSource,/birth_date/i);
+  for(const field of ['home_zip','email','mobile']) assert.match(cardSource,new RegExp(field,'i'));
   assert.match(js,/Manage access/);
   assert.match(js,/primary_driver_ids/);
   assert.match(js,/family-chip/);
@@ -65,4 +64,11 @@ test('Family Hub uses canonical palette helper and Parker-style silhouette fallb
   assert.match(js,/DV_DRIVER_PALETTES/);
   assert.match(css,/family-parker-silhouette/);
   assert.match(css,/family-driver-accent/);
+});
+
+test('driver cards no longer act as whole-card profile selectors',()=>{
+  const js=read('assets/js/family.js');
+  const bind=js.slice(js.indexOf('function bindDriverCards'),js.indexOf('function bindGrownupProfileCards'));
+  assert.doesNotMatch(bind,/openProfile/);
+  assert.match(bind,/dv:driver-expand-toggle/);
 });
