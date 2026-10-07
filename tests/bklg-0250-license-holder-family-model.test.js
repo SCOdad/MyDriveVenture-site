@@ -160,3 +160,12 @@ test('owned Family summary is merged into the License Holder self-profile card',
   assert.match(js,/Your Family/);
   assert.match(js,/self\?'Your profile':isHolderHere\?'License Holder'/);
 });
+
+
+test('dynamically rendered Add Driver CTA is covered by delegated panel handling',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
+  assert.match(js,/family-first-driver/);
+  assert.match(js,/data-open-panel="driver"/);
+  assert.match(js,/openFamilyPanel\(b\.dataset\.openPanel,String\(b\.dataset\.family\|\|''\)\)/);
+});
