@@ -316,3 +316,7 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
   .family-owned-summary,.family-other-account-head{align-items:flex-start;flex-direction:column}
   .family-other-account-head .button,.family-owned-summary .button{width:100%}
 }
+
+.family-inline-invite{margin:12px 0;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.018)}
+.family-inline-invite summary{cursor:pointer;font-weight:800}
+.family-inline-invite[open] summary{margin-bottom:10px}
