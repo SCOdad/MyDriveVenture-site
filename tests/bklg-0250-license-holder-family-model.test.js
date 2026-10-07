@@ -142,3 +142,12 @@ test('UAT: dynamically rendered Add Driver CTA uses delegated panel opening',()=
   assert.match(js,/openFamilyPanel\(b\.dataset\.openPanel/);
   assert.match(js,/Add your driver/);
 });
+
+
+test('UAT: owned Family entitlement is combined into the License Holder self card',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/family-self-license-summary/);
+  assert.match(js,/Your Family/);
+  assert.match(js,/License Holder/);
+  assert.match(js,/publicCommercialState\(ctx\)/);
+});
