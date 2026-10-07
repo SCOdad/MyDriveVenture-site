@@ -133,3 +133,12 @@ test('UAT: successful grown-up invitation closes the form and distinguishes deli
   assert.match(js,/DEV email delivery is blocked/);
   assert.match(js,/email delivery failed/);
 });
+
+
+test('UAT: dynamically rendered Add Driver CTA uses delegated panel opening',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/function openFamilyPanel/);
+  assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
+  assert.match(js,/openFamilyPanel\(b\.dataset\.openPanel/);
+  assert.match(js,/Add your driver/);
+});
