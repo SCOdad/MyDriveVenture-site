@@ -99,3 +99,37 @@ test('Add Driver can stage a new or existing grown-up invitation without grantin
   assert.match(js,/driver_ids:\[result\.driver_id\]/);
   assert.match(js,/pending acceptance/);
 });
+
+
+test('UAT: Add Driver is scoped to owned Families and Other Account Access has no Add Driver control',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/const contexts=ownedContexts\(\)/);
+  assert.match(js,/const available=owned\.filter\(x=>x\.can_add_driver\)/);
+  const other=js.slice(js.indexOf('const otherContexts='),js.indexOf("document.querySelectorAll('.manage-access')"));
+  assert.doesNotMatch(other,/data-open-panel="driver"/);
+});
+
+test('UAT: current grown-up is not duplicated in Other Account Access',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/String\(g\.person_id\)!==String\(overview\.current_person_id\)/);
+});
+
+test('UAT: zero-driver owned Family uses only the large Add Driver CTA',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/addDriver\.hidden=ownedDrivers\.length===0/);
+  assert.match(js,/Add your driver/);
+});
+
+test('UAT: prior-practice validation has visible error text and refocuses night hours',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/status\('driver-status',message,message\?'error':''\)/);
+  assert.match(js,/Night hours cannot exceed total prior practice hours/);
+  assert.match(js,/prior_night_hours\?\.focus\(\)/);
+});
+
+test('UAT: successful grown-up invitation closes the form and distinguishes delivery failures',()=>{
+  const js=read('assets/js/family.js');
+  assert.match(js,/document\.getElementById\('grownup-panel'\)\.hidden=true/);
+  assert.match(js,/DEV email delivery is blocked/);
+  assert.match(js,/email delivery failed/);
+});
