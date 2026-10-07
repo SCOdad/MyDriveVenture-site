@@ -89,3 +89,13 @@ test('driver mobile edit pencil is beside phone value rather than Text Parker ac
   const smsLine=card.indexOf('family-driver-sms-line',phoneValue);
   assert.ok(phoneValue>=0&&phonePencil>phoneValue&&phonePencil<smsLine);
 });
+
+
+test('Add Driver can stage a new or existing grown-up invitation without granting access early',()=>{
+  const html=read('family/index.html'),js=read('assets/js/family.js');
+  assert.match(html,/invite_guardian_email/);
+  assert.match(html,/Invite another grown-up to this driver/);
+  assert.match(js,/inviteCall\('lookup',\{email:inviteEmail\}\)/);
+  assert.match(js,/driver_ids:\[result\.driver_id\]/);
+  assert.match(js,/pending acceptance/);
+});
