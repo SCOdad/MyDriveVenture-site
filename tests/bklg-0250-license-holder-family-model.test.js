@@ -12,6 +12,7 @@ test('BKLG-0249/0250 Family Hub names License Holder instead of Primary grown-up
   assert.match(js,/license_holder_name/);
   assert.doesNotMatch(js,/Only a primary grown-up/);
   assert.doesNotMatch(js,/g\.is_primary\?'Primary'/);
+  assert.doesNotMatch(js,/primary\.has\(/);
 });
 
 test('multi-family Add Driver selects the entitlement and identifies its License Holder',()=>{
