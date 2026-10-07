@@ -151,3 +151,12 @@ test('UAT: owned Family entitlement is combined into the License Holder self car
   assert.match(js,/License Holder/);
   assert.match(js,/publicCommercialState\(ctx\)/);
 });
+
+
+test('owned Family summary is merged into the License Holder self-profile card',()=>{
+  const html=read('family/index.html'),js=read('assets/js/family.js');
+  assert.doesNotMatch(html,/id="family-contexts"/);
+  assert.match(js,/family-self-license-summary/);
+  assert.match(js,/Your Family/);
+  assert.match(js,/self\?'Your profile':isHolderHere\?'License Holder'/);
+});
