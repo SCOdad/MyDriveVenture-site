@@ -320,3 +320,8 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-inline-invite{margin:12px 0;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.018)}
 .family-inline-invite summary{cursor:pointer;font-weight:800}
 .family-inline-invite[open] summary{margin-bottom:10px}
+
+.family-self-license-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.family-self-license-summary>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.family-self-license-summary>div>strong{text-transform:uppercase;letter-spacing:.08em;font-size:.78rem}
+@media(max-width:720px){.family-self-license-summary{align-items:flex-start;flex-direction:column}.family-self-license-summary .button{width:100%}}
