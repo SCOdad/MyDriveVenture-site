@@ -24,7 +24,7 @@ test('BKLG-0240 Add Driver revalidates prior practice live and supplies explicit
   assert.match(html,/id="driver-family-context"/);
   assert.match(js,/function syncDriverFamilyContext/);
   assert.match(js,/name="family_id"/);
-  assert.match(js,/Choose a family/);
+  assert.match(js,/Choose a Family/);
   assert.match(js,/function wirePriorPracticeValidation/);
   assert.match(js,/addEventListener\('input',\(\)=>validatePriorPractice\(form\)\)/);
 });
