@@ -391,3 +391,13 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-license-fields>.family-driver-issue-row .family-license-date-row {display:flex!important;flex-wrap:wrap;justify-content:space-between;gap:5px 10px;min-width:0}
 .family-license-fields>.family-driver-issue-row .family-license-date-value {display:inline-flex;justify-content:flex-start;gap:6px;min-width:0}
 .family-license-fields>.family-driver-issue-row [data-license-name] {font-size:.72rem;line-height:1.35}
+
+
+/* UAT: grown-up Text Parker controls mirror the driver-card horizontal pill row. */
+.family-grownup-card .family-grownup-sms-line {grid-column:2;display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0;margin-top:6px}
+.family-grownup-card .family-grownup-sms-line .family-inline-sms-label,
+.family-grownup-card .family-grownup-sms-line [data-card-value="sms_state"] {flex:0 0 auto;white-space:nowrap}
+.family-grownup-card .family-grownup-sms-line .family-sms-action {display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;max-width:100%;width:auto;min-height:32px;border-radius:999px;white-space:nowrap;line-height:1.2;padding:6px 12px}
+.family-grownup-card .family-grownup-sms-line .family-sms-action[hidden] {display:none}
+.family-grownup-card .family-grownup-sms-detail {grid-column:2}
+@media(max-width:650px){.family-grownup-card .family-grownup-sms-line {grid-column:1/-1}}
