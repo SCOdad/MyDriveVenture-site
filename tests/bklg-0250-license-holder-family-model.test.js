@@ -187,3 +187,13 @@ test('grown-up self card stacks entitlement above profile content',()=>{
   assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
   assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
 });
+
+
+test('Other Account Access merges Family access into the License Holder card',()=>{
+  const js=read('assets/js/family.js'),bootstrap=read('assets/js/family-bootstrap.js'),html=read('family/index.html');
+  assert.match(js,/self\?'Your Family':'Family access'/);
+  assert.doesNotMatch(js,/family-other-account-head/);
+  assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
+  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-other-family-merge1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-other-family-merge1/);
+});
