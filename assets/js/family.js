@@ -27,11 +27,11 @@
  function avatarFallback(d){return `<div class="family-avatar-fallback" aria-hidden="true"><div class="family-parker-silhouette"><span class="hair"></span><span class="head"></span><span class="hood"></span></div><strong class="family-avatar-initials">${esc(initials(d.display_name))}</strong><small>No avatar yet</small></div>`}
  function driverCard(d,index){const p=d.progress||{},hidden=index>=3&&!showAllDrivers,accent=colorStyle(d.favorite_color),style=accent?` style="${esc(accent)}"`:'';return `<article class="family-driver-card family-license-profile-card${accent?' has-driver-accent':''}${hidden?' family-driver-overflow':''}" data-driver-id="${esc(d.id)}" data-person-id="${esc(d.person_id||'')}"${style}${hidden?' hidden':''}>
    <div class="family-driver-accent" aria-hidden="true"></div>
-   <div class="family-license-card-header"><div><span class="family-license-state" data-license-state="${esc(d.id)}">${esc(d.home_state||'—')}</span><strong>${esc(d.display_name||'Driver')}</strong></div><span class="family-license-tag">DRIVER PROFILE</span></div>
+   <div class="family-license-card-header"><div><span class="family-license-state" data-license-state="${esc(d.id)}">${esc(d.home_state||'—')}</span><div class="family-driver-title-edit"><strong data-card-value="name">${esc(d.display_name||'Driver')}</strong><button class="family-pencil" data-inline-edit="name" type="button" aria-label="Edit driver name">✎</button></div></div><span class="family-license-tag">DRIVER PROFILE</span></div>
    <div class="family-license-card-body">
      <div class="family-driver-photo" data-avatar-host="${esc(d.id)}" role="img" aria-label="${esc(d.display_name||'Driver')} portrait">${avatarFallback(d)}</div>
      <div class="family-license-fields">
-       <div class="family-inline-field"><span class="field-label family-driver-field-label">Name</span><div><strong data-card-value="name">${esc(d.display_name||'Driver')}</strong><button class="family-pencil" data-inline-edit="name" type="button" aria-label="Edit name">✎</button></div></div>
+       
        <div class="family-inline-field"><span class="field-label family-driver-field-label">Home</span><div><strong data-card-value="home">${esc([d.home_city,d.home_state,d.home_zip].filter(Boolean).join(d.home_city?', ':' ')||d.home_zip||'Not set')}</strong><button class="family-pencil" data-inline-edit="home_zip" type="button" aria-label="Edit home ZIP">✎</button></div></div>
      </div>
    </div>
