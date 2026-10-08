@@ -57,7 +57,8 @@ test('Family Profiles merges owned license summary and Other Account Access',()=
   const html=read('family/index.html'),js=read('assets/js/family.js');
   assert.match(html,/id="owned-family-section"/);
   assert.match(html,/id="other-account-access"/);
-  assert.match(js,/Your Family/);
+  assert.match(js,/family-self-license-summary/);
+  assert.match(js,/esc\(g\.display_name\|\|'Grown-up'\)/);
   assert.match(js,/Other account access|family-other-account-group/);
   assert.match(js,/publicCommercialState/);
   assert.doesNotMatch(js,/FREE_EXHAUSTED/);
