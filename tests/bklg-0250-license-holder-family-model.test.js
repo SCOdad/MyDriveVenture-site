@@ -169,3 +169,12 @@ test('dynamically rendered Add Driver CTA is covered by delegated panel handling
   assert.match(js,/data-open-panel="driver"/);
   assert.match(js,/openFamilyPanel\(b\.dataset\.openPanel,String\(b\.dataset\.family\|\|''\)\)/);
 });
+
+
+test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
+  const html=read('family/index.html'),bootstrap=read('assets/js/family-bootstrap.js'),js=read('assets/js/family.js');
+  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
+  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
+  assert.match(js,/function openFamilyPanel/);
+  assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
+});
