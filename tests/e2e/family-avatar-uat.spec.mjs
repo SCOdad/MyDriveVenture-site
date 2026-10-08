@@ -45,6 +45,10 @@ test('real browser recovers avatars and Add Driver prevents duplicate submission
  await form.locator('[name="license_stage"]').selectOption('LEVEL_1');await form.locator('[name="vehicle_class"]').selectOption('Sedan');
  await expect(page.locator('#prior-night-hours-error')).toContainText('Night hours cannot exceed');
  await expect(form.locator('[name="prior_night_hours"]')).toHaveAttribute('aria-invalid','true');
+ await expect(page.locator('#driver-status')).toBeEmpty();
+ await expect(page.locator('#prior-night-hours-error')).toBeVisible();
+ await form.locator('button[type="submit"]').click();
+ expect(await page.evaluate(()=>window.uat.submissions.length)).toBe(0);
  await form.dispatchEvent('submit');expect(await page.evaluate(()=>window.uat.submissions.length)).toBe(0);
  await form.locator('[name="prior_night_hours"]').fill('0.5');await expect(page.locator('#prior-night-hours-error')).toBeHidden();await form.locator('[name="guardian_person_id"][value="grownup"]').check();
  await form.dispatchEvent('submit');await form.dispatchEvent('submit');
