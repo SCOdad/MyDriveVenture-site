@@ -376,3 +376,11 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-license-profile-card .family-driver-issue-row .family-issue-date-caption {font-size:.63rem;line-height:1.3;letter-spacing:.08em}
 .family-license-profile-card .family-driver-issue-row>div {min-width:max-content;white-space:nowrap}
 @media (max-width:390px) {.family-license-profile-card .family-driver-issue-row {grid-template-columns:minmax(0,1fr)!important;gap:7px!important}.family-license-profile-card .family-driver-issue-row>div {justify-content:flex-start}}
+
+/* UAT: license type spans the card; issue date is a separate two-column row. */
+.family-license-profile-card .family-driver-issue-row {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;align-items:stretch!important}
+.family-license-profile-card .family-driver-issue-row .family-license-type-row {display:block;min-width:0}
+.family-license-profile-card .family-license-type-row [data-license-name] {display:block;overflow-wrap:anywhere;font-size:.79rem;line-height:1.4;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.family-license-profile-card .family-license-date-row {display:grid!important;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:12px;min-width:0}
+.family-license-profile-card .family-license-date-row>.field-label {font-size:.68rem;white-space:nowrap}
+.family-license-profile-card .family-license-date-value {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;white-space:nowrap}
