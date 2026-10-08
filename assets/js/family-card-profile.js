@@ -100,7 +100,7 @@
     const labels={NO_MOBILE:['Unavailable','Add a mobile number first.'],VERIFICATION_PENDING:['Unavailable','Mobile verification pending.'],MOBILE_UNVERIFIED:['Unavailable','Verify the mobile number first.'],VERIFIED_NOT_ENROLLED:['Off',''],OPTED_IN:['On',''],OPTED_OUT:['Off','']};
     const label=labels[state]||['Unavailable',''];if(value){value.textContent=label[0];value.setAttribute('aria-label',`Text Parker ${label[0]}`)}if(detail)detail.textContent=label[1];
     const actionable=['VERIFIED_NOT_ENROLLED','OPTED_IN','OPTED_OUT'].includes(state);
-    if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off':'Turn on';button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
+    if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker';button.setAttribute('aria-label',button.textContent);button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
   }
   function applyCardPalette(card,value){
     const lib=window.DV_DRIVER_PALETTES;if(!lib?.resolve)return;const p=lib.resolve(value);
