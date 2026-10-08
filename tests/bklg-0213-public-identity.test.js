@@ -1,11 +1,10 @@
 // BKLG-0213: Active public identity surfaces must not present the former sole-proprietor operator.
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
+const { resolve } = require('node:path');
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(__dirname, '..');
 const activePublicPages = [
   'index.html', 'privacy/index.html', 'terms/index.html',
   'sms-consent/index.html', 'faq/index.html', 'feedback/index.html',
