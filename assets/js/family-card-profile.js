@@ -100,7 +100,7 @@
     const labels={NO_MOBILE:['Unavailable','Add a mobile number first.'],VERIFICATION_PENDING:['Unavailable','Mobile verification pending.'],MOBILE_UNVERIFIED:['Unavailable','Verify the mobile number first.'],VERIFIED_NOT_ENROLLED:['Off',''],OPTED_IN:['On',''],OPTED_OUT:['Off','']};
     const label=labels[state]||['Unavailable',''];if(value){value.textContent=label[0];value.setAttribute('aria-label',`Text Parker ${label[0]}`)}if(detail)detail.textContent=label[1];
     const actionable=['VERIFIED_NOT_ENROLLED','OPTED_IN','OPTED_OUT'].includes(state);
-    if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off':'Turn on';button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
+    if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker';button.setAttribute('aria-label',button.textContent);button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
   }
   function applyCardPalette(card,value){
     const lib=window.DV_DRIVER_PALETTES;if(!lib?.resolve)return;const p=lib.resolve(value);
@@ -133,9 +133,10 @@
   }
 
   async function enrichCards(){
+    const started=performance.now();
     try{await Promise.all([loadSubjects(),loadPendingChanges()])}catch(err){console.warn('Card profile data unavailable',err);return}
-    await Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}renderPendingState(card,s)}));
-    await Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
+    const grownupPromise=Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}renderPendingState(card,s)}));
+    const driversPromise=Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));await Promise.all([grownupPromise,driversPromise]);console.info('[Family card enrichment timing]',{ms:Math.round(performance.now()-started)});for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
   }
 
   function fieldConfig(field,s,card){

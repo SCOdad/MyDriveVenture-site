@@ -336,3 +336,58 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-other-holder-identity{display:grid;gap:5px;padding:4px 0 10px;border-bottom:1px solid rgba(255,255,255,.07)}
 .family-other-holder-identity>strong{font:800 1.05rem/1.2 Orbitron,Inter,sans-serif;min-width:0;overflow-wrap:anywhere}
 .family-other-holder-identity>.meta{font-size:.78rem}
+
+
+/* Production UAT stabilization: compact accessible Family/Profile controls. */
+.family-grownup-card .family-card-actions {justify-content:flex-start;gap:8px}
+.family-grownup-card .family-card-actions .button {width:auto;max-width:100%;min-height:36px;padding:8px 14px;border-radius:999px;font-size:.78rem;line-height:1.2}
+.family-driver-card .family-expand-profile,.family-license-profile-card .family-expand-profile {border:1px solid rgba(255,255,255,.32);border-radius:999px;padding:8px 14px}
+.family-grownup-mobile-value [data-card-value="mobile"],.family-driver-card [data-card-value="mobile"] {white-space:nowrap;overflow-wrap:normal;word-break:normal;flex-shrink:0}
+.family-grownup-mobile-row .family-inline-field>div {min-width:0}
+.family-grownup-statusline .step-label,.family-self-license-summary .step-label {font-size:.9rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;border-bottom:3px solid #f4b820;padding-bottom:6px}
+.family-license-card-header strong {font-size:1.17rem;line-height:1.3}
+.family-driver-issue-row [data-license-name] {white-space:normal}
+.family-grownup-card .family-sms-action,.family-driver-card .family-sms-action {border-radius:999px}
+@media (max-width:650px) {.family-grownup-card .family-card-actions {flex-wrap:wrap}.family-grownup-mobile-value {flex-wrap:wrap!important}.family-grownup-mobile-value [data-card-value="mobile"] {white-space:nowrap}}
+
+/* UAT: compact driver-name heading and keyboard-accessible capacity tooltip wrapper. */
+.family-license-card-header .family-driver-title-edit {display:flex;flex-flow:row wrap;align-items:baseline;gap:8px}
+.family-license-card-header .family-driver-title-edit strong {font-size:1.1rem}
+.family-license-card-header .family-driver-title-edit .family-pencil {font-size:.9rem}
+.family-driver-capacity-hint {display:inline-flex;align-items:center;position:relative}
+.family-driver-capacity-hint:focus-visible {outline:2px solid #f4b820;outline-offset:3px;border-radius:999px}
+.family-driver-capacity-hint > button:disabled {cursor:not-allowed;filter:grayscale(.85)}
+
+/* Family and Profiles uses one pill-shaped action treatment. */
+.family-shell .button {border-radius:999px!important}
+.family-shell .button:focus-visible {outline:2px solid #f4b820;outline-offset:3px}
+.family-people-actions .button {padding-inline:18px}
+
+
+/* UAT overflow repair: don't let long License Holder names or stage labels collide. */
+.family-grownup-card .family-self-license-summary {align-items:stretch}
+.family-grownup-card .family-self-license-summary>div {display:grid;grid-template-columns:minmax(0,1fr);gap:7px;min-width:0;width:100%}
+.family-grownup-card .family-self-license-summary>div>.step-label {display:block;min-width:0;max-width:100%;font-size:clamp(.72rem,1.9vw,.88rem);line-height:1.45;overflow-wrap:anywhere;white-space:normal}
+.family-grownup-card .family-self-license-summary>div>strong {display:block;min-width:0;font-size:.75rem;line-height:1.35;white-space:normal}
+.family-grownup-card .family-self-license-summary>div>span:last-child {display:block;min-width:0}
+.family-license-profile-card .family-driver-issue-row {display:grid!important;grid-template-columns:minmax(0,1fr) max-content!important;gap:14px!important;align-items:center}
+.family-license-profile-card .family-driver-issue-row>.field-label {display:flex;flex-direction:column;gap:4px;min-width:0;line-height:1.25;white-space:normal;overflow-wrap:break-word}
+.family-license-profile-card .family-driver-issue-row [data-license-name] {display:block;max-width:100%;white-space:normal}
+.family-license-profile-card .family-driver-issue-row .family-issue-date-caption {font-size:.63rem;line-height:1.3;letter-spacing:.08em}
+.family-license-profile-card .family-driver-issue-row>div {min-width:max-content;white-space:nowrap}
+@media (max-width:390px) {.family-license-profile-card .family-driver-issue-row {grid-template-columns:minmax(0,1fr)!important;gap:7px!important}.family-license-profile-card .family-driver-issue-row>div {justify-content:flex-start}}
+
+/* UAT: license type spans the card; issue date is a separate two-column row. */
+.family-license-profile-card .family-driver-issue-row {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;align-items:stretch!important}
+.family-license-profile-card .family-driver-issue-row .family-license-type-row {display:block;min-width:0}
+.family-license-profile-card .family-license-type-row [data-license-name] {display:block;overflow-wrap:anywhere;font-size:.79rem;line-height:1.4;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.family-license-profile-card .family-license-date-row {display:grid!important;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:12px;min-width:0}
+.family-license-profile-card .family-license-date-row>.field-label {font-size:.68rem;white-space:nowrap}
+.family-license-profile-card .family-license-date-value {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;white-space:nowrap}
+
+/* UAT: licensing belongs beneath Home, inside the avatar-side details column. */
+.family-license-fields>.family-driver-issue-row {padding:10px 0 2px!important;margin-top:7px;border-top:1px solid rgba(255,255,255,.12)!important;min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-type-row {min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-date-row {display:flex!important;flex-wrap:wrap;justify-content:space-between;gap:5px 10px;min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-date-value {display:inline-flex;justify-content:flex-start;gap:6px;min-width:0}
+.family-license-fields>.family-driver-issue-row [data-license-name] {font-size:.72rem;line-height:1.35}
