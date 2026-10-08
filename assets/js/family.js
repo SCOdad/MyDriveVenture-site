@@ -12,7 +12,7 @@
  function ownedContexts(){const held=heldFamilyIds();return familyContexts().filter(x=>held.has(String(x.family_id)))}
  function contextForFamily(id){return familyContexts().find(x=>String(x.family_id)===String(id))||null}
  function familyForDriver(id){return (overview?.drivers||[]).find(d=>String(d.id)===String(id))?.family_id||null}
- function publicCommercialState(x){return String(x?.commercial_state||'').startsWith('FREE')?'FREE':String(x?.commercial_state||'—')}
+ function publicCommercialState(x){if(String(x?.entitlement_basis||'')==='GRANDFATHERED_ALPHA')return'ALPHA';return String(x?.commercial_state||'').startsWith('FREE')?'FREE':String(x?.commercial_state||'—')}
  function familyDrivers(id){return (overview?.drivers||[]).filter(d=>String(d.family_id)===String(id))}
  function familyGrownups(id){return (overview?.grownups||[]).filter(g=>(g.family_ids||[]).map(String).includes(String(id)))}
  function selectedDriverFamily(){const form=document.getElementById('add-driver-form'),select=form?.querySelector('[name="family_id"]');return String(select?.value||form?.dataset.familyId||'')}
