@@ -384,3 +384,10 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-license-profile-card .family-license-date-row {display:grid!important;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:12px;min-width:0}
 .family-license-profile-card .family-license-date-row>.field-label {font-size:.68rem;white-space:nowrap}
 .family-license-profile-card .family-license-date-value {display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;white-space:nowrap}
+
+/* UAT: licensing belongs beneath Home, inside the avatar-side details column. */
+.family-license-fields>.family-driver-issue-row {padding:10px 0 2px!important;margin-top:7px;border-top:1px solid rgba(255,255,255,.12)!important;min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-type-row {min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-date-row {display:flex!important;flex-wrap:wrap;justify-content:space-between;gap:5px 10px;min-width:0}
+.family-license-fields>.family-driver-issue-row .family-license-date-value {display:inline-flex;justify-content:flex-start;gap:6px;min-width:0}
+.family-license-fields>.family-driver-issue-row [data-license-name] {font-size:.72rem;line-height:1.35}
