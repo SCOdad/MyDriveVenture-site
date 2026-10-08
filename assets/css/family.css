@@ -435,3 +435,8 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 }
 .family-license-profile-card .family-driver-phone-stack {width:100%;min-width:0}
 .family-license-profile-card .family-driver-phone-value {width:100%;min-width:0}
+
+/* Family UAT: show prior-practice errors beside the offending input. */
+.family-inline-prior-error:not([hidden]){display:block;color:#ff9999;font-size:.76rem;font-weight:700;line-height:1.45;margin-top:6px}
+#add-driver-form input[aria-invalid="true"]{border-color:#f87171!important;outline:2px solid rgba(248,113,113,.45);outline-offset:1px}
+#family-add-driver-confirmation:not([hidden]){display:block;margin:12px 0 16px;padding:11px 15px;border:1px solid #8bcf93;border-radius:8px}
