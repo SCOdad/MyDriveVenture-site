@@ -198,7 +198,7 @@ test('grown-up cards use role pill and compact mobile/email rows',()=>{
   const family=read('assets/js/family.js'),css=read('assets/css/family.css');
   assert.doesNotMatch(family,/Guardian status/);
   assert.match(family,/family-role-pill/);
-  assert.match(family,/\| YOU/);
+  assert.match(family,/self\?'YOU':esc\(prettyRel/);
   assert.match(family,/family-grownup-mobile-row/);
   assert.match(family,/family-grownup-email-row/);
   assert.match(css,/family-grownup-mobile-row.*grid-template-columns:74px/s);
