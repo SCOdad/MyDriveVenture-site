@@ -178,3 +178,12 @@ test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
   assert.match(js,/function openFamilyPanel/);
   assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
 });
+
+
+test('grown-up self card stacks entitlement above profile content',()=>{
+  const html=read('family/index.html'),css=read('assets/css/family.css');
+  assert.match(html,/family\.css\?v=20261007-0240-layoutfix1/);
+  assert.match(css,/\.family-grownup-card\{display:block!important;min-width:0!important\}/);
+  assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
+  assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
+});
