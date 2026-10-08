@@ -158,7 +158,7 @@
   function beginEdit(button){
     const card=button.closest('.family-grownup-card,.family-driver-card'),field=button.dataset.inlineEdit;if(!card||!field)return;
     const driverId=String(card.dataset.driverId||''),personId=String(card.dataset.personId||''),s=driverId?subjectByDriver.get(driverId):subjectByPerson.get(personId),pending=pendingByPerson.get(String(s?.person_id||''))||{},pendingType=field==='email'?'EMAIL':field==='mobile'?'MOBILE':null,config=fieldConfig(field,s,card);if(!config||pendingType&&pending[pendingType])return;
-    const row=button.closest('.family-inline-field'),valueEl=row?.querySelector(`[data-card-value="${field==='home_zip'?'home':field}"]`);if(!row||!valueEl)return;const original=row.innerHTML;
+    const row=button.closest('.family-inline-field')||(field==='name'&&driverId?button.closest('.family-driver-title-edit'):null),valueEl=row?.querySelector(`[data-card-value="${field==='home_zip'?'home':field}"]`);if(!row||!valueEl)return;const original=row.innerHTML;
     row.innerHTML=`<span class="field-label">${esc(config.label)}</span><div class="family-inline-editor"><input type="${config.type}" value="${esc(config.value)}" ${config.attrs||''}><button class="button secondary" type="button" data-inline-save>Save</button><button class="button secondary" type="button" data-inline-cancel>Cancel</button><small class="family-inline-message" role="status"></small></div>`;
     const input=row.querySelector('input'),msg=row.querySelector('.family-inline-message');input?.focus();input?.select?.();
     row.querySelector('[data-inline-cancel]').onclick=e=>{e.stopPropagation();row.innerHTML=original};
