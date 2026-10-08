@@ -148,7 +148,7 @@ test('UAT: dynamically rendered Add Driver CTA uses delegated panel opening',()=
 test('UAT: owned Family entitlement is combined into the License Holder self card',()=>{
   const js=read('assets/js/family.js');
   assert.match(js,/family-self-license-summary/);
-  assert.match(js,/Your Family/);
+  assert.match(js,/family-grownup-statusline/);
   assert.match(js,/License Holder/);
   assert.match(js,/publicCommercialState\(ctx\)/);
 });
@@ -158,8 +158,8 @@ test('owned Family summary is merged into the License Holder self-profile card',
   const html=read('family/index.html'),js=read('assets/js/family.js');
   assert.doesNotMatch(html,/id="family-contexts"/);
   assert.match(js,/family-self-license-summary/);
-  assert.match(js,/Your Family/);
-  assert.match(js,/self\?'Your profile':isHolderHere\?'License Holder'/);
+  assert.match(js,/family-grownup-statusline/);
+  assert.match(js,/self\?'YOU':esc\(prettyRel/);
 });
 
 
@@ -174,8 +174,8 @@ test('dynamically rendered Add Driver CTA is covered by delegated panel handling
 
 test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
   const html=read('family/index.html'),bootstrap=read('assets/js/family-bootstrap.js'),js=read('assets/js/family.js');
-  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
-  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile1/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile1/);
   assert.match(js,/function openFamilyPanel/);
   assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
 });
@@ -183,7 +183,7 @@ test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
 
 test('grown-up self card stacks entitlement above profile content',()=>{
   const html=read('family/index.html'),css=read('assets/css/family.css');
-  assert.match(html,/family\.css\?v=20261007-0240-holder-hierarchy1/);
+  assert.match(html,/family\.css\?v=20261008-uat-family-profile1/);
   assert.match(css,/\.family-grownup-card\{display:block!important;min-width:0!important\}/);
   assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
   assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
@@ -192,18 +192,18 @@ test('grown-up self card stacks entitlement above profile content',()=>{
 
 test('Other Account Access merges Family access into the License Holder card',()=>{
   const js=read('assets/js/family.js'),bootstrap=read('assets/js/family-bootstrap.js'),html=read('family/index.html');
-  assert.match(js,/self\?'Your Family':'Family access'/);
+  assert.match(js,/family-grownup-statusline/);
   assert.doesNotMatch(js,/family-other-account-head/);
   assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
-  assert.match(bootstrap,/family\.js\?v=20261008-bklg0240-alpha-entitlement1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261008-bklg0240-alpha-entitlement1/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile1/);
 });
 
 
 test('Other Account holder has one coherent identity hierarchy',()=>{
   const js=read('assets/js/family.js'),css=read('assets/css/family.css');
   assert.match(js,/otherHolder=!!\(isHolderHere&&ctx&&!self\)/);
-  assert.match(js,/otherHolder\?'Family access'/);
+  assert.match(js,/family-other-holder-identity/);
   assert.match(js,/family-other-holder-identity/);
   assert.match(js,/License Holder · \$\{esc\(publicCommercialState\(ctx\)\)\}/);
   assert.doesNotMatch(js,/self\?'Your Family':'Family access'/);
@@ -211,14 +211,14 @@ test('Other Account holder has one coherent identity hierarchy',()=>{
 });
 
 
-test('full Family replaces Add Driver with upgrade treatment',()=>{
+test('full Alpha Family disables Add Driver and exposes support contact',()=>{
   const js=read('assets/js/family.js'),bootstrap=read('assets/js/family-bootstrap.js'),html=read('family/index.html');
-  assert.match(js,/Upgrade to add driver/);
-  assert.match(js,/Upgrade is required to add another driver/);
+  assert.match(js,/addDriver\.disabled=true/);
+  assert.match(js,/Need more than 3 drivers\? Contact mike@mydriveventure\.com/);
   assert.match(js,/removeAttribute\('data-open-panel'\)/);
-  assert.match(js,/dataset\.upgradeRequired='driver'/);
-  assert.match(bootstrap,/family\.js\?v=20261008-bklg0240-alpha-entitlement1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261008-bklg0240-alpha-entitlement1/);
+  assert.doesNotMatch(js,/Your FREE Family includes 1 driver/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile1/);
 });
 
 
