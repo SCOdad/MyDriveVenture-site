@@ -194,8 +194,8 @@ test('Other Account Access merges Family access into the License Holder card',()
   assert.match(js,/self\?'Your Family':'Family access'/);
   assert.doesNotMatch(js,/family-other-account-head/);
   assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
-  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-holder-hierarchy1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-holder-hierarchy1/);
+  assert.match(bootstrap,/family\.js\?v=20261008-bklg0240-driver-upgrade1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-bklg0240-driver-upgrade1/);
 });
 
 
@@ -207,4 +207,15 @@ test('Other Account holder has one coherent identity hierarchy',()=>{
   assert.match(js,/License Holder · \$\{esc\(publicCommercialState\(ctx\)\)\}/);
   assert.doesNotMatch(js,/self\?'Your Family':'Family access'/);
   assert.match(css,/\.family-other-holder-identity\{/);
+});
+
+
+test('full Family replaces Add Driver with upgrade treatment',()=>{
+  const js=read('assets/js/family.js'),bootstrap=read('assets/js/family-bootstrap.js'),html=read('family/index.html');
+  assert.match(js,/Upgrade to add driver/);
+  assert.match(js,/Upgrade is required to add another driver/);
+  assert.match(js,/removeAttribute\('data-open-panel'\)/);
+  assert.match(js,/dataset\.upgradeRequired='driver'/);
+  assert.match(bootstrap,/family\.js\?v=20261008-bklg0240-driver-upgrade1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-bklg0240-driver-upgrade1/);
 });
