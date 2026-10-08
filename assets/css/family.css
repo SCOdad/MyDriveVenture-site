@@ -325,3 +325,10 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-self-license-summary>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .family-self-license-summary>div>strong{text-transform:uppercase;letter-spacing:.08em;font-size:.78rem}
 @media(max-width:720px){.family-self-license-summary{align-items:flex-start;flex-direction:column}.family-self-license-summary .button{width:100%}}
+
+
+/* BKLG-0240 UAT repair: grown-up cards stack license summary above profile content */
+.family-grownup-card{display:block!important;min-width:0!important}
+.family-grownup-card>.family-self-license-summary{width:100%;min-width:0;box-sizing:border-box}
+.family-grownup-card>.family-grownup-main{width:100%;min-width:0}
+.family-grownup-card>.family-card-actions{margin-top:12px}
