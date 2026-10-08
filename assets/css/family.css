@@ -332,3 +332,7 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-grownup-card>.family-self-license-summary{width:100%;min-width:0;box-sizing:border-box}
 .family-grownup-card>.family-grownup-main{width:100%;min-width:0}
 .family-grownup-card>.family-card-actions{margin-top:12px}
+
+.family-other-holder-identity{display:grid;gap:5px;padding:4px 0 10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.family-other-holder-identity>strong{font:800 1.05rem/1.2 Orbitron,Inter,sans-serif;min-width:0;overflow-wrap:anywhere}
+.family-other-holder-identity>.meta{font-size:.78rem}
