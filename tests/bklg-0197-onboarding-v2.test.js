@@ -63,8 +63,8 @@ test('Family Hub records acquisition arrival with durable storage fallback',()=>
   assert.match(js,/sessionStorage\.removeItem/);
   assert.match(js,/family_reached/);
   assert.match(js,/public-acquisition-v2/);
-  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-add-driver-cachefix1/);
+  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-other-family-merge1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-other-family-merge1/);
 });
 
 test('canonical signup success clearly confirms grown-up registration and next steps',()=>{
