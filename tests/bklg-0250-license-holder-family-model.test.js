@@ -182,7 +182,7 @@ test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
 
 test('grown-up self card stacks entitlement above profile content',()=>{
   const html=read('family/index.html'),css=read('assets/css/family.css');
-  assert.match(html,/family\.css\?v=20261007-0240-layoutfix1/);
+  assert.match(html,/family\.css\?v=20261007-0240-holder-hierarchy1/);
   assert.match(css,/\.family-grownup-card\{display:block!important;min-width:0!important\}/);
   assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
   assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
@@ -194,6 +194,17 @@ test('Other Account Access merges Family access into the License Holder card',()
   assert.match(js,/self\?'Your Family':'Family access'/);
   assert.doesNotMatch(js,/family-other-account-head/);
   assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
-  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-other-family-merge1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-other-family-merge1/);
+  assert.match(bootstrap,/family\.js\?v=20261007-bklg0240-holder-hierarchy1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261007-bklg0240-holder-hierarchy1/);
+});
+
+
+test('Other Account holder has one coherent identity hierarchy',()=>{
+  const js=read('assets/js/family.js'),css=read('assets/css/family.css');
+  assert.match(js,/otherHolder=!!\(isHolderHere&&ctx&&!self\)/);
+  assert.match(js,/otherHolder\?'Family access'/);
+  assert.match(js,/family-other-holder-identity/);
+  assert.match(js,/License Holder · \$\{esc\(publicCommercialState\(ctx\)\)\}/);
+  assert.doesNotMatch(js,/self\?'Your Family':'Family access'/);
+  assert.match(css,/\.family-other-holder-identity\{/);
 });
