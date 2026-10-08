@@ -357,3 +357,8 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-driver-capacity-hint {display:inline-flex;align-items:center;position:relative}
 .family-driver-capacity-hint:focus-visible {outline:2px solid #f4b820;outline-offset:3px;border-radius:999px}
 .family-driver-capacity-hint > button:disabled {cursor:not-allowed;filter:grayscale(.85)}
+
+/* Family and Profiles uses one pill-shaped action treatment. */
+.family-shell .button {border-radius:999px!important}
+.family-shell .button:focus-visible {outline:2px solid #f4b820;outline-offset:3px}
+.family-people-actions .button {padding-inline:18px}
