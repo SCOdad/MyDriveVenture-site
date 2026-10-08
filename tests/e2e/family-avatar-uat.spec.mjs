@@ -30,6 +30,7 @@ async function mount(page){
    throw Error(`Unexpected ${slug}`);
   };
  });
+ await page.addScriptTag({path:path.join(root,'assets/js/family-card-profile.js')});
  await page.addScriptTag({path:path.join(root,'assets/js/family-avatar-map.js')});
  await page.addScriptTag({path:path.join(root,'assets/js/family.js')});
  await expect(page.locator('#family-app')).toBeVisible();
