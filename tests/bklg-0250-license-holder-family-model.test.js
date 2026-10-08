@@ -174,8 +174,8 @@ test('dynamically rendered Add Driver CTA is covered by delegated panel handling
 
 test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
   const html=read('family/index.html'),bootstrap=read('assets/js/family-bootstrap.js'),js=read('assets/js/family.js');
-  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile3/);
-  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile3/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile4/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile4/);
   assert.match(js,/function openFamilyPanel/);
   assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
 });
@@ -183,7 +183,7 @@ test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
 
 test('grown-up self card stacks entitlement above profile content',()=>{
   const html=read('family/index.html'),css=read('assets/css/family.css');
-  assert.match(html,/family\.css\?v=20261008-uat-family-profile3/);
+  assert.match(html,/family\.css\?v=20261008-uat-family-profile4/);
   assert.match(css,/\.family-grownup-card\{display:block!important;min-width:0!important\}/);
   assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
   assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
@@ -195,8 +195,8 @@ test('Other Account Access merges Family access into the License Holder card',()
   assert.match(js,/family-grownup-statusline/);
   assert.doesNotMatch(js,/family-other-account-head/);
   assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
-  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile3/);
-  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile3/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile4/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile4/);
 });
 
 
@@ -217,8 +217,8 @@ test('full Alpha Family disables Add Driver and exposes support contact',()=>{
   assert.match(js,/Need more than 3 drivers\? Contact mike@mydriveventure\.com/);
   assert.match(js,/removeAttribute\('data-open-panel'\)/);
   assert.doesNotMatch(js,/Your FREE Family includes 1 driver/);
-  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile3/);
-  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile3/);
+  assert.match(bootstrap,/family\.js\?v=20261008-uat-family-profile4/);
+  assert.match(html,/family-bootstrap\.js\?v=20261008-uat-family-profile4/);
 });
 
 
