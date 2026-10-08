@@ -33,10 +33,11 @@ test('UAT: Family supplementary requests run concurrently and log first-render t
 });
 
 test('UAT: detached avatar preload is eager and missed images can retry',()=>{
-  const js=read('assets/js/family.js');
+  const js=read('assets/js/family-avatar-map.js');
   assert.match(js,/img\.loading='eager'/);
   assert.doesNotMatch(js,/img\.loading='lazy'/);
-  assert.match(js,/avatarMisses\.delete\(id\)/);
+  assert.match(js,/retryAt/);
+  assert.match(js,/addEventListener\('online',reload\)/);
 });
 
 test('UAT: person names, driver headline, and license issue date lead card hierarchy',()=>{
