@@ -349,3 +349,11 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-driver-issue-row [data-license-name] {white-space:normal}
 .family-grownup-card .family-sms-action,.family-driver-card .family-sms-action {border-radius:999px}
 @media (max-width:650px) {.family-grownup-card .family-card-actions {flex-wrap:wrap}.family-grownup-mobile-value {flex-wrap:wrap!important}.family-grownup-mobile-value [data-card-value="mobile"] {white-space:nowrap}}
+
+/* UAT: compact driver-name heading and keyboard-accessible capacity tooltip wrapper. */
+.family-license-card-header .family-driver-title-edit {display:flex;flex-flow:row wrap;align-items:baseline;gap:8px}
+.family-license-card-header .family-driver-title-edit strong {font-size:1.1rem}
+.family-license-card-header .family-driver-title-edit .family-pencil {font-size:.9rem}
+.family-driver-capacity-hint {display:inline-flex;align-items:center;position:relative}
+.family-driver-capacity-hint:focus-visible {outline:2px solid #f4b820;outline-offset:3px;border-radius:999px}
+.family-driver-capacity-hint > button:disabled {cursor:not-allowed;filter:grayscale(.85)}
