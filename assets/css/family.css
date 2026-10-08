@@ -401,3 +401,37 @@ body.family-driver-profile-mode #family-profile-editor{display:none!important}
 .family-grownup-card .family-grownup-sms-line .family-sms-action[hidden] {display:none}
 .family-grownup-card .family-grownup-sms-detail {grid-column:2}
 @media(max-width:650px){.family-grownup-card .family-grownup-sms-line {grid-column:1/-1}}
+
+
+/* UAT: driver licensing and contact labels share the HOME / ISSUE DATE treatment. */
+.family-license-profile-card .family-license-type-row [data-license-name] {
+  color:var(--family-accent-highlight)!important;
+}
+.family-license-profile-card .family-driver-comm-row {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:5px!important;
+  align-items:start;
+}
+.family-license-profile-card .family-driver-comm-row>.field-label {
+  display:block;
+  font-size:.68rem!important;
+  font-weight:800;
+  line-height:1.3;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--family-accent-highlight)!important;
+}
+.family-license-profile-card .family-driver-comm-row>div {
+  width:100%;
+  min-width:0;
+}
+.family-license-profile-card .family-driver-comm-row .family-ellipsis-value {
+  flex:1 1 auto;
+  min-width:0;
+}
+.family-license-profile-card .family-driver-comm-row>[data-card-sms-detail] {
+  grid-column:1;
+}
+.family-license-profile-card .family-driver-phone-stack {width:100%;min-width:0}
+.family-license-profile-card .family-driver-phone-value {width:100%;min-width:0}
