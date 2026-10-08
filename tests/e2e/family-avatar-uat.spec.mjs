@@ -37,6 +37,10 @@ async function mount(page){
 test('real browser recovers avatars and Add Driver prevents duplicate submissions at the three-driver boundary',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await mount(page);
  await expect(page.locator('[data-avatar-host] img')).toHaveCount(2);
+ await page.locator('.family-driver-card').first().locator('.family-driver-title-edit [data-inline-edit="name"]').click();
+ await expect(page.locator('.family-driver-card').first().locator('.family-driver-title-edit input[type="text"]')).toBeVisible();
+ await page.locator('.family-driver-card').first().locator('.family-driver-title-edit [data-inline-cancel]').click();
+ await expect(page.locator('.family-driver-card').first().locator('.family-driver-title-edit [data-inline-edit="name"]')).toBeVisible();
  expect(await page.evaluate(()=>window.uat.avatarCalls)).toBe(2);
  await page.locator('#owned-family-actions [data-open-panel="driver"]').click();
  const form=page.locator('#add-driver-form');
