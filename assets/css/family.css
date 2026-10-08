@@ -1,1 +1,338 @@
 .family-shell{padding-bottom:80px}.family-hero{margin:26px 0 18px}.family-hub-stack{display:grid;gap:18px;margin-bottom:18px}.family-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.family-card-head h2{margin:2px 0 0}.family-section-intro{margin:.45rem 0 0;color:var(--muted,#aeb8c2);max-width:680px}.family-action{white-space:nowrap}.family-driver-section,.family-grownup-section{overflow:visible}.family-driver-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}.family-driver-card{--family-accent-shadow:#495154;--family-accent-base:#6f7a7e;--family-accent-bright:#aeb8bc;--family-accent-highlight:#e0e6e8;position:relative;display:grid;grid-template-rows:auto 1fr;min-width:0;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.022));box-shadow:0 8px 22px rgba(0,0,0,.18)}.family-driver-card[hidden]{display:none!important}.family-driver-accent{height:8px;background:linear-gradient(90deg,var(--family-accent-shadow),var(--family-accent-bright),var(--family-accent-highlight))}.family-driver-photo{position:relative;aspect-ratio:4/3;display:grid;place-items:center;margin:14px 14px 0;overflow:hidden;border:2px solid rgba(255,255,255,.13);border-radius:9px;background:radial-gradient(circle at 50% 25%,rgba(255,255,255,.08),rgba(255,255,255,.015) 58%),linear-gradient(180deg,#172025,#0f1417)}.family-driver-photo img{width:100%;height:100%;object-fit:cover;image-rendering:auto}.family-driver-copy{padding:14px}.family-driver-copy h3,.family-grownup-card h3,.family-first-driver h3{margin:2px 0 6px;font-family:Orbitron,Inter,sans-serif;font-size:1rem}.family-driver-copy .step-label{margin-bottom:0;color:var(--family-accent-highlight)}.family-license-stage{display:inline-block;margin:2px 0 12px;padding:5px 8px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.04);font-size:.72rem;font-weight:800;letter-spacing:.035em}.family-driver-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}.family-driver-stats>div{padding:8px;border-radius:8px;background:rgba(0,0,0,.18)}.family-driver-stats dt{font-size:.68rem;color:var(--muted,#aeb8c2);text-transform:uppercase;letter-spacing:.05em}.family-driver-stats dd{margin:2px 0 0;font-weight:800}.family-see-all-row{display:flex;justify-content:center;margin-top:14px}.family-see-all{min-width:180px}.family-see-all[hidden],#family-see-all-drivers[hidden]{display:none!important}.family-first-driver{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:20px;border:1px dashed rgba(244,184,32,.55);border-radius:12px;background:rgba(244,184,32,.055)}.family-no-shared-drivers{grid-column:1/-1;padding:20px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.025)}.family-no-shared-drivers p{max-width:640px;margin:.35rem 0 0}.family-first-driver p{margin:.35rem 0 1rem;max-width:560px}.family-first-driver-icon{display:grid;place-items:center;flex:0 0 74px;width:74px;height:96px;border:2px solid rgba(244,184,32,.55);border-radius:10px;background:rgba(244,184,32,.08);color:#f4b820;font:800 2.2rem/1 Orbitron,Inter,sans-serif}.family-parker-silhouette{position:relative;width:58%;height:82%;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}.family-parker-silhouette .head{position:absolute;left:31%;top:18%;width:38%;height:34%;border-radius:45% 46% 42% 44%;background:#080b0e}.family-parker-silhouette .hair{position:absolute;z-index:2;left:27%;top:12%;width:47%;height:23%;border-radius:62% 48% 35% 50%;background:#080b0e;transform:rotate(-4deg)}.family-parker-silhouette .hair:after{content:"";position:absolute;right:-7%;top:10%;width:23%;height:38%;background:#080b0e;clip-path:polygon(0 0,100% 45%,18% 100%)}.family-parker-silhouette .hood{position:absolute;left:15%;bottom:0;width:70%;height:54%;border-radius:45% 45% 16% 16%;background:#080b0e}.family-parker-silhouette .hood:before{content:"";position:absolute;left:27%;top:-18%;width:46%;height:35%;border:7px solid #080b0e;border-bottom:0;border-radius:50% 50% 0 0}.family-grownup-list{display:grid;gap:10px;margin-top:14px}.family-grownup-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.025)}.family-grownup-card.pending{opacity:.86}.family-you{font-family:Inter,sans-serif;font-size:.76rem;color:var(--muted,#aeb8c2);font-weight:600}.family-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.family-chip{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(244,184,32,.12);border:1px solid rgba(244,184,32,.4);font-size:.75rem}.family-panel{margin-top:18px}.family-panel [hidden]{display:none!important}#family-app>.family-panel:not(#grownup-panel):not(#driver-panel):has(~ .family-panel:not(#grownup-panel):not(#driver-panel)){display:none!important}.family-close{appearance:none;border:0;background:transparent;color:inherit;font-size:2rem;line-height:1;cursor:pointer}.family-explainer{max-width:720px}.family-account-match{display:flex;align-items:flex-start;gap:12px;max-width:760px;padding:14px 16px;border:1px solid rgba(71,191,116,.65);border-left:5px solid rgb(71,191,116);border-radius:8px;background:rgba(71,191,116,.11);box-shadow:0 0 0 1px rgba(71,191,116,.08) inset}.family-account-match strong{font-weight:800}.family-account-match-icon{font-size:1.35rem;line-height:1.35}.compact-form{display:grid;gap:16px}.compact-form>label,.compact-form fieldset{margin:0}.driver-scope-fieldset{border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:15px}.driver-scope-fieldset legend{padding:0 6px;font-weight:700}.driver-scope-list{display:grid;gap:9px;margin-top:10px}.scope-option{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:7px;background:rgba(255,255,255,.035)}.scope-option input{width:auto}.family-rule{width:100%;border:0;border-top:1px solid rgba(255,255,255,.12);margin:16px 0 10px}.family-empty{padding:18px 0;color:var(--muted,#aeb8c2)}.family-success{border-color:rgba(71,191,116,.55)!important;color:#9fe4b7!important}.family-error{border:1px solid rgba(230,86,86,.75)!important;border-left:5px solid rgb(230,86,86)!important;border-radius:7px;background:rgba(230,86,86,.12)!important;color:#ffb4b4!important;padding:10px 12px!important}[data-family-invite-mode] .family-hero{display:none!important}@media(max-width:900px){.family-driver-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.family-driver-card:nth-child(3){grid-column:auto}}@media(max-width:620px){.family-card-head{align-items:flex-start}.family-action{font-size:.82rem;padding:10px 11px}.family-driver-grid{grid-template-columns:1fr}.family-grownup-card{display:block}.family-grownup-card .button{margin-top:12px}.family-first-driver{align-items:flex-start}.family-first-driver-icon{flex-basis:56px;width:56px;height:76px}.field-grid.two-col{grid-template-columns:1fr}}
+
+
+/* BKLG-0240 unified Family/Profile experience */
+.family-profile-editor{display:grid;gap:18px;margin-top:18px}
+.family-profile-switch-card{border-left:4px solid var(--accent,#f4b820)}
+.family-grownup-self{position:relative;cursor:pointer;border-color:rgba(244,184,32,.65);box-shadow:0 0 0 1px rgba(244,184,32,.14) inset}
+.family-grownup-self::before{content:"YOU";position:absolute;top:12px;right:14px;font:700 10px/1 Orbitron,sans-serif;letter-spacing:.12em;color:#111;background:#f4b820;padding:5px 7px;border-radius:999px}
+.family-grownup-self:focus-visible,.family-driver-card:focus-visible{outline:3px solid #f4b820;outline-offset:3px}
+.family-grownup-card[data-profile-person-id].is-profile-selected,.family-driver-card.is-profile-selected{box-shadow:0 0 0 2px #f4b820,0 14px 34px rgba(0,0,0,.28)}
+.family-card-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px}
+.family-console-open{border:1px solid rgba(255,255,255,.24);background:rgba(0,0,0,.26);color:#fff;border-radius:999px;padding:7px 10px;font:600 11px/1 Inter,sans-serif;cursor:pointer}
+.family-console-open:hover,.family-console-open:focus-visible{border-color:#f4b820;color:#f4b820}
+.text-parker-enrollment{border-top:1px solid rgba(255,255,255,.12);padding-top:16px}
+body.family-driver-profile-mode .family-hub-stack,
+body.family-driver-profile-mode .family-people-section,
+body.family-driver-profile-mode #grownup-panel,
+body.family-driver-profile-mode #driver-panel{display:none!important}
+body.family-driver-profile-mode .family-hero .eyebrow{font-size:0}
+body.family-driver-profile-mode .family-hero .eyebrow::after{content:"My Profile";font-size:12px}
+body.family-driver-profile-mode .family-hero h1{font-size:0}
+body.family-driver-profile-mode .family-hero h1::after{content:"Your Drive Venture profile";font-size:clamp(2rem,6vw,3.2rem)}
+body.family-driver-profile-mode .family-hero .lede{display:none}
+@media(max-width:640px){.family-card-actions{align-items:flex-start}.family-console-open{width:100%;padding:10px}}
+
+
+/* BKLG-0240 approved people-grid amendment */
+.family-people-section{margin-bottom:18px;overflow:visible}
+.family-people-head{align-items:flex-end}
+.family-people-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.family-people-section{--family-person-card-axis:340px}.family-grownup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--family-person-card-axis)),var(--family-person-card-axis)));gap:16px;margin-top:18px;margin-bottom:18px}
+.family-grownup-landscape{min-height:168px;width:min(100%,var(--family-person-card-axis));align-items:stretch;padding:18px;position:relative;overflow:hidden}
+.family-grownup-main{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.family-grownup-landscape .family-card-open{margin-top:auto;padding-top:14px}
+.family-driver-grid{margin-top:0}.family-driver-card{min-height:var(--family-person-card-axis)}
+.family-pending-list{margin-top:18px}
+.mobile-contact-block{margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.018)}
+.mobile-contact-row{border:0!important;margin:0;padding:16px}
+.text-parker-mobile{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border-top:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.022)}
+.text-parker-mobile.is-disabled{opacity:.52}
+.text-parker-mobile.is-disabled .button{filter:grayscale(1);cursor:not-allowed}
+@media(max-width:720px){
+  .family-people-head{align-items:flex-start;flex-direction:column}
+  .family-people-actions{width:100%}
+  .family-people-actions .button{flex:1 1 0}
+  .family-grownup-grid{grid-template-columns:1fr}
+  .family-grownup-landscape{min-height:0}
+  .text-parker-mobile{align-items:flex-start;flex-direction:column}
+  .text-parker-mobile .button{width:100%}
+}
+
+
+/* BKLG-0240 card-first profile editor */
+.family-grownup-card{align-items:stretch}
+.family-grownup-statusline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.family-readonly-card{opacity:.9}
+.family-readonly-badge{font-size:.72rem;font-weight:800;letter-spacing:.03em;color:var(--muted,#aeb8c2);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px 8px;white-space:nowrap}
+.family-inline-field{display:grid;gap:3px;padding:7px 0;border-top:1px solid rgba(255,255,255,.07)}
+.family-inline-field:first-of-type{border-top:0}
+.family-inline-field>div{display:flex;align-items:center;gap:8px;min-width:0}
+.family-inline-field strong{min-width:0;overflow-wrap:anywhere}
+.family-pencil{appearance:none;border:0;background:transparent;color:var(--family-accent-highlight,#f4b820);padding:2px 4px;font-size:1rem;line-height:1;cursor:pointer}
+.family-pencil:hover,.family-pencil:focus-visible{transform:scale(1.12);outline:1px solid currentColor;border-radius:4px}
+.family-verify-badge{font-size:.68rem;font-weight:800;border-radius:999px;padding:3px 6px;white-space:nowrap}
+.family-verify-badge.is-verified{color:#9fe4b7;background:rgba(71,191,116,.13);border:1px solid rgba(71,191,116,.45)}
+.family-verify-badge.is-unverified{color:#ffd49b;background:rgba(209,138,24,.13);border:1px solid rgba(209,138,24,.45)}
+.family-license-profile-card{grid-template-rows:auto auto auto auto auto;min-height:0}
+.family-license-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px 6px}
+.family-license-card-header>div{display:grid;gap:2px}
+.family-license-state{font:800 .72rem/1 Orbitron,Inter,sans-serif;letter-spacing:.12em;color:var(--family-accent-highlight)}
+.family-license-card-header strong{font:800 .9rem/1.2 Orbitron,Inter,sans-serif}
+.family-license-tag{font-size:.62rem;font-weight:800;letter-spacing:.1em;padding:5px 7px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
+.family-license-card-body{display:grid;grid-template-columns:minmax(90px,34%) 1fr;gap:12px;padding:8px 14px 0}
+.family-license-card-body .family-driver-photo{margin:0;aspect-ratio:3/4;align-self:start}
+.family-license-fields{min-width:0}
+.family-license-progress-list{display:grid;gap:7px;padding:12px 14px}
+.family-card-progress{display:grid;grid-template-columns:minmax(100px,1fr) minmax(110px,1.5fr) auto;gap:8px;align-items:center;font-size:.7rem}
+.family-card-progress>span:first-child{font-weight:700}
+.family-card-progress-track{height:7px;border-radius:999px;background:rgba(0,0,0,.25);overflow:hidden}
+.family-card-progress-track>span{display:block;height:100%;background:linear-gradient(90deg,var(--family-accent-base),var(--family-accent-highlight))}
+.family-card-check{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.7rem;padding:5px 0}
+.family-card-check strong.is-met{color:#9fe4b7}.family-card-check strong.is-unmet{color:#ffd49b}
+.family-inline-editor{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
+.family-inline-editor input{min-width:0;flex:1 1 130px;padding:7px 8px}
+.family-inline-editor button{padding:6px 8px}
+.family-inline-message{font-size:.68rem;grid-column:1/-1;color:var(--muted,#aeb8c2)}
+.family-inline-message.is-error{color:#ffb4b4}
+.family-profile-editor:has(.family-promoted-profile-form[hidden]){margin-top:10px}
+@media(max-width:620px){
+  .family-license-card-body{grid-template-columns:92px 1fr}
+  .family-card-progress{grid-template-columns:1fr auto}.family-card-progress-track{grid-column:1/-1}
+}
+
+.family-license-profile-card.has-driver-accent{background:linear-gradient(155deg,color-mix(in srgb,var(--family-accent-base) 20%,#10161a),rgba(255,255,255,.025) 55%,color-mix(in srgb,var(--family-accent-shadow) 18%,#0d1114))}
+.family-license-profile-card .family-driver-accent{height:10px}
+.family-license-target{padding-bottom:2px;border-bottom:1px solid rgba(255,255,255,.08)}
+
+
+/* BKLG-0240 compact driver card density pass */
+.family-driver-comms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.08)}
+.family-driver-comms .family-inline-field{border-top:0;padding:0}
+.family-driver-comms .family-inline-field>div{align-items:flex-start;flex-wrap:wrap}
+.family-text-parker-summary small{flex-basis:100%}
+.family-sms-action{appearance:none;border:1px solid currentColor;border-radius:999px;background:transparent;color:var(--family-accent-highlight);font-weight:800;font-size:.68rem;padding:4px 8px;cursor:pointer}
+.family-driver-hours{display:grid;gap:8px;padding:12px 14px}
+.family-other-requirements{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08)}
+.family-expand-profile{appearance:none;border:0;background:transparent;color:var(--family-accent-highlight);font-weight:800;cursor:pointer}
+.family-driver-expanded{padding:14px;border-top:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.12)}
+.family-driver-expanded h4{margin:.2rem 0 .6rem}
+.family-expanded-requirements{display:grid;gap:6px}
+.family-expanded-requirement{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.family-expanded-requirement .is-met{color:#9fe4b7}.family-expanded-requirement .is-unmet{color:#ffd49b}
+.family-expanded-color{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}
+.family-expanded-color-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.family-expanded-color-swatches .dv-palette-swatch{width:auto;min-width:48px}
+body:not(.family-driver-profile-mode) #license-card{display:none!important}
+@media(max-width:720px){.family-driver-comms{grid-template-columns:1fr}.family-driver-hours{gap:10px}}
+
+
+/* BKLG-0240 post-identity cleanup */
+body:not(.family-driver-profile-mode) #family-profile-editor{display:none!important}
+.family-grownup-grid{align-items:start}
+.family-grownup-landscape{min-height:0!important;height:auto!important;padding:14px 16px!important}
+.family-grownup-main{justify-content:flex-start!important}
+.family-grownup-card .family-inline-field{padding:5px 0}
+.family-grownup-card .family-chip-row{margin-top:6px}
+.family-grownup-sms{display:grid!important;grid-template-columns:auto auto 1fr auto;gap:6px!important;align-items:center!important;margin-top:5px;padding-top:5px;border-top:1px dashed rgba(255,255,255,.08)}
+.family-grownup-sms .meta{min-width:0}
+.family-license-card-body{grid-template-columns:112px minmax(0,1fr);align-items:start}
+.family-license-card-body .family-driver-photo{width:112px;max-width:100%;aspect-ratio:3/4}
+.family-license-profile-card .family-avatar-fallback{display:grid;place-items:center;align-content:center;width:100%;height:100%;padding:8px;text-align:center}
+.family-license-profile-card .family-parker-silhouette{display:none!important}
+.family-license-profile-card .family-avatar-initials{font:800 1.45rem/1 Orbitron,Inter,sans-serif;color:var(--family-accent-highlight)}
+.family-license-profile-card .family-avatar-fallback small{font-size:.65rem;color:var(--muted,#aeb8c2)}
+.family-driver-comms{grid-template-columns:1fr!important;gap:0!important;padding:0 14px!important}
+.family-driver-comms .family-inline-field{padding:9px 0!important;border-top:1px solid rgba(255,255,255,.07)!important}
+.family-driver-comms .family-inline-field:first-child{border-top:0!important}
+.family-driver-comms .family-inline-field>div{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center!important}
+.family-driver-comms strong{overflow-wrap:anywhere}
+.family-text-parker-summary>div{grid-template-columns:auto minmax(0,1fr) auto!important}
+.family-text-parker-summary small{grid-column:2/3;min-width:0}
+.family-driver-hours .family-card-progress{grid-template-columns:88px minmax(80px,1fr) auto!important}
+.family-driver-hours .family-card-progress strong{white-space:nowrap}
+.family-expanded-requirement{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(90px,auto);align-items:start!important}
+.family-expanded-requirement>div{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:0;text-align:right}
+.family-expanded-requirement strong{max-width:100%;overflow-wrap:anywhere}
+.family-requirement-confirm{appearance:none;border:1px solid currentColor;border-radius:999px;background:transparent;color:var(--family-accent-highlight);font-weight:800;font-size:.64rem;padding:4px 7px}
+.family-license-advance-inline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.family-expanded-avatar{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.family-avatar-upload-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.family-avatar-upload-row input{min-width:0;max-width:100%}
+.family-expanded-color{margin-top:14px;padding-top:12px}
+.family-expanded-color .meta{margin:.25rem 0 .6rem}
+.family-expanded-color-swatches{gap:5px}
+.family-expanded-color-swatches .dv-palette-swatch{min-width:36px!important;width:36px!important;height:30px!important;padding:3px!important}
+.family-expanded-color-swatches .dv-palette-chips{height:18px}
+@media(max-width:620px){
+  .family-license-card-body{grid-template-columns:96px minmax(0,1fr)}
+  .family-license-card-body .family-driver-photo{width:96px}
+  .family-driver-hours .family-card-progress{grid-template-columns:80px minmax(60px,1fr) auto!important}
+  .family-grownup-sms{grid-template-columns:auto 1fr auto}
+  .family-grownup-sms .meta{grid-column:1/-1}
+}
+
+
+/* BKLG-0240 explicit landscape grown-up / portrait driver regions */
+.family-people-section{--family-grownup-min:420px;--family-driver-width:340px}
+.family-profile-region{margin-top:18px}
+.family-region-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.family-region-head h3{margin:0;font-family:Orbitron,Inter,sans-serif;font-size:.9rem;letter-spacing:.04em}
+.family-grownup-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;margin:0 0 18px!important;align-items:start}
+.family-grownup-landscape{width:100%!important;min-width:0!important;min-height:0!important}
+.family-grownup-main{display:grid!important;grid-template-columns:minmax(150px,.9fr) minmax(220px,1.2fr) minmax(220px,1.2fr);column-gap:18px;row-gap:8px;align-items:start}
+.family-grownup-statusline{grid-column:1/-1;margin-bottom:2px!important}
+.family-grownup-card .family-inline-field{border-top:0!important;padding:3px 0!important}
+.family-grownup-card .family-inline-field:nth-of-type(1),
+.family-grownup-card .family-inline-field:nth-of-type(2){grid-column:1}
+.family-grownup-card .family-inline-field:nth-of-type(3){grid-column:2;grid-row:2/4}
+.family-grownup-card .family-inline-field:nth-of-type(4){grid-column:3;grid-row:2/4}
+.family-grownup-card .family-chip-row{grid-column:1/-1;margin-top:2px!important;padding-top:7px;border-top:1px solid rgba(255,255,255,.07)}
+.family-grownup-card .family-grownup-sms{grid-template-columns:auto auto minmax(0,1fr) auto!important}
+.family-driver-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--family-driver-width)),var(--family-driver-width)))!important;gap:18px!important;justify-content:start;align-items:start;margin:0!important}
+.family-driver-card{width:min(100%,var(--family-driver-width));min-height:0!important}
+.family-license-card-header strong{max-width:220px}
+.family-license-card-body{grid-template-columns:108px minmax(0,1fr)!important}
+.family-license-fields .family-inline-field>div{align-items:flex-start}
+.family-license-fields [data-card-value="license_effective_date"]{white-space:nowrap}
+.family-driver-comms strong,.family-driver-comms small{max-width:100%}
+.family-driver-comms [data-card-value="email"]{overflow-wrap:anywhere;word-break:normal}
+.family-driver-comms [data-card-value="mobile"]{white-space:normal}
+.family-driver-expanded{overflow:hidden}
+.family-expanded-requirement{min-width:0}
+.family-expanded-requirement>span,.family-expanded-requirement>div{min-width:0}
+@media(max-width:980px){
+  .family-grownup-grid{grid-template-columns:1fr!important}
+  .family-grownup-main{grid-template-columns:minmax(140px,.8fr) minmax(200px,1.1fr) minmax(200px,1.1fr)}
+}
+@media(max-width:720px){
+  .family-grownup-main{display:block!important}
+  .family-grownup-card .family-inline-field{padding:6px 0!important;border-top:1px solid rgba(255,255,255,.07)!important}
+  .family-grownup-card .family-inline-field:first-of-type{border-top:0!important}
+  .family-grownup-card .family-chip-row{margin-top:8px!important}
+  .family-driver-grid{grid-template-columns:1fr!important}
+  .family-driver-card{width:100%!important}
+}
+
+
+/* BKLG-0240 compact communication + 30% height target */
+.family-grownup-main{display:grid!important;grid-template-columns:minmax(0,1fr);gap:6px!important}
+.family-grownup-statusline{grid-column:1!important}
+.family-role-pill{justify-self:end;align-self:start;font:800 .68rem/1 Orbitron,Inter,sans-serif;letter-spacing:.06em;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:7px 10px;white-space:nowrap;color:inherit}
+.family-grownup-mobile-row,.family-grownup-email-row{grid-column:1!important;grid-row:auto!important;display:grid!important;grid-template-columns:74px minmax(0,1fr);gap:10px!important;align-items:center}
+.family-grownup-mobile-row>div,.family-grownup-email-row>div{display:flex!important;align-items:center!important;gap:8px!important;min-width:0}
+.family-grownup-mobile-value{flex-wrap:nowrap!important}
+.family-grownup-sms-state{font-size:.78rem;white-space:nowrap}
+.family-grownup-sms-detail{grid-column:2;display:block;min-width:0}
+.family-grownup-email-row .family-ellipsis-value{flex:1 1 auto}
+.family-grownup-card .family-chip-row{grid-column:1!important}
+.family-driver-field-label{font-size:.65rem!important;text-transform:uppercase;letter-spacing:.08em;color:var(--family-accent-highlight)!important}
+.family-license-card-body{padding-bottom:6px!important}
+.family-license-fields .family-inline-field{padding:5px 0!important}
+.family-driver-issue-row{display:grid!important;grid-template-columns:72px minmax(0,1fr);gap:10px;padding:8px 14px!important;border-top:1px solid rgba(255,255,255,.08)!important;align-items:center}
+.family-driver-issue-row>div{display:flex;align-items:center;gap:8px;min-width:0}
+.family-driver-issue-row [data-card-value="license_effective_date"]{white-space:nowrap}
+.family-driver-comms{padding:0 14px!important}
+.family-driver-comm-row{display:grid!important;grid-template-columns:54px minmax(0,1fr);gap:10px!important;align-items:center;padding:7px 0!important}
+.family-driver-comm-row>div{display:flex!important;align-items:center!important;gap:6px!important;min-width:0;flex-wrap:nowrap!important}
+.family-driver-comm-row .family-verify-badge{flex:0 0 auto}
+.family-inline-sms-label{font-size:.64rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--family-accent-highlight);white-space:nowrap;margin-left:4px}
+.family-driver-comm-row [data-card-value="sms_state"]{font-size:.78rem;white-space:nowrap}
+.family-driver-comm-row>[data-card-sms-detail]{grid-column:2;margin-top:2px}
+.family-ellipsis-value{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.family-driver-hours{padding:8px 14px!important;gap:6px!important}
+.family-driver-hours .family-card-progress{grid-template-columns:82px minmax(70px,1fr) auto!important}
+.family-other-requirements{padding:8px 14px!important}
+.family-card-actions{padding:10px 14px!important;justify-content:flex-start!important}
+.family-expand-profile{appearance:none!important;border:1px solid rgba(255,255,255,.22)!important;background:rgba(255,255,255,.045)!important;border-radius:999px!important;padding:8px 12px!important;color:var(--family-accent-highlight)!important;font-weight:800!important;line-height:1!important}
+.family-expand-profile:hover,.family-expand-profile:focus-visible{background:rgba(255,255,255,.08)!important}
+@media(max-width:720px){
+  .family-grownup-mobile-row,.family-grownup-email-row{grid-template-columns:68px minmax(0,1fr)}
+  .family-driver-comm-row{grid-template-columns:48px minmax(0,1fr)}
+  .family-inline-sms-label{display:none}
+}
+
+
+/* BKLG-0240 UAT repair: grown-up name + driver-self card */
+.family-grownup-name-row{display:grid!important;grid-template-columns:74px minmax(0,1fr);gap:10px!important;align-items:center}
+.family-grownup-name-row>div{display:flex!important;align-items:center!important;gap:8px!important}
+body.family-driver-profile-mode .family-people-section{display:block!important}
+body.family-driver-profile-mode .family-people-head,
+body.family-driver-profile-mode .family-grownup-region,
+body.family-driver-profile-mode .family-people-actions,
+body.family-driver-profile-mode #family-pending-invites,
+body.family-driver-profile-mode .family-see-all-row{display:none!important}
+body.family-driver-profile-mode .family-driver-region{margin-top:0}
+body.family-driver-profile-mode .family-driver-grid{display:grid!important}
+body.family-driver-profile-mode #family-profile-editor{display:none!important}
+@media(max-width:720px){.family-grownup-name-row{grid-template-columns:68px minmax(0,1fr)}}
+
+
+/* BKLG-0240 pending verification + compact verified phone */
+.family-contact-pending-row{position:relative}
+.family-contact-pending{grid-column:2;display:flex;align-items:baseline;gap:7px;min-width:0;margin-top:4px;color:var(--family-accent-highlight)}
+.family-contact-pending strong{font-size:.72rem;white-space:nowrap}
+.family-contact-pending small{font-size:.67rem;color:var(--muted,#aeb8c2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.family-driver-comm-row [data-card-value="mobile"]{white-space:nowrap!important;flex:0 0 auto}
+.family-driver-comm-row [data-card-verify="mobile"]{font-size:.66rem!important;padding:4px 6px!important;white-space:nowrap}
+.family-driver-comm-row .family-inline-sms-label{font-size:.56rem!important;margin-left:0!important}
+.family-driver-comm-row [data-card-value="sms_state"]{font-size:.7rem!important}
+.family-driver-comm-row [data-card-sms-action]{font-size:.66rem!important;padding:5px 7px!important;white-space:nowrap}
+.family-driver-comm-row [data-inline-edit="mobile"]{flex:0 0 auto}
+.family-driver-comm-row>div{gap:5px!important}
+.family-people-section{--family-driver-width:360px}
+@media(max-width:720px){
+  .family-contact-pending{grid-column:1/-1;margin-left:0}
+  .family-driver-comm-row>div{flex-wrap:wrap!important}
+  .family-driver-comm-row [data-card-value="mobile"]{order:0}
+  .family-driver-comm-row [data-card-verify="mobile"]{order:1}
+  .family-driver-comm-row [data-inline-edit="mobile"]{order:2}
+  .family-driver-comm-row .family-inline-sms-label,
+  .family-driver-comm-row [data-card-value="sms_state"],
+  .family-driver-comm-row [data-card-sms-action]{order:3}
+}
+
+
+/* BKLG-0240 final phone/Text Parker row alignment */
+.family-driver-phone-row{align-items:start!important}
+.family-driver-phone-stack{display:grid!important;grid-template-columns:1fr!important;gap:7px!important;min-width:0}
+.family-driver-phone-value,.family-driver-sms-line{display:flex!important;align-items:center!important;gap:6px!important;min-width:0}
+.family-driver-phone-value [data-card-value="mobile"]{white-space:nowrap!important;flex:0 0 auto}
+.family-driver-sms-line{flex-wrap:nowrap!important}
+.family-driver-sms-line .family-inline-sms-label{display:inline!important;white-space:nowrap}
+.family-driver-sms-line [data-card-value="sms_state"],
+.family-driver-sms-line [data-card-sms-action],
+.family-driver-sms-line [data-inline-edit="mobile"]{flex:0 0 auto}
+@media(max-width:720px){
+  .family-driver-sms-line{flex-wrap:wrap!important}
+}
+
+
+/* BKLG-0249 / BKLG-0250 Family ownership layout */
+.family-account-section{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.family-account-section:first-of-type{margin-top:10px}
+.family-owned-summary,.family-other-account-head{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.025)}
+.family-owned-summary h3,.family-other-account-head h4{margin:.2rem 0;font-family:Orbitron,Inter,sans-serif}
+.family-license-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.family-license-meta strong{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.family-people-actions#owned-family-actions{margin:12px 0 6px}
+.family-other-access{margin-top:28px}
+.family-other-account-group{margin-top:14px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.018)}
+.family-other-account-group h5{margin:18px 0 6px;font-family:Orbitron,Inter,sans-serif;font-size:.82rem}
+.family-other-account-group .family-grownup-grid,.family-other-account-group .family-driver-grid{margin-top:10px}
+.family-upgrade-preview[disabled]{opacity:.7;cursor:default}
+#driver-grownup-access{margin-top:8px}
+@media(max-width:720px){
+  .family-owned-summary,.family-other-account-head{align-items:flex-start;flex-direction:column}
+  .family-other-account-head .button,.family-owned-summary .button{width:100%}
+}
+
+.family-inline-invite{margin:12px 0;padding:12px 14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.018)}
+.family-inline-invite summary{cursor:pointer;font-weight:800}
+.family-inline-invite[open] summary{margin-bottom:10px}
+
+.family-self-license-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.family-self-license-summary>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.family-self-license-summary>div>strong{text-transform:uppercase;letter-spacing:.08em;font-size:.78rem}
+@media(max-width:720px){.family-self-license-summary{align-items:flex-start;flex-direction:column}.family-self-license-summary .button{width:100%}}
+
+
+/* BKLG-0240 UAT repair: grown-up cards stack license summary above profile content */
+.family-grownup-card{display:block!important;min-width:0!important}
+.family-grownup-card>.family-self-license-summary{width:100%;min-width:0;box-sizing:border-box}
+.family-grownup-card>.family-grownup-main{width:100%;min-width:0}
+.family-grownup-card>.family-card-actions{margin-top:12px}
+
+.family-other-holder-identity{display:grid;gap:5px;padding:4px 0 10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.family-other-holder-identity>strong{font:800 1.05rem/1.2 Orbitron,Inter,sans-serif;min-width:0;overflow-wrap:anywhere}
+.family-other-holder-identity>.meta{font-size:.78rem}

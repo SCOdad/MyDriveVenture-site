@@ -30,32 +30,34 @@ test('Family Hub preserves Family API progress when dashboard progress is absent
   assert.match(js,/progress:d\.progress\|\|pMap\.get\(String\(d\.id\)\)\|\|null/);
 });
 
-test('Family Hub bounds driver summary to three plus See all',()=>{
+test('Family Hub bounds owned driver summary to three plus See all',()=>{
   const js=read('assets/js/family.js'),html=read('family/index.html');
   assert.match(js,/index>=3&&!showAllDrivers/);
-  assert.match(js,/See all \$\{drivers\.length\} drivers/);
+  assert.match(js,/See all \$\{ownedDrivers\.length\} drivers/);
   assert.match(js,/Show less/);
   assert.match(html,/id="family-see-all-drivers"/);
   assert.match(html,/aria-controls="family-drivers"/);
   assert.match(html,/aria-expanded="false"/);
 });
 
-test('Family Hub includes true-zero and scoped no-driver states',()=>{
+test('Family Hub supports grown-up-first owned Family and scoped other-account access',()=>{
   const js=read('assets/js/family.js');
-  assert.match(js,/family_driver_count/);
-  assert.match(js,/trueZeroFamily/);
-  assert.match(js,/Add your first driver/);
-  assert.match(js,/No drivers are currently shared with you/);
-  assert.match(js,/addGrown\.disabled=primary\.size===0/);
-  assert.match(js,/Add your first driver before inviting another grown-up/);
+  assert.match(js,/No grown-ups have been added yet/);
+  assert.match(js,/Add your driver/);
+  assert.match(js,/No drivers yet\. You can invite this grown-up now/);
+  assert.match(js,/family-other-account-group/);
+  assert.match(js,/Only a License Holder can invite or manage grown-ups/);
 });
 
-test('driver cards avoid sensitive identity fields and preserve scoped grown-up access UI',()=>{
+test('driver cards expose accepted profile/contact controls while preserving scoped grown-up access UI',()=>{
   const js=read('assets/js/family.js');
   const cardSource=js.slice(js.indexOf('function driverCard'),js.indexOf('function grownupCard'));
-  assert.doesNotMatch(cardSource,/birth_date|home_zip|email|mobile/i);
+  assert.doesNotMatch(cardSource,/birth_date/i);
+  assert.match(cardSource,/data-card-value="email"/);
+  assert.match(cardSource,/data-card-value="mobile"/);
+  assert.match(cardSource,/data-inline-edit="home_zip"/);
   assert.match(js,/Manage access/);
-  assert.match(js,/primary_driver_ids/);
+  assert.match(js,/license_holder_family_ids/);
   assert.match(js,/family-chip/);
 });
 

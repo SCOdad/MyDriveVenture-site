@@ -31,6 +31,8 @@ async function mountFamilyFixture(page,{driverCount=5,familyDriverCount=driverCo
     const driverRows=n=>ids(n).map((id,i)=>({id,person_id:`person-${i+1}`,display_name:`Driver ${i+1}`,license_stage:i%2?'LEVEL_2':'LEVEL_1',favorite_color:['GREEN','BLUE','PINK','ORANGE','PURPLE'][i%5],progress:{driver_id:id,total_minutes:600+i*60,night_minutes:120+i*15,total_drives:3+i,xp:100+i}}));
     const state={count:driverCount,familyDriverCount};
     window.__familyFixture=state;
+    window.__selectedProfile=null;
+    window.DVProfile={select:detail=>{window.__selectedProfile=detail}};
     window.DV_APP_CONFIG={supabaseUrl:'https://dev.fixture.invalid',publishableKey:'fixture-key'};
     window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'fixture-token'}}}),signOut:async()=>({}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};
     window.fetch=async(url,options={})=>{
@@ -97,15 +99,19 @@ test.describe('BKLG-0198 Family Hub deterministic browser contract',()=>{
     await expect(first.locator('.family-avatar-fallback')).toContainText('No avatar yet');
   });
 
-  test('driver cards are clickable into the driver console and persist selection',async({page})=>{
+  test('driver cards select profiles while explicit console action preserves Driver Console navigation',async({page})=>{
     await mountFamilyFixture(page,{driverCount:2});
     const first=page.locator('.family-driver-card').first();
-    await expect(first).toHaveAttribute('role','link');
+    await expect(first).toHaveAttribute('role','button');
     await expect(first).toHaveAttribute('tabindex','0');
+    await expect(first).toContainText('Edit profile');
     await expect(first).toContainText('Open console');
+    await first.click({position:{x:20,y:20}});
+    await expect.poll(()=>page.evaluate(()=>window.__selectedProfile?.driver_id||null)).toBe('driver-1');
+    await expect(page).toHaveURL(/\/family\//);
     await Promise.all([
       page.waitForURL(url=>url.pathname==='/log/',{waitUntil:'commit'}),
-      first.click()
+      first.locator('[data-open-console]').click()
     ]);
     expect(await page.evaluate(()=>localStorage.getItem('dv.log.driver'))).toBe('driver-1');
   });
