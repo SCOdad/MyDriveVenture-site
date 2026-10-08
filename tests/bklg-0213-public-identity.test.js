@@ -8,7 +8,8 @@ const root = resolve(__dirname, '..');
 const activePublicPages = [
   'index.html', 'privacy/index.html', 'terms/index.html',
   'sms-consent/index.html', 'faq/index.html', 'feedback/index.html',
-  'help/index.html', 'research/index.html', 'text-parker/index.html',
+  'help/index.html', 'research/index.html', 'research/teen-drowsy-driving/index.html', 'text-parker/index.html',
+  'FAQ/index.html',
   '404.html',
 ];
 
