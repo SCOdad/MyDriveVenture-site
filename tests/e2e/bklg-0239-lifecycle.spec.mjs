@@ -13,11 +13,12 @@ async function mockLifecycle(page,{driverStatus='ACTIVE',familyStatus='ACTIVE',
   }))
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',r=>r.fulfill({
     contentType:'application/javascript',
-    body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),refreshSession:async()=>({data:{session:{access_token:'dev-test-token'}}})}})};"
+    body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),refreshSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};"
   }))
   await page.route('https://dev.mock/functions/v1/operator-lifecycle',async r=>{
     const input=JSON.parse(r.request().postData()||'{}')
     calls.push(input)
+    if(input.action==='authorize')return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,authorized:true})})
     if(input.action==='preview_driver'){
       return r.fulfill({contentType:'application/json',body:JSON.stringify({
         ok:true,kind:'driver',capabilities:{transition:true,purge:driverPurge},
