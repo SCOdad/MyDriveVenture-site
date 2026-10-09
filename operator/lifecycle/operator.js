@@ -8,7 +8,7 @@
   const config = window.DV_APP_CONFIG;
   const endpoint = window.DV_ENVIRONMENT_CONFIG.functionUrl('operator-lifecycle');
   const client = window.supabase.createClient(config.supabaseUrl, config.publishableKey, {
-    auth: { persistSession: true, autoRefreshToken: true }
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   let preview = null;
   let selectedId = '';
@@ -16,10 +16,14 @@
   let capabilities = {};
   let busy = false;
   let operatorAuthorized = false;
+  let otpClient = null;
+  let signInCooldownTimer = null;
   const app = document.getElementById('lifecycle-app');
   const gate = document.getElementById('lifecycle-auth-gate');
   const gateMessage = document.getElementById('lifecycle-auth-message');
   const signInLink = document.getElementById('lifecycle-signin-link');
+  const signInForm = document.getElementById('lifecycle-signin');
+  const signInStatus = document.getElementById('lifecycle-signin-status');
 
   function showGate(message) {
     operatorAuthorized = false;
@@ -27,6 +31,7 @@
     gate.hidden = false;
     gateMessage.textContent = message;
     signInLink.hidden = false;
+    signInForm.hidden = false;
     resetTransition();
   }
   async function checkOperator() {
@@ -41,6 +46,7 @@
       if (!response.authorized) throw new Error('Operator access required.');
       operatorAuthorized = true;
       gate.hidden = true;
+      signInForm.hidden = true;
       app.hidden = false;
     } catch(error) {
       showGate('Access denied. Sign in with an authorized operator account.');
@@ -287,6 +293,52 @@
         (response.result.requires_companion_cleanup?' — Auth/Storage companion cleanup remains required.':'');
     }catch(error){out.textContent=error.message||'Purge failed. No success was reported.';}
     finally{busy=false;document.getElementById('purge-submit').disabled=false;}
+  });
+
+  function cooldown(seconds, note) {
+    const button=signInForm.querySelector('button');
+    let remaining=seconds;
+    button.disabled=true;
+    if(signInCooldownTimer) clearInterval(signInCooldownTimer);
+    const tick=()=>{
+      if(remaining<=0) {
+        clearInterval(signInCooldownTimer);
+        signInCooldownTimer=null;
+        button.disabled=false;
+        signInStatus.textContent='You can request another sign-in link.';
+      } else {
+        signInStatus.textContent=note+' Retry available in '+remaining+'s.';
+        remaining--;
+      }
+    };
+    tick();
+    signInCooldownTimer=setInterval(tick,1000);
+  }
+  signInForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const email=document.getElementById('lifecycle-signin-email').value.trim();
+    const button=signInForm.querySelector('button');
+    if(!email||button.disabled) return;
+    button.disabled=true;
+    signInStatus.textContent='Sending sign-in link…';
+    try {
+      if(!otpClient) otpClient=window.supabase.createClient(config.supabaseUrl,config.publishableKey,{
+        auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'dv-lifecycle-otp-request'}
+      });
+      const {error}=await otpClient.auth.signInWithOtp({
+        email,options:{
+          emailRedirectTo:location.origin+'/log/?return='+encodeURIComponent('/operator/lifecycle/'),
+          shouldCreateUser:false
+        }
+      });
+      if(error) throw error;
+      cooldown(60,'Check your email for a secure sign-in link. After verification, Drive Venture will return you to Lifecycle Management.');
+    } catch(error) {
+      const match=String(error?.message||'').match(/(?:after|wait)\\s+(\\d+)\\s*(?:seconds?|s)/i);
+      const retry=match?Number(match[1]):(Number(error?.status)===429?60:null);
+      if(retry) cooldown(retry,'Supabase is rate-limiting sign-in requests.');
+      else {button.disabled=false;signInStatus.textContent=error?.message||'Unable to send a sign-in link.';}
+    }
   });
 
   client.auth.onAuthStateChange((_event,session)=>{
