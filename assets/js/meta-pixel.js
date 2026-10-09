@@ -19,7 +19,7 @@
     '/help/',
     '/join/',
     '/privacy/',
-    '/research/',
+    '/learn/',
     '/sms-consent/',
     '/terms/',
     '/text-parker/',

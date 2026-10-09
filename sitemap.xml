@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://mydriveventure.com/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/requirements/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/getting-started/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/practice/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/logging/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/research/</loc></url>
+  <url><loc>https://mydriveventure.com/learn/research/teen-drowsy-driving/</loc></url>
   <url><loc>https://mydriveventure.com/text-parker/</loc></url>
-  <url><loc>https://mydriveventure.com/research/</loc></url>
-  <url><loc>https://mydriveventure.com/research/teen-drowsy-driving/</loc></url>
+  <url><loc>https://mydriveventure.com/faq/</loc></url>
   <url><loc>https://mydriveventure.com/help/</loc></url>
   <url><loc>https://mydriveventure.com/privacy/</loc></url>
   <url><loc>https://mydriveventure.com/terms/</loc></url>
