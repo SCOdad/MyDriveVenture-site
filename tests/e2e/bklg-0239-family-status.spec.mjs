@@ -60,3 +60,21 @@ test('BKLG-0239 unauthenticated browser never exposes lifecycle controls',async(
  await expect(page.locator('#lifecycle-signin-link')).toBeVisible()
  await expect(page.locator('#lifecycle-auth-message')).toContainText('Sign in')
 })
+
+test('BKLG-0239 valid non-operator session still never reveals page',async({page})=>{
+ await page.route('**/assets/js/environment-config.js',r=>r.fulfill({
+   contentType:'application/javascript',
+   body:"window.DV_ENVIRONMENT_CONFIG={supabaseUrl:'https://dev.mock',publishableKey:'public-test',functionUrl:name=>'https://dev.mock/functions/v1/'+name};"
+ }))
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',r=>r.fulfill({
+   contentType:'application/javascript',
+   body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'not-an-operator'}}}),refreshSession:async()=>({data:{session:{access_token:'not-an-operator'}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};"
+ }))
+ await page.route('https://dev.mock/functions/v1/operator-lifecycle',r=>r.fulfill({
+   status:403,contentType:'application/json',body:JSON.stringify({ok:false,error:'Operator access required'})
+ }))
+ await page.goto('/operator/lifecycle/')
+ await expect(page.locator('#lifecycle-app')).toBeHidden()
+ await expect(page.locator('#lifecycle-auth-gate')).toBeVisible()
+ await expect(page.locator('#lifecycle-auth-message')).toContainText('Access denied')
+})
