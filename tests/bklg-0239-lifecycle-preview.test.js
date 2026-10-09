@@ -3,21 +3,26 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const page = readFileSync('operator/lifecycle/index.html', 'utf8');
-const script = readFileSync('operator/lifecycle/operator.js', 'utf8');
+const client = readFileSync('operator/lifecycle/operator.js', 'utf8');
 
-test('BKLG-0239 lifecycle page exposes read-only previews', () => {
-  assert.match(page, /id="lifecycle-form"/);
-  assert.match(page, /id="lifecycle-kind"/);
-  assert.match(page, /id="lifecycle-id"/);
-  assert.match(page, /id="lifecycle-result"/);
+test('BKLG-0239 operator page exposes preview and explicit driver confirmation', () => {
+  for (const id of ['lifecycle-form', 'lifecycle-kind', 'lifecycle-id', 'lifecycle-result',
+    'driver-transition-panel', 'driver-transition-confirm','driver-transition-reason'])
+    assert.ok(page.includes('id="' + id + '"'), 'missing ' + id);
+  assert.match(page, /Family transitions and permanent purge remain disabled/);
   assert.match(page, /operator\/lifecycle\/operator\.js/);
-  assert.match(page, /not enabled/i);
 });
 
-test('BKLG-0239 lifecycle browser calls only preview actions', () => {
-  assert.match(script, /preview_/);
-  assert.match(script, /auth\.getSession\(\)/);
-  assert.match(script, /authorization/i);
-  assert.doesNotMatch(script, /execute_family_deletion_v1|delete\(|purge_|inactivate_|reactivate_/);
-  assert.doesNotMatch(page, /type="submit"[^>]*>\s*(?:Purge|Delete|Inactivate|Reactivate)/i);
+test('BKLG-0239 prevents stale driver status and mismatched confirmation', () => {
+  assert.match(client, /expected_status:\s*driver.status/);
+  assert.match(client, /confirmation !== driver.display_name/);
+  assert.match(client, /transition_driver/);
+  assert.match(client, /auth.refreshSession\(\)/);
+  assert.match(client, /transitionPanel.hidden = true/);
+  assert.doesNotMatch(client, /execute_family_deletion|transition_family|purge_driver|purge_family/);
+});
+
+test('BKLG-0239 UI does not expose permanent deletion controls', () => {
+  assert.doesNotMatch(page, /<button[^>]*>\s*(?:Delete|Purge)\b/i);
+  assert.doesNotMatch(client, /action:\s*['"](?:purge|delete)/);
 });
