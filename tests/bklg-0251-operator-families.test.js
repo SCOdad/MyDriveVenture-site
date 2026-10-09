@@ -9,7 +9,7 @@ test('BKLG-0251 adds protected Families / Activation operator surface',()=>{
   const js=read('operator/families/operator.js');
   const home=read('operator/index.html');
   assert.doesNotThrow(()=>new vm.Script(js));
-  assert.match(html,/Families &amp; activation/);
+  assert.match(html,/Families (?:&|&amp;) activation/);
   assert.match(js,/action:'family_roster'/);
   assert.match(js,/authorization:\`Bearer/);
   assert.match(home,/\/operator\/families\//);
