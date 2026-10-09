@@ -84,3 +84,21 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
   assert.match(html,/id="family-stage"/);
   assert.match(js,/document\.getElementById\('family-stage'\)\.value=filter\.exact/);
 });
+
+
+test('families page cache-busts operator assets after DOM contract changes',()=>{
+  const html=read('operator/families/index.html');
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251b/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251b/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251b/);
+  assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
+});
+
+test('families bootstrap tolerates removed optional controls and fails visibly',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/function bind\(id,event,handler\)\{const el=document\.getElementById\(id\);if\(!el\)return false;/);
+  assert.match(js,/function showBootstrapFailure\(e\)/);
+  assert.match(js,/The family roster could not initialize:/);
+  assert.doesNotMatch(js,/document\.getElementById\('activation-funnel'\)\.addEventListener/);
+  assert.doesNotMatch(js,/document\.getElementById\('stalled-filters'\)\.addEventListener/);
+});
