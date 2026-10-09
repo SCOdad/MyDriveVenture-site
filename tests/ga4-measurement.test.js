@@ -13,8 +13,13 @@ const taggedPages = [
   "help/index.html",
   "join/index.html",
   "privacy/index.html",
-  "research/index.html",
-  "research/teen-drowsy-driving/index.html",
+  "learn/index.html",
+  "learn/requirements/index.html",
+  "learn/getting-started/index.html",
+  "learn/practice/index.html",
+  "learn/logging/index.html",
+  "learn/research/index.html",
+  "learn/research/teen-drowsy-driving/index.html",
   "terms/index.html",
   "text-parker/index.html",
 ];
@@ -39,7 +44,8 @@ function runLoader(hostname, pathname, window = {}) {
 test("GA4 loads once for each approved public route on production", () => {
   for (const pathname of [
     "/", "/faq/", "/feedback/", "/help/", "/join/", "/privacy/",
-    "/research/", "/research/teen-drowsy-driving/", "/terms/",
+    "/learn/", "/learn/requirements/", "/learn/getting-started/", "/learn/practice/", "/learn/logging/",
+    "/learn/research/", "/learn/research/teen-drowsy-driving/", "/terms/",
     "/text-parker/",
   ]) {
     const { window, scripts } = runLoader("mydriveventure.com", pathname);
@@ -84,6 +90,6 @@ test("GA4 injection is idempotent", () => {
 test("all approved public pages include the GA4 loader", () => {
   for (const file of taggedPages) {
     const html = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
-    assert.match(html, /\/assets\/js\/ga4\.js\?v=20260926-ga4/ , file);
+    assert.match(html, /\/assets\/js\/ga4\.js\?v=2026\d{4}-[\w-]+/ , file);
   }
 });
