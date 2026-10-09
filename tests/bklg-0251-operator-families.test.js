@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251c/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251c/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251c/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251d/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251d/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251d/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
@@ -139,6 +139,23 @@ test('funnel trapezoids taper downward',()=>{
 
 test('families page uses fresh assets for this DOM and contract change',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251c/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251c/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251d/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251d/);
+});
+
+
+test('family nudge status shows sent scheduled or next-evaluation timing',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/Sent: Yes ·/);
+  assert.match(js,/Scheduled: \$\{scheduleDate\(nudge\.next_eligible_date\)\} · 3 PM local/);
+  assert.match(js,/Next evaluation: \$\{scheduleDate\(nudge\.next_eligible_date\)\} · 3 PM local/);
+  assert.match(js,/nudge\.timing_kind==='SCHEDULED'/);
+  assert.match(js,/nudge\.timing_kind==='NEXT_EVALUATION'/);
+});
+
+test('nudge schedule dates are rendered as date-only values without timezone drift',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/scheduleDate=v=>/);
+  assert.match(js,/timeZone:'UTC'/);
+  assert.match(js,/nudge\.schedule_timezone/);
 });
