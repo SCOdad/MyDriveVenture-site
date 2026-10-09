@@ -102,3 +102,43 @@ test('families bootstrap tolerates removed optional controls and fails visibly',
   assert.doesNotMatch(js,/document\.getElementById\('activation-funnel'\)\.addEventListener/);
   assert.doesNotMatch(js,/document\.getElementById\('stalled-filters'\)\.addEventListener/);
 });
+
+
+test('archived families are excluded by default with an independent opt-in toggle',()=>{
+  const html=read('operator/families/index.html');
+  const js=read('operator/families/operator.js');
+  assert.match(html,/id="include-archived-families" type="checkbox"/);
+  assert.match(js,/includeArchivedFamilies:false/);
+  assert.match(js,/!filter\.includeArchivedFamilies&&f\.status!=='ACTIVE'/);
+  assert.match(js,/include-archived-families/);
+  assert.match(js,/include-archived-drivers/);
+});
+
+test('family rows expose canonical stage nudge sent status',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/applicable_nudge/);
+  assert.match(js,/Sent: Yes/);
+  assert.match(js,/Sent: No/);
+  assert.match(js,/nudge\.sent_at/);
+});
+
+test('funnel renders cumulative percent of registered to the right',()=>{
+  const js=read('operator/families/operator.js');
+  const css=read('assets/css/operator-dashboard.css');
+  assert.match(js,/registered=Math\.max\(1,Number\(\(data\.funnel\|\|\[\]\)\[0\]\?\.count\|\|0\)\)/);
+  assert.match(js,/pct=Math\.round\(Number\(x\.count\|\|0\)\/registered\*100\)/);
+  assert.match(js,/activation-funnel-percent/);
+  assert.match(css,/\.activation-funnel-percent/);
+});
+
+test('funnel trapezoids taper downward',()=>{
+  const css=read('assets/css/operator-dashboard.css');
+  assert.match(css,/clip-path:polygon\(0 0,100% 0,96% 100%,4% 100%\)/);
+  assert.doesNotMatch(css,/clip-path:polygon\(4% 0,96% 0,100% 100%,0 100%\)/);
+});
+
+test('families page uses fresh assets for this DOM and contract change',()=>{
+  const html=read('operator/families/index.html');
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251c/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251c/);
+});
