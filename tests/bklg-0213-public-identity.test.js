@@ -26,3 +26,17 @@ test('BKLG-0213 Terms and Privacy identify SCOCRAFT LLC as operator', () => {
     assert.match(html, /Drive Venture is operated by SCOCRAFT LLC/, page);
   }
 });
+
+// The public operator attribution is intentional on these pages, not merely an absence of old copy.
+test('BKLG-0213 active legal and informational surfaces retain SCOCRAFT LLC attribution', () => {
+  const attributedPages = [
+    'index.html', 'privacy/index.html', 'terms/index.html',
+    'sms-consent/index.html', 'faq/index.html', 'FAQ/index.html',
+    'feedback/index.html', 'help/index.html', 'research/index.html',
+    'research/teen-drowsy-driving/index.html', 'text-parker/index.html', '404.html',
+  ];
+  for (const page of attributedPages) {
+    const html = readFileSync(resolve(root, page), 'utf8');
+    assert.match(html, /Drive Venture is operated by SCOCRAFT LLC/, page);
+  }
+});
