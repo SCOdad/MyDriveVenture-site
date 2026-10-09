@@ -8,7 +8,7 @@
 <div class="dashboard-meta"><span id="families-count"></span><span id="families-updated"></span></div><p id="families-error" class="dashboard-error" role="alert" hidden></p>
 
 <div class="activation-layout">
-<section class="operator-panel" aria-labelledby="funnel-title"><p class="eyebrow">Engagement</p><h2 id="funnel-title">Activation funnel</h2><p class="meta">Counts are cumulative across active canonical families. Select a stage to show families currently at that stage.</p><div id="activation-funnel" class="activation-funnel"></div></section>
+<section class="operator-panel" aria-labelledby="funnel-title"><p class="eyebrow">Engagement</p><h2 id="funnel-title">Activation funnel</h2><p class="meta">Counts are cumulative across active canonical families. Practice milestones are independent of drive-count stages and count a family when any active driver qualifies. Select a stage to show families currently at that stage.</p><div id="activation-funnel" class="activation-funnel"></div></section>
 <aside class="operator-panel" aria-labelledby="commercial-title"><p class="eyebrow">Commercial</p><h2 id="commercial-title">Entitlement state</h2><p class="meta">Commercial status is intentionally separate from engagement.</p><div id="commercial-summary" class="commercial-summary"></div></aside>
 </div>
 
@@ -17,7 +17,7 @@
 <label class="family-search">Search<input id="family-search" type="search" placeholder="Name, email, phone, family…"></label>
 <label class="archived-family-toggle"><span>Archived families</span><span class="toggle-control"><input id="include-archived-families" type="checkbox"><span>Include archived families</span></span></label>
 <label class="archived-driver-toggle"><span>Archived drivers</span><span class="toggle-control"><input id="include-archived-drivers" type="checkbox"><span>Include archived drivers</span></span></label>
-<label>Exact stage<select id="family-stage"><option value="ALL">All stages</option><option value="REGISTERED">Registered / no driver</option><option value="ONE_DRIVER">Driver / no drive</option><option value="ONE_DRIVE">1 drive</option><option value="TWO_DRIVES">2–4 drives</option><option value="FIVE_DRIVES">5 drives</option><option value="MORE_THAN_5_DRIVES">&gt;5 drives</option></select></label>
+<label>Exact stage<select id="family-stage"><option value="ALL">All stages</option><option value="REGISTERED">Registered / no driver</option><option value="ONE_DRIVER">Driver / no drive</option><option value="ONE_DRIVE">1 drive</option><option value="TWO_DRIVES">2–4 drives</option><option value="FIVE_DRIVES">5 drives</option><option value="MORE_THAN_5_DRIVES">&gt;5 drives</option><option value="PRACTICE_25">25% practice</option><option value="PRACTICE_15_HOURS">15 hours</option><option value="PRACTICE_50">50% practice</option><option value="PRACTICE_90">90% practice</option><option value="PRACTICE_100">100% practice</option></select></label>
 <label>Commercial<select id="family-commercial"><option value="ALL">All commercial states</option></select></label>
 <label>Status<select id="family-status"><option value="ALL">All family states</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive / other</option></select></label>
 <label>Registered<select id="family-recency"><option value="ALL">Any time</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select></label>
