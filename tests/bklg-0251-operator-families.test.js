@@ -172,3 +172,12 @@ test('collapsed family nudge cell shows name and sent/to-be-sent date',()=>{
   assert.match(css,/\.family-nudge-summary strong\{white-space:normal/);
   assert.match(css,/\.family-nudge-summary strong\+small\{margin-top:/);
 });
+
+test('practice funnel uses independent active-driver milestones without altering activation nudges',()=>{
+ const js=read('operator/families/operator.js'),html=read('operator/families/index.html');
+ for(const stage of ['PRACTICE_25','PRACTICE_15_HOURS','PRACTICE_50','PRACTICE_90','PRACTICE_100']){assert.ok(js.includes(stage));assert.ok(html.includes(stage));}
+ assert.match(js,/PRACTICE_STAGES\.includes\(filter\.exact\)\?f\.progress_stage!==filter\.exact:f\.activation_stage!==filter\.exact/);
+ assert.match(js,/driver_practice/);
+ assert.match(js,/Independent practice milestone/);
+ assert.doesNotThrow(()=>new vm.Script(js));
+});
