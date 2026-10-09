@@ -20,3 +20,40 @@
 .nudge-card-body>h4{margin:1.5rem 0 .5rem}
 @media(max-width:850px){.nudge-delivery .nudge-config{grid-template-columns:1fr 1fr}.nudge-delivery .nudge-config .rule-grownup-audience{width:100%}}
 @media(max-width:540px){.nudge-delivery .nudge-config{grid-template-columns:1fr}.nudge-delivery .nudge-config .rule-save{width:100%}}
+
+/* BKLG-0130 record identity: all sections share their parent nudge's sequence accent.
+   Only the accent changes by sequence class; save actions retain standard DV yellow. */
+.nudge-card{--nudge-record-accent:#d5a43e}
+.nudge-card[data-sequence-class="CRITICAL_ACTIVATION"]{--nudge-record-accent:#6fbcc9}
+.nudge-card[data-sequence-class="JOURNEY_PROGRESS"]{--nudge-record-accent:#e3b656}
+.nudge-card[data-sequence-class="COACHING"]{--nudge-record-accent:#a9a0df}
+.nudge-card[data-sequence-class="FEATURE_ADOPTION"]{--nudge-record-accent:#83c5a6}
+.nudge-card[data-sequence-class="COMMUNITY_PRODUCT"]{--nudge-record-accent:#e1a5ae}
+.nudge-card[data-sequence-class="REENGAGEMENT"]{--nudge-record-accent:#e6a776}
+.nudge-card[open]{border-left:3px solid var(--nudge-record-accent)}
+.nudge-card[open]>summary{box-shadow:inset 0 -2px 0 var(--nudge-record-accent)}
+.nudge-record-flow{position:relative;padding-left:1.35rem;display:flex;flex-direction:column;gap:.65rem}
+.nudge-record-flow::before{content:"";position:absolute;left:.38rem;top:1.25rem;bottom:1.25rem;border-left:2px solid var(--nudge-record-accent);opacity:.66}
+.nudge-record-flow>.nudge-settings-panel{position:relative;margin:.35rem 0;border-left:3px solid var(--nudge-record-accent)}
+.nudge-record-flow>.nudge-settings-panel::before{content:"";position:absolute;left:calc(-1.35rem - 3px);top:1.3rem;width:1.35rem;border-top:2px solid var(--nudge-record-accent)}
+.nudge-record-flow>.nudge-settings-panel>h4{display:flex;align-items:center;gap:.65rem;color:#f7f3e8}
+.nudge-record-flow>.nudge-settings-panel>h4::before{content:"";width:.55rem;height:.55rem;flex:none;border-radius:50%;background:var(--nudge-record-accent)}
+.nudge-record-flow>.meta{margin:.2rem 0 .35rem;color:#aeb9c1}
+.nudge-recipient-panel .recipient-columns{margin-top:.45rem}
+@media(max-width:540px){
+  .nudge-record-flow{padding-left:.85rem;gap:.45rem}
+  .nudge-record-flow::before{left:.16rem}
+  .nudge-record-flow>.nudge-settings-panel::before{left:calc(-.85rem - 3px);width:.85rem}
+  .nudge-record-flow>.nudge-settings-panel{padding:.75rem}
+}
+@media(prefers-reduced-motion:reduce){.nudge-record-flow,.nudge-record-flow>*{transition:none}}
+
+/* BKLG-0130: informational preview states and read-only as-of selector */
+.nudge-count.upcoming{border-color:#c49d56;color:#ffe6ac}
+.nudge-recipient-panel .recipient-box:nth-child(2){border-color:#b18c55}
+.nudge-recipient-panel .recipient-box:nth-child(3){border-color:#64717d}
+.nudge-asof-controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:1rem 0;padding:.8rem;border:1px solid #53616b;border-radius:8px;background:#111b23}
+.nudge-asof-controls label{font-weight:700}
+.nudge-asof-controls input{min-width:13rem;padding:.55rem;background:#0b1218;color:#f7f3e8;border:1px solid #667784;border-radius:5px}
+.nudge-asof-controls .meta{flex-basis:100%}
+@media(max-width:540px){.nudge-asof-controls{align-items:stretch;flex-direction:column}.nudge-asof-controls input{min-width:0;width:100%;box-sizing:border-box}}
