@@ -16,8 +16,8 @@ test('BKLG-0246: Learn pages have canonical URLs and useful document structure',
 });
 test('BKLG-0246: legacy research paths redirect permanently', () => {
   const lines = read('_redirects');
-  assert.match(lines, /^\\/research\\/ \\/learn\\/research\\/ 301$/m);
-  assert.match(lines, /^\\/research\\/teen-drowsy-driving\\/ \\/learn\\/research\\/teen-drowsy-driving\\/ 301$/m);
+  assert.ok(lines.split('\n').includes('/research/ /learn/research/ 301'));
+  assert.ok(lines.split('\n').includes('/research/teen-drowsy-driving/ /learn/research/teen-drowsy-driving/ 301'));
 });
 test('BKLG-0246: sitemap only advertises canonical Learn destinations', () => {
   const xml = read('sitemap.xml');
