@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251f/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251f/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251f/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
@@ -139,8 +139,8 @@ test('funnel trapezoids taper downward',()=>{
 
 test('families page uses fresh assets for this DOM and contract change',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251f/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251f/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
 });
 
 
@@ -165,7 +165,7 @@ test('collapsed family nudge cell shows name and sent/to-be-sent date',()=>{
   const js=read('operator/families/operator.js');
   const css=read('assets/css/operator-dashboard.css');
   assert.match(js,/family-nudge-summary/);
-  assert.match(js,/Nudge \*/);
+  assert.match(js,/<small>Nudge<\/small>/);
   assert.match(js,/nudge\.sent\?'sent':'to be sent'/);
   assert.match(js,/compactNudgeDate\(nudge\.sent\?nudge\.sent_at:nudge\.next_eligible_date\)/);
   assert.match(js,/day.*month.*year/);
