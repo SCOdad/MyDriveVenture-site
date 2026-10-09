@@ -15,6 +15,37 @@
   let selectedKind = '';
   let capabilities = {};
   let busy = false;
+  let operatorAuthorized = false;
+  const app = document.getElementById('lifecycle-app');
+  const gate = document.getElementById('lifecycle-auth-gate');
+  const gateMessage = document.getElementById('lifecycle-auth-message');
+  const signInLink = document.getElementById('lifecycle-signin-link');
+
+  function showGate(message) {
+    operatorAuthorized = false;
+    app.hidden = true;
+    gate.hidden = false;
+    gateMessage.textContent = message;
+    signInLink.hidden = false;
+    resetTransition();
+  }
+  async function checkOperator() {
+    gateMessage.textContent = 'Verifying your operator session…';
+    const auth = await client.auth.getSession();
+    if (!auth.data.session?.access_token) {
+      showGate('Sign in with an authorized operator account to access Lifecycle Management.');
+      return;
+    }
+    try {
+      const response = await invoke({action:'authorize'});
+      if (!response.authorized) throw new Error('Operator access required.');
+      operatorAuthorized = true;
+      gate.hidden = true;
+      app.hidden = false;
+    } catch(error) {
+      showGate('Access denied. Sign in with an authorized operator account.');
+    }
+  }
 
   function resetTransition() {
     preview = null;
@@ -78,6 +109,11 @@
       row('Driver', data.driver?.display_name || data.driver?.id || 'Unknown');
       row('Status', data.driver?.status || 'Unknown');
       row('Families', (data.family_memberships || []).length);
+      for (const [index, family] of (data.family_memberships || []).entries()) {
+        row('Family ' + (index+1) + ' ID', family.family_id || 'Unknown');
+        row('Family ' + (index+1) + ' status', family.family_status || 'Unknown');
+        row('Family ' + (index+1) + ' membership', family.membership_status || 'Unknown');
+      }
       row('Guardian relationships', (data.guardian_relationships || []).length);
       const dependencies = Object.entries(data.direct_fk_dependencies || {});
       for (const [table, detail] of dependencies) {
@@ -141,7 +177,7 @@
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !operatorAuthorized) return;
     busy = true;
     try { await loadPreview(); }
     catch (error) {
@@ -154,7 +190,7 @@
 
   transitionForm.addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy || !preview?.driver || !selectedId || transitionPanel.hidden) return;
+    if (busy || !operatorAuthorized || !preview?.driver || !selectedId || transitionPanel.hidden) return;
     const driver = preview.driver;
     const transition = document.getElementById('driver-transition-action').value;
     const confirmation = document.getElementById('driver-transition-confirm').value;
@@ -191,7 +227,7 @@
 
   document.getElementById('family-transition-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if (busy || selectedKind !== 'family' || !capabilities.transition || !preview ||
+    if (busy || !operatorAuthorized || selectedKind !== 'family' || !capabilities.transition || !preview ||
         document.getElementById('family-transition-panel').hidden) return;
     const family=preview;
     const transition=document.getElementById('family-transition-action').value;
@@ -218,7 +254,7 @@
 
   document.getElementById('purge-form').addEventListener('submit', async event => {
     event.preventDefault();
-    if(busy || !capabilities.purge || document.getElementById('purge-panel').hidden ||
+    if(busy || !operatorAuthorized || !capabilities.purge || document.getElementById('purge-panel').hidden ||
        !preview || !selectedId) return;
     const id=document.getElementById('purge-id').value.trim();
     const confirmation=document.getElementById('purge-confirm').value;
@@ -249,6 +285,10 @@
     finally{busy=false;document.getElementById('purge-submit').disabled=false;}
   });
 
+  client.auth.onAuthStateChange((_event,session)=>{
+    if (!session) showGate('Session ended. Sign in to access Lifecycle Management.');
+  });
+  checkOperator();
   document.getElementById('lifecycle-id').addEventListener('input', resetTransition);
   document.getElementById('lifecycle-kind').addEventListener('change', resetTransition);
 })();
