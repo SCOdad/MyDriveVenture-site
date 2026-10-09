@@ -36,3 +36,16 @@ test('BKLG-0239 family transition and purge remain capability-gated',()=>{
  assert.match(client,/expectedStatus!=='INACTIVE'/);
  assert.match(page,/I understand this purge cannot be undone/);
 });
+
+test('BKLG-0239 lifecycle surface is hidden until live operator auth',()=>{
+ assert.match(page,/id="lifecycle-app" hidden/);
+ assert.match(page,/id="lifecycle-auth-gate"/);
+ assert.match(page,/id="lifecycle-signin-link"/);
+ assert.doesNotMatch(page,/BKLG-0239 · Operator only/);
+ assert.match(page,/#lifecycle-id\{width:min\(100%,44ch\)/);
+ assert.match(client,/action:'authorize'/);
+ assert.match(client,/operatorAuthorized = true/);
+ assert.match(client,/operatorAuthorized = false/);
+ assert.match(client,/family\.family_status/);
+ assert.match(client,/family\.membership_status/);
+});
