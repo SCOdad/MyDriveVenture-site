@@ -17,7 +17,7 @@
 <main class="content narrow">
 <section class="operator-head"><div><p class="eyebrow">BKLG-0239 · Operator only</p>
 <h1>Lifecycle Management</h1>
-<p class="lede">Preview a driver or family before making lifecycle changes. Preview-only; inactivation, reactivation and purge are not enabled.</p></div></section>
+<p class="lede">Preview driver or family impact. Driver inactivation/reactivation requires confirmation and a reason. Family transitions and permanent purge remain disabled.</p></div></section>
 <section class="operator-panel">
 <form id="lifecycle-form">
 <label for="lifecycle-kind">Entity type</label>
@@ -29,9 +29,27 @@
 <p id="lifecycle-status" role="status"></p>
 </section>
 <section class="operator-panel" aria-label="Impact results">
-<h2>Read-only impact preview</h2>
+<h2>Lifecycle impact preview</h2>
 <p class="meta">Driver dependency counts are preliminary. They do not authorize deletion.</p>
 <pre id="lifecycle-result" style="white-space:pre-wrap;overflow-wrap:anywhere">No preview requested.</pre>
+</section>
+<section class="operator-panel" id="driver-transition-panel" hidden>
+<h2>Change driver status</h2>
+<p class="meta">Only reversible driver status changes are available here. This does not delete any records.</p>
+<p>Selected driver: <strong id="selected-driver-name"></strong> · Current status: <strong id="selected-driver-status"></strong></p>
+<form id="driver-transition-form">
+<label for="driver-transition-action">Action</label>
+<select id="driver-transition-action" required>
+<option value="INACTIVATE">Inactivate driver</option>
+<option value="REACTIVATE">Reactivate driver</option>
+</select>
+<label for="driver-transition-confirm">Type the driver's exact displayed name</label>
+<input id="driver-transition-confirm" required autocomplete="off">
+<label for="driver-transition-reason">Reason (minimum 8 characters)</label>
+<textarea id="driver-transition-reason" required minlength="8" rows="3"></textarea>
+<button id="driver-transition-submit" class="button button-primary" type="submit">Confirm status change</button>
+</form>
+<p id="driver-transition-result" role="status"></p>
 </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
