@@ -83,6 +83,10 @@
       if (!token) throw new Error('Operator session expired. Sign in again.');
       response = await send(token);
     }
+    if (response.status === 401 || response.status === 403) {
+      showGate('Your operator session is invalid or no longer authorized. Sign in again.');
+      throw new Error('Operator authentication required.');
+    }
     const body = await response.json().catch(() => ({}));
     if (!response.ok || !body.ok) throw new Error(body.error || 'Lifecycle request failed');
     return body;
