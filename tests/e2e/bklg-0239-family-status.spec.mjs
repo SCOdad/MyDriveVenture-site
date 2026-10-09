@@ -44,3 +44,19 @@ test('BKLG-0239 family status flow requires matching code',async({page})=>{
   await expect(page.locator('#selected-family-status')).toHaveText('ACTIVE')
   expect(calls.filter(x=>x.action==='transition_family')).toHaveLength(2)
 })
+
+test('BKLG-0239 unauthenticated browser never exposes lifecycle controls',async({page})=>{
+ await page.route('**/assets/js/environment-config.js',r=>r.fulfill({
+   contentType:'application/javascript',
+   body:"window.DV_ENVIRONMENT_CONFIG={supabaseUrl:'https://dev.mock',publishableKey:'public-test',functionUrl:name=>'https://dev.mock/functions/v1/'+name};"
+ }))
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',r=>r.fulfill({
+   contentType:'application/javascript',
+   body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};"
+ }))
+ await page.goto('/operator/lifecycle/')
+ await expect(page.locator('#lifecycle-app')).toBeHidden()
+ await expect(page.locator('#lifecycle-auth-gate')).toBeVisible()
+ await expect(page.locator('#lifecycle-signin-link')).toBeVisible()
+ await expect(page.locator('#lifecycle-auth-message')).toContainText('Sign in')
+})
