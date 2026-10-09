@@ -6,6 +6,7 @@ on:
       - 'operator/lifecycle/**'
       - 'operator/config.js'
       - 'tests/e2e/bklg-0239-lifecycle.spec.mjs'
+      - 'tests/e2e/bklg-0239-family-status.spec.mjs'
       - 'tests/bklg-0239-lifecycle-preview.test.js'
       - '.github/workflows/bklg-0239-lifecycle-ui.yml'
   workflow_dispatch:
@@ -38,7 +39,7 @@ jobs:
           cat /tmp/bklg-0239-http.log
           exit 1
       - name: Test lifecycle browser interactions with mock auth and backend
-        run: npx playwright test tests/e2e/bklg-0239-lifecycle.spec.mjs --retries=0
+        run: npx playwright test tests/e2e/bklg-0239-lifecycle.spec.mjs tests/e2e/bklg-0239-family-status.spec.mjs --retries=0
       - name: Verify lifecycle source contracts
         run: node --test tests/bklg-0239-lifecycle-preview.test.js
       - name: Retain failure evidence
