@@ -16,7 +16,7 @@ test('BKLG-0248 Family Hub validates prior night hours before submission',()=>{
   assert.doesNotThrow(()=>new Function(js));
   assert.match(js,/function validatePriorPractice/);
   assert.match(js,/Night hours cannot exceed total prior practice hours/);
-  assert.match(js,/if\(!validatePriorPractice\(f\)\)\{f\.reportValidity\(\);f\.elements\.prior_night_hours\?\.focus\(\);return\}/);
+  assert.match(js,/if\(!validatePriorPractice\(f\)\)\{\(f\.querySelector\('\[aria-invalid=\"true\"\]'\)/);
 });
 
 test('BKLG-0240 Add Driver revalidates prior practice live and supplies explicit family context',()=>{
