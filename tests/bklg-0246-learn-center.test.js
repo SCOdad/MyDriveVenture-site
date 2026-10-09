@@ -8,8 +8,8 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 test('BKLG-0246: Learn pages have canonical URLs and useful document structure', () => {
   for (const url of pages.slice(1)) {
     const html = read(url.slice(1) + 'index.html');
-    assert.match(html, /<main\\b/, url);
-    assert.match(html, /<h1\\b/, url);
+    assert.ok(html.includes('<main'), url);
+    assert.ok(html.includes('<h1'), url);
     assert.ok(html.includes('rel="canonical" href="https://mydriveventure.com' + url + '"'), url);
     assert.ok(html.includes('href="/learn/'), url);
   }
