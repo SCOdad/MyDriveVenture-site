@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251b/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251b/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251b/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251c/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251c/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251c/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
