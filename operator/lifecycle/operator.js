@@ -47,15 +47,54 @@
     return body;
   }
 
+  function showSummary(kind, data) {
+    const target = document.getElementById('lifecycle-summary');
+    target.replaceChildren();
+    const title = document.createElement('h3');
+    title.textContent = kind === 'driver' ? 'Driver impact' : 'Family impact';
+    target.append(title);
+    const warning = document.createElement('p');
+    warning.textContent = 'Permanent purge is unavailable; this preview does not authorize deletion.';
+    target.append(warning);
+    const list = document.createElement('ul');
+    const row = (name, value) => {
+      const item = document.createElement('li');
+      item.textContent = name + ': ' + String(value);
+      list.append(item);
+    };
+    if (kind === 'driver') {
+      row('Driver', data.driver?.display_name || data.driver?.id || 'Unknown');
+      row('Status', data.driver?.status || 'Unknown');
+      row('Families', (data.family_memberships || []).length);
+      row('Guardian relationships', (data.guardian_relationships || []).length);
+      const dependencies = Object.entries(data.direct_fk_dependencies || {});
+      for (const [table, detail] of dependencies) {
+        if (Number(detail?.count || 0) > 0) row(table, detail.count);
+      }
+      row('Direct FK blockers', (data.direct_fk_blockers || []).length);
+      row('Coverage', data.completeness || 'Partial');
+    } else {
+      row('Family', data.family_id || 'Unknown');
+      row('Status', data.family_status || 'Unknown');
+      const counts = data.counts || {};
+      for (const [name, count] of Object.entries(counts)) row(name.replaceAll('_', ' '), count);
+      row('Shared people requiring review', (data.shared_people || []).length);
+      row('Storage objects requiring review', (data.storage_objects || []).length);
+    }
+    target.append(list);
+  }
+
   async function loadPreview() {
     resetTransition();
     selectedId = document.getElementById('lifecycle-id').value.trim();
     const kind = document.getElementById('lifecycle-kind').value;
     status.textContent = 'Loading preview…';
     result.textContent = '';
+    document.getElementById('lifecycle-summary').replaceChildren();
     const response = await invoke({action: 'preview_' + kind, id: selectedId});
     preview = response.preview;
     result.textContent = JSON.stringify(preview, null, 2);
+    showSummary(kind, preview);
     status.textContent = 'Preview loaded. No records changed.';
     const driver = kind === 'driver' ? preview?.driver : null;
     if (driver && ['ACTIVE', 'INACTIVE'].includes(driver.status)) {
