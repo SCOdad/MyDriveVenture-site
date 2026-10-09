@@ -78,3 +78,25 @@ test('BKLG-0239 valid non-operator session still never reveals page',async({page
  await expect(page.locator('#lifecycle-auth-gate')).toBeVisible()
  await expect(page.locator('#lifecycle-auth-message')).toContainText('Access denied')
 })
+
+test('BKLG-0239 visitor requests magic link on lifecycle page and returns here',async({page})=>{
+  await page.route('**/assets/js/environment-config.js',r=>r.fulfill({
+    contentType:'application/javascript',
+    body:"window.DV_ENVIRONMENT_CONFIG={supabaseUrl:'https://dev.mock',publishableKey:'public-test',functionUrl:name=>'https://dev.mock/functions/v1/'+name};"
+  }));
+  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',r=>r.fulfill({
+    contentType:'application/javascript',
+    body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null}}),signInWithOtp:async args=>{window.lastMagicLinkRequest=args;return {error:null}},onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};"
+  }));
+  await page.goto('/operator/lifecycle/');
+  await expect(page.locator('#lifecycle-app')).toBeHidden();
+  await expect(page.locator('#lifecycle-signin')).toBeVisible();
+  await page.locator('#lifecycle-signin-email').fill('operator@example.test');
+  await page.getByRole('button',{name:'Send sign-in link'}).click();
+  await expect(page.locator('#lifecycle-signin-status')).toContainText('Check your email');
+  const request=await page.evaluate(()=>window.lastMagicLinkRequest);
+  expect(request.email).toBe('operator@example.test');
+  expect(request.options.shouldCreateUser).toBe(false);
+  expect(request.options.emailRedirectTo).toContain('/log/?return=%2Foperator%2Flifecycle%2F');
+  await expect(page.locator('#lifecycle-app')).toBeHidden();
+});
