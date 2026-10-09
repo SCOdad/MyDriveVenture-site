@@ -17,7 +17,7 @@
 <main class="content narrow">
 <section class="operator-head"><div><p class="eyebrow">BKLG-0239 · Operator only</p>
 <h1>Lifecycle Management</h1>
-<p class="lede">Preview driver or family impact. Driver inactivation/reactivation requires confirmation and a reason. Family transitions and permanent purge remain disabled.</p></div></section>
+<p class="lede">Preview driver or family impact. Driver inactivation/reactivation requires confirmation and a reason. Family transitions and permanent purge are controlled by environment safety gates and are disabled unless explicitly enabled.</p></div></section>
 <section class="operator-panel">
 <form id="lifecycle-form">
 <label for="lifecycle-kind">Entity type</label>
@@ -53,6 +53,29 @@
 <button id="driver-transition-submit" class="button button-primary" type="submit">Confirm status change</button>
 </form>
 <p id="driver-transition-result" role="status"></p>
+</section>
+<section class="operator-panel" id="family-transition-panel" hidden>
+<h2>Change family status</h2>
+<p>Family code: <strong id="selected-family-code"></strong> · Status: <strong id="selected-family-status"></strong></p>
+<form id="family-transition-form">
+<label for="family-transition-action">Action</label>
+<select id="family-transition-action" required><option value="INACTIVATE">Inactivate family</option><option value="REACTIVATE">Reactivate family</option></select>
+<label for="family-transition-confirm">Type the exact family code</label><input id="family-transition-confirm" required>
+<label for="family-transition-reason">Reason (minimum 8 characters)</label><textarea id="family-transition-reason" required minlength="8" rows="3"></textarea>
+<button id="family-transition-submit" class="button button-primary" type="submit">Confirm family status change</button>
+</form><p id="family-transition-result" role="status"></p>
+</section>
+<section class="operator-panel" id="purge-panel" hidden>
+<h2>Permanent purge</h2>
+<p><strong>Irreversible.</strong> Driver purges remove driver-owned rows but retain the person shell, contacts, family membership shell and audit. Family purges may require separate Auth/Storage cleanup.</p>
+<p id="purge-warning"></p>
+<form id="purge-form">
+<label for="purge-id">Type the full canonical UUID</label><input id="purge-id" required>
+<label for="purge-confirm">Type the exact displayed driver name or family code</label><input id="purge-confirm" required>
+<label for="purge-reason">Reason (minimum 12 characters)</label><textarea id="purge-reason" required minlength="12" rows="4"></textarea>
+<label><input id="purge-acknowledge" type="checkbox" required> I understand this purge cannot be undone.</label>
+<button id="purge-submit" class="button button-primary" type="submit">Permanently purge selected record</button>
+</form><p id="purge-result" role="status"></p>
 </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
