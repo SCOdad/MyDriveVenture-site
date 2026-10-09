@@ -49,3 +49,16 @@ test('BKLG-0239 lifecycle surface is hidden until live operator auth',()=>{
  assert.match(client,/family\.family_status/);
  assert.match(client,/family\.membership_status/);
 });
+
+test('BKLG-0239 uses Nudges-compatible in-page operator magic link',()=>{
+ assert.match(page,/id="lifecycle-signin"/);
+ assert.match(page,/id="lifecycle-signin-email"/);
+ assert.match(page,/Send sign-in link/);
+ assert.match(client,/signInWithOtp/);
+ assert.match(client,/shouldCreateUser:false/);
+ assert.match(client,/emailRedirectTo:location.origin\+'\/log\/\?return='/);
+ assert.match(client,/encodeURIComponent\('\/operator\/lifecycle\/'\)/);
+ assert.match(client,/otpClient/);
+ assert.match(client,/signInForm.hidden = false/);
+ assert.match(client,/signInForm.hidden = true/);
+});
