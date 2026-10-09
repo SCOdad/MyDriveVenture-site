@@ -12,14 +12,24 @@
   });
   let preview = null;
   let selectedId = '';
+  let selectedKind = '';
+  let capabilities = {};
   let busy = false;
 
   function resetTransition() {
     preview = null;
     selectedId = '';
+    selectedKind = '';
+    capabilities = {};
     transitionPanel.hidden = true;
+    document.getElementById('family-transition-panel').hidden = true;
+    document.getElementById('purge-panel').hidden = true;
     transitionForm.reset();
     transitionStatus.textContent = '';
+    document.getElementById('family-transition-form').reset();
+    document.getElementById('purge-form').reset();
+    document.getElementById('family-transition-result').textContent = '';
+    document.getElementById('purge-result').textContent = '';
   }
 
   async function invoke(input) {
@@ -63,6 +73,8 @@
       list.append(item);
     };
     if (kind === 'driver') {
+      row('Simple purge candidate', data.simple_purge_candidate === true ? 'Yes, subject to explicit confirmation' : 'No');
+      row('Unsupported purge dependencies', (data.simple_purge_blockers || []).length);
       row('Driver', data.driver?.display_name || data.driver?.id || 'Unknown');
       row('Status', data.driver?.status || 'Unknown');
       row('Families', (data.family_memberships || []).length);
@@ -74,7 +86,7 @@
       row('Direct FK blockers', (data.direct_fk_blockers || []).length);
       row('Coverage', data.completeness || 'Partial');
     } else {
-      row('Family', data.family_id || 'Unknown');
+      row('Family', data.family_code || data.family_id || 'Unknown');
       row('Status', data.family_status || 'Unknown');
       const counts = data.counts || {};
       for (const [name, count] of Object.entries(counts)) row(name.replaceAll('_', ' '), count);
@@ -88,11 +100,13 @@
     resetTransition();
     selectedId = document.getElementById('lifecycle-id').value.trim();
     const kind = document.getElementById('lifecycle-kind').value;
+    selectedKind=kind;
     status.textContent = 'Loading preview…';
     result.textContent = '';
     document.getElementById('lifecycle-summary').replaceChildren();
     const response = await invoke({action: 'preview_' + kind, id: selectedId});
     preview = response.preview;
+    capabilities = response.capabilities || {};
     result.textContent = JSON.stringify(preview, null, 2);
     showSummary(kind, preview);
     status.textContent = 'Preview loaded. No records changed.';
@@ -103,6 +117,25 @@
       document.getElementById('driver-transition-action').value =
         driver.status === 'ACTIVE' ? 'INACTIVATE' : 'REACTIVATE';
       transitionPanel.hidden = false;
+    }
+    const family = kind === 'family' ? preview : null;
+    if (family && capabilities.transition && ['ACTIVE', 'INACTIVE'].includes(family.family_status)) {
+      document.getElementById('selected-family-code').textContent = family.family_code || '';
+      document.getElementById('selected-family-status').textContent = family.family_status;
+      document.getElementById('family-transition-action').value =
+        family.family_status === 'ACTIVE' ? 'INACTIVATE' : 'REACTIVATE';
+      document.getElementById('family-transition-panel').hidden = false;
+    }
+    const eligible = kind === 'driver'
+      ? preview?.simple_purge_candidate === true
+      : family?.family_status === 'INACTIVE' && (family?.shared_people || []).length === 0;
+    if (capabilities.purge && eligible && (
+      kind === 'driver' ? driver?.status === 'INACTIVE' : family?.family_status === 'INACTIVE'
+    )) {
+      document.getElementById('purge-warning').textContent = kind === 'driver'
+        ? 'Only the simple-driver/no-history purge is supported. Shared person and contact records are retained.'
+        : 'Family deletion is irreversible and may leave Auth/Storage companion cleanup pending.';
+      document.getElementById('purge-panel').hidden = false;
     }
   }
 
@@ -146,15 +179,74 @@
         action: 'transition_driver', id: selectedId,
         transition, expected_status: driver.status, confirmation, reason
       });
-      transitionStatus.textContent = 'Status changed. Audit ID: ' + reply.result.audit_id;
       await loadPreview();
-      status.textContent = 'Driver status updated. Current preview refreshed.';
+      status.textContent = 'Driver status updated. Audit ID: ' + reply.result.audit_id + '. Current preview refreshed.';
     } catch (error) {
       transitionStatus.textContent = error.message || 'Status change failed. No success was reported.';
     } finally {
       document.getElementById('driver-transition-submit').disabled = false;
       busy = false;
     }
+  });
+
+  document.getElementById('family-transition-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy || selectedKind !== 'family' || !capabilities.transition || !preview ||
+        document.getElementById('family-transition-panel').hidden) return;
+    const family=preview;
+    const transition=document.getElementById('family-transition-action').value;
+    const confirmation=document.getElementById('family-transition-confirm').value;
+    const reason=document.getElementById('family-transition-reason').value.trim();
+    const out=document.getElementById('family-transition-result');
+    if(confirmation!==family.family_code || reason.length<8 ||
+       transition!==(family.family_status==='ACTIVE'?'INACTIVATE':'REACTIVATE')){
+      out.textContent='Family code, action or reason does not match the current preview.';
+      return;
+    }
+    busy=true;
+    document.getElementById('family-transition-submit').disabled=true;
+    try{
+      const response=await invoke({
+        action:'transition_family',id:selectedId,transition,
+        expected_status:family.family_status,confirmation,reason
+      });
+      await loadPreview();
+      status.textContent='Family status updated. Audit ID: '+response.result.audit_id;
+    }catch(error){out.textContent=error.message||'Family status change failed.';}
+    finally{busy=false;document.getElementById('family-transition-submit').disabled=false;}
+  });
+
+  document.getElementById('purge-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    if(busy || !capabilities.purge || document.getElementById('purge-panel').hidden ||
+       !preview || !selectedId) return;
+    const id=document.getElementById('purge-id').value.trim();
+    const confirmation=document.getElementById('purge-confirm').value;
+    const reason=document.getElementById('purge-reason').value.trim();
+    const acknowledge=document.getElementById('purge-acknowledge').checked;
+    const expectedName=selectedKind==='driver'?preview.driver?.display_name:preview.family_code;
+    const expectedStatus=selectedKind==='driver'?preview.driver?.status:preview.family_status;
+    const out=document.getElementById('purge-result');
+    if(!acknowledge||id!==selectedId||confirmation!==expectedName||
+       reason.length<12||expectedStatus!=='INACTIVE'){
+      out.textContent='Exact UUID, name/code, inactive status, reason and acknowledgment are required.';
+      return;
+    }
+    busy=true;
+    document.getElementById('purge-submit').disabled=true;
+    out.textContent='Executing confirmed purge…';
+    try{
+      const response=await invoke({
+        action:'purge_'+selectedKind,id:selectedId,
+        confirm_id:id,confirmation,reason,expected_status:expectedStatus
+      });
+      resetTransition();
+      result.textContent=JSON.stringify(response.result,null,2);
+      document.getElementById('lifecycle-summary').replaceChildren();
+      status.textContent='Purge completed in database. Audit ID: '+response.result.audit_id+
+        (response.result.requires_companion_cleanup?' — Auth/Storage companion cleanup remains required.':'');
+    }catch(error){out.textContent=error.message||'Purge failed. No success was reported.';}
+    finally{busy=false;document.getElementById('purge-submit').disabled=false;}
   });
 
   document.getElementById('lifecycle-id').addEventListener('input', resetTransition);
