@@ -51,3 +51,6 @@ assert.match(js,/rule-grownup-audience/,'Canonical Operator rule editor must off
 assert.match(js,/rule-include-driver/,'Canonical Operator rule editor must offer independent driver targeting');
 assert.match(js,/if\(grownup_audience==='NONE'&&!include_driver\)/,'Canonical Operator UI must reject no-recipient policy');
 assert.match(js,/grownup_audience,include_driver/,'Canonical Operator must persist both recipient settings');
+
+assert.match(js,/rule-delivery-timing/,'Canonical Operator must expose configurable milestone timing');
+assert.match(js,/\['WEEKLY','IMMEDIATE'\]/,'Milestone timing options must be safe');
