@@ -9,7 +9,7 @@ assert.match(config,/\/operator\/nudge\//);
 assert.match(config,/DV_LIFECYCLE_NUDGE_ENDPOINT/);
 assert.match(html,/What would Drive Venture send next\?/);
 assert.doesNotMatch(html,/higher-priority|lower-priority/i,'Operator copy must use sequence terminology rather than priority terminology');
-assert.match(js,/eligible_superseded/,'Nudge UI must distinguish eligible-but-superseded recipients');
+assert.match(js,/group\.upcoming/,'Nudge UI must distinguish upcoming recipients');
 assert.match(js,/selected/);
 assert.match(js,/suppressed/);
 assert.match(js,/action:'save_template'/,'Nudge UI must save immutable message versions through the backend');
@@ -73,3 +73,13 @@ for(const key of ['CRITICAL_ACTIVATION','JOURNEY_PROGRESS','COACHING','FEATURE_A
 }
 assert.match(nudgeCss,/max-width:540px/,'Record grouping must adapt to narrow screens');
 assert.match(nudgeCss,/\.nudge-settings-panel \.button-primary,\.nudge-settings-panel \.rule-save/,'Save buttons retain standard yellow style');
+
+assert.match(html,/id="nudge-asof"/,'Operator must accept a local as-of date/time');
+assert.match(html,/nudge-asof-reset/,'Operator can return to current evaluation');
+assert.match(js,/previewAsOf\?\{as_of:previewAsOf\}/,'As-of preview must explicitly send an ISO clock');
+assert.match(js,/Ready \/ Selected/,'Ready group is explicit');
+assert.match(js,/Upcoming \(\$\{upcoming.length\}\)/,'Unmet triggers are informative');
+assert.match(js,/Blocked \/ Suppressed/,'Actual policy blocks have separate presentation');
+assert.match(js,/preview_trigger_condition/,'Upcoming rows explain the specific trigger');
+assert.match(js,/recipientList\(upcoming,'upcoming'\)/,'Upcoming messages retain recipient-specific previews');
+assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator must not expose sending controls');
