@@ -46,3 +46,11 @@ console.log('BKLG-0130 dedicated Nudge Operator UI regression checks passed');
 
 const operatorHome=fs.readFileSync(new URL('../operator/index.html',import.meta.url),'utf8');
 assert.match(operatorHome,/href="\/operator\/nudge\/"/,'Operator home must link to the canonical Nudge Manager');
+
+assert.match(js,/rule-grownup-audience/,'Canonical Operator rule editor must offer grown-up targeting');
+assert.match(js,/rule-include-driver/,'Canonical Operator rule editor must offer independent driver targeting');
+assert.match(js,/if\(grownup_audience==='NONE'&&!include_driver\)/,'Canonical Operator UI must reject no-recipient policy');
+assert.match(js,/grownup_audience,include_driver/,'Canonical Operator must persist both recipient settings');
+
+assert.match(js,/rule-delivery-timing/,'Canonical Operator must expose configurable milestone timing');
+assert.match(js,/value="IMMEDIATE"/,'Immediate progress timing must be selectable');
