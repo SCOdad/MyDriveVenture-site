@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251d/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251d/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251d/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251e/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251e/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251e/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
@@ -139,8 +139,8 @@ test('funnel trapezoids taper downward',()=>{
 
 test('families page uses fresh assets for this DOM and contract change',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251d/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251d/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251e/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251e/);
 });
 
 
@@ -158,4 +158,16 @@ test('nudge schedule dates are rendered as date-only values without timezone dri
   assert.match(js,/scheduleDate=v=>/);
   assert.match(js,/timeZone:'UTC'/);
   assert.match(js,/nudge\.schedule_timezone/);
+});
+
+
+test('collapsed family nudge cell shows name and sent/to-be-sent date',()=>{
+  const js=read('operator/families/operator.js');
+  const css=read('assets/css/operator-dashboard.css');
+  assert.match(js,/family-nudge-summary/);
+  assert.match(js,/Nudge \*/);
+  assert.match(js,/nudge\.sent\?'sent':'to be sent'/);
+  assert.match(js,/compactNudgeDate\(nudge\.sent\?nudge\.sent_at:nudge\.next_eligible_date\)/);
+  assert.match(js,/day.*month.*year/);
+  assert.match(css,/\.family-nudge-summary strong\{white-space:normal/);
 });
