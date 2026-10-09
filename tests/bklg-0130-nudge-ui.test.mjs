@@ -61,3 +61,15 @@ assert.match(js,/data-audience="\${audience}"/,'Template save declares recipient
 assert.match(js,/snapshotEditors/,'Independent saves preserve unsaved other panels');
 assert.match(js,/restoreEditors/,'Expanded card and unsaved changes are restored after a save');
 assert.match(js,/DRIVER_TEMPLATE_NOT_CONFIGURED|driver_template_version/,'Operator must surface dedicated driver version');
+
+const nudgeCss=fs.readFileSync(new URL('../operator/nudge/nudge.css',import.meta.url),'utf8');
+assert.match(js,/nudge-record-flow/,'All four panels must share a parent record flow');
+assert.match(js,/nudge-recipient-panel nudge-settings-panel/,'Recipient preview must be a fourth linked section');
+assert.match(js,/data-sequence-class/,'Record must retain its existing sequence class');
+assert.match(nudgeCss,/\.nudge-record-flow::before/,'Connected rail must be visible');
+assert.match(nudgeCss,/\.nudge-record-flow>\.nudge-settings-panel::before/,'Panels must connect to the shared rail');
+for(const key of ['CRITICAL_ACTIVATION','JOURNEY_PROGRESS','COACHING','FEATURE_ADOPTION','COMMUNITY_PRODUCT','REENGAGEMENT']){
+  assert.ok(nudgeCss.includes('data-sequence-class="'+key+'"'),'Shared accent missing for '+key);
+}
+assert.match(nudgeCss,/max-width:540px/,'Record grouping must adapt to narrow screens');
+assert.match(nudgeCss,/\.nudge-settings-panel \.button-primary,\.nudge-settings-panel \.rule-save/,'Save buttons retain standard yellow style');
