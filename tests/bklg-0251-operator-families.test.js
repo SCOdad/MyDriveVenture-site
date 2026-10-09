@@ -72,7 +72,7 @@ test('funnel click filters families currently at the exact stage',()=>{
 test('funnel shows cumulative reached count plus current-stage count',()=>{
   const js=read('operator/families/operator.js');
   assert.match(js,/exactCounts=Object\.fromEntries/);
-  assert.match(js,/f\.status==='ACTIVE'&&f\.activation_stage===stage/);
+  assert.match(js,/f\.status==='ACTIVE'&&\(PRACTICE_STAGES\.includes\(stage\)\?f\.progress_stage===stage:f\.activation_stage===stage\)/);
   assert.match(js,/currently here/);
   assert.match(js,/\$\{num\(x\.count\)\}/);
 });
