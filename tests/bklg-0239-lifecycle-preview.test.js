@@ -2,36 +2,37 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const page = readFileSync('operator/lifecycle/index.html', 'utf8');
-const client = readFileSync('operator/lifecycle/operator.js', 'utf8');
+const page=readFileSync('operator/lifecycle/index.html','utf8');
+const client=readFileSync('operator/lifecycle/operator.js','utf8');
 
-test('BKLG-0239 operator page exposes preview and explicit driver confirmation', () => {
-  for (const id of ['lifecycle-form', 'lifecycle-kind', 'lifecycle-id', 'lifecycle-result',
-    'driver-transition-panel', 'driver-transition-confirm','driver-transition-reason',
-    'lifecycle-summary'])
-    assert.ok(page.includes('id="' + id + '"'), 'missing ' + id);
-  assert.match(page, /Family transitions and permanent purge remain disabled/);
-  assert.match(page, /operator\/lifecycle\/operator\.js/);
+test('BKLG-0239 exposes authenticated impact preview and human-readable counts',()=>{
+ for(const id of ['lifecycle-form','lifecycle-kind','lifecycle-id','lifecycle-result',
+   'lifecycle-summary','driver-transition-panel','family-transition-panel','purge-panel'])
+  assert.ok(page.includes('id="'+id+'"'),'missing '+id);
+ assert.match(client,/auth.getSession\(\)/);
+ assert.match(client,/auth.refreshSession\(\)/);
+ assert.match(client,/function showSummary/);
+ assert.match(client,/createElement\('li'\)/);
+ assert.match(client,/textContent = name/);
 });
 
-test('BKLG-0239 prevents stale driver status and mismatched confirmation', () => {
-  assert.match(client, /expected_status:\s*driver.status/);
-  assert.match(client, /confirmation !== driver.display_name/);
-  assert.match(client, /transition_driver/);
-  assert.match(client, /auth.refreshSession\(\)/);
-  assert.match(client, /transitionPanel.hidden = true/);
-  assert.doesNotMatch(client, /execute_family_deletion|transition_family|purge_driver|purge_family/);
+test('BKLG-0239 driver transitions require exact name, status and reason',()=>{
+ assert.match(client,/expected_status:\s*driver.status/);
+ assert.match(client,/confirmation !== driver.display_name/);
+ assert.match(client,/reason.length < 8/);
+ assert.match(client,/transition_driver/);
+ assert.match(client,/transitionPanel.hidden = true/);
 });
 
-test('BKLG-0239 UI does not expose permanent deletion controls', () => {
-  assert.doesNotMatch(page, /<button[^>]*>\s*(?:Delete|Purge)\b/i);
-  assert.doesNotMatch(client, /action:\s*['"](?:purge|delete)/);
-});
-
-test('BKLG-0239 renders operator-readable impact safely', () => {
-  assert.match(client, /function showSummary/);
-  assert.match(client, /createElement\('li'\)/);
-  assert.match(client, /textContent = name/);
-  assert.match(client, /showSummary\(kind, preview\)/);
-  assert.match(page, /View complete preview JSON/);
+test('BKLG-0239 family transition and purge remain capability-gated',()=>{
+ assert.match(client,/capabilities.transition/);
+ assert.match(client,/capabilities.purge/);
+ assert.match(client,/family-transition-panel'\).hidden = true/);
+ assert.match(client,/purge-panel'\).hidden = true/);
+ assert.match(client,/action:'purge_'\+selectedKind/);
+ assert.match(client,/id!==selectedId/);
+ assert.match(client,/confirmation!==expectedName/);
+ assert.match(client,/reason.length<12/);
+ assert.match(client,/expectedStatus!=='INACTIVE'/);
+ assert.match(page,/I understand this purge cannot be undone/);
 });
