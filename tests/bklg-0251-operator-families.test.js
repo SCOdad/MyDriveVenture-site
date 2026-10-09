@@ -170,4 +170,5 @@ test('collapsed family nudge cell shows name and sent/to-be-sent date',()=>{
   assert.match(js,/compactNudgeDate\(nudge\.sent\?nudge\.sent_at:nudge\.next_eligible_date\)/);
   assert.match(js,/day.*month.*year/);
   assert.match(css,/\.family-nudge-summary strong\{white-space:normal/);
+  assert.match(css,/\.family-nudge-summary strong\+small\{margin-top:/);
 });
