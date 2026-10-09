@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lifecycle Management | Drive Venture</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/operator-dashboard.css">
+<script src="/assets/js/environment-config.js"></script>
+<style>[hidden]{display:none!important}#lifecycle-id{width:min(100%,44ch);min-width:36ch;box-sizing:border-box;font-family:ui-monospace,monospace}#lifecycle-form{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}#lifecycle-auth-gate{max-width:720px;margin:3rem auto;padding:1.5rem}#lifecycle-signin{display:grid;gap:.6rem;max-width:30rem;margin:1rem 0}#lifecycle-signin input{padding:.65rem;background:#0b1218;color:#f7f3e8;border:1px solid #667784;border-radius:5px}</style></head>
+<body>
+<header class="site-header"><div class="nav">
+<a class="brand" href="/"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
+<nav><ul><li><a href="/operator/">Operator home</a></li><li><a href="/operator/families/">Families</a></li></ul></nav>
+</div></header>
+<section id="lifecycle-auth-gate" role="status" aria-live="polite"><h1>Operator sign-in required</h1><p id="lifecycle-auth-message">Verifying your operator session…</p><form id="lifecycle-signin" hidden>
+<label for="lifecycle-signin-email">Operator email</label>
+<input id="lifecycle-signin-email" type="email" autocomplete="email" required>
+<button class="button button-primary" type="submit">Send sign-in link</button>
+<p id="lifecycle-signin-status" role="status"></p>
+</form>
+<p><a href="/log/" id="lifecycle-signin-link" hidden>Open Drive Venture sign-in</a></p></section>
+<main class="content narrow" id="lifecycle-app" hidden>
+<section class="operator-head"><div><p class="eyebrow">Operator tools</p>
+<h1>Lifecycle Management</h1>
+<p class="lede">Preview driver or family impact. Driver inactivation/reactivation requires confirmation and a reason. Family transitions and permanent purge are controlled by environment safety gates and are disabled unless explicitly enabled.</p></div></section>
+<section class="operator-panel">
+<form id="lifecycle-form">
+<label for="lifecycle-kind">Entity type</label>
+<select id="lifecycle-kind"><option value="driver">Driver</option><option value="family">Family</option></select>
+<label for="lifecycle-id">Canonical UUID</label>
+<input id="lifecycle-id" required pattern="[0-9a-fA-F-]{36}" placeholder="Enter driver or family UUID" autocomplete="off">
+<button class="button button-primary" type="submit">Preview impact</button>
+</form>
+<p id="lifecycle-status" role="status"></p>
+</section>
+<section class="operator-panel" aria-label="Impact results">
+<h2>Lifecycle impact preview</h2>
+<p class="meta">Driver dependency counts are preliminary. They do not authorize deletion.</p>
+<div id="lifecycle-summary" aria-live="polite"></div>
+<details><summary>View complete preview JSON</summary>
+<pre id="lifecycle-result" style="white-space:pre-wrap;overflow-wrap:anywhere">No preview requested.</pre>
+</details>
+</section>
+<section class="operator-panel" id="driver-transition-panel" hidden>
+<h2>Change driver status</h2>
+<p class="meta">Only reversible driver status changes are available here. This does not delete any records.</p>
+<p>Selected driver: <strong id="selected-driver-name"></strong> · Current status: <strong id="selected-driver-status"></strong></p>
+<form id="driver-transition-form">
+<label for="driver-transition-action">Action</label>
+<select id="driver-transition-action" required>
+<option value="INACTIVATE">Inactivate driver</option>
+<option value="REACTIVATE">Reactivate driver</option>
+</select>
+<label for="driver-transition-confirm">Type the driver's exact displayed name</label>
+<input id="driver-transition-confirm" required autocomplete="off">
+<label for="driver-transition-reason">Reason (minimum 8 characters)</label>
+<textarea id="driver-transition-reason" required minlength="8" rows="3"></textarea>
+<button id="driver-transition-submit" class="button button-primary" type="submit">Confirm status change</button>
+</form>
+<p id="driver-transition-result" role="status"></p>
+</section>
+<section class="operator-panel" id="family-transition-panel" hidden>
+<h2>Change family status</h2>
+<p class="meta">Inactivation suspends access to this family's driver operations, including Text Parker. Drive history and family relationships are retained. Reactivation restores family access but does not override a separately inactive driver's status.</p>
+<p>Family code: <strong id="selected-family-code"></strong> · Status: <strong id="selected-family-status"></strong></p>
+<form id="family-transition-form">
+<label for="family-transition-action">Action</label>
+<select id="family-transition-action" required><option value="INACTIVATE">Inactivate family</option><option value="REACTIVATE">Reactivate family</option></select>
+<label for="family-transition-confirm">Type the exact family code</label><input id="family-transition-confirm" required>
+<label for="family-transition-reason">Reason (minimum 8 characters)</label><textarea id="family-transition-reason" required minlength="8" rows="3"></textarea>
+<button id="family-transition-submit" class="button button-primary" type="submit">Confirm family status change</button>
+</form><p id="family-transition-result" role="status"></p>
+</section>
+<section class="operator-panel" id="purge-panel" hidden>
+<h2>Permanent purge</h2>
+<p><strong>Irreversible.</strong> Driver purges remove driver-owned rows but retain the person shell, contacts, family membership shell and audit. Family purges may require separate Auth/Storage cleanup.</p>
+<p id="purge-warning"></p>
+<form id="purge-form">
+<label for="purge-id">Type the full canonical UUID</label><input id="purge-id" required>
+<label for="purge-confirm">Type the exact displayed driver name or family code</label><input id="purge-confirm" required>
+<label for="purge-reason">Reason (minimum 12 characters)</label><textarea id="purge-reason" required minlength="12" rows="4"></textarea>
+<label><input id="purge-acknowledge" type="checkbox" required> I understand this purge cannot be undone.</label>
+<button id="purge-submit" class="button button-primary" type="submit">Permanently purge selected record</button>
+</form><p id="purge-result" role="status"></p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/log/config.js"></script>
+<script src="/operator/config.js"></script>
+<script src="/operator/lifecycle/operator.js"></script>
+</body>
+</html>
