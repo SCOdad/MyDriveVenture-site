@@ -10,11 +10,12 @@ test('BKLG-0239 family status flow requires matching code',async({page})=>{
   }))
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',r=>r.fulfill({
     contentType:'application/javascript',
-    body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),refreshSession:async()=>({data:{session:{access_token:'dev-test-token'}}})}})};"
+    body:"window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),refreshSession:async()=>({data:{session:{access_token:'dev-test-token'}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};"
   }))
   await page.route('https://dev.mock/functions/v1/operator-lifecycle',async r=>{
     const body=JSON.parse(r.request().postData()||'{}')
     calls.push(body)
+    if(body.action==='authorize')return r.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,authorized:true})})
     if(body.action==='transition_family')familyStatus=body.transition==='INACTIVATE'?'INACTIVE':'ACTIVE'
     await r.fulfill({contentType:'application/json',body:JSON.stringify(
       body.action==='preview_family'
