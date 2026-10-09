@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Lifecycle Management | Drive Venture</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/operator-dashboard.css">
+<script src="/assets/js/environment-config.js"></script>
+</head>
+<body>
+<header class="site-header"><div class="nav">
+<a class="brand" href="/"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
+<nav><ul><li><a href="/operator/">Operator home</a></li><li><a href="/operator/families/">Families</a></li></ul></nav>
+</div></header>
+<main class="content narrow">
+<section class="operator-head"><div><p class="eyebrow">BKLG-0239 · Operator only</p>
+<h1>Lifecycle Management</h1>
+<p class="lede">Preview a driver or family before making lifecycle changes. Preview-only; inactivation, reactivation and purge are not enabled.</p></div></section>
+<section class="operator-panel">
+<form id="lifecycle-form">
+<label for="lifecycle-kind">Entity type</label>
+<select id="lifecycle-kind"><option value="driver">Driver</option><option value="family">Family</option></select>
+<label for="lifecycle-id">Canonical UUID</label>
+<input id="lifecycle-id" required pattern="[0-9a-fA-F-]{36}" placeholder="Enter driver or family UUID" autocomplete="off">
+<button class="button button-primary" type="submit">Preview impact</button>
+</form>
+<p id="lifecycle-status" role="status"></p>
+</section>
+<section class="operator-panel" aria-label="Impact results">
+<h2>Read-only impact preview</h2>
+<p class="meta">Driver dependency counts are preliminary. They do not authorize deletion.</p>
+<pre id="lifecycle-result" style="white-space:pre-wrap;overflow-wrap:anywhere">No preview requested.</pre>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/log/config.js"></script>
+<script src="/operator/config.js"></script>
+<script src="/operator/lifecycle/operator.js"></script>
+</body>
+</html>
