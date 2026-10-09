@@ -38,3 +38,22 @@ test('operator KPI cards link into family activation roster',()=>{
   assert.match(js,/Active families'.*\/operator\/families\//s);
   assert.match(js,/Active drivers'.*stage=driver/s);
 });
+
+
+test('archived drivers are hidden by default and opt-in only',()=>{
+  const html=read('operator/families/index.html');
+  const js=read('operator/families/operator.js');
+  assert.match(html,/id="include-archived-drivers" type="checkbox"/);
+  assert.match(js,/includeArchived:false/);
+  assert.match(js,/filter\.includeArchived\?\(f\.archived_drivers\|\|\[\]\):\[\]/);
+  assert.match(js,/Archived<\/span>/);
+  assert.match(js,/filter\.includeArchived\?\(f\.archived_drivers\|\|\[\]\)\.flatMap/);
+});
+
+test('archived drivers remain outside activation metrics',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/Drivers<\/small><strong>\$\{num\(f\.driver_count\)\}/);
+  assert.match(js,/Eligible drives<\/small><strong>\$\{num\(f\.eligible_drive_count\)\}/);
+  assert.doesNotMatch(js,/driver_count\s*\+\s*.*archived/);
+  assert.doesNotMatch(js,/eligible_drive_count\s*\+\s*.*archived/);
+});
