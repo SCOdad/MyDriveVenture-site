@@ -47,3 +47,13 @@
   .nudge-record-flow>.nudge-settings-panel{padding:.75rem}
 }
 @media(prefers-reduced-motion:reduce){.nudge-record-flow,.nudge-record-flow>*{transition:none}}
+
+/* BKLG-0130: informational preview states and read-only as-of selector */
+.nudge-count.upcoming{border-color:#c49d56;color:#ffe6ac}
+.nudge-recipient-panel .recipient-box:nth-child(2){border-color:#b18c55}
+.nudge-recipient-panel .recipient-box:nth-child(3){border-color:#64717d}
+.nudge-asof-controls{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:1rem 0;padding:.8rem;border:1px solid #53616b;border-radius:8px;background:#111b23}
+.nudge-asof-controls label{font-weight:700}
+.nudge-asof-controls input{min-width:13rem;padding:.55rem;background:#0b1218;color:#f7f3e8;border:1px solid #667784;border-radius:5px}
+.nudge-asof-controls .meta{flex-basis:100%}
+@media(max-width:540px){.nudge-asof-controls{align-items:stretch;flex-direction:column}.nudge-asof-controls input{min-width:0;width:100%;box-sizing:border-box}}
