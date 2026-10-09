@@ -87,9 +87,46 @@
     document.querySelectorAll('.nudge-move').forEach(b=>b.addEventListener('click',moveRule));
   }
 
-  async function load(){const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
+  // Reloads update server-truth while preserving every *other* unsaved editor.
+  function snapshotEditors(exclude){
+    const open=[...document.querySelectorAll('.nudge-card[open]')].map(c=>c.dataset.rule);
+    const panels=[...document.querySelectorAll('.nudge-settings-panel')].filter(p=>p!==exclude).map(p=>({
+      rule:p.closest('.nudge-card')?.dataset.rule,
+      audience:p.dataset.audience||'DELIVERY',
+      values:[...p.querySelectorAll('input,textarea,select')].map(el=>({field:el.dataset.field||el.className,value:el.value,checked:el.checked})),
+      dirty:!p.querySelector('.unsaved-indicator')?.hidden
+    }));
+    return {open,panels};
+  }
+  function restoreEditors(snapshot){
+    if(!snapshot)return;
+    for(const key of snapshot.open)document.querySelectorAll('.nudge-card').forEach(c=>{if(c.dataset.rule===key)c.open=true});
+    for(const saved of snapshot.panels){
+      const card=[...document.querySelectorAll('.nudge-card')].find(c=>c.dataset.rule===saved.rule);
+      const panel=[...card?.querySelectorAll('.nudge-settings-panel')||[]].find(p=>(p.dataset.audience||'DELIVERY')===saved.audience);
+      if(!panel||!saved.dirty)continue;
+      const els=[...panel.querySelectorAll('input,textarea,select')];
+      saved.values.forEach((v,i)=>{if(!els[i]||((els[i].dataset.field||els[i].className)!==v.field))return;els[i].value=v.value;if(els[i].type==='checkbox')els[i].checked=v.checked});
+      panel.querySelector('.unsaved-indicator').hidden=false;
+    }
+  }
+  function savedConfirmation(rule,audience,message){
+    const card=[...document.querySelectorAll('.nudge-card')].find(c=>c.dataset.rule===rule);
+    const panel=[...card?.querySelectorAll('.nudge-settings-panel')||[]].find(p=>(p.dataset.audience||'DELIVERY')===audience);
+    const status=panel?.querySelector('.save-status');
+    if(status)status.textContent=message;
+  }
+  document.getElementById('nudge-groups').addEventListener('input',ev=>{
+    const panel=ev.target.closest('.nudge-settings-panel');
+    if(panel)panel.querySelector('.unsaved-indicator').hidden=false;
+  });
+  document.getElementById('nudge-groups').addEventListener('change',ev=>{
+    const panel=ev.target.closest('.nudge-settings-panel');
+    if(panel)panel.querySelector('.unsaved-indicator').hidden=false;
+  });
+  async function load(options={}){const snapshot=snapshotEditors(options.savedPanel);const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();restoreEditors(snapshot);if(options.savedRule)savedConfirmation(options.savedRule,options.savedAudience,options.savedMessage);document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
 
-  async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked,grownup_audience=card.querySelector('.rule-grownup-audience').value,include_driver=card.querySelector('.rule-include-driver').checked,delivery_timing=card.querySelector('.rule-delivery-timing')?.value;if(grownup_audience==='NONE'&&!include_driver){alert('Choose at least one audience: a grown-up or the driver.');return;}ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled,grownup_audience,include_driver,...(delivery_timing?{delivery_timing}:{})});await load()}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
+  async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked,grownup_audience=card.querySelector('.rule-grownup-audience').value,include_driver=card.querySelector('.rule-include-driver').checked,delivery_timing=card.querySelector('.rule-delivery-timing')?.value;if(grownup_audience==='NONE'&&!include_driver){alert('Choose at least one audience: a grown-up or the driver.');return;}ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled,grownup_audience,include_driver,...(delivery_timing?{delivery_timing}:{})});await load({savedPanel:card.querySelector('.nudge-delivery'),savedRule:rule,savedAudience:'DELIVERY',savedMessage:'Delivery settings saved.'})}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
   async function saveRuntime(){
     const toggle=document.getElementById('nudge-runtime-enabled'),button=document.getElementById('nudge-runtime-save'),status=document.getElementById('nudge-runtime-status'),enabled=Boolean(toggle?.checked);
     if(enabled&&!confirm('Enable live lifecycle nudge delivery? Once active, authorized server delivery requests will be allowed.')){toggle.checked=false;return}
@@ -129,9 +166,9 @@
     await persistOrder(list);
   }
 
-  async function saveTemplate(ev){const editor=ev.currentTarget.closest('.template-editor'),key=ev.currentTarget.dataset.template,status=editor.querySelector(`[data-status="${CSS.escape(key)}"]`),fields={};editor.querySelectorAll('.template-field').forEach(el=>fields[el.dataset.field]=el.value);status.textContent='Validating and saving…';ev.currentTarget.disabled=true;try{const out=await api({action:'save_template',template_key:key,...fields});status.textContent='Saved as v'+out.version.version_number+'.';await load()}catch(e){status.textContent=e.message}finally{ev.currentTarget.disabled=false}}
+  async function saveTemplate(ev){const editor=ev.currentTarget.closest('.template-editor'),key=ev.currentTarget.dataset.template,status=editor.querySelector(`[data-status="${CSS.escape(key)}"]`),fields={};editor.querySelectorAll('.template-field').forEach(el=>fields[el.dataset.field]=el.value);status.textContent='Validating and saving…';ev.currentTarget.disabled=true;try{const out=await api({action:'save_template',template_key:key,rule_key:editor.dataset.rule,audience:editor.dataset.audience,...fields});status.textContent='Saved as v'+out.version.version_number+'.';await load({savedPanel:editor,savedRule:editor.dataset.rule,savedAudience:editor.dataset.audience,savedMessage:'Saved as v'+out.version.version_number+'.'})}catch(e){status.textContent=e.message}finally{ev.currentTarget.disabled=false}}
 
-  function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target}
+  function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target;target.dispatchEvent(new Event('input',{bubbles:true}))}
 
   document.getElementById('nudge-refresh').addEventListener('click',load);
   document.getElementById('nudge-runtime-save')?.addEventListener('click',saveRuntime);
