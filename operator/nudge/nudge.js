@@ -124,7 +124,8 @@
     const panel=ev.target.closest('.nudge-settings-panel');
     if(panel)panel.querySelector('.unsaved-indicator').hidden=false;
   });
-  async function load(options={}){const snapshot=snapshotEditors(options.savedPanel);const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview'});render();restoreEditors(snapshot);if(options.savedRule)savedConfirmation(options.savedRule,options.savedAudience,options.savedMessage);document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
+  let previewAsOf=null;
+  async function load(options={}){const snapshot=snapshotEditors(options.savedPanel);const err=document.getElementById('nudge-error');err.hidden=true;try{payload=await api({action:'preview',...(previewAsOf?{as_of:previewAsOf}:{})});render();restoreEditors(snapshot);if(options.savedRule)savedConfirmation(options.savedRule,options.savedAudience,options.savedMessage);document.getElementById('nudge-dashboard').hidden=false;document.getElementById('nudge-access-status').textContent='';document.getElementById('nudge-signin').hidden=true}catch(e){document.getElementById('nudge-access-status').textContent=e.message;if(e.status===401||e.status===403){document.getElementById('nudge-dashboard').hidden=true;document.getElementById('nudge-signin').hidden=false}else{err.textContent=e.message;err.hidden=false}}}
 
   async function saveRule(ev){const card=ev.currentTarget.closest('.nudge-card'),rule=ev.currentTarget.dataset.rule,enabled=card.querySelector('.rule-enabled').checked,grownup_audience=card.querySelector('.rule-grownup-audience').value,include_driver=card.querySelector('.rule-include-driver').checked,delivery_timing=card.querySelector('.rule-delivery-timing')?.value;if(grownup_audience==='NONE'&&!include_driver){alert('Choose at least one audience: a grown-up or the driver.');return;}ev.currentTarget.disabled=true;try{await api({action:'update_rule',rule_key:rule,enabled,grownup_audience,include_driver,...(delivery_timing?{delivery_timing}:{})});await load({savedPanel:card.querySelector('.nudge-delivery'),savedRule:rule,savedAudience:'DELIVERY',savedMessage:'Delivery settings saved.'})}catch(e){alert(e.message)}finally{ev.currentTarget.disabled=false}}
   async function saveRuntime(){
@@ -170,6 +171,24 @@
 
   function insertToken(ev){const key=ev.currentTarget.dataset.template,token='[['+ev.currentTarget.dataset.token+']]',editor=ev.currentTarget.closest('.template-editor'),target=activeEditor&&activeEditor.closest('.template-editor')===editor?activeEditor:editor.querySelector('[data-field="body_template"]');const start=target.selectionStart??target.value.length,end=target.selectionEnd??start;target.value=target.value.slice(0,start)+token+target.value.slice(end);target.focus();target.selectionStart=target.selectionEnd=start+token.length;activeEditor=target;target.dispatchEvent(new Event('input',{bubbles:true}))}
 
+  document.getElementById('nudge-asof-apply')?.addEventListener('click',()=>{
+    const value=document.getElementById('nudge-asof')?.value;
+    const target=value?new Date(value):null;
+    const status=document.getElementById('nudge-asof-status');
+    if(!target||Number.isNaN(target.getTime())){if(status)status.textContent='Select a valid local date and time.';return}
+    if(Math.abs(target.getTime()-Date.now())>90*86400000){if(status)status.textContent='Choose a date/time within 90 days of today.';return}
+    previewAsOf=target.toISOString();
+    if(status)status.textContent='As-of simulation against recorded data; future drives are not predicted.';
+    load();
+  });
+  document.getElementById('nudge-asof-reset')?.addEventListener('click',()=>{
+    previewAsOf=null;
+    const input=document.getElementById('nudge-asof');
+    if(input)input.value='';
+    const status=document.getElementById('nudge-asof-status');
+    if(status)status.textContent='Live preview clock restored. No messages are sent from this page.';
+    load();
+  });
   document.getElementById('nudge-refresh').addEventListener('click',load);
   document.getElementById('nudge-runtime-save')?.addEventListener('click',saveRuntime);
   function startOtpCooldown(button,status,seconds=60,message=''){
