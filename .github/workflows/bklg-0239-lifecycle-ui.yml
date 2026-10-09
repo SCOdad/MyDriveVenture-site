@@ -1,0 +1,53 @@
+name: BKLG-0239 Lifecycle UI
+
+on:
+  pull_request:
+    paths:
+      - 'operator/lifecycle/**'
+      - 'operator/config.js'
+      - 'tests/e2e/bklg-0239-lifecycle.spec.mjs'
+      - 'tests/bklg-0239-lifecycle-preview.test.js'
+      - '.github/workflows/bklg-0239-lifecycle-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle-ui:
+    name: Operator lifecycle browser contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Serve checked-out frontend
+        shell: bash
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/bklg-0239-http.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/operator/lifecycle/ >/dev/null; then exit 0; fi
+            sleep 0.5
+          done
+          cat /tmp/bklg-0239-http.log
+          exit 1
+      - name: Test lifecycle browser interactions with mock auth and backend
+        run: npx playwright test tests/e2e/bklg-0239-lifecycle.spec.mjs --retries=0
+      - name: Verify lifecycle source contracts
+        run: node --test tests/bklg-0239-lifecycle-preview.test.js
+      - name: Retain failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bklg-0239-ui-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 3
