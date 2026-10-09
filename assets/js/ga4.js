@@ -3,7 +3,7 @@
   const host = String(location.hostname || "").toLowerCase();
   const path = (location.pathname || "/").replace(/\/index\.html$/, "/");
   const productionHost = host === "mydriveventure.com" || host === "www.mydriveventure.com";
-  const publicPages = new Set(["/","/faq/","/feedback/","/help/","/join/","/privacy/","/research/","/research/teen-drowsy-driving/","/terms/","/text-parker/","/waitlist/"]);
+  const publicPages = new Set(["/","/faq/","/feedback/","/help/","/join/","/privacy/","/learn/","/learn/requirements/","/learn/getting-started/","/learn/practice/","/learn/logging/","/learn/research/","/learn/research/teen-drowsy-driving/","/terms/","/text-parker/","/waitlist/"]);
 
   if (!productionHost || !publicPages.has(path) || window.__DV_GA4_VRV02KK3CC_REQUESTED) return;
   window.__DV_GA4_VRV02KK3CC_REQUESTED = true;
