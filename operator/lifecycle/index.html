@@ -8,13 +8,19 @@
 <link rel="stylesheet" href="/assets/css/site.css">
 <link rel="stylesheet" href="/assets/css/operator-dashboard.css">
 <script src="/assets/js/environment-config.js"></script>
-<style>[hidden]{display:none!important}#lifecycle-id{width:min(100%,44ch);min-width:36ch;box-sizing:border-box;font-family:ui-monospace,monospace}#lifecycle-form{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}#lifecycle-auth-gate{max-width:720px;margin:3rem auto;padding:1.5rem}</style></head>
+<style>[hidden]{display:none!important}#lifecycle-id{width:min(100%,44ch);min-width:36ch;box-sizing:border-box;font-family:ui-monospace,monospace}#lifecycle-form{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem}#lifecycle-auth-gate{max-width:720px;margin:3rem auto;padding:1.5rem}#lifecycle-signin{display:grid;gap:.6rem;max-width:30rem;margin:1rem 0}#lifecycle-signin input{padding:.65rem;background:#0b1218;color:#f7f3e8;border:1px solid #667784;border-radius:5px}</style></head>
 <body>
 <header class="site-header"><div class="nav">
 <a class="brand" href="/"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
 <nav><ul><li><a href="/operator/">Operator home</a></li><li><a href="/operator/families/">Families</a></li></ul></nav>
 </div></header>
-<section id="lifecycle-auth-gate" role="status" aria-live="polite"><h1>Operator sign-in required</h1><p id="lifecycle-auth-message">Verifying your operator session…</p><p><a href="/log/" id="lifecycle-signin-link" hidden>Sign in to Drive Venture</a></p></section>
+<section id="lifecycle-auth-gate" role="status" aria-live="polite"><h1>Operator sign-in required</h1><p id="lifecycle-auth-message">Verifying your operator session…</p><form id="lifecycle-signin" hidden>
+<label for="lifecycle-signin-email">Operator email</label>
+<input id="lifecycle-signin-email" type="email" autocomplete="email" required>
+<button class="button button-primary" type="submit">Send sign-in link</button>
+<p id="lifecycle-signin-status" role="status"></p>
+</form>
+<p><a href="/log/" id="lifecycle-signin-link" hidden>Open Drive Venture sign-in</a></p></section>
 <main class="content narrow" id="lifecycle-app" hidden>
 <section class="operator-head"><div><p class="eyebrow">Operator tools</p>
 <h1>Lifecycle Management</h1>
