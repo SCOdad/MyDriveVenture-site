@@ -24,10 +24,12 @@
 /* BKLG-0130 record identity: all sections share their parent nudge's sequence accent.
    Only the accent changes by sequence class; save actions retain standard DV yellow. */
 .nudge-card{--nudge-record-accent:#d5a43e}
-.nudge-card[data-sequence-class="ACTIVATION"]{--nudge-record-accent:#6fbcc9}
-.nudge-card[data-sequence-class="MILESTONES"]{--nudge-record-accent:#e3b656}
+.nudge-card[data-sequence-class="CRITICAL_ACTIVATION"]{--nudge-record-accent:#6fbcc9}
+.nudge-card[data-sequence-class="JOURNEY_PROGRESS"]{--nudge-record-accent:#e3b656}
 .nudge-card[data-sequence-class="COACHING"]{--nudge-record-accent:#a9a0df}
-.nudge-card[data-sequence-class="ENGAGEMENT"]{--nudge-record-accent:#83c5a6}
+.nudge-card[data-sequence-class="FEATURE_ADOPTION"]{--nudge-record-accent:#83c5a6}
+.nudge-card[data-sequence-class="COMMUNITY_PRODUCT"]{--nudge-record-accent:#e1a5ae}
+.nudge-card[data-sequence-class="REENGAGEMENT"]{--nudge-record-accent:#e6a776}
 .nudge-card[open]{border-left:3px solid var(--nudge-record-accent)}
 .nudge-card[open]>summary{box-shadow:inset 0 -2px 0 var(--nudge-record-accent)}
 .nudge-record-flow{position:relative;padding-left:1.35rem;display:flex;flex-direction:column;gap:.65rem}
