@@ -54,3 +54,10 @@ assert.match(js,/grownup_audience,include_driver/,'Canonical Operator must persi
 
 assert.match(js,/rule-delivery-timing/,'Canonical Operator must expose configurable milestone timing');
 assert.match(js,/value="IMMEDIATE"/,'Immediate progress timing must be selectable');
+
+assert.match(js,/Save Delivery Settings/,'Delivery configuration has its own save');
+assert.match(js,/Save \${driver\?'Driver':'Grown-up'\} Message/,'Each role has a distinct template-save button');
+assert.match(js,/data-audience="\${audience}"/,'Template save declares recipient audience');
+assert.match(js,/snapshotEditors/,'Independent saves preserve unsaved other panels');
+assert.match(js,/restoreEditors/,'Expanded card and unsaved changes are restored after a save');
+assert.match(js,/DRIVER_TEMPLATE_NOT_CONFIGURED|driver_template_version/,'Operator must surface dedicated driver version');
