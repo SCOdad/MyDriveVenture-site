@@ -72,7 +72,7 @@ test('funnel click filters families currently at the exact stage',()=>{
 test('funnel shows cumulative reached count plus current-stage count',()=>{
   const js=read('operator/families/operator.js');
   assert.match(js,/exactCounts=Object\.fromEntries/);
-  assert.match(js,/f\.status==='ACTIVE'&&f\.activation_stage===stage/);
+  assert.match(js,/f\.status==='ACTIVE'&&\(PRACTICE_STAGES\.includes\(stage\)\?f\.progress_stage===stage:f\.activation_stage===stage\)/);
   assert.match(js,/currently here/);
   assert.match(js,/\$\{num\(x\.count\)\}/);
 });
@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251f/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251f/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251f/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/config\.js\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
@@ -139,8 +139,8 @@ test('funnel trapezoids taper downward',()=>{
 
 test('families page uses fresh assets for this DOM and contract change',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251f/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251f/);
+  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
 });
 
 
@@ -165,10 +165,19 @@ test('collapsed family nudge cell shows name and sent/to-be-sent date',()=>{
   const js=read('operator/families/operator.js');
   const css=read('assets/css/operator-dashboard.css');
   assert.match(js,/family-nudge-summary/);
-  assert.match(js,/Nudge \*/);
+  assert.match(js,/<small>Nudge<\/small>/);
   assert.match(js,/nudge\.sent\?'sent':'to be sent'/);
   assert.match(js,/compactNudgeDate\(nudge\.sent\?nudge\.sent_at:nudge\.next_eligible_date\)/);
   assert.match(js,/day.*month.*year/);
   assert.match(css,/\.family-nudge-summary strong\{white-space:normal/);
   assert.match(css,/\.family-nudge-summary strong\+small\{margin-top:/);
+});
+
+test('practice funnel uses independent active-driver milestones without altering activation nudges',()=>{
+ const js=read('operator/families/operator.js'),html=read('operator/families/index.html');
+ for(const stage of ['PRACTICE_25','PRACTICE_15_HOURS','PRACTICE_50','PRACTICE_90','PRACTICE_100']){assert.ok(js.includes(stage));assert.ok(html.includes(stage));}
+ assert.match(js,/PRACTICE_STAGES\.includes\(filter\.exact\)\?f\.progress_stage!==filter\.exact:f\.activation_stage!==filter\.exact/);
+ assert.match(js,/driver_practice/);
+ assert.match(js,/Independent practice milestone/);
+ assert.doesNotThrow(()=>new vm.Script(js));
 });
