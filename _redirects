@@ -5,3 +5,7 @@
 /waitlist /join/ 301
 /waitlist/ /join/ 301
 /waitlist/* /join/:splat 301
+
+/research/ /learn/research/ 301
+/research/teen-drowsy-driving/ /learn/research/teen-drowsy-driving/ 301
+/research/* /learn/research/:splat 301
