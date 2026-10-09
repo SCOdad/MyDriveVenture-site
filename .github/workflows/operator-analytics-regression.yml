@@ -10,6 +10,7 @@ on:
       - 'staging/nudge/**'
       - 'staging/nudge-live/**'
       - 'tests/operator-analytics-ui-regression.test.mjs'
+      - 'tests/e2e/bklg-0244-terminal-styling.spec.mjs'
       - 'tests/operator-leads-ui-regression.test.mjs'
       - 'tests/bklg-0130-nudge-ui.test.mjs'
       - 'tests/bklg-0130-prod-preview-ui.test.mjs'
@@ -22,10 +23,44 @@ on:
       - 'staging/operator-leads/**'
       - 'staging/nudge/**'
       - 'tests/operator-analytics-ui-regression.test.mjs'
+      - 'tests/e2e/bklg-0244-terminal-styling.spec.mjs'
       - 'tests/operator-leads-ui-regression.test.mjs'
       - 'tests/bklg-0130-nudge-ui.test.mjs'
 
 jobs:
+  backlog-styling:
+    name: Operator backlog rendered styling
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      DV_E2E_BASE_URL: http://127.0.0.1:4173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Serve checked-out frontend
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/dv-backlog-http.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/operator/backlog/ >/dev/null; then
+              exit 0
+            fi
+            sleep 0.5
+          done
+          cat /tmp/dv-backlog-http.log
+          exit 1
+      - name: Verify terminal, selected, active-priority and blocked rows
+        run: npx playwright test tests/e2e/bklg-0244-terminal-styling.spec.mjs --retries=0
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: operator-backlog-styling-failure
+          path: test-results/
+          retention-days: 3
+
   regression:
     runs-on: ubuntu-latest
     steps:
