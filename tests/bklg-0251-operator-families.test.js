@@ -57,3 +57,30 @@ test('archived drivers remain outside activation metrics',()=>{
   assert.doesNotMatch(js,/driver_count\s*\+\s*.*archived/);
   assert.doesNotMatch(js,/eligible_drive_count\s*\+\s*.*archived/);
 });
+
+
+test('funnel click filters families currently at the exact stage',()=>{
+  const html=read('operator/families/index.html');
+  const js=read('operator/families/operator.js');
+  assert.match(html,/Select a stage to show families currently at that stage/);
+  assert.match(js,/data-stage=/);
+  assert.match(js,/filter\.exact===b\.dataset\.stage\?'ALL':b\.dataset\.stage/);
+  assert.doesNotMatch(js,/data-reached=/);
+  assert.doesNotMatch(js,/filter\.reached/);
+});
+
+test('funnel shows cumulative reached count plus current-stage count',()=>{
+  const js=read('operator/families/operator.js');
+  assert.match(js,/exactCounts=Object\.fromEntries/);
+  assert.match(js,/f\.status==='ACTIVE'&&f\.activation_stage===stage/);
+  assert.match(js,/currently here/);
+  assert.match(js,/\$\{num\(x\.count\)\}/);
+});
+
+test('redundant stalled-stage button row is removed and exact-stage dropdown remains',()=>{
+  const html=read('operator/families/index.html');
+  const js=read('operator/families/operator.js');
+  assert.doesNotMatch(html,/stalled-filters|Stalled at:/);
+  assert.match(html,/id="family-stage"/);
+  assert.match(js,/document\.getElementById\('family-stage'\)\.value=filter\.exact/);
+});
