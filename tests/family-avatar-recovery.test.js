@@ -70,3 +70,21 @@ test('card rerender after signed URL expiry obtains a fresh URL once',async()=>{
  assert.equal(h.requests.length,2);
  assert.equal(replacement.host.image.src,'https://example.test/refreshed.png');
 });
+
+test('persistent avatar fetch failures stop after three attempts without polling indefinitely',async()=>{
+ const h=harness();h.add();h.response=new Error('offline');
+ await h.advance(2*60*1000);
+ assert.equal(h.requests.length,3);
+ await h.advance(20*60*1000);
+ assert.equal(h.requests.length,3);
+});
+test('multiple visible driver cards are requested together and remain independently rendered',async()=>{
+ const h=harness(),one=h.add('one'),two=h.add('two');
+ h.response={ok:true,avatars:{one:'https://example.test/one.png',two:'https://example.test/two.png'}};
+ await h.advance(200);
+ assert.equal(h.requests.length,1);
+ const ids=JSON.parse(h.requests[0].init.body).driver_ids;
+ assert.deepEqual([...ids].sort(),['one','two']);
+ assert.equal(one.host.image.src,'https://example.test/one.png');
+ assert.equal(two.host.image.src,'https://example.test/two.png');
+});
