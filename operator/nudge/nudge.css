@@ -57,3 +57,9 @@
 .nudge-asof-controls input{min-width:13rem;padding:.55rem;background:#0b1218;color:#f7f3e8;border:1px solid #667784;border-radius:5px}
 .nudge-asof-controls .meta{flex-basis:100%}
 @media(max-width:540px){.nudge-asof-controls{align-items:stretch;flex-direction:column}.nudge-asof-controls input{min-width:0;width:100%;box-sizing:border-box}}
+
+/* BKLG-0130: not-applicable rows are audit-only and collapsed by default. */
+.nudge-not-applicable{margin-top:1rem;padding:.75rem;border:1px solid #61707a;border-radius:8px;background:#131c24}
+.nudge-not-applicable>summary{cursor:pointer;color:#bdc8d0;font-weight:700}
+.nudge-not-applicable>ul{margin-top:.85rem}
+.nudge-count.not-applicable{color:#bdc8d0;border-color:#667784}
