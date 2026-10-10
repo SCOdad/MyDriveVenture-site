@@ -107,7 +107,7 @@
   function reload(){generation++;states.clear();schedule(0)}
   // Observe only the driver-card container, not unrelated document mutations.
   const observer=new MutationObserver(()=>schedule());
-  const driverCardsHost=document.getElementById('family-drivers');
+  const driverCardsHost=typeof document.getElementById==='function' ? document.getElementById('family-drivers') : null;
   if(driverCardsHost)observer.observe(driverCardsHost,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id']});
   window.addEventListener('dv:family-rendered',()=>schedule());
   window.addEventListener('online',reload);
