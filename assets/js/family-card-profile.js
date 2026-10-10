@@ -2,7 +2,7 @@
   const cfg=window.DV_APP_CONFIG||{};
   if(!cfg.supabaseUrl||!cfg.publishableKey||!window.supabase)return;
   const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map(),pendingByPerson=new Map();const expandedDrivers=new Set();
+  let session=null,subjects=[],subjectByPerson=new Map(),subjectByDriver=new Map(),licenseByDriver=new Map(),smsByPerson=new Map(),emailPrefByDriver=new Map(),pendingByPerson=new Map();const expandedDrivers=new Set();
 
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const prettyPhone=v=>{const d=String(v||'').replace(/\D/g,'');return d.length===11&&d.startsWith('1')?`(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`:v||'Not set'};
@@ -102,6 +102,12 @@
     const actionable=['VERIFIED_NOT_ENROLLED','OPTED_IN','OPTED_OUT'].includes(state);
     if(button){button.hidden=!actionable;button.textContent=state==='OPTED_IN'?'Turn off Text Parker':'Turn on Text Parker';button.setAttribute('aria-label',button.textContent);button.dataset.smsDesired=state==='OPTED_IN'?'OPT_OUT':'OPT_IN'}
   }
+  function renderDriverEmailPreference(card,pref){
+    const enabled=Boolean(pref?.guardian_enabled),value=card.querySelector('[data-card-value="driver_email_pref"]'),detail=card.querySelector('[data-card-email-pref-detail]'),button=card.querySelector('[data-card-email-pref-action]');
+    if(value)value.textContent=enabled?'On':'Off';
+    if(detail)detail.textContent=pref?.driver_opted_out_at?'Driver used the email opt-out link. A family grown-up can turn these messages back on.':enabled?'Optional progress, achievement, and driving reminder emails are enabled.':'Optional driver lifecycle emails are not authorized.';
+    if(button){button.hidden=false;button.textContent=enabled?'Turn off':'Turn on';button.dataset.emailPrefDesired=enabled?'OFF':'ON';button.setAttribute('aria-label',enabled?'Turn off driver lifecycle emails':'Turn on driver lifecycle emails')}
+  }
   function applyCardPalette(card,value){
     const lib=window.DV_DRIVER_PALETTES;if(!lib?.resolve)return;const p=lib.resolve(value);
     card.style.setProperty('--family-accent-shadow',p.shadow);card.style.setProperty('--family-accent-base',p.base);card.style.setProperty('--family-accent-bright',p.bright);card.style.setProperty('--family-accent-highlight',p.highlight);card.classList.add('has-driver-accent');
@@ -122,13 +128,13 @@
     setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);renderPendingState(card,s);
     const stateEl=card.querySelector('[data-license-state]');if(stateEl)stateEl.textContent=s.home_state||'—';
     try{
-      const [licenseOut,smsOut]=await Promise.all([api('profile-api','license_overview',{driver_id:id}),api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id})]);
-      const license=licenseOut.license||{},sms=smsOut.sms||{};licenseByDriver.set(id,license);smsByPerson.set(String(s.person_id),sms);
+      const [licenseOut,smsOut,emailPrefOut]=await Promise.all([api('profile-api','license_overview',{driver_id:id}),api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id}),api('profile-api','driver_email_preference',{driver_id:id})]);
+      const license=licenseOut.license||{},sms=smsOut.sms||{},emailPref=emailPrefOut.email_preference||{};licenseByDriver.set(id,license);smsByPerson.set(String(s.person_id),sms);emailPrefByDriver.set(id,emailPref);
       const nameEl=card.querySelector('[data-license-name]');if(nameEl)nameEl.textContent=license.current_stage_display||s.license_stage||'Driver';
       const start=license?.targets?.[0]?.drive_totals_contract?.license_stage_start_date||s.license_effective_date||null;
       set('license_effective_date',fmtDate(start));card.dataset.licenseStage=String(license.current_stage||s.license_stage||'');card.dataset.licenseEffectiveDate=String(start||'');
       const datePencil=card.querySelector('[data-inline-edit="license_effective_date"]');if(datePencil&&String(card.dataset.licenseStage).toUpperCase()!=='LEVEL_1'){datePencil.hidden=true;datePencil.title='Later-stage dates are retained as audited transition history.'}
-      renderLicenseSummary(card,license);renderSms(card,sms);renderColorPicker(card,s);
+      renderLicenseSummary(card,license);renderSms(card,sms);renderDriverEmailPreference(card,emailPref);renderColorPicker(card,s);
     }catch(err){const summary=card.querySelector('[data-other-requirements]');if(summary)summary.textContent='Unavailable';console.warn('Driver card enrichment unavailable',err)}
   }
 
@@ -175,9 +181,22 @@
     button.disabled=true;try{const out=await api('contact-endpoint-api','set_sms_consent',{person_id:s.person_id,event_type:turningOn?'OPT_IN':'OPT_OUT'});const next=out.sms||{};smsByPerson.set(String(s.person_id),next);renderSms(card,next)}catch(err){alert(err.message||String(err))}finally{button.disabled=false}
   }
 
+  async function toggleDriverEmailPreference(button){
+    const card=button.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),pref=emailPrefByDriver.get(driverId);if(!card||!driverId)return;
+    const turningOn=button.dataset.emailPrefDesired==='ON';
+    const message=turningOn?'Turn on optional lifecycle emails for this driver? Drive Venture may send progress, achievement, and driving reminder messages.':'Turn off optional lifecycle emails for this driver?';
+    if(!confirm(message))return;
+    button.disabled=true;
+    try{
+      const out=await api('profile-api','set_driver_email_preference',{driver_id:driverId,enabled:turningOn}),next=out.email_preference||{};
+      emailPrefByDriver.set(driverId,next);renderDriverEmailPreference(card,next)
+    }catch(err){alert(err.message||String(err))}finally{button.disabled=false}
+  }
+
   document.addEventListener('click',async e=>{
     const pencil=e.target.closest?.('[data-inline-edit]');if(pencil){e.preventDefault();e.stopPropagation();beginEdit(pencil);return}
     const sms=e.target.closest?.('[data-card-sms-action]');if(sms){e.preventDefault();e.stopPropagation();void toggleSms(sms);return}
+    const emailPref=e.target.closest?.('[data-card-email-pref-action]');if(emailPref){e.preventDefault();e.stopPropagation();void toggleDriverEmailPreference(emailPref);return}
     const upload=e.target.closest?.('[data-expanded-avatar-upload]');if(upload){e.preventDefault();e.stopPropagation();const card=upload.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),file=card?.querySelector('[data-expanded-avatar-file]')?.files?.[0],status=card?.querySelector('[data-expanded-avatar-status]');if(!driverId||!file){if(status)status.textContent='Choose a photo first.';return}if(file.size>4*1024*1024){if(status)status.textContent='Photo must be 4 MB or smaller.';return}upload.disabled=true;if(status)status.textContent='Uploading…';try{const form=new FormData();form.append('action','upload_photo');form.append('driver_id',driverId);form.append('photo',file);await avatarCall(form);if(status){status.textContent='Avatar request started.';status.classList.add('family-success')}}catch(err){if(status){status.textContent=err.message||String(err);status.classList.add('family-error')}}finally{upload.disabled=false}return}
     const confirmButton=e.target.closest?.('[data-confirm-requirement]');if(confirmButton){e.preventDefault();e.stopPropagation();const card=confirmButton.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),stage=confirmButton.dataset.targetStage,requirement=confirmButton.dataset.confirmRequirement,license=licenseByDriver.get(driverId),date=license?.effective_date||new Date().toISOString().slice(0,10);if(!driverId||!stage||!requirement)return;if(!confirm(`Confirm ${labelFor(requirement)} as satisfied on ${date}?`))return;confirmButton.disabled=true;try{await api('profile-api','record_license_requirement',{driver_id:driverId,target_stage:stage,requirement_type:requirement,satisfied_on:date});await enrichDriver(card)}catch(err){alert(err.message||String(err));confirmButton.disabled=false}return}
     const advance=e.target.closest?.('[data-advance-stage]');if(advance){e.preventDefault();e.stopPropagation();const card=advance.closest('.family-driver-card'),driverId=String(card?.dataset.driverId||''),target=advance.dataset.advanceStage,license=licenseByDriver.get(driverId),date=prompt('Effective date for this licensing stage:',license?.effective_date||new Date().toISOString().slice(0,10));if(!date)return;if(!confirm(`Record ${target} effective ${date}? This creates an auditable licensing transition.`))return;advance.disabled=true;try{await api('profile-api','advance_license_stage',{driver_id:driverId,target_stage:target,effective_date:date});await window.DVFamily?.refresh?.()}catch(err){alert(err.message||String(err));advance.disabled=false}}
