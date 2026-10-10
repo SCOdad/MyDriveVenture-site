@@ -20,9 +20,14 @@ test('one eager loader renders, leaves fetch intact, and skips repeated requests
  h.window.DVFamilyAvatarMap.load();await h.advance(200);assert.equal(h.requests.length,1);
  assert.ok(h.requests.every(r=>r.url.endsWith('/family-avatar-map')));
 });
-test('missing assignment keeps fallback and later discovers a new assignment',async()=>{
- const h=harness(),card=h.add();h.response={ok:true,avatars:{}};await h.advance(200);assert.equal(card.dataset.avatarMapStatus,'no-avatar');assert.equal(card.host.image,null);
- h.response={ok:true,avatars:{one:'https://example.test/new.png'}};await h.advance(31000);assert.equal(card.host.image.src,'https://example.test/new.png');
+test('missing assignment stays quiet across idle time, focus and rerenders until explicit reload',async()=>{
+ const h=harness(),card=h.add();h.response={ok:true,avatars:{}};await h.advance(200);
+ assert.equal(card.dataset.avatarMapStatus,'no-avatar');assert.equal(card.host.image,null);
+ h.response={ok:true,avatars:{one:'https://example.test/new.png'}};
+ await h.advance(5*60*1000);h.events.focus();h.events['dv:family-rendered']();await h.advance(200);
+ assert.equal(h.requests.length,1);assert.equal(card.host.image,null);
+ h.window.DVFamilyAvatarMap.reload();await h.advance(200);
+ assert.equal(h.requests.length,2);assert.equal(card.host.image.src,'https://example.test/new.png');
 });
 test('network failure retries automatically without a new login',async()=>{
  const h=harness(),card=h.add();h.response=new Error('offline');await h.advance(200);assert.equal(card.dataset.avatarMapStatus,'exception');
@@ -45,4 +50,46 @@ test('new cards and hidden cards revealed later reuse valid cached images',async
 test('Family and legacy finalizer delegate without competing image writes',()=>{
  const family=fs.readFileSync('assets/js/family.js','utf8'),finalizer=fs.readFileSync('assets/js/family-avatar-finalizer.js','utf8'),bootstrap=fs.readFileSync('assets/js/family-bootstrap.js','utf8');
  assert.doesNotMatch(family,/driver-hero-url|new Image/);assert.doesNotMatch(finalizer,/new Image|fetch\(/);assert.doesNotMatch(bootstrap,/family-avatar-finalizer/);
+});
+
+test('idle Family Hub does not poll; same card rerender reuses signed avatar before expiry',async()=>{
+ const h=harness(),first=h.add();await h.advance(200);
+ assert.equal(h.requests.length,1);
+ await h.advance(3*60*1000);
+ assert.equal(h.requests.length,1);
+ first.isConnected=false;
+ const replacement=h.add();
+ h.events['dv:family-rendered']();
+ await h.advance(200);
+ assert.equal(replacement.dataset.avatarLoaded,'true');
+ assert.equal(h.requests.length,1);
+});
+test('card rerender after signed URL expiry obtains a fresh URL once',async()=>{
+ const h=harness(),first=h.add();await h.advance(200);
+ first.isConnected=false;
+ await h.advance(5*60*1000);
+ const replacement=h.add();
+ h.response={ok:true,avatars:{one:'https://example.test/refreshed.png'}};
+ h.events['dv:family-rendered']();
+ await h.advance(200);
+ assert.equal(h.requests.length,2);
+ assert.equal(replacement.host.image.src,'https://example.test/refreshed.png');
+});
+
+test('persistent avatar fetch failures stop after three attempts without polling indefinitely',async()=>{
+ const h=harness();h.add();h.response=new Error('offline');
+ await h.advance(2*60*1000);
+ assert.equal(h.requests.length,3);
+ await h.advance(20*60*1000);
+ assert.equal(h.requests.length,3);
+});
+test('multiple visible driver cards are requested together and remain independently rendered',async()=>{
+ const h=harness(),one=h.add('one'),two=h.add('two');
+ h.response={ok:true,avatars:{one:'https://example.test/one.png',two:'https://example.test/two.png'}};
+ await h.advance(200);
+ assert.equal(h.requests.length,1);
+ const ids=JSON.parse(h.requests[0].init.body).driver_ids;
+ assert.deepEqual([...ids].sort(),['one','two']);
+ assert.equal(one.host.image.src,'https://example.test/one.png');
+ assert.equal(two.host.image.src,'https://example.test/two.png');
 });

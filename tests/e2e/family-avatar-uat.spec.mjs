@@ -3,7 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd();
 async function mount(page){
- await page.route('**/*',route=>route.abort());
+ await page.route('**/*',route=>{
+  if(/^https:\/\/fixture\.invalid\/private-avatar\/driver-\d+\.png\?token=uat$/.test(route.request().url())){
+    return route.fulfill({status:200,contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aHj8AAAAASUVORK5CYII=','base64')});
+  }
+  return route.abort();
+ });
  await page.setContent(fs.readFileSync('family/index.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,''));
  await page.addStyleTag({path:path.join(root,'assets/css/family.css')});
  await page.evaluate(()=>{
@@ -17,7 +22,7 @@ async function mount(page){
    const body=JSON.parse(init.body),slug=url.split('/').pop();
    if(slug==='family-avatar-map'){
     state.avatarCalls++;if(state.failAvatar){state.failAvatar=false;throw Error('transient test failure')}
-    return ok({avatars:Object.fromEntries(body.driver_ids.map(id=>[id,'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aHj8AAAAASUVORK5CYII=']))});
+    return ok({avatars:Object.fromEntries(body.driver_ids.map(id=>[id,`https://fixture.invalid/private-avatar/${id}.png?token=uat`]))});
    }
    if(slug==='profile-api')return ok({subjects:[{kind:'PERSON',relation:'SELF',person_id:'holder'}]});
    if(slug==='driver-api')return ok({data:{drivers:drivers(),progress:[]}});
@@ -38,6 +43,7 @@ async function mount(page){
 test('real browser recovers avatars and Add Driver prevents duplicate submissions at the three-driver boundary',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));await mount(page);
  await expect(page.locator('[data-avatar-host] img')).toHaveCount(2);
+ expect(await page.locator('[data-avatar-host] img').first().getAttribute('src')).toMatch(/^https:\/\/fixture\.invalid\/private-avatar\/driver-/);
  await page.locator('.family-driver-card').first().locator('.family-driver-title-edit [data-inline-edit="name"]').click();
  await expect(page.locator('.family-driver-card').first().locator('.family-driver-title-edit input[type="text"]')).toBeVisible();
  await page.locator('.family-driver-card').first().locator('.family-driver-title-edit [data-inline-cancel]').click();
