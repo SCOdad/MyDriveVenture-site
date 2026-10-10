@@ -183,7 +183,7 @@ test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
 
 test('grown-up self card stacks entitlement above profile content',()=>{
   const html=read('family/index.html'),css=read('assets/css/family.css');
-  assert.match(html,/family\.css\?v=20261010-driver-email1/);
+  assert.match(html,/family\.css\?v=20261008-avatar-uat4/);
   assert.match(css,/\.family-grownup-card\{display:block!important;min-width:0!important\}/);
   assert.match(css,/\.family-grownup-card>\.family-self-license-summary\{width:100%;min-width:0;box-sizing:border-box\}/);
   assert.match(css,/\.family-grownup-card>\.family-grownup-main\{width:100%;min-width:0\}/);
