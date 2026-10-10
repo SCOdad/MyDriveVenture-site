@@ -5,7 +5,7 @@
   window.DV_SUPABASE_CLIENT=client;
   const states=new Map();
   let inflight=false,timer=null,generation=0,lastRequestKey='';
-  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3;
+  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3,AVATAR_URL_TTL=55*60*1000;
   // Retain resolved avatars until an explicit reload; a routine card rerender must not
   // fetch a multi-megabyte image again when its in-memory data URL is still valid.
 
@@ -76,7 +76,7 @@
     inflight=true;const version=generation;
     try{
       const ids=[...new Set(pending.map(card=>String(card.dataset.driverId)))];
-      const needed=ids.filter(id=>!states.get(id)?.url);
+      const needed=ids.filter(id=>!states.get(id)?.url||(states.get(id)?.expires??0)<=now);
       if(needed.length){
         pending.forEach(card=>mark(card,'fetching'));
         const avatars=await avatarMap(needed);
@@ -84,7 +84,7 @@
         lastRequestKey=needed.slice().sort().join('|');
         for(const id of needed){
           const url=avatars[id];
-          states.set(id,typeof url==='string'&&url?{url,attempts:0}:{retryAt:Date.now()+30000,attempts:(states.get(id)?.attempts||0)+1,missing:true,blocked:(states.get(id)?.attempts||0)+1>=MAX_RETRIES});
+          states.set(id,typeof url==='string'&&url?{url,expires:Date.now()+AVATAR_URL_TTL,attempts:0}:{retryAt:Date.now()+30000,attempts:(states.get(id)?.attempts||0)+1,missing:true,blocked:(states.get(id)?.attempts||0)+1>=MAX_RETRIES});
         }
       }
       await Promise.all(pending.map(async card=>{
