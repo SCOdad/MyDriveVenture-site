@@ -83,3 +83,9 @@ assert.match(js,/Blocked \/ Suppressed/,'Actual policy blocks have separate pres
 assert.match(js,/preview_trigger_condition/,'Upcoming rows explain the specific trigger');
 assert.match(js,/recipientList\(upcoming,'upcoming'\)/,'Upcoming messages retain recipient-specific previews');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator must not expose sending controls');
+
+assert.match(js,/nudge-not-applicable/,'Not Applicable must be collapsible');
+assert.match(js,/recipientList\(notApplicable,'not_applicable'\)/,'Not Applicable must list recipients');
+assert.match(js,/notApplicable\.length/,'Not Applicable must appear on each record');
+assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine fallback warning must be absent throughout Operator Nudges');
+assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');
