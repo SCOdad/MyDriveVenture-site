@@ -20,9 +20,14 @@ test('one eager loader renders, leaves fetch intact, and skips repeated requests
  h.window.DVFamilyAvatarMap.load();await h.advance(200);assert.equal(h.requests.length,1);
  assert.ok(h.requests.every(r=>r.url.endsWith('/family-avatar-map')));
 });
-test('missing assignment keeps fallback and later discovers a new assignment',async()=>{
- const h=harness(),card=h.add();h.response={ok:true,avatars:{}};await h.advance(200);assert.equal(card.dataset.avatarMapStatus,'no-avatar');assert.equal(card.host.image,null);
- h.response={ok:true,avatars:{one:'https://example.test/new.png'}};await h.advance(31000);assert.equal(card.host.image.src,'https://example.test/new.png');
+test('missing assignment stays quiet across idle time, focus and rerenders until explicit reload',async()=>{
+ const h=harness(),card=h.add();h.response={ok:true,avatars:{}};await h.advance(200);
+ assert.equal(card.dataset.avatarMapStatus,'no-avatar');assert.equal(card.host.image,null);
+ h.response={ok:true,avatars:{one:'https://example.test/new.png'}};
+ await h.advance(5*60*1000);h.events.focus();h.events['dv:family-rendered']();await h.advance(200);
+ assert.equal(h.requests.length,1);assert.equal(card.host.image,null);
+ h.window.DVFamilyAvatarMap.reload();await h.advance(200);
+ assert.equal(h.requests.length,2);assert.equal(card.host.image.src,'https://example.test/new.png');
 });
 test('network failure retries automatically without a new login',async()=>{
  const h=harness(),card=h.add();h.response=new Error('offline');await h.advance(200);assert.equal(card.dataset.avatarMapStatus,'exception');
