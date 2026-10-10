@@ -6,8 +6,8 @@
   const states=new Map();
   let inflight=false,timer=null,generation=0,lastRequestKey='';
   const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3,AVATAR_URL_TTL=4*60*1000;
-  // Retain resolved avatars until an explicit reload; a routine card rerender must not
-  // fetch a multi-megabyte image again when its in-memory data URL is still valid.
+  // Retain resolved URLs for their short validity window. Missing assignments are stable
+  // until explicit reload; routine focus or card rerenders must not poll absent avatars.
 
   function cards(){return [...document.querySelectorAll('.family-driver-card[data-driver-id]:not([hidden])')]}
   function mark(card,status){card.dataset.avatarMapStatus=status;const host=card.querySelector('[data-avatar-host]');if(host)host.dataset.avatarMapStatus=status}
@@ -84,7 +84,7 @@
         lastRequestKey=needed.slice().sort().join('|');
         for(const id of needed){
           const url=avatars[id];
-          states.set(id,typeof url==='string'&&url?{url,expires:Date.now()+AVATAR_URL_TTL,attempts:0}:{retryAt:Date.now()+30000,attempts:(states.get(id)?.attempts||0)+1,missing:true,blocked:(states.get(id)?.attempts||0)+1>=MAX_RETRIES});
+          states.set(id,typeof url==='string'&&url?{url,expires:Date.now()+AVATAR_URL_TTL,attempts:0}:{missing:true,blocked:true,attempts:0});
         }
       }
       await Promise.all(pending.map(async card=>{
@@ -111,7 +111,7 @@
   if(driverCardsHost)observer.observe(driverCardsHost,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id']});
   window.addEventListener('dv:family-rendered',()=>schedule());
   window.addEventListener('online',reload);
-  window.addEventListener('focus',()=>{for(const [id,state] of states)if(!state.url)states.delete(id);schedule()});
+  window.addEventListener('focus',()=>schedule());
   window.DVFamilyAvatarMap={load:()=>schedule(0),reload,get lastRequestKey(){return lastRequestKey}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>schedule(),{once:true});else schedule();
 })();
