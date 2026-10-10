@@ -44,11 +44,12 @@
     if(!rows?.length)return '<p class="meta">None.</p>';
     return '<ul>'+rows.map(row=>{
       const d=row.preview_diagnostics||{},consent=d.driver_consent,reason=d.reason||suppressionText(row);
-      const consentDetail=consent?'<div class="nudge-consent-detail"><strong>Driver email authorization</strong>'+
+      const consentDetail=consent?'<div class="nudge-consent-detail"><strong>Driver lifecycle email</strong>'+
         '<small>Email: '+(consent.email_present?'Present':'Missing')+'</small>'+
         '<small>Grown-up authorization: '+(consent.guardian_authorized?'Recorded':'Missing')+'</small>'+
-        '<small>Driver consent: '+(consent.driver_consented?'Recorded':'Missing')+'</small>'+
-        '<small>Revoked: '+(consent.revoked?'Yes':'No')+'</small></div>':'';
+        '<small>Guardian setting: '+(consent.guardian_enabled?'On':'Off')+'</small>'+
+        '<small>Driver opt-out: '+(consent.driver_opted_out?'Yes':'No')+'</small>'+
+        '<small>Managed in: Family &amp; Profiles</small></div>':'';
       return `<li><strong>${esc(row.recipient_name||'Recipient')}</strong> <small>${esc(row.recipient_kind==='DRIVER'?'DRIVER':'GROWN-UP')}</small>${row.driver_name?' · '+esc(row.driver_name):''}<small>${esc(row.recipient_email||'')}</small>${reason?`<small class="nudge-diagnostic-reason">Reason: ${esc(reason)}</small>`:''}${d.action?`<small><strong>Action:</strong> ${esc(d.action)}</small>`:''}${d.next_evaluation?`<small><strong>Next evaluation:</strong> ${esc(d.next_evaluation)}</small>`:''}${consentDetail}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${resolvedEmail(row)}</li>`;
     }).join('')+'</ul>';
   }
