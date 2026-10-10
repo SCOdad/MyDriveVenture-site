@@ -14,7 +14,7 @@ test('avatar requests are bounded and existing image URLs are reused', () => {
   assert.match(source, /MAX_RETRIES=3/);
   assert.match(source, /state\.blocked/);
   assert.match(source, /states\.get\(id\)\?\.url/);
-  assert.match(source, /AVATAR_URL_TTL=55\*60\*1000/);
+  assert.match(source, /AVATAR_URL_TTL=4\*60\*1000/);
 });
 
 test('avatar observer is limited to the driver-card host', () => {
