@@ -80,12 +80,14 @@ assert.match(js,/previewAsOf\?\{as_of:previewAsOf\}/,'As-of preview must explici
 assert.match(js,/Ready \/ Selected/,'Ready group is explicit');
 assert.match(js,/Upcoming \(\$\{upcoming.length\}\)/,'Unmet triggers are informative');
 assert.match(js,/Blocked \/ Suppressed/,'Actual policy blocks have separate presentation');
-assert.match(js,/preview_trigger_condition/,'Upcoming rows explain the specific trigger');
+assert.match(js,/preview_diagnostics/,'Upcoming rows explain the trigger and next action');
 assert.match(js,/recipientList\(upcoming,'upcoming'\)/,'Upcoming messages retain recipient-specific previews');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator must not expose sending controls');
 
 assert.match(js,/nudge-not-applicable/,'Not Applicable must be collapsible');
-assert.match(js,/recipientList\(notApplicable,'not_applicable'\)/,'Not Applicable must list recipients');
-assert.match(js,/notApplicable\.length/,'Not Applicable must appear on each record');
+assert.match(js,/recipientList\(notStarted,'not_started'\)/,'Not Started must list recipients');
+assert.match(js,/accomplished\.length/,'Already Accomplished must appear on each record');
+assert.match(js,/previouslySent\.length/,'Previously Sent must appear on each record');
+assert.match(js,/driver_consent/,'Consent breakdown must be visible');
 assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine fallback warning must be absent throughout Operator Nudges');
 assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');

@@ -63,3 +63,9 @@
 .nudge-not-applicable>summary{cursor:pointer;color:#bdc8d0;font-weight:700}
 .nudge-not-applicable>ul{margin-top:.85rem}
 .nudge-count.not-applicable{color:#bdc8d0;border-color:#667784}
+
+/* Operator nudge diagnostics are informational; no consent mutation control. */
+.nudge-consent-detail{display:flex;flex-direction:column;gap:.25rem;margin:.55rem 0;padding:.65rem;border-left:3px solid #c9a768;background:#19242c}
+.nudge-diagnostic-reason{font-weight:600}
+.nudge-not-applicable li{margin-block:.55rem}
+@media(max-width:540px){.nudge-consent-detail{max-width:100%;overflow-wrap:anywhere}}
