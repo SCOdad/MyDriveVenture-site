@@ -46,3 +46,27 @@ test('Family and legacy finalizer delegate without competing image writes',()=>{
  const family=fs.readFileSync('assets/js/family.js','utf8'),finalizer=fs.readFileSync('assets/js/family-avatar-finalizer.js','utf8'),bootstrap=fs.readFileSync('assets/js/family-bootstrap.js','utf8');
  assert.doesNotMatch(family,/driver-hero-url|new Image/);assert.doesNotMatch(finalizer,/new Image|fetch\(/);assert.doesNotMatch(bootstrap,/family-avatar-finalizer/);
 });
+
+test('idle Family Hub does not poll; same card rerender reuses signed avatar before expiry',async()=>{
+ const h=harness(),first=h.add();await h.advance(200);
+ assert.equal(h.requests.length,1);
+ await h.advance(3*60*1000);
+ assert.equal(h.requests.length,1);
+ first.isConnected=false;
+ const replacement=h.add();
+ h.events['dv:family-rendered']();
+ await h.advance(200);
+ assert.equal(replacement.dataset.avatarLoaded,'true');
+ assert.equal(h.requests.length,1);
+});
+test('card rerender after signed URL expiry obtains a fresh URL once',async()=>{
+ const h=harness(),first=h.add();await h.advance(200);
+ first.isConnected=false;
+ await h.advance(5*60*1000);
+ const replacement=h.add();
+ h.response={ok:true,avatars:{one:'https://example.test/refreshed.png'}};
+ h.events['dv:family-rendered']();
+ await h.advance(200);
+ assert.equal(h.requests.length,2);
+ assert.equal(replacement.host.image.src,'https://example.test/refreshed.png');
+});
