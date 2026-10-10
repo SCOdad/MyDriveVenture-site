@@ -5,7 +5,9 @@
   window.DV_SUPABASE_CLIENT=client;
   const states=new Map();
   let inflight=false,timer=null,generation=0,lastRequestKey='';
-  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,CACHE_TTL=60000;
+  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3;
+  // Retain resolved avatars until an explicit reload; a routine card rerender must not
+  // fetch a multi-megabyte image again when its in-memory data URL is still valid.
 
   function cards(){return [...document.querySelectorAll('.family-driver-card[data-driver-id]:not([hidden])')]}
   function mark(card,status){card.dataset.avatarMapStatus=status;const host=card.querySelector('[data-avatar-host]');if(host)host.dataset.avatarMapStatus=status}
@@ -59,20 +61,22 @@
   }
   function failed(id,previous={}){
     const attempts=(previous.attempts||0)+1;
-    states.set(id,{attempts,retryAt:Date.now()+Math.min(30000,1000*2**Math.min(attempts,5))});
+    // Stop automatic network attempts after bounded failures. Explicit reload or online
+    // reconnection resets this state, allowing manual recovery without a retry storm.
+    states.set(id,{attempts,retryAt:attempts>=MAX_RETRIES?null:Date.now()+Math.min(30000,1000*2**attempts),blocked:attempts>=MAX_RETRIES});
   }
   async function load(){
     timer=null;if(inflight)return;
     const visible=cards(),now=Date.now();
     const pending=visible.filter(card=>{
       const state=states.get(String(card.dataset.driverId));
-      return !state||(!state.retryAt||state.retryAt<=now)&&(!state.url||!card.querySelector('[data-avatar-host] img'));
+      return !state||(!state.blocked&&(!state.retryAt||state.retryAt<=now)&&(!state.url||!card.querySelector('[data-avatar-host] img')));
     });
     if(!pending.length){planRetry();return}
     inflight=true;const version=generation;
     try{
       const ids=[...new Set(pending.map(card=>String(card.dataset.driverId)))];
-      const needed=ids.filter(id=>!states.get(id)?.url||states.get(id).expires<=now);
+      const needed=ids.filter(id=>!states.get(id)?.url);
       if(needed.length){
         pending.forEach(card=>mark(card,'fetching'));
         const avatars=await avatarMap(needed);
@@ -80,7 +84,7 @@
         lastRequestKey=needed.slice().sort().join('|');
         for(const id of needed){
           const url=avatars[id];
-          states.set(id,typeof url==='string'&&url?{url,expires:Date.now()+CACHE_TTL,attempts:states.get(id)?.attempts||0}:{retryAt:Date.now()+30000,missing:true});
+          states.set(id,typeof url==='string'&&url?{url,attempts:0}:{retryAt:Date.now()+30000,attempts:(states.get(id)?.attempts||0)+1,missing:true,blocked:(states.get(id)?.attempts||0)+1>=MAX_RETRIES});
         }
       }
       await Promise.all(pending.map(async card=>{
@@ -97,12 +101,14 @@
     }finally{inflight=false;schedule(version!==generation?0:75)}
   }
   function planRetry(){
-    const times=cards().map(card=>states.get(String(card.dataset.driverId))?.retryAt).filter(Boolean);
+    const times=cards().map(card=>states.get(String(card.dataset.driverId))).filter(state=>state&&!state.blocked&&state.retryAt).map(state=>state.retryAt);
     if(times.length)schedule(Math.max(75,Math.min(...times)-Date.now()));
   }
   function reload(){generation++;states.clear();schedule(0)}
+  // Observe only the driver-card container, not unrelated document mutations.
   const observer=new MutationObserver(()=>schedule());
-  if(document.body)observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id']});
+  const driverCardsHost=document.getElementById('family-drivers');
+  if(driverCardsHost)observer.observe(driverCardsHost,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','data-driver-id']});
   window.addEventListener('dv:family-rendered',()=>schedule());
   window.addEventListener('online',reload);
   window.addEventListener('focus',()=>{for(const [id,state] of states)if(!state.url)states.delete(id);schedule()});
