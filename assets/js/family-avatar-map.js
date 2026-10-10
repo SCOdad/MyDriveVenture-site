@@ -5,7 +5,7 @@
   window.DV_SUPABASE_CLIENT=client;
   const states=new Map();
   let inflight=false,timer=null,generation=0,lastRequestKey='';
-  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3,AVATAR_URL_TTL=55*60*1000;
+  const REQUEST_TIMEOUT=10000,IMAGE_TIMEOUT=10000,MAX_RETRIES=3,AVATAR_URL_TTL=4*60*1000;
   // Retain resolved avatars until an explicit reload; a routine card rerender must not
   // fetch a multi-megabyte image again when its in-memory data URL is still valid.
 
