@@ -85,7 +85,9 @@ assert.match(js,/recipientList\(upcoming,'upcoming'\)/,'Upcoming messages retain
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator must not expose sending controls');
 
 assert.match(js,/nudge-not-applicable/,'Not Applicable must be collapsible');
-assert.match(js,/recipientList\(notApplicable,'not_applicable'\)/,'Not Applicable must list recipients');
-assert.match(js,/notApplicable\.length/,'Not Applicable must appear on each record');
+assert.match(js,/recipientList\(notStarted,'not_started'\)/,'Not Started must list recipients');
+assert.match(js,/accomplished\.length/,'Already Accomplished must appear on each record');
+assert.match(js,/previouslySent\.length/,'Previously Sent must appear on each record');
+assert.match(js,/driver_consent/,'Consent breakdown must be visible');
 assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine fallback warning must be absent throughout Operator Nudges');
 assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');
