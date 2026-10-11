@@ -220,6 +220,26 @@
     return model;
   }
 
+  // A registered grown-up may legitimately have no drivers yet. Only the Family API
+  // can authorize their Family Hub access; do not treat a dashboard error as permission.
+  async function routeZeroDriverGrownup(dashboardError){
+    if(!/no active driver is linked to this account yet/i.test(String(dashboardError?.message||'')))return false;
+    const {data:{session}={}}=await client.auth.getSession();
+    if(!session?.access_token)return false;
+    try{
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/family-api`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'overview'})
+      });
+      if(!response.ok)return false;
+      const family=await response.json();
+      if(family?.ok!==true||!family.current_person_id||!(family.family_contexts||[]).length)return false;
+      location.replace('/family/');
+      return true;
+    }catch(error){console.warn('Zero-driver Family Hub eligibility check failed',error);return false}
+  }
+
   async function establishAccess(){
     if(accessReady)return;
     if(accessInFlight)return accessInFlight;
@@ -228,7 +248,7 @@
       const {data,error}=await client.rpc('claim_authenticated_access_v1');
       if(error)throw new Error(`Access claim: ${error.message||'Unable to resolve access'}`);
       if(!data||data.ok!==true)throw new Error(`Access claim: ${data?.error||'Unable to resolve access'}`);
-      await loadDashboard();
+      try{await loadDashboard()}catch(error){if(await routeZeroDriverGrownup(error))return;throw error}
       loginCard.classList.add('app-hidden');
       appMain.classList.remove('app-hidden');
       syncAuthUi(true);
