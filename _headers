@@ -3,3 +3,5 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(self)
 /archive/*
   X-Robots-Tag: noindex, nofollow
+/log/*
+  Cache-Control: no-cache, must-revalidate
