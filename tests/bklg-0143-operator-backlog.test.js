@@ -66,8 +66,12 @@ test('Operator API requests resolve the current session and perform one bounded 
   assert.doesNotMatch(js, /let client,token=/);
 });
 
-test('terminal state styling outranks P0 and P1 queue backgrounds', () => {
+test('terminal green backgrounds preserve P0 and P1 priority borders and selection', () => {
   assert.match(enhancements, /priority-p0:not\(\.terminal\):not\(\.current-active\)/);
   assert.match(enhancements, /priority-p1:not\(\.terminal\):not\(\.current-active\)/);
-  assert.match(enhancements, /\.backlog-row\.terminal\.priority-p0,\.backlog-row\.terminal\.priority-p1\{border-left-color:#45a565\}/);
+  // Priority border remains visible on terminal rows; green is communicated by background.
+  assert.match(enhancements, /\.backlog-row\.terminal\.priority-p0\{border-left-color:#6f1515\}/);
+  assert.match(enhancements, /\.backlog-row\.terminal\.priority-p1\{border-left-color:#b44747\}/);
+  assert.match(js, /\.backlog-row\.terminal\{background:rgba\(69,165,101,\.22\)/);
+  assert.match(js, /\.backlog-row\.terminal\.current-active[^`]*box-shadow:inset 0 0 0 3px #f7c948/);
 });
