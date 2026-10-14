@@ -91,3 +91,5 @@ assert.match(js,/previouslySent\.length/,'Previously Sent must appear on each re
 assert.match(js,/driver_consent/,'Consent breakdown must be visible');
 assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine fallback warning must be absent throughout Operator Nudges');
 assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');
+
+assert.match(js,/\['PRACTICE_PROGRESS_PERCENT','INACTIVITY'\]\.includes\(r\.trigger_primitive\)/,'Timing selector must support progress and inactivity');
