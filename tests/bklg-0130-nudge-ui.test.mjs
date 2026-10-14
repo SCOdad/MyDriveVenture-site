@@ -97,3 +97,7 @@ assert.match(js,/\['PRACTICE_PROGRESS_PERCENT','INACTIVITY'\]\.includes\(r\.trig
 assert.match(js,/set_activation_enabled/,'Activation control uses separate backend action');
 assert.match(js,/nudge-activation-save/,'Activation control has its own save handler');
 assert.match(js,/activation_setting/,'Activation state is read from backend preview');
+
+assert.match(js,/set_certification_enabled/,'Certification has an independent audited API action');
+assert.match(js,/certification_setting/,'Certification state comes from backend preview');
+assert.match(js,/nudge-certification-save/,'Certification has an independent Operator save control');
