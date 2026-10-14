@@ -84,6 +84,10 @@
   function render(){
     const runtime=payload?.runtime_setting||{},runtimeEnabled=runtime.enabled===true,badge=document.getElementById('nudge-runtime-badge'),toggle=document.getElementById('nudge-runtime-enabled');
     if(toggle)toggle.checked=runtimeEnabled;
+    const activation=payload?.activation_setting||{},activationEnabled=activation.enabled===true,activationToggle=document.getElementById('nudge-activation-enabled'),activationBadge=document.getElementById('nudge-activation-badge');
+    if(activationToggle)activationToggle.checked=activationEnabled;
+    if(activationBadge){activationBadge.textContent=activationEnabled?'ACTIVE':'PAUSED';activationBadge.classList.toggle('active',activationEnabled);activationBadge.classList.toggle('paused',!activationEnabled)}
+
     if(badge){badge.textContent=runtimeEnabled?'ACTIVE':'PAUSED';badge.classList.toggle('active',runtimeEnabled);badge.classList.toggle('paused',!runtimeEnabled)}
     const updated=document.getElementById('nudge-runtime-updated');if(updated)updated.textContent=runtime.updated_at?'Last changed '+runtime.updated_at:'No delivery-state history yet.';
     const groups=payload?.groups||[],selected=groups.reduce((n,g)=>n+(g.ready?.length||0),0),upcoming=groups.reduce((n,g)=>n+(g.upcoming?.length||0),0),notStarted=groups.reduce((n,g)=>n+(g.not_started?.length||0),0),accomplished=groups.reduce((n,g)=>n+(g.already_accomplished?.length||0),0),previouslySent=groups.reduce((n,g)=>n+(g.previously_sent?.length||0),0),suppressed=groups.reduce((n,g)=>n+(g.blocked?.length||0),0);
@@ -149,6 +153,15 @@
     finally{button.disabled=false}
   }
 
+  async function saveActivation(){
+    const toggle=document.getElementById('nudge-activation-enabled'),button=document.getElementById('nudge-activation-save'),status=document.getElementById('nudge-activation-status'),enabled=Boolean(toggle?.checked);
+    if(enabled&&!confirm('Enable Seq 0–99 lifecycle activation messages? This does not enable Certification Seq 10.')){toggle.checked=false;return}
+    button.disabled=true;
+    try{await api({action:'set_activation_enabled',enabled});if(status)status.textContent=enabled?'Activation delivery is active.':'Activation delivery is paused.';await load()}
+    catch(e){if(status)status.textContent=e.message;await load()}
+    finally{button.disabled=false}
+  }
+
   function startDrag(ev){draggedCard=ev.currentTarget.closest('.nudge-card');if(!draggedCard)return;draggedCard.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',draggedCard.dataset.rule||'')}
   function dragOver(ev){
     if(!draggedCard)return;
@@ -203,6 +216,7 @@
   });
   document.getElementById('nudge-refresh').addEventListener('click',load);
   document.getElementById('nudge-runtime-save')?.addEventListener('click',saveRuntime);
+  document.getElementById('nudge-activation-save')?.addEventListener('click',saveActivation);
   function startOtpCooldown(button,status,seconds=60,message=''){
     if(otpCooldownTimer)clearInterval(otpCooldownTimer);
     let remaining=Math.max(1,Math.ceil(seconds));
