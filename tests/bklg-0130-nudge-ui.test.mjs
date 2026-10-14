@@ -93,3 +93,7 @@ assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine 
 assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');
 
 assert.match(js,/\['PRACTICE_PROGRESS_PERCENT','INACTIVITY'\]\.includes\(r\.trigger_primitive\)/,'Timing selector must support progress and inactivity');
+
+assert.match(js,/set_activation_enabled/,'Activation control uses separate backend action');
+assert.match(js,/nudge-activation-save/,'Activation control has its own save handler');
+assert.match(js,/activation_setting/,'Activation state is read from backend preview');
