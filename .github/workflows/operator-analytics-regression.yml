@@ -75,5 +75,6 @@ jobs:
       - run: node tests/operator-analytics-ui-regression.test.mjs
       - run: node tests/operator-leads-ui-regression.test.mjs
       - run: node tests/bklg-0130-nudge-ui.test.mjs
+      - run: node tests/bklg-0130-feedback-inbox-source.test.mjs
       - run: node tests/bklg-0130-prod-preview-ui.test.mjs
       - run: node --check staging/nudge-live/live.js

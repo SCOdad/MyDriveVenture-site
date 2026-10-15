@@ -64,7 +64,7 @@
   function groupCard(group){
     const r=group.rule,selected=group.ready||group.selected||[],upcoming=group.upcoming||[],notStarted=group.not_started||[],accomplished=group.already_accomplished||[],previouslySent=group.previously_sent||[],suppressed=group.blocked||group.suppressed||[],cls=sequenceClass(r.priority),managed=Boolean(group.managed_externally);
     const controls=managed?'<span class="system-lock" title="System communication rule is fixed">🔒</span>':`<span class="nudge-reorder-controls"><button type="button" class="nudge-drag-handle" draggable="true" aria-label="Drag to reorder ${esc(r.display_name)}" title="Drag to reorder">↕</button><button type="button" class="nudge-move" data-dir="-1" aria-label="Move earlier">↑</button><button type="button" class="nudge-move" data-dir="1" aria-label="Move later">↓</button></span>`;
-    const ruleControls=managed?`<div class="system-managed-rule"><strong>System communication</strong><span>Fixed at Sequence ${esc(r.priority)} · ${esc(group.schedule_label||'System-managed schedule')}</span><small>Rule, trigger, sequence, and enabled state are read-only. Message template remains editable.</small></div>`:`<section class="nudge-delivery nudge-settings-panel"><h4>Delivery Configuration</h4><div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><label>Grown-up audience<select class="rule-grownup-audience">${[['NONE','None'],['INDIVIDUAL','Individual'],['PRIMARY_GUARDIAN','Primary Guardian'],['ALL_GROWNUPS','All Grown-ups'],['ONE_PER_FAMILY','One per Family']].map(([v,n])=>`<option value="${v}" ${String(r.trigger_config?.grownup_audience||(r.scope==='FAMILY'?'ONE_PER_FAMILY':'PRIMARY_GUARDIAN'))===v?'selected':''}>${n}</option>`).join('')}</select></label><label>Driver audience<span><input class="rule-include-driver" type="checkbox" ${r.trigger_config?.include_driver===true?'checked':''}> Include driver</span></label>${r.trigger_primitive==='PRACTICE_PROGRESS_PERCENT'?`<label>Milestone timing<select class="rule-delivery-timing"><option value="WEEKLY" ${r.trigger_config?.delivery_timing==='IMMEDIATE'?'':'selected'}>Weekly</option><option value="IMMEDIATE" ${r.trigger_config?.delivery_timing==='IMMEDIATE'?'selected':''}>Hourly / immediate</option></select></label>`:''}<button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save Delivery Settings</button></div><span class="delivery-save-status save-status" role="status"></span><span class="unsaved-indicator" hidden>Unsaved changes</span></section>`;
+    const ruleControls=managed?`<div class="system-managed-rule"><strong>System communication</strong><span>Fixed at Sequence ${esc(r.priority)} · ${esc(group.schedule_label||'System-managed schedule')}</span><small>Rule, trigger, sequence, and enabled state are read-only. Message template remains editable.</small></div>`:`<section class="nudge-delivery nudge-settings-panel"><h4>Delivery Configuration</h4><div class="nudge-config"><label>Sequence<span class="sequence-value">${esc(r.priority)}</span></label><label>Enabled<span><input class="rule-enabled" type="checkbox" ${r.enabled?'checked':''}> Enabled</span></label><label>Grown-up audience<select class="rule-grownup-audience">${[['NONE','None'],['INDIVIDUAL','Individual'],['PRIMARY_GUARDIAN','Primary Guardian'],['ALL_GROWNUPS','All Grown-ups'],['ONE_PER_FAMILY','One per Family']].map(([v,n])=>`<option value="${v}" ${String(r.trigger_config?.grownup_audience||(r.scope==='FAMILY'?'ONE_PER_FAMILY':'PRIMARY_GUARDIAN'))===v?'selected':''}>${n}</option>`).join('')}</select></label><label>Driver audience<span><input class="rule-include-driver" type="checkbox" ${r.trigger_config?.include_driver===true?'checked':''}> Include driver</span></label>${['PRACTICE_PROGRESS_PERCENT','INACTIVITY'].includes(r.trigger_primitive)?`<label>Delivery timing<select class="rule-delivery-timing"><option value="WEEKLY" ${r.trigger_config?.delivery_timing==='IMMEDIATE'?'':'selected'}>Weekly</option><option value="IMMEDIATE" ${r.trigger_config?.delivery_timing==='IMMEDIATE'?'selected':''}>Hourly / immediate</option></select></label>`:''}<button type="button" class="range-button rule-save" data-rule="${esc(r.rule_key)}">Save Delivery Settings</button></div><span class="delivery-save-status save-status" role="status"></span><span class="unsaved-indicator" hidden>Unsaved changes</span></section>`;
     return `<details class="nudge-card${managed?' system-managed':''}" data-rule="${esc(r.rule_key)}" data-sequence-class="${esc(cls?.key||'UNCLASSIFIED')}" data-system-managed="${managed?'true':'false'}" ${selected.length?'open':''}><summary>${controls}<span class="nudge-sequence-badge" title="Sequence">${esc(r.priority)}</span><span class="nudge-card-title"><strong>${esc(r.display_name)}</strong><small>${esc(r.description||'')}${managed?' · System communication':''} · ${esc(group.schedule_label||'Thursday · 3 PM local')}</small></span><span class="nudge-counts"><span class="nudge-count selected">${selected.length} selected</span><span class="nudge-count upcoming">${upcoming.length} upcoming</span><span class="nudge-count not-applicable">${notStarted.length} not started</span><span class="nudge-count not-applicable">${accomplished.length} accomplished</span><span class="nudge-count not-applicable">${previouslySent.length} previously sent</span><span class="nudge-count suppressed">${suppressed.length} suppressed</span></span></summary><div class="nudge-card-body"><div class="nudge-record-flow" aria-label="${esc(r.display_name)} record sections">${ruleControls}<p class="meta">Recipient audience settings must be validated against consent and eligibility before live delivery.</p><p class="meta">Trigger: ${esc(label(r.trigger_primitive))} · Post-send: ${esc(label(r.post_send_behavior))}${r.once_only?' · Once only':''}</p>${templateEditor(group,"GROWN_UP")}${r.scope==="DRIVER"?templateEditor(group,"DRIVER"):""}<section class="nudge-recipient-panel nudge-settings-panel"><h4>Recipient Preview</h4><div class="recipient-columns"><div class="recipient-box"><h4>Ready / Selected (${selected.length})</h4>${recipientList(selected,'ready')}</div><div class="recipient-box"><h4>Upcoming (${upcoming.length})</h4>${recipientList(upcoming,'upcoming')}</div><div class="recipient-box"><h4>Blocked / Suppressed (${suppressed.length})</h4>${recipientList(suppressed,'blocked')}</div><details class="nudge-not-applicable"><summary>Not Started (${notStarted.length})</summary>${recipientList(notStarted,'not_started')}</details><details class="nudge-not-applicable"><summary>Already Accomplished (${accomplished.length})</summary>${recipientList(accomplished,'already_accomplished')}</details><details class="nudge-not-applicable"><summary>Previously Sent (${previouslySent.length})</summary>${recipientList(previouslySent,'previously_sent')}</details></section></div></div></details>`;
   }
 
@@ -84,6 +84,14 @@
   function render(){
     const runtime=payload?.runtime_setting||{},runtimeEnabled=runtime.enabled===true,badge=document.getElementById('nudge-runtime-badge'),toggle=document.getElementById('nudge-runtime-enabled');
     if(toggle)toggle.checked=runtimeEnabled;
+    const activation=payload?.activation_setting||{},activationEnabled=activation.enabled===true,activationToggle=document.getElementById('nudge-activation-enabled'),activationBadge=document.getElementById('nudge-activation-badge');
+    if(activationToggle)activationToggle.checked=activationEnabled;
+    const certification=payload?.certification_setting||{},certificationEnabled=certification.enabled===true,certificationToggle=document.getElementById('nudge-certification-enabled'),certificationBadge=document.getElementById('nudge-certification-badge');
+    if(certificationToggle)certificationToggle.checked=certificationEnabled;
+    if(certificationBadge){certificationBadge.textContent=certificationEnabled?'ACTIVE':'PAUSED';certificationBadge.classList.toggle('active',certificationEnabled);certificationBadge.classList.toggle('paused',!certificationEnabled)}
+
+    if(activationBadge){activationBadge.textContent=activationEnabled?'ACTIVE':'PAUSED';activationBadge.classList.toggle('active',activationEnabled);activationBadge.classList.toggle('paused',!activationEnabled)}
+
     if(badge){badge.textContent=runtimeEnabled?'ACTIVE':'PAUSED';badge.classList.toggle('active',runtimeEnabled);badge.classList.toggle('paused',!runtimeEnabled)}
     const updated=document.getElementById('nudge-runtime-updated');if(updated)updated.textContent=runtime.updated_at?'Last changed '+runtime.updated_at:'No delivery-state history yet.';
     const groups=payload?.groups||[],selected=groups.reduce((n,g)=>n+(g.ready?.length||0),0),upcoming=groups.reduce((n,g)=>n+(g.upcoming?.length||0),0),notStarted=groups.reduce((n,g)=>n+(g.not_started?.length||0),0),accomplished=groups.reduce((n,g)=>n+(g.already_accomplished?.length||0),0),previouslySent=groups.reduce((n,g)=>n+(g.previously_sent?.length||0),0),suppressed=groups.reduce((n,g)=>n+(g.blocked?.length||0),0);
@@ -149,6 +157,24 @@
     finally{button.disabled=false}
   }
 
+  async function saveActivation(){
+    const toggle=document.getElementById('nudge-activation-enabled'),button=document.getElementById('nudge-activation-save'),status=document.getElementById('nudge-activation-status'),enabled=Boolean(toggle?.checked);
+    if(enabled&&!confirm('Enable Seq 0–99 lifecycle activation messages? This does not enable Certification Seq 10.')){toggle.checked=false;return}
+    button.disabled=true;
+    try{await api({action:'set_activation_enabled',enabled});if(status)status.textContent=enabled?'Activation delivery is active.':'Activation delivery is paused.';await load()}
+    catch(e){if(status)status.textContent=e.message;await load()}
+    finally{button.disabled=false}
+  }
+
+  async function saveCertification(){
+    const toggle=document.getElementById('nudge-certification-enabled'),button=document.getElementById('nudge-certification-save'),status=document.getElementById('nudge-certification-status'),enabled=Boolean(toggle?.checked);
+    if(enabled&&!confirm('Enable live Seq10 weekly certification messages? This is independent of lifecycle delivery.')){toggle.checked=false;return}
+    button.disabled=true;
+    try{await api({action:'set_certification_enabled',enabled});if(status)status.textContent=enabled?'Certification delivery is active.':'Certification delivery is paused.';await load()}
+    catch(e){if(status)status.textContent=e.message;await load()}
+    finally{button.disabled=false}
+  }
+
   function startDrag(ev){draggedCard=ev.currentTarget.closest('.nudge-card');if(!draggedCard)return;draggedCard.classList.add('dragging');ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',draggedCard.dataset.rule||'')}
   function dragOver(ev){
     if(!draggedCard)return;
@@ -203,6 +229,8 @@
   });
   document.getElementById('nudge-refresh').addEventListener('click',load);
   document.getElementById('nudge-runtime-save')?.addEventListener('click',saveRuntime);
+  document.getElementById('nudge-activation-save')?.addEventListener('click',saveActivation);
+  document.getElementById('nudge-certification-save')?.addEventListener('click',saveCertification);
   function startOtpCooldown(button,status,seconds=60,message=''){
     if(otpCooldownTimer)clearInterval(otpCooldownTimer);
     let remaining=Math.max(1,Math.ceil(seconds));

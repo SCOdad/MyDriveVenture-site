@@ -30,7 +30,7 @@ assert.match(js,/data-system-managed/,'System communications must be marked read
 assert.match(js,/system communications are fixed/,'Sequence help must explain that system communications cannot be reordered');
 assert.match(js,/not\(\[data-system-managed="true"\]\)/,'Reorder payload must exclude fixed system communications');
 assert.match(html,/Monday at 3 PM local/,'Operator copy must state the certification cadence');
-assert.match(html,/Thursday lifecycle nudges/,'Operator copy must distinguish lifecycle cadence and pause semantics');
+assert.match(html,/Seq 0–99 lifecycle activation has an independent control/,'Operator copy must distinguish independent lifecycle activation controls');
 assert.doesNotMatch(js,/rule-priority/,'Nudge UI must not require raw priority-number editing');
 assert.doesNotMatch(js,/send_live|send_test|recipient_person_ids/,'Operator Nudge UI must not expose delivery controls');
 assert.match(html,/id="nudge-signin-email"/,'Dedicated Nudge surface must provide its own Operator email sign-in field');
@@ -91,3 +91,13 @@ assert.match(js,/previouslySent\.length/,'Previously Sent must appear on each re
 assert.match(js,/driver_consent/,'Consent breakdown must be visible');
 assert.doesNotMatch(js,/Timezone not recorded; using America\/Detroit/,'Routine fallback warning must be absent throughout Operator Nudges');
 assert.match(nudgeCss,/\.nudge-not-applicable>summary/,'Not Applicable must be expandable');
+
+assert.match(js,/\['PRACTICE_PROGRESS_PERCENT','INACTIVITY'\]\.includes\(r\.trigger_primitive\)/,'Timing selector must support progress and inactivity');
+
+assert.match(js,/set_activation_enabled/,'Activation control uses separate backend action');
+assert.match(js,/nudge-activation-save/,'Activation control has its own save handler');
+assert.match(js,/activation_setting/,'Activation state is read from backend preview');
+
+assert.match(js,/set_certification_enabled/,'Certification has an independent audited API action');
+assert.match(js,/certification_setting/,'Certification state comes from backend preview');
+assert.match(js,/nudge-certification-save/,'Certification has an independent Operator save control');
