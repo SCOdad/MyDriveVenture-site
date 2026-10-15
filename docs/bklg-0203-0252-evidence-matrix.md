@@ -1,0 +1,40 @@
+# BKLG-0203 + BKLG-0252 — evidence matrix and deployment gates
+
+**As of October 15, 2026.** Source-driven review. This file intentionally excludes customer data, provider credentials and SQL jobs' command bodies. **No policy is approved for publication.**
+
+| Subject | Source / live finding | Drafting consequence | Confidence / remaining test |
+| --- | --- | --- | --- |
+| Operating entity | DD-COM-001 accepted; operator SCOCRAFT LLC, consumer brand Drive Venture. Existing Terms/Privacy mainline source already uses LLC. | Preserve exact identity on policies, checkout, receipt and support contact. | High for governance/source; live website not independently fetched. |
+| Commercial offer | BKLG-0199 and 0207; FREE=5 accepted records (1 driver), paid license $24.99 one-time (3 active-driver seats), extra seat $9.99 per seat, no subscriptions, eligible Alpha grandfathered at $0. | Show actual offer and free exhaust behavior; no renewal or recurring cancellation disclosure. | High for approved policy; not yet deployed as checkout. |
+| Family rights | DD-PROD-001 and BKLG-0250; Family owns commercial rights, License Holder administers; ordinary grown-up access is scoped. | Do not say “every guardian owns/purchases the license”; preserve privacy/authorization. | High policy, security/runtime acceptance belongs to respective backlog. |
+| Refunds | Supabase BKLG-0199 still records non-refund except law/error; Sept. 27 owner conversation **accepted** request in 30 days, ≤20 cumulative logged hours, counting deleted drives. | Discrepancy needs owner-approved canonical reconciliation; no public policy or checkout fulfillment until durable nonresettable hours supported. | High as conflict; add-on/refund counting window not yet specified. |
+| Payment state | Live PROD `public` schema inspection shows no named purchase/checkout/payment table and no separate purchase-policy acceptance table on 2026-10-15. BKLG-0205 handoff says merchant active, no live customer payment. | Provide versioned affirmative assent contract to BKLG-0208, not a pretend implementation. Payment card entry will be provider-hosted. | High for inspected PROD schema; private provider/dashboard not independently fetched. |
+| Helcim transaction size | BKLG-0208 handoff: provisional $9.99–$29.99, $24.99 base + $9.99 add-on exceeds max before tax if combined. | No assumption of mixed-cart purchase; separate transactions or expanded ceiling under BKLG-0208. | High for documented account boundary, not re-verified at provider dashboard. |
+| Join and SMS consent | Accepted ADR-065 / DD-SMS-003 and `join/index.html` grown-up-first design; `sms_consent_events` stores version/source/time. Existing `sms-consent/index.html` falsely claimed current Join has SMS checkboxes. | Branch draft fixes exhibit without changing live Join, auth or SMS endpoints. STOP/HELP and person-specific consent remain. | High for source and schema; live SMS carrier canary not rerun. |
+| Existing Terms | Mainline `terms/index.html` still says families use Google Forms/Sheets, and covers pilot service but not the paid one-time offer. | Rewrite family/access + purchase/beta wording, not only identity. | High for repository source; deploy not independently verified. |
+| Existing Privacy | Mainline `privacy/index.html` lists legacy Forms/Apps Script, GitHub Pages, Supabase, Network Solutions; includes public analytics/Meta disclosure, minors, SMS, retention periods. | Remove unnecessary infrastructure implementation names; keep data purposes/sharing and meaningful advertising measurement. | High for repository source; provider naming legal/contract review pending. |
+| Drivers and vehicles | Live operational model includes drivers, vehicles, driving records, progress, optional source photos, SMS. | Explain vehicle fields distinguish practice cars; no continuous trip GPS claim, preserve ZIP-derived contextual computations. | High for architectural/source evidence; runtime drift possible. |
+| Public analytics | Approved frontend GA4 unit test enumerates specific public routes; Meta Pixel approved PageView-only on selected public pages per BKLG-0205. | Do not obscure advertising measurement; explicitly distinguish authenticated app and purchase pages. | High source/contract; live provider behavior not tested. |
+| Retention | Current public Privacy promises inactive record deletion/deidentification within 12 months, SMS content normally ≤12 months, some audits ≤5 years. PROD cron inventory **did not show** a general inactive-family or SMS-content expiry job; backend `docs/family-privacy-operations.md` documents manual operator-driven export/deletion, with separate Auth/Storage cleanup. | Cannot certify current public intervals are automatically honored. Owner must confirm manual enforcement and provider retention before wording changes. | High that no named matching PROD cron job appeared; cannot rule out other external/scheduled mechanisms. |
+| Privacy requests | `feedback/index.html` category options BUG/VISUAL/TYPO/CONFUSING/IDEA/PRAISE/OTHER; email optional unless requester ticks follow-up; signed-in account identity supported. Backend `family_privacy_requests` and manual operator process exist. | Recommend Feedback as first stop but retain email fallback; verify request authority and provide a reliable route for privacy requests. | High for source/PROD schema; end-to-end request handling not executed. |
+| Published deployment | Public `mydriveventure.com` fetch unavailable through research/browser endpoint and network DNS from this environment. GitHub main source not necessarily equals Cloudflare deployed runtime. | **Do not claim production acceptance.** Must have live browser/readback once publication authorized. | Blocked external check. |
+| Round 3 provenance | Previous BKLG-0252 Round 3 file was a chat-generated `BKLG-0252-Proposed-Policies-Round-3.md`, but the actual bytes are not available. Recovered owner correction instructions, not exact final paragraphs. | Owner can compare wording with that draft if accessible; new draft clearly marked reconstruction. | High on decisions, low on original exact text. |
+| Professional review | BKLG-0237 deferred to post-Beta scale; BKLG-0203 explicitly founder/business-owner legal preparation with no outside counsel prerequisite. | Keep owner's policy approval and limitations documented; do not claim legal certification. | High canonical backlog. |
+
+## Existing coverage and deliberate exclusions
+
+- **Bundled**: source review and narrow correction of SMS consent evidence, updated family-friendly policy drafts, provider-disclosure inventory, BKLG-0208 handoff, static regression.
+- **Not bundled**: BKLG-0208 payment architecture/transaction schema, BKLG-0206 launch canary, BKLG-0237 qualified legal opinion, BKLG-0213 finished LLC identity rollout, bulk service-provider account changes, automated privacy-request product or standalone Feedback schema redesign.
+- The existing historical `Central Configuration` Backlog tab was **not** used as operational authority.
+
+## Acceptance boundaries
+
+**Current checkpoint** (draft PR): source-controlled reviews, unit/static verification, no policy publication and no live payments.
+
+**Future owner-gated checkpoint**: explicitly reconcile refund/retention/contact/service-life decisions, approve exact legal wording and request-handling instructions. Only after that should `terms/index.html` and `privacy/index.html` be changed and given actual publication revisions.
+
+**BKLG-0208 checkpoint**: implement and test versioned assent, authoritative tax/price, payment/receipt/correction, purchase idempotency, historical hours if refund policy requires it.
+
+**Publication checkpoint**: owner approves exact version; live Cloudflare runtime, route/links, mobile access, checkout-consent consistency and production canary are independently verified.
+
+No new backlog item or governance record should be written without a specific approval; note potential new work only as proposals.
