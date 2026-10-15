@@ -22,7 +22,7 @@ Show, in the checkout itself, without hiding essential terms exclusively in a di
 1. **What the Family is buying**, its included active-driver capacity or the quantity of added seats, and the intended Family identity/context.
 2. **Price in USD** (currently $24.99 license / $9.99 per added active-driver seat), whether tax is added, and **the total payable amount** at confirmation.
 3. **One-time, non-recurring charge**; no subscription, renewal, or recurring-cancellation requirement.
-4. **Refund and correction policy**, with a working link to the full approved policy. Do not use the proposed 30-day/20-hour promise until the governing discrepancy and durable deleted-drive accounting are resolved.
+4. **Refund and correction policy**, with a working link to the full approved policy. Use the owner-approved seven-day/20-hour promise only once stale governance is reconciled and durable deleted-drive accounting and refund operations are implemented; apply it to individual $24.99 and $9.99 purchases.
 5. **Material beta limits**: evolving web service, possible disruption, informational—not official—licensing advice, and actual supported licensing-rule coverage; availability of existing exports/history as applicable.
 6. **Legal seller**: SCOCRAFT LLC operating Drive Venture; functioning customer support route.
 7. Working **Terms and Privacy** links, their applicable revision/effective identifiers, and accessible plain-language acceptance copy.
@@ -61,9 +61,9 @@ Prior to charging:
 
 ## Decisions required before final wording
 
-1. **Refund reconciliation:** September 27 owner-approved 30-day and ≤20 cumulative logged hours (including deleted records) vs BKLG-0199's older default no-refund text. Define historical accounting and add-on treatment.
+1. **Refund reconciliation:** October 15 owner-approved refund revision: requests within seven days of each payment, if cumulative combined Family Drive Venture logged practice is at most 20 hours (including later-deleted drives), applies equally to $24.99 Family License and each $9.99 additional active-driver seat. Reconcile stale BKLG-0199 no-refund text, define immutable measurement and seat-capacity consequences of refunds.
 2. **License/service lifecycle:** confirm paid Family entitlement description and remedy if service changes/discontinues.
-3. **Feedback support:** choose a reliable request-routing/identity-verification approach for privacy and billing questions; the current form lacks a dedicated privacy category. Preserve a working alternative contact method.
+3. **Feedback support:** implement dedicated Privacy and Billing categories across the form, operator UI, SQL check and insertion validation; require a safe way to receive requests and verify authority. Owner directs all new policy contact links to Feedback, not personal mailto links.
 4. **Retention:** verify actual operator processes before reaffirming or replacing 12-month inactive/SMS and five-year audit promises.
 5. **Final text/version:** owner approves exact Terms, Privacy, refund, beta, contact and purchase-consent statements; acceptance implementation is checked against that version.
 6. **Tax check:** owner confirms initial-state transaction-tax obligations against the actual offer and markets before launch.
@@ -79,7 +79,7 @@ Prior to charging:
 - Failure, duplicate webhook, delayed/out-of-order delivery, replay, wrong-Family attack, and incorrect refund/restore do not double grant entitlement.
 - Amount and tax displayed match charged/recorded amounts, respecting Helcim transaction limits.
 - No family/driver private information is sent to website advertising measurement from purchase pages.
-- Refund eligibility cannot be made true by deleting a drive if the 20-hour policy is approved in the governing record.
+- Refund eligibility must be computed with cumulative Family usage including deleted drives, and the seven-day window starts at the applicable individual purchase time; deleting a drive must never restore eligibility.
 - Consent and policy links work on mobile, desktop, and with assistive technology; failed purchase still leaves the user's preexisting history available.
 - Production acceptance and rollback are performed under BKLG-0206, not here.
 
