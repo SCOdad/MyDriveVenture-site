@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Driving Analytics | Drive Venture</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/join.css">
+<script src="/assets/js/environment-config.js"></script>
+<style>
+.analytics-shell{max-width:1220px;margin:2rem auto;padding:0 1rem}.analytics-panel{margin:1.5rem 0;padding:1rem;border:1px solid #aaa;border-radius:12px;background:#fff;color:#222;overflow-x:auto}
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}.analytics-grid .analytics-panel{margin:0}
+.heat-table{border-collapse:separate;border-spacing:3px;font-size:.75rem;width:100%}.heat-table th{font-weight:600;text-align:center;min-width:26px}.heat-table td{height:25px;min-width:25px;text-align:center;border-radius:3px}
+.analytics-panel table.data-table{border-collapse:collapse;width:100%;font-size:.9rem}.data-table td,.data-table th{border-bottom:1px solid #ddd;padding:.45rem;text-align:left}
+.analytics-panel .meta{color:#555}.analytics-shell a{color:inherit}.analytics-shell .heat-label{font-size:.8rem;text-align:left;white-space:nowrap}
+@media(max-width:700px){.heat-table td{min-width:18px}.analytics-panel{padding:.6rem}}
+</style></head><body><header class="site-header"><div class="nav"><a class="brand" href="/operator/"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a></div></header>
+<main class="analytics-shell"><p><a href="/operator/">← Operator Home</a></p><h1>Driving Patterns &amp; Engagement</h1><p>Operator-only, aggregated activity. Darker cells represent more completed drives. Small cohorts should be interpreted cautiously.</p>
+<p id="analytics-status" role="status">Checking operator access…</p><div id="analytics-content" hidden>
+<section class="analytics-panel"><h2>Activity overview</h2><p id="sample"></p><p id="definitions" class="meta"></p></section>
+<section class="analytics-panel"><h2>Calendar: week × weekday</h2><div id="calendar"></div></section>
+<div class="analytics-grid"><section class="analytics-panel"><h2>Weekday × hour</h2><div id="week-hour"></div></section><section class="analytics-panel"><h2>Month × hour</h2><div id="month-hour"></div></section></div>
+<div class="analytics-grid"><section class="analytics-panel"><h2>Driver age at drive</h2><div id="ages"></div></section><section class="analytics-panel"><h2>Prior logged experience</h2><div id="experience"></div></section></div>
+<section class="analytics-panel"><h2>Activation: first → second drive</h2><p id="second"></p><p class="meta">A second drive within 30 days of the first recorded drive. This measure reflects recorded activity, not necessarily all real driving.</p></section>
+<section class="analytics-panel"><h2>Family retention by registration cohort</h2><p class="meta">Cells show families with a completed drive during each week after registration. Week 0 starts on signup day; recent weeks are incomplete.</p><div id="cohorts"></div></section></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/log/config.js"></script><script src="/operator/config.js"></script><script src="/operator/analytics/analytics.js"></script></body></html>
