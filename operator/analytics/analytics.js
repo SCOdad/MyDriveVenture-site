@@ -4,13 +4,14 @@ let lastData=null;
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('en-US');
 const cell=(value,max,denominator=1)=>{const rate=document.getElementById('intensity').value==='rate',adjusted=rate?value/Math.max(1,denominator):value;const opacity=max?Math.max(.06,Math.min(.92,adjusted/max*.92)):.06;return '<td title="'+fmt(value)+' drives" style="background:rgba(15,25,35,'+opacity+');color:'+(opacity>.5?'white':'#222')+'">'+(value||'')+'</td>'};
-const table=(labels,cols,rows)=>{const denominator=lastData?.sample?.drivers||1;const rate=document.getElementById('intensity').value==='rate';const max=Math.max(0,...rows.flat().map(v=>rate?Number(v)/denominator:Number(v)));return '<table class="heat-table"><thead><tr><th></th>'+cols.map(c=>'<th scope="col">'+h(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map((row,i)=>'<tr><th class="heat-label" scope="row">'+h(labels[i])+'</th>'+row.map(x=>cell(x,max,denominator)).join('')+'</tr>').join('')+'</tbody></table>'};
+const table=(labels,cols,rows,denominators=[])=>{const rate=document.getElementById('intensity').value==='rate';const max=Math.max(0,...rows.flatMap((row,i)=>row.map(v=>rate?Number(v)/Math.max(1,denominators[i]||0):Number(v))));return '<table class="heat-table"><thead><tr><th></th>'+cols.map(c=>'<th scope="col">'+h(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map((row,i)=>'<tr><th class="heat-label" scope="row">'+h(labels[i])+'</th>'+row.map(x=>cell(x,max,denominators[i]||1)).join('')+'</tr>').join('')+'</tbody></table>'};
+
 const weekday=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function calendar(records){
  const dates=Object.keys(records).sort();if(!dates.length)return '<p>No completed drives recorded.</p>';
  const from=new Date(dates[0]+'T12:00:00Z'),to=new Date(dates[dates.length-1]+'T12:00:00Z'),start=new Date(from);start.setUTCDate(start.getUTCDate()-(start.getUTCDay()+6)%7);
  const labels=[],rows=[];for(let d=new Date(start);d<=to;d.setUTCDate(d.getUTCDate()+7)){const row=[],stamp=d.toISOString().slice(0,10);labels.push(stamp);for(let i=0;i<7;i++){const day=new Date(d);day.setUTCDate(day.getUTCDate()+i);row.push(records[day.toISOString().slice(0,10)]||0)}rows.push(row)}
- return table(labels,weekday,rows)
+ return table(labels,weekday,rows,labels.map(label=>lastData?.week_drivers?.[label]||0))
 }
 function summaries(rows){if(!rows?.length)return '<p>Not enough data.</p>';return '<table class="data-table"><thead><tr><th>Band</th><th>Drives</th><th>Drivers</th><th>Drives / observed driver</th><th>Mean duration</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+h(r.label)+'</td><td>'+fmt(r.drives)+'</td><td>'+fmt(r.drivers)+'</td><td>'+Number(r.average_minutes).toFixed(1)+' min</td></tr>').join('')+'</tbody></table>'}
 function cohorts(rows){if(!rows.length)return '<p>No families.</p>';const max=Math.max(1,...rows.flatMap(r=>r.weeks.map(w=>w?.active||0)));return '<table class="heat-table"><thead><tr><th>Cohort</th><th>Families</th>'+Array.from({length:12},(_,i)=>'<th>W'+i+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr><th class="heat-label">'+h(r.month)+'</th><th>'+fmt(r.families)+'</th>'+r.weeks.map(w=>{const v=w?.active||0,eligible=w?.eligible||0,pct=eligible?Math.round(v/eligible*100):0,opacity=eligible?v/max*.9:0;return '<td title="'+v+' of '+eligible+' eligible families" style="background:rgba(15,25,35,'+opacity+');color:'+(opacity>.5?'white':'#222')+'">'+(eligible?pct+'%':'—')+'</td>'}).join('')+'</tr>').join('')+'</tbody></table>'}
@@ -18,8 +19,8 @@ function details(rows,cols){return '<table class="data-table"><thead><tr>'+cols.
 function render(d){lastData=d;document.getElementById('sample').textContent=fmt(d.sample.drives)+' completed drives · '+fmt(d.sample.drivers)+' drivers with drives · '+fmt(d.sample.families)+' registered families';
 document.getElementById('definitions').textContent=d.definitions.hour+' · Experience = '+d.definitions.experience+'.';
 document.getElementById('calendar').innerHTML=calendar(d.calendar);
-document.getElementById('week-hour').innerHTML=table(weekday,Array.from({length:24},(_,i)=>i),d.hour_week);
-document.getElementById('month-hour').innerHTML=table(months,Array.from({length:24},(_,i)=>i),d.month_hour);
+document.getElementById('week-hour').innerHTML=table(weekday,Array.from({length:24},(_,i)=>i),d.hour_week,d.weekday_drivers);
+document.getElementById('month-hour').innerHTML=table(months,Array.from({length:24},(_,i)=>i),d.month_hour,d.month_drivers);
 document.getElementById('ages').innerHTML=summaries(d.by_age);document.getElementById('experience').innerHTML=summaries(d.by_experience);
 document.getElementById('night').innerHTML=details(d.experience_day_night,[['label','Experience'],['dayMinutes','Day minutes'],['nightMinutes','Night minutes']]);document.getElementById('inactivity').innerHTML=details(d.inactivity,[['label','Experience'],['drivers','Drivers'],['idle7','Idle 7+ days'],['idle30','Idle 30+ days']]);
 const p=d.first_second;document.getElementById('second').textContent=fmt(p.secondWithin30)+' of '+fmt(p.eligible30)+' drivers with at least 30 days of observation ('+(p.eligible30?Math.round(100*p.secondWithin30/p.eligible30):0)+'%) returned for a second drive within 30 days.';
