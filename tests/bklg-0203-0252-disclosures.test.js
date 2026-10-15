@@ -27,14 +27,14 @@ test('SMS evidence page does not misrepresent the current Join form as SMS conse
 });
 
 test('source-controlled review package is explicitly nonpublic and tracks open decisions', () => {
-  const draft = read('docs/bklg-0203-0252-proposed-policies.md');
-  assert.match(draft, /NOT APPROVED \/ NOT PUBLISHED/);
-  assert.match(draft, /NOT PUBLISHED/);
-  assert.match(draft, /Refund conflict/);
-  assert.match(draft, /Retention evidence/);
+  const draft = read('docs/bklg-0203-0252-owner-wording-review.md');
+  assert.match(draft, /Unapproved working copy/);
+  assert.match(draft, /seven days/);
+  assert.match(draft, /Refunds and billing questions/);
+  assert.match(draft, /Retention/);
   assert.match(draft, /SCOCRAFT LLC/);
   assert.match(draft, /20 hours/);
-  assert.match(draft, /Feedback form/);
+  assert.match(draft, /Feedback/);
 });
 
 test('BKLG-0208 handoff preserves one-time pricing, consent provenance, and transaction safety', () => {
@@ -47,4 +47,14 @@ test('BKLG-0208 handoff preserves one-time pricing, consent provenance, and tran
   assert.match(contract, /HMAC/);
   assert.match(contract, /idempotent/);
   assert.match(contract, /\$34\.98/);
+});
+
+test('Privacy and Billing feedback choices exist in public and operator forms', () => {
+  const publicPage = read('feedback/index.html');
+  const operator = read('operator/feedback/index.html');
+  for (const category of ['PRIVACY', 'BILLING']) {
+    assert.match(publicPage, new RegExp('<option value="' + category + '">'));
+    assert.match(operator, new RegExp('<option>' + category + '</option>'));
+  }
+  assert.match(publicPage, /select <strong>Keep me updated<\/strong>/);
 });
