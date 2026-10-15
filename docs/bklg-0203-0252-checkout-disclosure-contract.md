@@ -79,7 +79,7 @@ Prior to charging:
 - Failure, duplicate webhook, delayed/out-of-order delivery, replay, wrong-Family attack, and incorrect refund/restore do not double grant entitlement.
 - Amount and tax displayed match charged/recorded amounts, respecting Helcim transaction limits.
 - No family/driver private information is sent to website advertising measurement from purchase pages.
-- Refund eligibility must be computed with cumulative Family usage including deleted drives, and the seven-day window starts at the applicable individual purchase time; deleting a drive must never restore eligibility.
+- Refund eligibility must use cumulative Family hours for the base license and the specific seat-assigned driver's cumulative hours for an extra seat, including deleted drives in either calculation. Seven days starts at each applicable purchase; deleting/reassigning a drive must never restore eligibility.
 - Consent and policy links work on mobile, desktop, and with assistive technology; failed purchase still leaves the user's preexisting history available.
 - Production acceptance and rollback are performed under BKLG-0206, not here.
 
