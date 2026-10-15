@@ -17,3 +17,12 @@ assert.match(js,/metric==='logging_delay'/,'logging delay tab should render scat
 assert.match(js,/delay-reference/,'scatter should render a 1:1 reference line');
 assert.match(js,/Timestamp anomalies/,'scatter should expose timestamp anomalies rather than silently scaling around them');
 console.log('operator analytics UI regression checks passed');
+
+const patternsPage=fs.readFileSync(new URL('../operator/analytics/index.html',import.meta.url),'utf8');
+const patternsClient=fs.readFileSync(new URL('../operator/analytics/analytics.js',import.meta.url),'utf8');
+const messagingClient=fs.readFileSync(new URL('../operator/messaging.js',import.meta.url),'utf8');
+assert.match(html,/href="\/operator\/families\/"/,'Operator Home must link to Families roster');
+assert.match(html,/href="\/operator\/analytics\/"/,'Operator Home must link to driving analytics');
+assert.doesNotMatch(messagingClient,/Certification email canary|installCanary|drive-certification-canary/,'deprecated certification canary card must not be injected on Home');
+for(const id of ['calendar','week-hour','month-hour','ages','experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
+assert.match(patternsClient,/action:'driving_patterns'/,'analytics must call operator-scoped aggregate action');
