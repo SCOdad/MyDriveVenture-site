@@ -62,7 +62,7 @@ function renderAgeExperience(payload){
  const max=Math.max(0,...values);
  const display=(v,cell)=>cell.drives===0?'—':metric==='duration'?v.toFixed(1):metric==='rate'?v.toFixed(2):fmt(v);
  const totals=payload.cells.flat().reduce((n,cell)=>n+cell.drives,0);
- target.innerHTML='<table class="heat-table"><thead><tr><th scope="col">Age</th>'+payload.experience_hours.map(label=>'<th scope="col">'+h(label)+'</th>').join('')+'</tr></thead><tbody>'+
+ target.innerHTML='<table class="heat-table"><thead><tr><th scope="col">Age ↓ / Prior experience (hours) →</th>'+payload.experience_hours.map(label=>'<th scope="col">'+h(label)+'</th>').join('')+'</tr></thead><tbody>'+
  payload.cells.map((row,i)=>'<tr><th scope="row" class="heat-label">'+h(payload.ages[i])+'</th>'+row.map(cell=>{
    const v=value(cell),intensity=v===null||!max?0:Math.min(1,v/max),opacity=cell.drives?Math.max(.12,intensity*.9):0;
    const title=payload.ages[i]+' years · '+payload.experience_hours[row.indexOf(cell)]+' prior hours · '+cell.drives+' drives · '+cell.drivers+' drivers · '+(cell.mean_duration==null?'no duration':cell.mean_duration+' min mean');
