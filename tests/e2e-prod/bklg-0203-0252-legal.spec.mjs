@@ -27,9 +27,19 @@ test('production serves the October 16 Terms and Privacy versions', async ({ pag
 });
 
 test('production Feedback offers Privacy and Billing intake and no personal footer email', async ({ page }) => {
-  await page.goto(`/feedback/?policycheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
+  // GitHub Pages deploy may lag the source merge; poll the actual live footer before declaring failure.
+  test.setTimeout(150_000);
+  let footerPublished = false;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    await page.goto(`/feedback/?policycheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
+    if (await page.locator('footer a[href^="mailto:"]').count() === 0) {
+      footerPublished = true;
+      break;
+    }
+    await page.waitForTimeout(5000);
+  }
+  expect(footerPublished, 'updated no-email Feedback footer has not deployed').toBe(true);
   const options = page.locator('select[name="category"] option');
   await expect(options.filter({ hasText: 'Privacy question or data request' })).toHaveCount(1);
   await expect(options.filter({ hasText: 'Billing, purchase, or refund question' })).toHaveCount(1);
-  await expect(page.locator('footer a[href^="mailto:"]')).toHaveCount(0);
 });
