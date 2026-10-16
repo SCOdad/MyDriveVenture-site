@@ -44,3 +44,7 @@ assert.match(patternsClient,/calendarMode==='monthly'/,'monthly calendar must ag
 assert.match(patternsClient,/groups\.get\(month\)\.occurrences\[slot\]\+\+/,'weekday occurrence denominators must count calendar days');
 assert.match(patternsClient,/count\/Math\.max\(1,groups\.get\(key\)\.occurrences\[i\]\)/,'monthly shading must normalize by occurrence count');
 assert.match(patternsClient,/aria-pressed/,'toggle must update accessibility state');
+
+assert.match(patternsPage,/id="age-experience"/,'development matrix must be present');
+assert.match(patternsPage,/id="development-metric"/,'development metric selector must be present');
+assert.match(patternsClient,/function renderAgeExperience/,'development matrix must render');
