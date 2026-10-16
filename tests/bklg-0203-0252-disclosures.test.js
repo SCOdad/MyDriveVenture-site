@@ -16,6 +16,29 @@ test('public Terms and Privacy retain the canonical operator and mutual navigati
   assert.match(read('privacy/index.html'), /href="\/terms\/"/);
 });
 
+test('published policy pages show final dated content and correct distinct refund thresholds', () => {
+  const terms = read('terms/index.html');
+  const privacy = read('privacy/index.html');
+  assert.match(terms, /data-policy-version="terms-2026-10-16"/);
+  assert.match(privacy, /data-policy-version="privacy-2026-10-16"/);
+  for (const html of [terms, privacy]) {
+    assert.match(html, /Last updated:<\/strong> October 16, 2026/);
+    assert.match(html, /href="https:\/\/feedback\.mydriveventure\.com\//);
+    assert.doesNotMatch(html, /mailto:mike@mydriveventure\.com/);
+    assert.doesNotMatch(html, /Draft for pilot review|Open verification gates|proposed beta policy/);
+  }
+  assert.match(terms, /\$24\.99 USD one-time Family License/);
+  assert.match(terms, /\$9\.99 USD/);
+  assert.match(terms, /within seven days of that specific purchase/);
+  assert.match(terms, /Family has logged no more than 20 total hours/);
+  assert.match(terms, /specific driver receiving that additional seat/);
+  assert.match(terms, /other drivers&#39; hours do not count/);
+  assert.match(terms, /drives later deleted/);
+  assert.match(privacy, /Privacy<\/strong>/);
+  assert.match(privacy, /Billing<\/strong>/);
+  assert.match(privacy, /inactive pilot registration and driving records are deleted or de-identified within 12 months/);
+});
+
 test('SMS evidence page does not misrepresent the current Join form as SMS consent', () => {
   const html = read('sms-consent/index.html');
   assert.match(html, /Join.*does not collect SMS consent/);
