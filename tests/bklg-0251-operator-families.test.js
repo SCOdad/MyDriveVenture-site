@@ -35,7 +35,7 @@ test('family roster exposes people contacts and License Holder context',()=>{
 
 test('operator KPI cards link into family activation roster',()=>{
   const js=read('operator/dashboard.js');
-  assert.match(js,/Active families'.*\/operator\/families\//s);
+  assert.match(js,/Active families \(all\)'.*\/operator\/families\//s);
   assert.match(js,/Active drivers'.*stage=driver/s);
 });
 
@@ -88,9 +88,9 @@ test('redundant stalled-stage button row is removed and exact-stage dropdown rem
 
 test('families page cache-busts operator assets after DOM contract changes',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
-  assert.match(html,/operator\/config\.js\?v=20261009-0251-practice1/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
+  assert.match(html,/operator-dashboard\.css\?v=20261016-test-segments/);
+  assert.match(html,/operator\/config\.js\?v=20261016-test-segments/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261016-test-segments/);
   assert.doesNotMatch(html,/operator\/families\/operator\.js\?v=20261007-0251/);
 });
 
@@ -139,8 +139,8 @@ test('funnel trapezoids taper downward',()=>{
 
 test('families page uses fresh assets for this DOM and contract change',()=>{
   const html=read('operator/families/index.html');
-  assert.match(html,/operator-dashboard\.css\?v=20261009-0251-practice1/);
-  assert.match(html,/operator\/families\/operator\.js\?v=20261009-0251-practice1/);
+  assert.match(html,/operator-dashboard\.css\?v=20261016-test-segments/);
+  assert.match(html,/operator\/families\/operator\.js\?v=20261016-test-segments/);
 });
 
 
