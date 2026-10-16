@@ -30,3 +30,6 @@ assert.match(patternsClient,/action:'driving_patterns'/,'analytics must call ope
 assert.match(patternsPage,/id="analytics-login"/,'unauthenticated preview must offer a login prompt');
 assert.match(patternsPage,/href="\/log\/"[^>]*>Sign in with email/,'login action must use existing driver console sign-in flow');
 assert.match(patternsClient,/if\(!session\?\.access_token\)\{document\.getElementById\('analytics-login'\)\.hidden=false/,'missing session must display login prompt');
+
+assert.match(patternsPage,/\.analytics-panel h2,\.analytics-panel h3\{color:#1b2634/,'analytics headings need readable contrast on white cards');
+assert.match(patternsPage,/id="environment-note"/,'DEV preview must distinguish synthetic data from actual adoption');
