@@ -19,7 +19,7 @@ function calendar(records){
    // Restrict weekday-occurrence denominators to the selected observation window.
    const begin=period==='all'?from:new Date(end);
    if(period!=='all')begin.setUTCDate(begin.getUTCDate()+1-Number(period));
-   if(begin<from)begin.setTime(from.getTime());
+   // Bounded periods include zero-drive days before the first recorded drive.
    const groups=new Map();
    for(let day=new Date(begin);day<=end;day.setUTCDate(day.getUTCDate()+1)){
      const month=iso(day).slice(0,7),slot=weekdayIndex(day);
