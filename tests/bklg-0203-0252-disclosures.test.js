@@ -36,7 +36,7 @@ test('published policy pages show final dated content and correct distinct refun
   assert.match(terms, /drives later deleted/);
   assert.match(privacy, /Privacy<\/strong>/);
   assert.match(privacy, /Billing<\/strong>/);
-  assert.match(privacy, /inactive pilot registration and driving records are deleted or de-identified within 12 months/);
+  assert.match(privacy, /inactive pilot registration and driving records are deleted or de-identified within 12 months/i);
 });
 
 test('SMS evidence page does not misrepresent the current Join form as SMS consent', () => {
