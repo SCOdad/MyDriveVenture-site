@@ -1,0 +1,39 @@
+name: BKLG-0203/0252 Production Policy Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terms/index.html'
+      - 'privacy/index.html'
+      - 'feedback/index.html'
+      - 'tests/e2e-prod/bklg-0203-0252-legal.spec.mjs'
+      - '.github/workflows/bklg-0203-0252-policy-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-policies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Confirm live policy versions and Feedback categories
+        run: npx playwright test tests/e2e-prod/bklg-0203-0252-legal.spec.mjs --config=playwright.prod.config.mjs
+      - name: Upload policy evidence if verification fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: policy-production-smoke-evidence
+          path: |
+            playwright-report-prod/
+            test-results-prod/
+          if-no-files-found: ignore
+          retention-days: 14
