@@ -1,6 +1,7 @@
 (()=>{'use strict';
 const status=document.getElementById('analytics-status'),content=document.getElementById('analytics-content');
 let lastData=null,calendarMode='weekly';
+const environmentNote=document.getElementById('environment-note');if(environmentNote)environmentNote.hidden=window.DV_ENVIRONMENT_CONFIG?.name!=='dev';
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('en-US');
 const cell=(value,max,denominator=1)=>{const rate=document.getElementById('intensity').value==='rate',adjusted=rate?value/Math.max(1,denominator):value;const opacity=max?Math.max(.06,Math.min(.92,adjusted/max*.92)):.06;return '<td title="'+fmt(value)+' drives" style="background:rgba(15,25,35,'+opacity+');color:'+(opacity>.5?'white':'#222')+'">'+(value||'')+'</td>'};
