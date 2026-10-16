@@ -33,3 +33,7 @@ assert.match(patternsClient,/if\(!session\?\.access_token\)\{document\.getElemen
 
 assert.match(patternsPage,/\.analytics-panel h2,\.analytics-panel h3\{color:#1b2634/,'analytics headings need readable contrast on white cards');
 assert.match(patternsPage,/id="environment-note"/,'DEV preview must distinguish synthetic data from actual adoption');
+
+assert.doesNotMatch(patternsPage,/<div class="analytics-grid"><section class="analytics-panel"><h2>Weekday × hour/,'hourly heatmaps must not share a half-width grid');
+assert.match(patternsPage,/<section class="analytics-panel"><h2>Weekday × hour<\/h2>/,'weekday × hour chart should have a full-width panel');
+assert.match(patternsPage,/<section class="analytics-panel"><h2>Month × hour<\/h2>/,'month × hour chart should have a full-width panel');
