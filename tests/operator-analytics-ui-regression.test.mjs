@@ -65,6 +65,6 @@ const vm = await import('node:vm');
 assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analytics/analytics.js'}),'Analytics JavaScript must parse before authentication can start');
 
 const familyPage=fs.readFileSync(new URL('../operator/families/index.html',import.meta.url),'utf8');
-assert.match(familyPage,/id="include-test-drivers-roster"/,'Family roster test driver visibility control');
+assert.match(familyPage,/id="driver-classification"/,'Family roster test driver visibility control');
 assert.match(familiesScript,/filter.includeTestDrivers\|\|!d.is_test_driver/,'Family roster driver exclusion');
 assert.match(patternsPage,/analytics-sticky-controls/,'Analytics filter panel must be sticky');
