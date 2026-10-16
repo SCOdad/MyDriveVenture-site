@@ -85,4 +85,5 @@ test('Privacy and Billing feedback choices exist in public and operator forms', 
     assert.match(operator, new RegExp('<option>' + category + '</option>'));
   }
   assert.match(publicPage, /select <strong>Keep me updated<\/strong>/);
+  assert.doesNotMatch(publicPage, /mailto:mike@mydriveventure\.com/);
 });
