@@ -55,3 +55,7 @@ assert.match(patternsClient,/include_test_drivers:document\.getElementById\('inc
 assert.match(familiesScript,/data-test-driver-id/,'operator family roster must allow test-driver classification');
 assert.match(familiesScript,/action:'set_driver_test_status'/,'operator family roster must submit classification securely');
 assert.doesNotMatch(patternsClient,/'white':'#222'/,'low-intensity cells must retain contrast');
+
+assert.match(patternsPage,/id="lifecycle-buckets"/,'lifecycle horizon section must be visible');
+assert.match(patternsPage,/id="lifecycle-milestones"/,'observed milestones must be displayed');
+assert.match(patternsClient,/renderLifecycle\(d.driver_lifecycle\)/,'lifecycle response must render');
