@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#111820">
+<title>Family Checkout | Drive Venture</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/checkout.css">
+<script src="/assets/js/environment-config.js"></script>
+</head>
+<body data-bklg-0208-checkout="true">
+<a href="#main" class="skip-link">Skip to checkout</a><div class="racing-stripe" aria-hidden="true"></div>
+<header class="site-header"><div class="nav"><a href="/" class="brand" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
+<nav aria-label="Primary"><ul><li><a href="/family/">Your Family</a></li><li><a href="/log/">Driver Console</a></li><li><a href="/feedback/">Feedback</a></li></ul></nav></div></header>
+<main id="main" class="checkout-layout">
+ <p class="eyebrow">Family License</p>
+ <h1>Keep your family moving</h1>
+ <p class="checkout-lede">Drive Venture Family licenses are one-time purchases. No subscription. Your purchase belongs to the selected Family, not an individual driver or device.</p>
+ <div id="checkout-status" class="checkout-alert" role="status" aria-live="polite">Checking checkout availability…</div>
+ <section id="checkout-signin" class="checkout-panel" hidden>
+  <h2>Sign in to purchase</h2>
+  <p>Only the Family's License Holder can make purchases. Sign in to confirm your Family and available options.</p>
+  <a class="button" href="/log/?return=%2Fcheckout%2F">Sign in</a>
+ </section>
+ <div id="checkout-app" hidden>
+  <section class="checkout-panel" aria-labelledby="family-title">
+   <h2 id="family-title"><span class="checkout-step">1</span> Select your Family</h2>
+   <label for="checkout-family">Family account</label>
+   <select id="checkout-family" required><option value="">Choose the Family you administer</option></select>
+   <p id="checkout-family-summary" class="checkout-helper"></p>
+  </section>
+  <section class="checkout-panel" aria-labelledby="offer-title">
+   <h2 id="offer-title"><span class="checkout-step">2</span> Choose a product</h2>
+   <div id="checkout-offers" class="checkout-offers" role="radiogroup" aria-label="Available products"></div>
+   <p class="checkout-helper">A Family License includes capacity for three active drivers. Additional active-driver seats are sold individually in separate transactions. Existing eligible Alpha Families keep their grandfathered paid-equivalent license at no cost.</p>
+  </section>
+  <section class="checkout-panel" aria-labelledby="review-title">
+   <h2 id="review-title"><span class="checkout-step">3</span> Review your purchase</h2>
+   <label for="checkout-state">Purchaser billing state (United States)</label>
+   <input id="checkout-state" type="text" inputmode="text" autocomplete="address-level1" maxlength="2" pattern="[A-Za-z]{2}" placeholder="MI" aria-describedby="state-help" required>
+   <p id="state-help" class="checkout-helper">Enter your two-letter state abbreviation. Available states and applicable taxes are checked by the server.</p>
+   <button type="button" id="checkout-quote" class="button checkout-secondary" disabled>Calculate total</button>
+   <div class="checkout-breakdown" aria-label="Purchase quote">
+    <div><span>Product</span><strong id="checkout-product">—</strong></div>
+    <div><span>Subtotal</span><strong id="checkout-subtotal">—</strong></div>
+    <div><span>Applicable transaction tax</span><strong id="checkout-tax">—</strong></div>
+    <div class="checkout-total"><span>Total due today</span><strong id="checkout-total">—</strong></div>
+    <p id="checkout-quote-expires" class="checkout-helper"></p>
+   </div>
+  </section>
+  <section class="checkout-panel" aria-labelledby="consent-title">
+   <h2 id="consent-title"><span class="checkout-step">4</span> Consent and payment</h2>
+   <p><strong>Sold by SCOCRAFT LLC, operating Drive Venture.</strong> One-time charge, no automatic renewal. Our beta service and licensing progress tools are informational; official requirements still come from your state.</p>
+   <p>Review our <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a href="/privacy/" target="_blank" rel="noopener">Privacy Notice</a> and the refund provisions in the Terms before proceeding.</p>
+   <label class="checkout-consent" for="checkout-consent"><input type="checkbox" id="checkout-consent" disabled>
+   <span>I agree to the purchasing Terms shown for this Family, product, and quoted total. I understand this is a one-time purchase.</span></label>
+   <button id="checkout-pay" type="button" class="button" disabled>Continue to secure payment</button>
+   <p class="checkout-helper">Card details are entered in Helcim's secure checkout. Drive Venture never receives your full card number. A browser confirmation is not proof of entitlement until the server verifies your payment.</p>
+   <p class="checkout-helper">Billing or refund questions? <a href="https://feedback.mydriveventure.com">Contact Drive Venture through Feedback</a>.</p>
+  </section>
+ </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/log/config.js"></script>
+<script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
+<script src="/assets/js/checkout.js?v=20261016-bklg0208"></script>
+</body></html>
