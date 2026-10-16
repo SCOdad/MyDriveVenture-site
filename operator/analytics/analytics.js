@@ -27,7 +27,7 @@ const p=d.first_second;document.getElementById('second').textContent=fmt(p.secon
 document.getElementById('cohorts').innerHTML=cohorts(d.cohorts);content.hidden=false;status.textContent='Updated '+new Date(d.generated_at).toLocaleString();}
 async function run(){try{const cfg=window.DV_APP_CONFIG||{},endpoint=window.DV_OPERATOR_ANALYTICS_ENDPOINT;if(!window.supabase||!cfg.supabaseUrl||!cfg.publishableKey||!endpoint)throw Error('Operator configuration unavailable');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true}});
-const {data:{session}}=await client.auth.getSession();if(!session?.access_token)throw Error('Sign in with an operator account to view analytics.');
+const {data:{session}}=await client.auth.getSession();if(!session?.access_token){document.getElementById('analytics-login').hidden=false;status.textContent='Sign in required';return;}document.getElementById('analytics-login').hidden=true;
 const request=async token=>fetch(endpoint,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+token,apikey:cfg.publishableKey},body:JSON.stringify({action:'driving_patterns',period:document.getElementById('period').value})});
 let response=await request(session.access_token);if(response.status===401){const {data}=await client.auth.refreshSession();if(data.session?.access_token)response=await request(data.session.access_token)}
 const output=await response.json().catch(()=>({}));if(!response.ok||!output.ok)throw Error(output.error||'Analytics request failed ('+response.status+')');render(output);
