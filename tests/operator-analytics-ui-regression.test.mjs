@@ -80,3 +80,10 @@ assert.match(familiesScript,/guardian-directory/,'Guardians and account access m
 assert.match(familiesScript,/TEST DRIVER/,'Test driver label should not rely on color alone');
 assert.doesNotThrow(()=>new vm.Script(opHomeScript,{filename:'operator/dashboard.js'}));
 assert.doesNotThrow(()=>new vm.Script(familiesScript,{filename:'operator/families/operator.js'}));
+
+const classificationClient=fs.readFileSync(new URL('../operator/classification/operator.js',import.meta.url),'utf8');
+const lifecycleClient=fs.readFileSync(new URL('../operator/lifecycle/operator.js',import.meta.url),'utf8');
+const nudgeClient=fs.readFileSync(new URL('../operator/nudge/nudge.js',import.meta.url),'utf8');
+assert.match(classificationClient,/item.is_test_driver/,'classification labels');
+assert.match(lifecycleClient,/is_test_driver/,'lifecycle labels');
+assert.match(nudgeClient,/row.is_test_driver/,'nudge labels');
