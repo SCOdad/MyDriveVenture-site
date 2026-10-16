@@ -24,14 +24,14 @@ const messagingClient=fs.readFileSync(new URL('../operator/messaging.js',import.
 assert.match(html,/href="\/operator\/families\/"/,'Operator Home must link to Families roster');
 assert.match(html,/href="\/operator\/analytics\/"/,'Operator Home must link to driving analytics');
 assert.doesNotMatch(messagingClient,/Certification email canary|installCanary|drive-certification-canary/,'deprecated certification canary card must not be injected on Home');
-for(const id of ['calendar','week-hour','month-hour','ages','experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
+for(const id of ['calendar','week-hour','month-hour','age-experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
 assert.match(patternsClient,/action:'driving_patterns'/,'analytics must call operator-scoped aggregate action');
 
 assert.match(patternsPage,/id="analytics-login"/,'unauthenticated preview must offer a login prompt');
 assert.match(patternsPage,/href="\/log\/"[^>]*>Sign in with email/,'login action must use existing driver console sign-in flow');
 assert.match(patternsClient,/if\(!session\?\.access_token\)\{document\.getElementById\('analytics-login'\)\.hidden=false/,'missing session must display login prompt');
 
-assert.match(patternsPage,/\.analytics-panel h2,\.analytics-panel h3\{color:#1b2634/,'analytics headings need readable contrast on white cards');
+assert.match(patternsPage,/\.analytics-panel h2,\.analytics-panel h3\{color:var\(--dv-yellow\)/,'analytics headings must use approved DV color tokens');
 assert.match(patternsPage,/id="environment-note"/,'DEV preview must distinguish synthetic data from actual adoption');
 
 assert.doesNotMatch(patternsPage,/<div class="analytics-grid"><section class="analytics-panel"><h2>Weekday × hour/,'hourly heatmaps must not share a half-width grid');
@@ -44,3 +44,27 @@ assert.match(patternsClient,/calendarMode==='monthly'/,'monthly calendar must ag
 assert.match(patternsClient,/groups\.get\(month\)\.occurrences\[slot\]\+\+/,'weekday occurrence denominators must count calendar days');
 assert.match(patternsClient,/count\/Math\.max\(1,groups\.get\(key\)\.occurrences\[i\]\)/,'monthly shading must normalize by occurrence count');
 assert.match(patternsClient,/aria-pressed/,'toggle must update accessibility state');
+
+assert.match(patternsPage,/id="age-experience"/,'development matrix must be present');
+assert.match(patternsPage,/id="development-metric"/,'development metric selector must be present');
+assert.match(patternsClient,/function renderAgeExperience/,'development matrix must render');
+
+const familiesScript=fs.readFileSync(new URL('../operator/families/operator.js',import.meta.url),'utf8');
+assert.match(patternsPage,/id="include-test-drivers"/,'Operator Analytics must offer a test-driver inclusion toggle');
+assert.match(patternsClient,/include_test_drivers:document\.getElementById\('include-test-drivers'\)\.checked/,'toggle must affect backend query');
+assert.match(familiesScript,/data-test-driver-id/,'operator family roster must allow test-driver classification');
+assert.match(familiesScript,/action:'set_driver_test_status'/,'operator family roster must submit classification securely');
+assert.doesNotMatch(patternsClient,/'white':'#222'/,'low-intensity cells must retain contrast');
+
+assert.match(patternsPage,/id="milestone-engagement"/,'historical milestone matrix must be visible');
+assert.match(patternsPage,/id="milestone-metric"/,'historical milestone metric control must be available');
+assert.match(patternsClient,/renderMilestoneEngagement\(d.milestone_engagement\)/,'historical milestone response must render');
+
+// Parse the actual browser script, not merely regex-search its source.
+const vm = await import('node:vm');
+assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analytics/analytics.js'}),'Analytics JavaScript must parse before authentication can start');
+
+const familyPage=fs.readFileSync(new URL('../operator/families/index.html',import.meta.url),'utf8');
+assert.match(familyPage,/id="include-test-drivers-roster"/,'Family roster test driver visibility control');
+assert.match(familiesScript,/filter.includeTestDrivers\|\|!d.is_test_driver/,'Family roster driver exclusion');
+assert.match(patternsPage,/analytics-sticky-controls/,'Analytics filter panel must be sticky');
