@@ -66,5 +66,5 @@ assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analyti
 
 const familyPage=fs.readFileSync(new URL('../operator/families/index.html',import.meta.url),'utf8');
 assert.match(familyPage,/id="driver-classification"/,'Family roster test driver visibility control');
-assert.match(familiesScript,/filter.includeTestDrivers\|\|!d.is_test_driver/,'Family roster driver exclusion');
+assert.match(familiesScript,/driver_classification:filter.driverClassification/,'Family roster classification must be sent to the backend');
 assert.match(patternsPage,/analytics-sticky-controls/,'Analytics filter panel must be sticky');
