@@ -17,3 +17,30 @@ assert.match(js,/metric==='logging_delay'/,'logging delay tab should render scat
 assert.match(js,/delay-reference/,'scatter should render a 1:1 reference line');
 assert.match(js,/Timestamp anomalies/,'scatter should expose timestamp anomalies rather than silently scaling around them');
 console.log('operator analytics UI regression checks passed');
+
+const patternsPage=fs.readFileSync(new URL('../operator/analytics/index.html',import.meta.url),'utf8');
+const patternsClient=fs.readFileSync(new URL('../operator/analytics/analytics.js',import.meta.url),'utf8');
+const messagingClient=fs.readFileSync(new URL('../operator/messaging.js',import.meta.url),'utf8');
+assert.match(html,/href="\/operator\/families\/"/,'Operator Home must link to Families roster');
+assert.match(html,/href="\/operator\/analytics\/"/,'Operator Home must link to driving analytics');
+assert.doesNotMatch(messagingClient,/Certification email canary|installCanary|drive-certification-canary/,'deprecated certification canary card must not be injected on Home');
+for(const id of ['calendar','week-hour','month-hour','ages','experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
+assert.match(patternsClient,/action:'driving_patterns'/,'analytics must call operator-scoped aggregate action');
+
+assert.match(patternsPage,/id="analytics-login"/,'unauthenticated preview must offer a login prompt');
+assert.match(patternsPage,/href="\/log\/"[^>]*>Sign in with email/,'login action must use existing driver console sign-in flow');
+assert.match(patternsClient,/if\(!session\?\.access_token\)\{document\.getElementById\('analytics-login'\)\.hidden=false/,'missing session must display login prompt');
+
+assert.match(patternsPage,/\.analytics-panel h2,\.analytics-panel h3\{color:#1b2634/,'analytics headings need readable contrast on white cards');
+assert.match(patternsPage,/id="environment-note"/,'DEV preview must distinguish synthetic data from actual adoption');
+
+assert.doesNotMatch(patternsPage,/<div class="analytics-grid"><section class="analytics-panel"><h2>Weekday × hour/,'hourly heatmaps must not share a half-width grid');
+assert.match(patternsPage,/<section class="analytics-panel"><h2>Weekday × hour<\/h2>/,'weekday × hour chart should have a full-width panel');
+assert.match(patternsPage,/<section class="analytics-panel"><h2>Month × hour<\/h2>/,'month × hour chart should have a full-width panel');
+
+assert.match(patternsPage,/data-calendar-mode="weekly"/,'calendar weekly view must be selectable');
+assert.match(patternsPage,/data-calendar-mode="monthly"/,'calendar monthly view must be selectable');
+assert.match(patternsClient,/calendarMode==='monthly'/,'monthly calendar must aggregate records locally');
+assert.match(patternsClient,/groups\.get\(month\)\.occurrences\[slot\]\+\+/,'weekday occurrence denominators must count calendar days');
+assert.match(patternsClient,/count\/Math\.max\(1,groups\.get\(key\)\.occurrences\[i\]\)/,'monthly shading must normalize by occurrence count');
+assert.match(patternsClient,/aria-pressed/,'toggle must update accessibility state');
