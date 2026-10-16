@@ -48,3 +48,10 @@ assert.match(patternsClient,/aria-pressed/,'toggle must update accessibility sta
 assert.match(patternsPage,/id="age-experience"/,'development matrix must be present');
 assert.match(patternsPage,/id="development-metric"/,'development metric selector must be present');
 assert.match(patternsClient,/function renderAgeExperience/,'development matrix must render');
+
+const familiesScript=fs.readFileSync(new URL('../operator/families/operator.js',import.meta.url),'utf8');
+assert.match(patternsPage,/id="include-test-drivers"/,'Operator Analytics must offer a test-driver inclusion toggle');
+assert.match(patternsClient,/include_test_drivers:document\.getElementById\('include-test-drivers'\)\.checked/,'toggle must affect backend query');
+assert.match(familiesScript,/data-test-driver-id/,'operator family roster must allow test-driver classification');
+assert.match(familiesScript,/action:'set_driver_test_status'/,'operator family roster must submit classification securely');
+assert.doesNotMatch(patternsClient,/'white':'#222'/,'low-intensity cells must retain contrast');
