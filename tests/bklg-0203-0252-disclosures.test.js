@@ -33,7 +33,10 @@ test('source-controlled review package is explicitly nonpublic and tracks open d
   assert.match(draft, /Refunds and billing questions/);
   assert.match(draft, /Retention/);
   assert.match(draft, /SCOCRAFT LLC/);
-  assert.match(draft, /20 hours/);
+  assert.match(draft, /Family has logged no more than 20 total hours/);
+  assert.match(draft, /specific driver receiving that additional seat/);
+  assert.match(draft, /other drivers' hours do not count/);
+  assert.match(draft, /drives later deleted/);
   assert.match(draft, /Feedback/);
 });
 
@@ -47,6 +50,8 @@ test('BKLG-0208 handoff preserves one-time pricing, consent provenance, and tran
   assert.match(contract, /HMAC/);
   assert.match(contract, /idempotent/);
   assert.match(contract, /\$34\.98/);
+  assert.match(contract, /Family as a whole.*20 cumulative hours/);
+  assert.match(contract, /that specific driver.*20 cumulative hours/);
 });
 
 test('Privacy and Billing feedback choices exist in public and operator forms', () => {
