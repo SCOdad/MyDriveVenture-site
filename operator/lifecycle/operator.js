@@ -117,6 +117,7 @@
       row('Simple purge candidate', data.simple_purge_candidate === true ? 'Yes, subject to explicit confirmation' : 'No');
       row('Unsupported purge dependencies', (data.simple_purge_blockers || []).length);
       row('Driver', data.driver?.display_name || data.driver?.id || 'Unknown');
+      row('Driver classification',data.driver?.is_test_driver===true?'TEST DRIVER':'REAL DRIVER');
       row('Status', data.driver?.status || 'Unknown');
       row('Families', (data.family_memberships || []).length);
       for (const [index, family] of (data.family_memberships || []).entries()) {
