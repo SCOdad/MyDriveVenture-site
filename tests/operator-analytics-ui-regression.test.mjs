@@ -59,3 +59,7 @@ assert.doesNotMatch(patternsClient,/'white':'#222'/,'low-intensity cells must re
 assert.match(patternsPage,/id="lifecycle-buckets"/,'lifecycle horizon section must be visible');
 assert.match(patternsPage,/id="lifecycle-milestones"/,'observed milestones must be displayed');
 assert.match(patternsClient,/renderLifecycle\(d.driver_lifecycle\)/,'lifecycle response must render');
+
+// Parse the actual browser script, not merely regex-search its source.
+const vm = await import('node:vm');
+assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analytics/analytics.js'}),'Analytics JavaScript must parse before authentication can start');
