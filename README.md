@@ -25,7 +25,7 @@ For production verification, check the apex and `www` domains, HTTPS/canonical r
 
 Source-repository visibility does not determine whether the website is publicly accessible. The frontend repository is intended to be private after BKLG-0192's verified retirement steps; the other Drive Venture repositories are already private.
 
-**Cost neutrality is a BKLG-0192 acceptance condition.** Do not enable a paid GitHub or Cloudflare plan, paid runner, or chargeable automation to retire GitHub Pages. Private-repository GitHub Actions consume the account's free-minutes and storage allowances; verify usage and a strict **$0 Actions spending budget** before changing visibility. If a zero-cost path cannot be confirmed, leave visibility unchanged and record the blocker.
+**Cost neutrality is a BKLG-0192 acceptance condition.** The product owner assumes an existing **$10/month total GitHub spending baseline**. Retirement and frontend repository privatization must not raise overall monthly GitHub spending beyond that assumed amount or incur additional Cloudflare or other-service charges. Keep the existing **$10/month Actions budget** only if **Stop usage when budget limit is reached** is enabled; the Actions budget alone does not establish the total GitHub bill. Verify billed GitHub-wide usage, Actions allowance, and continuity of CI before changing visibility. If costs or availability would exceed these constraints, leave visibility unchanged and record the blocker. Do not enable paid upgrades or runners.
 
 ## Operational follow-up
 
