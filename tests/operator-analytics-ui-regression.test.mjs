@@ -37,3 +37,10 @@ assert.match(patternsPage,/id="environment-note"/,'DEV preview must distinguish 
 assert.doesNotMatch(patternsPage,/<div class="analytics-grid"><section class="analytics-panel"><h2>Weekday × hour/,'hourly heatmaps must not share a half-width grid');
 assert.match(patternsPage,/<section class="analytics-panel"><h2>Weekday × hour<\/h2>/,'weekday × hour chart should have a full-width panel');
 assert.match(patternsPage,/<section class="analytics-panel"><h2>Month × hour<\/h2>/,'month × hour chart should have a full-width panel');
+
+assert.match(patternsPage,/data-calendar-mode="weekly"/,'calendar weekly view must be selectable');
+assert.match(patternsPage,/data-calendar-mode="monthly"/,'calendar monthly view must be selectable');
+assert.match(patternsClient,/calendarMode==='monthly'/,'monthly calendar must aggregate records locally');
+assert.match(patternsClient,/groups\.get\(month\)\.occurrences\[slot\]\+\+/,'weekday occurrence denominators must count calendar days');
+assert.match(patternsClient,/count\/Math\.max\(1,groups\.get\(key\)\.occurrences\[i\]\)/,'monthly shading must normalize by occurrence count');
+assert.match(patternsClient,/aria-pressed/,'toggle must update accessibility state');
