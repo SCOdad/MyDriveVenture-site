@@ -3,12 +3,24 @@
 <title>Driving Analytics | Drive Venture</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/css/site.css"><link rel="stylesheet" href="/assets/css/join.css">
 <script src="/assets/js/environment-config.js"></script>
 <style>
-.analytics-shell{max-width:1220px;margin:2rem auto;padding:0 1rem}.analytics-panel{margin:1.5rem 0;padding:1rem;border:1px solid #aaa;border-radius:12px;background:#fff;color:#222;overflow-x:auto}
-.analytics-panel h2,.analytics-panel h3{color:#1b2634;font-family:inherit;font-weight:750;letter-spacing:.01em;line-height:1.25;text-shadow:none}.analytics-panel p,.analytics-panel label,.analytics-panel th{color:#303946}.analytics-shell>h1{color:#f8f4ed}.analytics-shell>p{color:#e7e2d8}
-.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}.analytics-grid .analytics-panel{margin:0}
-.heat-table{border-collapse:separate;border-spacing:3px;font-size:.75rem;width:100%}.heat-table th{font-weight:600;text-align:center;min-width:26px}.heat-table td{height:25px;min-width:25px;text-align:center;border-radius:3px}
-.analytics-panel table.data-table{border-collapse:collapse;width:100%;font-size:.9rem}.data-table td,.data-table th{border-bottom:1px solid #ddd;padding:.45rem;text-align:left}
-.calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}.calendar-mode{border:1px solid #586273;border-radius:6px;padding:.55rem .9rem;margin-left:.25rem;background:#fff;color:#182536;cursor:pointer}.calendar-mode.active{background:#182536;color:#fff}.calendar-mode:focus-visible{outline:3px solid #6b91cf;outline-offset:2px}.analytics-panel .meta{color:#555}.analytics-shell a{color:inherit}.analytics-shell .heat-label{font-size:.8rem;text-align:left;white-space:nowrap}
+.analytics-shell{max-width:1220px;margin:2rem auto;padding:0 1rem}
+.analytics-panel{margin:1.5rem 0;padding:1.2rem;border:1px solid rgba(174,184,194,.2);border-radius:12px;background:var(--panel);color:var(--warm-white);overflow-x:auto}
+.analytics-panel h2,.analytics-panel h3{color:var(--dv-yellow);font-family:var(--heading-font);font-size:clamp(1rem,2vw,1.3rem);line-height:1.4;text-shadow:none}
+.analytics-panel p,.analytics-panel label,.analytics-panel th{color:var(--warm-white)}
+.analytics-panel .meta{color:var(--silver)}
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.analytics-grid .analytics-panel{margin:0}
+.heat-table{border-collapse:separate;border-spacing:3px;font-size:.8rem;width:100%}
+.heat-table th{font-weight:600;text-align:center;min-width:26px}
+.heat-table td{height:27px;min-width:26px;text-align:center;border-radius:3px}
+.analytics-panel table.data-table{border-collapse:collapse;width:100%;font-size:.9rem}
+.data-table td,.data-table th{border-bottom:1px solid rgba(174,184,194,.3);padding:.45rem;text-align:left}
+.calendar-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.calendar-mode{border:1px solid var(--silver);border-radius:6px;padding:.55rem .9rem;margin-left:.25rem;background:var(--night-road);color:var(--warm-white);cursor:pointer}
+.calendar-mode.active{background:var(--dv-yellow);color:var(--true-black)}
+.calendar-mode:focus-visible{outline:3px solid var(--dv-yellow);outline-offset:2px}
+.analytics-panel select{background:var(--night-road);color:var(--warm-white);border:1px solid var(--silver);border-radius:4px;padding:.45rem}
+.analytics-shell .heat-label{font-size:.8rem;text-align:left;white-space:nowrap}
 @media(max-width:700px){.heat-table td{min-width:18px}.analytics-panel{padding:.6rem}}
 </style></head><body><header class="site-header"><div class="nav"><a class="brand" href="/operator/"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a></div></header>
 <main class="analytics-shell"><p><a href="/operator/">← Operator Home</a></p><h1>Driving Patterns &amp; Engagement</h1><p>Operator-only, aggregated activity. Darker cells represent more completed drives. Small cohorts should be interpreted cautiously.</p><p id="environment-note" class="meta" role="note" hidden>DEV preview: records may be synthetic or purpose-built test cases. Do not interpret these patterns as real-world driver behavior.</p>
@@ -16,7 +28,7 @@
 <section class="analytics-panel"><h2>Activity overview</h2><p id="sample"></p><p id="definitions" class="meta"></p></section>
 <section class="analytics-panel"><div class="calendar-heading"><h2 id="calendar-heading">Calendar: week × weekday</h2><div role="group" aria-label="Calendar grouping"><button type="button" class="calendar-mode active" data-calendar-mode="weekly" aria-pressed="true">Weekly</button><button type="button" class="calendar-mode" data-calendar-mode="monthly" aria-pressed="false">Monthly</button></div></div><p id="calendar-note" class="meta"></p><div id="calendar"></div></section>
 <section class="analytics-panel"><h2>Weekday × hour</h2><div id="week-hour"></div></section><section class="analytics-panel"><h2>Month × hour</h2><div id="month-hour"></div></section>
-<div class="analytics-grid"><section class="analytics-panel"><h2>Driver age at drive</h2><div id="ages"></div></section><section class="analytics-panel"><h2>Prior logged experience</h2><div id="experience"></div></section></div>
+<section class="analytics-panel"><div class="calendar-heading"><h2>Driver age × prior logged experience</h2><label for="development-metric">Measure <select id="development-metric"><option value="drives"># Drives</option><option value="drivers"># Drivers</option><option value="rate">Drives / driver</option><option value="duration">Mean duration</option></select></label></div><p class="meta">Rows are age at drive (18+ combined); columns represent five-hour bands of practice recorded before that drive. A cell includes only the drivers who recorded a drive in it.</p><div id="age-experience"></div><p id="age-experience-count" class="meta"></p></section>
 <div class="analytics-grid"><section class="analytics-panel"><h2>Experience × day/night minutes</h2><div id="night"></div></section><section class="analytics-panel"><h2>Inactivity by experience</h2><div id="inactivity"></div></section></div><section class="analytics-panel"><h2>Activation: first → second drive</h2><p id="second"></p><p class="meta">A second drive within 30 days of the first recorded drive. This measure reflects recorded activity, not necessarily all real driving.</p></section>
 <section class="analytics-panel"><h2>Family activity by registration cohort</h2><p class="meta">Cells show families with a completed drive during each week after registration. Week 0 starts on signup day; recent weeks are incomplete.</p><div id="cohorts"></div></section></div></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/log/config.js"></script><script src="/operator/config.js"></script><script src="/operator/analytics/analytics.js"></script></body></html>
