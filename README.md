@@ -23,9 +23,9 @@ For production verification, check the apex and `www` domains, HTTPS/canonical r
 
 ## Source privacy and cost controls
 
-Source-repository visibility does not determine whether the website is publicly accessible. The frontend repository is intended to be private after BKLG-0192's verified retirement steps; the other Drive Venture repositories are already private.
+Source-repository visibility does not determine whether the website is publicly accessible. The frontend repository remains **PUBLIC** by explicit owner decision on 2026-10-16, following BKLG-0192 hosting retirement and billing review; the backend and legacy repositories remain private. Frontend privatization is excluded from BKLG-0192 acceptance.
 
-**Cost neutrality is a BKLG-0192 acceptance condition.** The product owner assumes an existing **$10/month total GitHub spending baseline**. Retirement and frontend repository privatization must not raise overall monthly GitHub spending beyond that assumed amount or incur additional Cloudflare or other-service charges. Keep the existing **$10/month Actions budget** only if **Stop usage when budget limit is reached** is enabled; the Actions budget alone does not establish the total GitHub bill. Verify billed GitHub-wide usage, Actions allowance, and continuity of CI before changing visibility. If costs or availability would exceed these constraints, leave visibility unchanged and record the blocker. Do not enable paid upgrades or runners.
+The public frontend's cumulative 2026 GitHub Actions usage was 9,786 Linux minutes billed at $0 in the reviewed billing breakdown. Keeping it public preserves free public-repository CI and avoids competing with paid private-backend Actions usage. The owner-approved GitHub spending ceiling is **$10/month**, with an existing **$10/month Actions hard-stop budget**. No paid plan/runner upgrades or incremental Cloudflare/other-service charges are authorized. Any future change to frontend visibility requires a separate scope, cost-neutrality/CI analysis, and owner approval.
 
 ## Operational follow-up
 
