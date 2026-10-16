@@ -45,7 +45,7 @@ test('archived drivers are hidden by default and opt-in only',()=>{
   const js=read('operator/families/operator.js');
   assert.match(html,/id="include-archived-drivers" type="checkbox"/);
   assert.match(js,/includeArchived:false/);
-  assert.match(js,/filter\.includeArchived\?\(f\.archived_drivers\|\|\[\]\):\[\]/);
+  assert.match(js,/filter\.includeArchived\?\(f\.archived_drivers\|\|\[\]\)\.filter/);
   assert.match(js,/Archived<\/span>/);
   assert.match(js,/filter\.includeArchived\?\(f\.archived_drivers\|\|\[\]\)\.flatMap/);
 });
