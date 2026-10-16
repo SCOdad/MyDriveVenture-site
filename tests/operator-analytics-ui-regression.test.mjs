@@ -65,6 +65,25 @@ const vm = await import('node:vm');
 assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analytics/analytics.js'}),'Analytics JavaScript must parse before authentication can start');
 
 const familyPage=fs.readFileSync(new URL('../operator/families/index.html',import.meta.url),'utf8');
-assert.match(familyPage,/id="include-test-drivers-roster"/,'Family roster test driver visibility control');
-assert.match(familiesScript,/filter.includeTestDrivers\|\|!d.is_test_driver/,'Family roster driver exclusion');
+assert.match(familyPage,/id="driver-classification"/,'Family roster real/test/all selector');
+assert.match(familiesScript,/filter\.driverClassification/,'Family roster classification should be set');
 assert.match(patternsPage,/analytics-sticky-controls/,'Analytics filter panel must be sticky');
+
+const opHome=fs.readFileSync(new URL('../operator/index.html',import.meta.url),'utf8');
+const opHomeScript=fs.readFileSync(new URL('../operator/dashboard.js',import.meta.url),'utf8');
+assert.match(opHome,/id="operator-driver-classification"/,'Operator Home must select real/test/all');
+assert.match(opHomeScript,/driver_classification:driverClassification/,'Operator Home selection must reach backend');
+assert.match(familiesScript,/driver_classification:filter.driverClassification/,'Family funnel filter must reach backend');
+assert.match(patternsPage,/operator-site-footer/,'Analytics must use common footer');
+assert.match(familyPage,/operator-site-footer/,'Families must use common footer');
+assert.match(familiesScript,/guardian-directory/,'Guardians and account access must be collapsible');
+assert.match(familiesScript,/TEST DRIVER/,'Test driver label should not rely on color alone');
+assert.doesNotThrow(()=>new vm.Script(opHomeScript,{filename:'operator/dashboard.js'}));
+assert.doesNotThrow(()=>new vm.Script(familiesScript,{filename:'operator/families/operator.js'}));
+
+const classificationClient=fs.readFileSync(new URL('../operator/classification/operator.js',import.meta.url),'utf8');
+const lifecycleClient=fs.readFileSync(new URL('../operator/lifecycle/operator.js',import.meta.url),'utf8');
+const nudgeClient=fs.readFileSync(new URL('../operator/nudge/nudge.js',import.meta.url),'utf8');
+assert.match(classificationClient,/item.is_test_driver/,'classification labels');
+assert.match(lifecycleClient,/is_test_driver/,'lifecycle labels');
+assert.match(nudgeClient,/row.is_test_driver/,'nudge labels');

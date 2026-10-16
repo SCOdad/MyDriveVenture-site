@@ -111,3 +111,17 @@
 @media(max-width:1050px){.family-filters{grid-template-columns:repeat(3,minmax(0,1fr))}.family-search{grid-column:1/-1}.family-roster-card>summary{grid-template-columns:minmax(180px,1.4fr) repeat(3,minmax(85px,.7fr))}.family-roster-card>summary>span:nth-of-type(n+5){display:none}}
 @media(max-width:760px){.activation-layout{grid-template-columns:1fr}.activation-funnel-row{grid-template-columns:minmax(0,1fr) 52px}.activation-funnel-percent{font-size:.95rem}.family-filters{grid-template-columns:1fr 1fr}.family-people-grid{grid-template-columns:1fr}.family-roster-card>summary{grid-template-columns:minmax(0,1fr) auto auto}.family-roster-card>summary>span:nth-of-type(n+4){display:none}.activation-funnel-stage{grid-template-columns:1fr auto;clip-path:none;width:100%!important}.activation-funnel-stage small{grid-column:1/-1}.roster-heading{align-items:start;flex-direction:column}}
 @media(max-width:520px){.family-filters{grid-template-columns:1fr}.person-contact,.person-driver{grid-template-columns:1fr}.family-person-head{align-items:start;flex-direction:column}}
+
+/* Canonical operator-page navigation/footer and driver classification */
+.operator-site-footer{max-width:1250px;margin:3rem auto 1rem;padding:1.5rem clamp(1rem,3vw,2.5rem);border-top:1px solid rgba(174,184,194,.35);color:var(--silver,#aeb8c2)}
+.operator-site-footer .footer-wordmark{display:block;font-weight:800;font-size:1.3rem;color:var(--dv-yellow,#f4b820);margin-bottom:.75rem}
+.operator-site-footer nav{display:flex;gap:.85rem 1.2rem;flex-wrap:wrap;margin-bottom:1rem}
+.operator-site-footer a{color:var(--warm-white,#f7f3e8)}
+.operator-site-footer p{margin:.4rem 0;font-size:.84rem}
+.family-filters-sticky{position:sticky;top:0;z-index:25;background:var(--panel,#202b35);padding:.85rem;border:1px solid rgba(174,184,194,.24);border-radius:8px;box-shadow:0 8px 20px #0008}
+.person-driver.test-driver{border-left:4px solid var(--dv-yellow,#f4b820);padding-left:.75rem}
+.person-driver.real-driver{border-left:4px solid var(--highway-green,#2f7d4a);padding-left:.75rem}
+.guardian-directory{margin:1.2rem 0;padding:1rem;border:1px solid rgba(174,184,194,.35);border-radius:8px}
+.guardian-directory summary{cursor:pointer;color:var(--dv-yellow,#f4b820);font-weight:700}
+.guardian-directory .family-people-grid{margin-top:1rem}
+@media(max-width:700px){.family-filters-sticky{max-height:45vh;overflow-y:auto}}
