@@ -61,7 +61,7 @@ Prior to charging:
 
 ## Decisions required before final wording
 
-1. **Refund reconciliation:** October 15 owner-approved refund revision: requests within seven days of each payment, if cumulative combined Family Drive Venture logged practice is at most 20 hours (including later-deleted drives), applies equally to $24.99 Family License and each $9.99 additional active-driver seat. Reconcile stale BKLG-0199 no-refund text, define immutable measurement and seat-capacity consequences of refunds.
+1. **Refund reconciliation:** October 15–16 owner-approved refund revisions: requests within seven days of each specific purchase. A **$24.99 Family License** is eligible only while the **Family as a whole** has logged at most 20 cumulative hours; a **$9.99 additional-driver seat** is eligible only while **that specific driver** has logged at most 20 cumulative hours, regardless of other Family members' hours. Count later-deleted drives for both. Reconcile stale BKLG-0199 no-refund text, define immutable Family/driver-specific measurement, assignment at purchase, reassignment rules and capacity consequences of refunds.
 2. **License/service lifecycle:** confirm paid Family entitlement description and remedy if service changes/discontinues.
 3. **Feedback support:** implement dedicated Privacy and Billing categories across the form, operator UI, SQL check and insertion validation; require a safe way to receive requests and verify authority. Owner directs all new policy contact links to Feedback, not personal mailto links.
 4. **Retention:** verify actual operator processes before reaffirming or replacing 12-month inactive/SMS and five-year audit promises.
