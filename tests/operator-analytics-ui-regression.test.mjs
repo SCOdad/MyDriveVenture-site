@@ -24,7 +24,7 @@ const messagingClient=fs.readFileSync(new URL('../operator/messaging.js',import.
 assert.match(html,/href="\/operator\/families\/"/,'Operator Home must link to Families roster');
 assert.match(html,/href="\/operator\/analytics\/"/,'Operator Home must link to driving analytics');
 assert.doesNotMatch(messagingClient,/Certification email canary|installCanary|drive-certification-canary/,'deprecated certification canary card must not be injected on Home');
-for(const id of ['calendar','week-hour','month-hour','ages','experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
+for(const id of ['calendar','week-hour','month-hour','age-experience','night','inactivity','cohorts'])assert.match(patternsPage,new RegExp('id="'+id+'"'),'missing analytics panel '+id);
 assert.match(patternsClient,/action:'driving_patterns'/,'analytics must call operator-scoped aggregate action');
 
 assert.match(patternsPage,/id="analytics-login"/,'unauthenticated preview must offer a login prompt');
