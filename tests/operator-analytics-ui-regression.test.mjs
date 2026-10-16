@@ -56,10 +56,15 @@ assert.match(familiesScript,/data-test-driver-id/,'operator family roster must a
 assert.match(familiesScript,/action:'set_driver_test_status'/,'operator family roster must submit classification securely');
 assert.doesNotMatch(patternsClient,/'white':'#222'/,'low-intensity cells must retain contrast');
 
-assert.match(patternsPage,/id="lifecycle-buckets"/,'lifecycle horizon section must be visible');
-assert.match(patternsPage,/id="lifecycle-milestones"/,'observed milestones must be displayed');
-assert.match(patternsClient,/renderLifecycle\(d.driver_lifecycle\)/,'lifecycle response must render');
+assert.match(patternsPage,/id="milestone-engagement"/,'historical milestone matrix must be visible');
+assert.match(patternsPage,/id="milestone-metric"/,'historical milestone metric control must be available');
+assert.match(patternsClient,/renderMilestoneEngagement\(d.milestone_engagement\)/,'historical milestone response must render');
 
 // Parse the actual browser script, not merely regex-search its source.
 const vm = await import('node:vm');
 assert.doesNotThrow(()=>new vm.Script(patternsClient,{filename:'operator/analytics/analytics.js'}),'Analytics JavaScript must parse before authentication can start');
+
+const familyPage=fs.readFileSync(new URL('../operator/families/index.html',import.meta.url),'utf8');
+assert.match(familyPage,/id="include-test-drivers-roster"/,'Family roster test driver visibility control');
+assert.match(familiesScript,/filter.includeTestDrivers\|\|!d.is_test_driver/,'Family roster driver exclusion');
+assert.match(patternsPage,/analytics-sticky-controls/,'Analytics filter panel must be sticky');
