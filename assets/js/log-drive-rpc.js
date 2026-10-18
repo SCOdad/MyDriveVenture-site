@@ -147,6 +147,15 @@
     if(error||!data?.ok||!data?.drive)return{ok:false,error:'Drive edit was saved, but the authoritative drive could not be reread. Reopen the drive before trying again.'};
     const ids=sortedIds(data.lesson_ids||data.drive.lesson_ids||[]);
     data.drive.lesson_ids=ids;data.drive.lessons=data.lessons||data.drive.lessons||[];data.drive.lesson_id=ids[0]||null;
+    if((app.getModel?.()?.drivers||[]).some(x=>x.id===driverId&&String(x.home_state||'').toUpperCase()==='PA')){
+      try{
+        const {data:rows,error:weatherError}=await client.rpc('get_drive_weather_status_v1',{p_drive_id:driveId});
+        const weather=Array.isArray(rows)?rows[0]:null;
+        if(weatherError||!weather)return{ok:false,error:'Unable to verify saved weather designation'};
+        data.drive.reported_inclement=Number(weather.effective_minutes||0)>0;
+        data.drive.reported_inclement_user_selected=weather.user_selected===true;
+      }catch{return{ok:false,error:'Unable to verify saved weather designation'}}
+    }
     return{ok:true,drive:data.drive};
   }
   async function authoritativeDriveAfterSave(driverId,driveId,{attempts=4,delayMs=700}={}){
