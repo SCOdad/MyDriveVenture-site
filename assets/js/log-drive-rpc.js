@@ -11,6 +11,40 @@
   const field=id=>document.getElementById(id),clean=v=>v==null?'':String(v).trim(),time=v=>clean(v).slice(0,5),lessonIds=()=>window.DV_DRIVING_LOG?.getSelectedLessonIds?.()||[];
   // BKLG-0267 / ADR-070: state-neutral form behavior, PA-specific visibility only.
   const paDriver=()=>{const id=app.getDriverId?.();return (app.getModel?.()?.drivers||[]).some(d=>d.id===id&&String(d.home_state||'').toUpperCase()==='PA')};
+  let previewTimer=null,previewSequence=0;
+  const previewCache=new Map();
+  function previewPaWeather(){
+    const box=ensureInclementControl(),indicator=document.getElementById('drive-weather-observed');
+    if(!indicator||box.hidden)return;
+    clearTimeout(previewTimer);
+    const seq=++previewSequence,driverId=app.getDriverId?.(),
+      driveDate=field('drive-date')?.value,start=field('drive-start')?.value,end=field('drive-end')?.value;
+    if(!driverId||!driveDate||!start||!end){indicator.textContent='Observed weather: Enter date and start/end times to calculate';return}
+    const key=[driverId,driveDate,start,end].join('|');
+    const show=ctx=>{
+      if(seq!==previewSequence||app.getDriverId?.()!==driverId)return;
+      if(ctx?.status!=='CLASSIFIED'||!ctx.observation){
+        indicator.textContent='Observed weather: Not available yet (you may save without it)';
+        return;
+      }
+      const conditions=Array.isArray(ctx.observation.conditions)?ctx.observation.conditions:[];
+      indicator.textContent='Observed weather (read-only): '+(conditions.length?conditions.join(', ').toLowerCase().replaceAll('_',' '):'No recognized condition')+
+        (ctx.observation.source?' · '+String(ctx.observation.source):'');
+    };
+    if(previewCache.has(key)){show(previewCache.get(key));return}
+    indicator.textContent='Observed weather: Calculating for entered drive time…';
+    previewTimer=setTimeout(async()=>{
+      try{
+        const {data,error}=await client.functions.invoke('drive-ops',{body:{
+          action:'weather_context_preview',driver_id:driverId,drive_date:driveDate,start_time:start,end_time:end
+        }});
+        if(error||!data?.ok)throw new Error('Weather not available');
+        previewCache.set(key,data.weather_context);
+        if(previewCache.size>40)previewCache.delete(previewCache.keys().next().value);
+        show(data.weather_context);
+      }catch{show({status:'LOOKUP_PENDING'})}
+    },500);
+  }
   function ensureInclementControl(){
     let box=document.getElementById('drive-inclement-wrap');
     if(!box){
@@ -156,9 +190,9 @@
     }
     app.detailDrives=app.detailDrives||{};app.detailDrives[id]=data.drive;enterEdit(data.drive);setStatus('')});
   function captureEditField(target){if(!edit||!editFieldIds.has(target?.id))return;edit.draft=values();context()}
-  form.addEventListener('input',e=>{if(document.getElementById('drive-prepermit-decision'))clearPrePermitDecision();captureEditField(e.target)});form.addEventListener('change',e=>{if(document.getElementById('drive-prepermit-decision'))clearPrePermitDecision();captureEditField(e.target)});
-  window.addEventListener('dv:driver-changing',e=>{queueMicrotask(ensureInclementControl);const detail=e.detail||{};if(detail.driverId&&detail.previousDriverId===detail.driverId)return;clearPrePermitDecision();setSubmitting(false);resetEditForDriverChange()});
-  window.addEventListener('dv:driving-log-context',()=>{ensureInclementControl();if(edit){setFields(edit.draft);context()}offerPendingRecovery()});
+  form.addEventListener('input',e=>{if(['drive-date','drive-start','drive-end'].includes(e.target?.id))previewPaWeather();if(document.getElementById('drive-prepermit-decision'))clearPrePermitDecision();captureEditField(e.target)});form.addEventListener('change',e=>{if(['drive-date','drive-start','drive-end'].includes(e.target?.id))previewPaWeather();if(document.getElementById('drive-prepermit-decision'))clearPrePermitDecision();captureEditField(e.target)});
+  window.addEventListener('dv:driver-changing',e=>{queueMicrotask(previewPaWeather);const detail=e.detail||{};if(detail.driverId&&detail.previousDriverId===detail.driverId)return;clearPrePermitDecision();setSubmitting(false);resetEditForDriverChange()});
+  window.addEventListener('dv:driving-log-context',()=>{previewPaWeather();if(edit){setFields(edit.draft);context()}offerPendingRecovery()});
   async function recoverPendingMutation(){
     const pending=pendingForCurrentDriver();if(!pending)return setStatus('There is no unfinished save for this driver.');
     const driverId=pending.driver_id;saveLifecycleActive=true;setSubmitting(true);setRecoveryPending(true);setStatus('Checking the unfinished save…');
@@ -229,7 +263,7 @@
   ensureRecoveryButton();
   document.addEventListener('click',e=>{if(e.target.closest?.('#drive-save-recover')){e.preventDefault();recoverPendingMutation()}},true);
 
-  ensureInclementControl();
+  previewPaWeather();
   form.addEventListener('submit',async e=>{
     e.preventDefault();if(!form.reportValidity())return;const driverId=app.getDriverId(),generation=app.getRenderGeneration?.();if(!driverId)return setStatus('No active driver is selected.','error');
     if(pendingForCurrentDriver())return offerPendingRecovery();
