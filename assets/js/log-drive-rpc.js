@@ -34,7 +34,7 @@
         (ctx.observation.source?' · '+String(ctx.observation.source):'')+
         '. DV suggests inclement: '+(suggested?'Yes':'No')+' (observed conditions; duration may be incomplete).';
       const toggle=field('drive-reported-inclement');
-      if(toggle&&!edit&&toggle.dataset.dvUserChosen!=='true')toggle.checked=suggested;
+      if(toggle&&!edit&&toggle.dataset.dvUserChosen!=='true'){toggle.checked=suggested;toggle.dispatchEvent(new Event('change',{bubbles:false}));delete toggle.dataset.dvUserChosen;}
     };
     if(previewCache.has(key)){show(previewCache.get(key));return}
     indicator.textContent='Observed weather: Calculating for entered drive time…';
