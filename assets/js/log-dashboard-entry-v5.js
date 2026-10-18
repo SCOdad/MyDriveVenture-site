@@ -268,8 +268,8 @@
     selectDriver
   };
 
-  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20260824-6';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261017-bklg0263-pa1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
+  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261018-bklg0267-layout1';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261018-bklg0267-layout1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
 
   loginForm.addEventListener('submit',async e=>{e.preventDefault();status(loginStatus,'Sending sign-in link…');const email=loginEmail.value.trim();if(!email)return;const route=document.documentElement.dataset.dvRoute||'dv03',redirectPath={dv00:'/log/DV00/',dv01:'/log/DV01/',dv02:'/log/DV02/',dv03:'/log/'}[route]||'/log/';const{error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}${redirectPath}`,shouldCreateUser:false}});if(error){if(isUnregisteredOtpError(error))joinPrompt();else status(loginStatus,'We could not send a sign-in link right now. Please try again.','error')}else status(loginStatus,'Check your email for a secure sign-in link.','success')});
   signOut?.addEventListener('click',async()=>{accessReady=false;await client.auth.signOut();syncAuthUi(false);appMain.classList.add('app-hidden');loginCard.classList.remove('app-hidden');status(loginStatus,'Signed out.')});
