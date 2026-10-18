@@ -61,7 +61,9 @@
       const input=document.createElement('input');input.type='checkbox';input.id='drive-reported-inclement';input.setAttribute('role','switch');
       input.addEventListener('change',()=>{input.dataset.dvUserChosen='true'});
       observed.style.cssText='color:var(--color-info,#9ad9ed);border-left:3px solid currentColor;padding-left:12px';
-      box.append(title,observed,label,input);
+      label.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px';
+      label.appendChild(input);
+      box.append(title,observed,label);
       const destination=field('drive-destination');const destinationField=destination?.closest('.drive-field,.form-field,.field')||destination?.parentElement;
       if(destinationField&&form.contains(destinationField))destinationField.after(box);
       else form.querySelector('button[type=submit]')?.before(box);
