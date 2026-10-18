@@ -49,55 +49,31 @@
 
   // BKLG-0263: PA weather confirmation is per-drive, not a dashboard redesign.
   // The backend RPC verifies guardian identity, home state and drive revision.
-  async function showPaWeatherReview(drive, driverId, token) {
-    const model=app.getModel?.()||{}, driver=(model.drivers||[]).find(d=>d.id===driverId);
+  async function showPaWeatherSummary(drive,driverId,token){
+    const model=app.getModel?.()||{},driver=(model.drivers||[]).find(d=>d.id===driverId);
     if(String(driver?.home_state||'').toUpperCase()!=='PA')return;
-    const {data,error}=await app.client.rpc('get_pa_drive_weather_reviews_v1',{p_driver_id:driverId});
-    if(token!==detailToken||!dialog.open||error)return;
-    const record=(data||[]).find(x=>String(x.drive_id)===String(drive.id));
-    if(!record)return;
+    const {data,error}=await app.client.rpc('get_drive_weather_status_v1',{p_drive_id:drive.id});
+    if(token!==detailToken||!dialog.open)return;
     const section=document.createElement('section');
     section.className='drive-detail-weather-review';
-    section.setAttribute('aria-label','Pennsylvania inclement weather review');
-    section.innerHTML=`<h3>PA inclement-weather review</h3>
-      <p>Drive Venture suggestion: <strong>${esc(record.determination)}</strong>.
-      Suggested time: ${record.suggested_minutes==null?'Needs confirmation':esc(record.suggested_minutes+' min')}.
-      ${record.parent_override==null?'Not yet overridden':('Parent setting: '+(record.parent_override?'Counts':'Does not count'))}.
-      </p><p class="dv-muted">Weather classification is a Drive Venture interpretation, not an official PennDOT determination. Parent review does not replace signed DL-180C.</p>
-      <label for="pa-weather-reason">Reason for correction (required when changing a system No to Yes)</label>
-      <input id="pa-weather-reason" type="text" maxlength="500" value="${esc(record.parent_reason||'')}" placeholder="e.g. freezing fog along route">
-      <div class="drive-detail-actions">
-        <button class="button subtle-button button-small" type="button" data-pa-weather-set="true">Count this drive</button>
-        <button class="button subtle-button button-small" type="button" data-pa-weather-set="false">Do not count</button>
-      </div><p class="pa-weather-review-result" role="status" aria-live="polite"></p>`;
-    section.dataset.driveId=String(drive.id);
-    section.dataset.revision=String(drive.drive_revision);
-    section.dataset.system=String(record.determination);
+    section.setAttribute('aria-label','Driving conditions');
+    const record=!error&&Array.isArray(data)?data[0]:null;
+    if(!record){
+      section.textContent='Weather details are currently unavailable.';
+      content.appendChild(section);return;
+    }
+    const obs=record.weather_observation?.observation||record.weather_observation||{};
+    const conditions=Array.isArray(obs.conditions)?obs.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):'Unavailable';
+    const current=record.effective_minutes!=null;
+    section.innerHTML=`<h3>Driving conditions</h3>
+      <p><strong>Observed weather (read-only):</strong> ${esc(conditions)}.
+      Drive Venture assessment: ${esc(record.classification||'UNKNOWN')}.</p>
+      <p><strong>Reported inclement weather:</strong> ${current?(Number(record.effective_minutes)>0?'Yes':'No'):'Not entered'}.
+      Eligible reported minutes: ${current?esc(String(record.effective_minutes)):'0'}.</p>
+      <p><strong>Drive certification:</strong> ${esc(record.certification_status||'PENDING')}.</p>
+      <p class="dv-muted">Drive Venture observations and driver/grown-up declarations are separate. To change a declaration, edit the drive. Only an authorized grown-up certification places initials on the log. The Drive Venture log supports, but does not replace, official DL-180C.</p>`;
     content.appendChild(section);
   }
-  document.addEventListener('click',async event=>{
-    const button=event.target.closest('[data-pa-weather-set]');
-    if(!button||!dialog.open)return;
-    const section=button.closest('.drive-detail-weather-review'),status=section?.querySelector('.pa-weather-review-result');
-    if(!section||!status)return;
-    const yes=button.dataset.paWeatherSet==='true';
-    const reason=String(section.querySelector('#pa-weather-reason')?.value||'').trim();
-    if(yes&&section.dataset.system==='NO'&&!reason){status.textContent='Please describe the weather you experienced.';return}
-    const buttons=section.querySelectorAll('button');
-    buttons.forEach(b=>b.disabled=true);
-    status.textContent='Saving weather review…';
-    try{
-      const {data,error}=await app.client.rpc('review_pa_drive_weather_v1',{
-        p_drive_id:section.dataset.driveId,
-        p_override:yes,
-        p_expected_drive_revision:Number(section.dataset.revision),
-        p_reason:reason||null
-      });
-      if(error||!data?.ok){status.textContent=data?.outcome==='STALE_DRIVE'||data?.outcome==='STALE_CLASSIFICATION'?'Drive changed. Reopen this trip and review again.':'Review could not be saved. Please try again.';return}
-      status.textContent=yes?'This drive now counts as parent-confirmed inclement weather.':'This drive no longer counts as inclement weather.';
-    }catch(_){status.textContent='Review could not be saved. Please try again.'}
-    finally{buttons.forEach(b=>b.disabled=false)}
-  });
 
   document.addEventListener('click', async event => {
     if (event.target.closest('[data-edit-drive]') && dialog.open) dialog.close();
@@ -113,7 +89,7 @@
       if(mine!==detailToken||app.getDriverId()!==driverId||(generation!=null&&app.getRenderGeneration?.()!==generation))return;
       if (error || !data?.ok) { content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'; return; }
       render(data);
-      await showPaWeatherReview(data.drive,driverId,mine);
+      await showPaWeatherSummary(data.drive,driverId,mine);
     }catch(_){if(mine===detailToken&&app.getDriverId()===driverId)content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'}
   });
   window.addEventListener('dv:driver-changing',()=>{detailToken+=1;if(dialog.open)dialog.close();content.innerHTML=''});
