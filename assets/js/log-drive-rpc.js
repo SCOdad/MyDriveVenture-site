@@ -243,8 +243,8 @@
       if(!initial.ok)return setStatus('Drive Venture could not reread the drive yet. The unfinished edit is still protected; try again when the connection is stable.','error');
       const action=recovery.editRecoveryAction({expectedRevision:pending.expected_revision,currentRevision:initial.drive.drive_revision,payloadMatches:same(pending.requested,initial.drive)});
       if(action==='ADOPT'){
-        app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=initial.drive;clearPending();resetAfterEdit();setSubmitting(false);
-        return setStatus(`Drive edit recovered and verified: ${summary(initial.drive)}. Ready to log another drive.`,'success');
+        app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=initial.drive;clearPending();enterEdit(initial.drive,{scroll:false,preservePriorDraft:false,allowPending:true});setSubmitting(false);
+        return setStatus(`Drive edit recovered and verified: ${summary(initial.drive)}. Saved values remain visible; choose Exit edit to log another drive.`,'success');
       }
       if(action==='CONFLICT'){
         app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=initial.drive;clearPending();enterEdit(initial.drive,{scroll:false,preservePriorDraft:false});setSubmitting(false);
@@ -269,8 +269,8 @@
       await settleHydration(window.DV_DRIVING_LOG?.refreshContext?.(driverId));
       const reread=await authoritativeDrive(driverId,pending.drive_id);
       if(!reread.ok||!same(pending.requested,reread.drive))return setStatus('The edit was acknowledged, but Drive Venture could not finish verifying it. The recovery record is still protected.','error');
-      app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=reread.drive;clearPending();resetAfterEdit();setSubmitting(false);
-      return setStatus(`Drive edit recovered and verified: ${summary(reread.drive)}. Ready to log another drive.`,'success');
+      app.detailDrives=app.detailDrives||{};app.detailDrives[pending.drive_id]=reread.drive;clearPending();enterEdit(reread.drive,{scroll:false,preservePriorDraft:false,allowPending:true});setSubmitting(false);
+      return setStatus(`Drive edit recovered and verified: ${summary(reread.drive)}. Saved values remain visible; choose Exit edit to log another drive.`,'success');
     }catch(error){
       const info=await errorInfo(error,null);
       return setStatus(`Drive Venture still cannot confirm this save: ${info.message} Your original submission remains protected.`,'error');
@@ -314,8 +314,8 @@
         if(!sameChanged(requested,reread.drive,original)){keepRequestedLoaded(requested);setRecoveryPending(true);return setStatus('Drive edit could not be verified after refresh. Your requested values and recovery record are protected.','error')}
         app.detailDrives[id]=reread.drive;
         if(app.getDriverId()!==driverId)return;
-        clearPending();clearPrePermitDecision();resetAfterEdit();setSubmitting(false);
-        const editSuccess=`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated. Ready to log another drive.${nightMessage(data.night_classification)}`;
+        clearPending();clearPrePermitDecision();enterEdit(reread.drive,{scroll:false,preservePriorDraft:false,allowPending:true});setSubmitting(false);
+        const editSuccess=`Drive updated and verified: ${summary(reread.drive)}. Progress and quests were recalculated. Saved values remain visible; choose Exit edit to log another drive.${nightMessage(data.night_classification)}`;
         if(data.pre_permit?.is_pre_permit)window.dispatchEvent(new CustomEvent('dv:reveal-drive',{detail:{driverId,driveId:id}}));return setStatus(data.pre_permit?.is_pre_permit?`${editSuccess} Kept as a historical non-certifying record; it counts zero toward licensing totals.`:editSuccess,'success')
       }catch(error){
         const info=await errorInfo(error,null);
