@@ -62,7 +62,9 @@
       input.addEventListener('change',()=>{input.dataset.dvUserChosen='true'});
       observed.style.cssText='color:var(--color-info,#9ad9ed);border-left:3px solid currentColor;padding-left:12px';
       box.append(title,observed,label,input);
-      form.querySelector('button[type=submit]')?.before(box);
+      const destination=field('drive-destination');const destinationField=destination?.closest('.drive-field,.form-field,.field')||destination?.parentElement;
+      if(destinationField&&form.contains(destinationField))destinationField.after(box);
+      else form.querySelector('button[type=submit]')?.before(box);
     }
     box.hidden=!paDriver();
     return box;
