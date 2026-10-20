@@ -7,7 +7,7 @@ async function openAuthenticatedExperience(page, path) {
     await page.goto(path);
     await expect(page.locator('#app-main')).toBeVisible({ timeout: 20_000 });
   }
-  await selectDriverByName(page, 'Synthetic Driver One');
+  await selectDriverByName(page, '-MI Large History Test');
   await expect(page.locator('#drive-supervisor')).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('#drive-lesson-options input[type=checkbox]')).toHaveCount(13, { timeout: 20_000 });
   await expect(page.locator('#drive-notes-meta')).toContainText('500 character maximum');

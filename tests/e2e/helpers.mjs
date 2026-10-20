@@ -8,9 +8,9 @@ export const personas = {
 };
 
 export const fixtureDrivers = {
-  primaryMichigan: process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
-  secondaryKansas: process.env.DV_E2E_KS_DRIVER_NAME || 'Synthetic Driver Two',
-  boundedMichigan: process.env.DV_E2E_BOUNDED_MI_DRIVER_NAME || process.env.DV_E2E_MI_DRIVER_NAME || 'Synthetic Driver One',
+  primaryMichigan: process.env.DV_E2E_MI_DRIVER_NAME || '-MI Large History Test',
+  secondaryKansas: process.env.DV_E2E_KS_DRIVER_NAME || '-KS Single Drive Test',
+  boundedMichigan: process.env.DV_E2E_BOUNDED_MI_DRIVER_NAME || process.env.DV_E2E_MI_DRIVER_NAME || '-MI Large History Test',
   boundedMichiganGuardian: process.env.DV_E2E_BOUNDED_MI_GUARDIAN_EMAIL || personas.guardianMulti,
   singleMichigan: process.env.DV_E2E_SINGLE_MI_DRIVER_NAME || 'Synthetic Driver Three'
 };
