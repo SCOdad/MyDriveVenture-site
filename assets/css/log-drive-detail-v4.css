@@ -35,3 +35,7 @@
  .drive-detail-primary-grid .drive-detail-tile{border-right:0}
  .drive-detail-duration .drive-detail-main-duration{margin-bottom:12px}
 }
+
+/* BKLG-0267 UAT: make PA-reported designation separate from observed weather at first glance. */
+.drive-detail-report-context{display:block;margin-top:8px;color:#c9d1d1;font-size:.8rem;line-height:1.45;overflow-wrap:anywhere}
+.drive-detail-observed [data-drive-observation-reason]{display:block;margin-top:7px;font-size:.78rem;line-height:1.4;overflow-wrap:anywhere}

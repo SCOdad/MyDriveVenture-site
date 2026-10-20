@@ -16,5 +16,10 @@ test('shared Trip Detail has revision-bound certifier, two edit actions, and res
 test('weather never treats missing observation as confirmed clear',()=>{
  assert.match(script,/weather_classification_status==='CLASSIFIED'&&!!conditions/);
  assert.match(script,/actualObservation\?conditions:'Unavailable'/);
- assert.match(script,/get_drive_weather_status_v1/);
+ assert.match(script,/get_drive_weather_status_v2/);
+ assert.match(script,/data-drive-inclement-provenance/);
+ assert.match(script,/designation_change_audited/);
+ assert.match(script,/Not a Drive Venture weather determination/);
+ assert.match(script,/location unavailable for lookup/);
+ assert.doesNotMatch(script,/DV default/);
 });

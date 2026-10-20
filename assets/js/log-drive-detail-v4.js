@@ -70,9 +70,10 @@
           <h3>DURATION</h3><p class="drive-detail-main-duration">${duration} min (${hours(duration)})</p>
           <p>Night <strong>${nightValue} min</strong></p>
           <p>Inclement <strong data-drive-inclement-minutes>${isPA?'Loading…':'Not applicable'}</strong></p>
+          ${isPA?'<small class="drive-detail-report-context" data-drive-inclement-provenance>Loading report source…</small>':''}
         </section>
         <section class="drive-detail-tile drive-detail-observed"><h3>WEATHER</h3>
-          <p data-drive-observed-weather>${esc(weatherSummary)}</p><small>Drive Venture observed · read-only</small>
+          <p data-drive-observed-weather>${esc(weatherSummary)}</p><small>Drive Venture observed · read-only</small><small data-drive-observation-reason></small>
         </section>
         <section class="drive-detail-tile drive-detail-destination"><h3>DESTINATION</h3>
           <p>${esc(drive.destination||'—')}</p></section>
@@ -93,21 +94,40 @@
   async function showPaWeatherSummary(drive,driverId,token){
     const model=app.getModel?.()||{},driver=(model.drivers||[]).find(d=>d.id===driverId);
     if(String(driver?.home_state||'').toUpperCase()!=='PA')return;
-    const {data,error}=await app.client.rpc('get_drive_weather_status_v1',{p_drive_id:drive.id});
+    const {data,error}=await app.client.rpc('get_drive_weather_status_v2',{p_drive_id:drive.id});
     if(token!==detailToken||!dialog.open)return;
     const record=!error&&Array.isArray(data)?data[0]:null;
     const minutes=content.querySelector('[data-drive-inclement-minutes]');
     const weather=content.querySelector('[data-drive-observed-weather]');
-    if(!record){if(minutes)minutes.textContent='Unavailable';return;}
-    if(minutes)minutes.textContent=`${Math.round(Number(record.effective_minutes||0))} min`;
+    const provenance=content.querySelector('[data-drive-inclement-provenance]');
+    const observationReason=content.querySelector('[data-drive-observation-reason]');
+    if(!record){
+      if(minutes)minutes.textContent='Unavailable';
+      if(provenance)provenance.textContent='Reported inclement designation could not be loaded.';
+      return;
+    }
+    const hasDesignation=record.effective_minutes!==null&&record.effective_minutes!==undefined;
+    const reportedMinutes=Number(record.effective_minutes||0);
+    if(minutes)minutes.textContent=hasDesignation?`${Math.round(reportedMinutes)} min`:'Unreported';
+    const actorRole=String(record.designation_actor_role||'').toUpperCase();
+    const actorLabel=({GUARDIAN:'Guardian',DRIVER:'Driver',OPERATOR:'Operator'})[actorRole]||'Recorded';
+    const actorName=String(record.designation_actor_name||'').trim();
+    const reporter=actorName?`${actorLabel} (${actorName})`:actorLabel;
+    const changeNote=record.designation_change_audited===true?'Designation change recorded in audit.':
+      record.user_selected===true?'Explicit user selection recorded.':'Selection method not recorded.';
+    if(provenance)provenance.textContent=hasDesignation?
+      `${reporter} report. ${changeNote} Not a Drive Venture weather determination.`:
+      'No inclement designation recorded; no observed-weather assertion implied.';
     const obs=record.weather_observation?.observation||record.weather_observation||{};
     const conditions=Array.isArray(obs.conditions)&&obs.conditions.length?
       obs.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):null;
     const classified=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
     if(weather)weather.textContent=classified?conditions:'Unavailable';
+    if(observationReason)observationReason.textContent=classified?'Drive Venture observed · read-only':
+      `Drive Venture observed · read-only; ${drive.weather_classification_status==='LOCATION_PENDING'?'location unavailable for lookup; ':''}${record.classification_reason||'no usable observations'}`;
     const rules=content.querySelector('.drive-detail-rules dl');
     if(rules)rules.insertAdjacentHTML('beforeend',
-      `<div class="drive-detail-rule"><dt>Reported conditions</dt><dd>${record.effective_minutes==null?'Unreported':Number(record.effective_minutes)>0?'Inclement':'Not inclement'} · ${record.user_selected?'User selected':'DV default'}; DV assessment: ${esc(record.classification||'UNKNOWN')}</dd></div>`);
+      `<div class="drive-detail-rule"><dt>Reported conditions</dt><dd>${esc(hasDesignation?(reportedMinutes>0?'Inclement':'Not inclement'):'Unreported')} · ${esc(hasDesignation?reporter:'No reporting actor')}; DV assessment: ${esc(record.classification||'UNKNOWN')} (independent evidence)</dd></div>`);
   }
 
   document.addEventListener('click', async event => {
