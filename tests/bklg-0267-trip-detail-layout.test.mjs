@@ -18,8 +18,13 @@ test('weather never treats missing observation as confirmed clear',()=>{
  assert.match(script,/actualObservation\?conditions:'Unavailable'/);
  assert.match(script,/get_drive_weather_status_v2/);
  assert.match(script,/data-drive-inclement-provenance/);
- assert.match(script,/designation_change_audited/);
- assert.match(script,/Not a Drive Venture weather determination/);
- assert.match(script,/location unavailable for lookup/);
+ assert.match(script,/evidence_minutes.*null/);
+ assert.match(script,/Number\(record\.evidence_minutes\)>=reportedMinutes/);
+ assert.match(script,/verifiedByDV\?'DV Verified':'Driver Verified'/);
+ assert.match(script,/\['DRIVER','GUARDIAN'\]/);
+ assert.match(script,/if\(pill\)pill\.hidden=true/);
+ assert.doesNotMatch(script,/designation_change_audited/);
+ assert.doesNotMatch(script,/data-drive-observation-reason/);
  assert.doesNotMatch(script,/DV default/);
+ assert.match(css,/\.drive-detail-source-pill\[hidden\]\{display:none\}/);
 });

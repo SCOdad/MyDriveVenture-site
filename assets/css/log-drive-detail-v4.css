@@ -36,6 +36,9 @@
  .drive-detail-duration .drive-detail-main-duration{margin-bottom:12px}
 }
 
-/* BKLG-0267 UAT: make PA-reported designation separate from observed weather at first glance. */
-.drive-detail-report-context{display:block;margin-top:8px;color:#c9d1d1;font-size:.8rem;line-height:1.45;overflow-wrap:anywhere}
-.drive-detail-observed [data-drive-observation-reason]{display:block;margin-top:7px;font-size:.78rem;line-height:1.4;overflow-wrap:anywhere}
+/* BKLG-0267: compact provenance pill beside reported inclement minutes. */
+.drive-detail-inclement-line{display:flex;align-items:baseline;column-gap:9px;row-gap:5px;flex-wrap:wrap}
+.drive-detail-inclement-line strong{margin-left:0}
+.drive-detail-source-pill{display:inline-block;border:1px solid #86a0ad;border-radius:999px;padding:2px 9px;color:#d4e5e9;background:#26363d;font:700 .66rem/1.35 Inter,Arial,sans-serif;white-space:nowrap;letter-spacing:.01em}
+.drive-detail-source-pill[data-source="dv"]{border-color:#a8de75;color:#d5f0ba;background:#263b28}
+.drive-detail-source-pill[hidden]{display:none}

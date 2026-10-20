@@ -69,11 +69,10 @@
         <section class="drive-detail-tile drive-detail-duration">
           <h3>DURATION</h3><p class="drive-detail-main-duration">${duration} min (${hours(duration)})</p>
           <p>Night <strong>${nightValue} min</strong></p>
-          <p>Inclement <strong data-drive-inclement-minutes>${isPA?'Loading…':'Not applicable'}</strong></p>
-          ${isPA?'<small class="drive-detail-report-context" data-drive-inclement-provenance>Loading report source…</small>':''}
+          <p class="drive-detail-inclement-line">Inclement <strong data-drive-inclement-minutes>${isPA?'Loading…':'Not applicable'}</strong>${isPA?'<span class="drive-detail-source-pill" data-drive-inclement-provenance hidden></span>':''}</p>
         </section>
         <section class="drive-detail-tile drive-detail-observed"><h3>WEATHER</h3>
-          <p data-drive-observed-weather>${esc(weatherSummary)}</p><small>Drive Venture observed · read-only</small><small data-drive-observation-reason></small>
+          <p data-drive-observed-weather>${esc(weatherSummary)}</p>
         </section>
         <section class="drive-detail-tile drive-detail-destination"><h3>DESTINATION</h3>
           <p>${esc(drive.destination||'—')}</p></section>
@@ -99,35 +98,37 @@
     const record=!error&&Array.isArray(data)?data[0]:null;
     const minutes=content.querySelector('[data-drive-inclement-minutes]');
     const weather=content.querySelector('[data-drive-observed-weather]');
-    const provenance=content.querySelector('[data-drive-inclement-provenance]');
-    const observationReason=content.querySelector('[data-drive-observation-reason]');
+    const pill=content.querySelector('[data-drive-inclement-provenance]');
+    if(pill)pill.hidden=true;
     if(!record){
       if(minutes)minutes.textContent='Unavailable';
-      if(provenance)provenance.textContent='Reported inclement designation could not be loaded.';
       return;
     }
     const hasDesignation=record.effective_minutes!==null&&record.effective_minutes!==undefined;
     const reportedMinutes=Number(record.effective_minutes||0);
     if(minutes)minutes.textContent=hasDesignation?`${Math.round(reportedMinutes)} min`:'Unreported';
-    const actorRole=String(record.designation_actor_role||'').toUpperCase();
-    const actorLabel=({GUARDIAN:'Guardian',DRIVER:'Driver',OPERATOR:'Operator'})[actorRole]||'Recorded';
-    const actorName=String(record.designation_actor_name||'').trim();
-    const reporter=actorName?`${actorLabel} (${actorName})`:actorLabel;
-    const changeNote=record.designation_change_audited===true?'Designation change recorded in audit.':
-      record.user_selected===true?'Explicit user selection recorded.':'Selection method not recorded.';
-    if(provenance)provenance.textContent=hasDesignation?
-      `${reporter} report. ${changeNote} Not a Drive Venture weather determination.`:
-      'No inclement designation recorded; no observed-weather assertion implied.';
+
+    // Only credit the full reported interval as DV-verified if the observed
+    // qualifying minutes cover that interval; an UNKNOWN or partial observation
+    // must not become DV verification of the entire reported duration.
+    const verifiedByDV=hasDesignation&&reportedMinutes>0
+      &&drive.weather_classification_status==='CLASSIFIED'
+      &&String(record.classification||'').toUpperCase()==='YES'
+      &&record.evidence_minutes!==null&&record.evidence_minutes!==undefined
+      &&Number.isFinite(Number(record.evidence_minutes))
+      &&Number(record.evidence_minutes)>=reportedMinutes;
+    const manuallyReported=['DRIVER','GUARDIAN'].includes(String(record.designation_actor_role||'').toUpperCase());
+    if(pill && hasDesignation && reportedMinutes>0 && (verifiedByDV || manuallyReported)){
+      pill.hidden=false;
+      pill.textContent=verifiedByDV?'DV Verified':'Driver Verified';
+      pill.dataset.source=verifiedByDV?'dv':'driver';
+    }
+
     const obs=record.weather_observation?.observation||record.weather_observation||{};
     const conditions=Array.isArray(obs.conditions)&&obs.conditions.length?
       obs.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):null;
     const classified=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
     if(weather)weather.textContent=classified?conditions:'Unavailable';
-    if(observationReason)observationReason.textContent=classified?'Drive Venture observed · read-only':
-      `Drive Venture observed · read-only; ${drive.weather_classification_status==='LOCATION_PENDING'?'location unavailable for lookup; ':''}${record.classification_reason||'no usable observations'}`;
-    const rules=content.querySelector('.drive-detail-rules dl');
-    if(rules)rules.insertAdjacentHTML('beforeend',
-      `<div class="drive-detail-rule"><dt>Reported conditions</dt><dd>${esc(hasDesignation?(reportedMinutes>0?'Inclement':'Not inclement'):'Unreported')} · ${esc(hasDesignation?reporter:'No reporting actor')}; DV assessment: ${esc(record.classification||'UNKNOWN')} (independent evidence)</dd></div>`);
   }
 
   document.addEventListener('click', async event => {
