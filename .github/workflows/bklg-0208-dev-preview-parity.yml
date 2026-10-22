@@ -36,3 +36,21 @@ jobs:
           done
           echo 'FAIL: live Cloudflare DEV branch preview has not deployed current checkout diagnostic'
           exit 1
+
+      - name: Reject unsigned Helcim card transaction notifications in DEV
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint='https://safwylxxhywbsfxpmchd.supabase.co/functions/v1/commercial-provider-events'
+          status="$(curl --fail-with-body --silent --show-error --max-time 20 \
+            --output /tmp/dv-unsigned-webhook-response \
+            --write-out '%{http_code}' \
+            --header 'content-type: application/json' \
+            --data '{"id":"123456789","type":"cardTransaction"}' \
+            "$endpoint" || true)"
+          if [ "$status" = "401" ] && grep -q 'Signature rejected' /tmp/dv-unsigned-webhook-response; then
+            echo 'PASS: DEV signed webhook endpoint rejects unauthenticated event'
+            exit 0
+          fi
+          echo "FAIL: unsigned webhook rejection missing, HTTP status $status"
+          exit 1
