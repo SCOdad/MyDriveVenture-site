@@ -174,6 +174,7 @@
         family_id:ui.family.value,quote_id:state.quote.quote_id,
         offer_code:selectedOffer(),client_idempotency_key:state.purchaseKey,
         accepted_terms_version:state.quote.terms_version,
+        accept_terms:ui.consent.checked,
       });
       if(!data.purchase_id||!data.checkout_token||typeof window.appendHelcimPayIframe!=='function'){
         throw new Error('Secure payment setup is unavailable. No new charge was initiated by this page.');
