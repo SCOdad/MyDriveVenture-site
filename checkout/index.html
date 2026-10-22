@@ -37,15 +37,19 @@
   </section>
   <section class="checkout-panel" aria-labelledby="offer-title">
    <h2 id="offer-title"><span class="checkout-step">2</span> Choose a product</h2>
-   <div id="checkout-offers" class="checkout-offers" role="radiogroup" aria-label="Available products"></div>
+   <p id="checkout-offer-help" class="checkout-helper"></p>
+   <div id="checkout-offers" class="checkout-offers" role="radiogroup" aria-label="Available products" aria-describedby="checkout-offer-help"></div>
    <p class="checkout-helper">A Family License includes capacity for three active drivers. Additional active-driver seats are sold individually in separate transactions. Existing eligible Alpha Families keep their grandfathered paid-equivalent license at no cost.</p>
   </section>
   <section class="checkout-panel" aria-labelledby="review-title">
    <h2 id="review-title"><span class="checkout-step">3</span> Review your purchase</h2>
    <label for="checkout-state">Purchaser billing state (United States)</label>
-   <input id="checkout-state" type="text" inputmode="text" autocomplete="address-level1" maxlength="2" pattern="[A-Za-z]{2}" placeholder="MI" aria-describedby="state-help" required>
-   <p id="state-help" class="checkout-helper">Enter your two-letter state abbreviation. Available states and applicable taxes are checked by the server.</p>
-   <button type="button" id="checkout-quote" class="button checkout-secondary" disabled>Calculate total</button>
+   <select id="checkout-state" autocomplete="address-level1" aria-describedby="state-help" required>
+    <option value="">Choose your billing state</option>
+   </select>
+   <p id="state-help" class="checkout-helper">Available billing states are loaded from the checkout service.</p>
+   <button type="button" id="checkout-quote" class="button checkout-secondary" aria-describedby="checkout-quote-help" disabled>Calculate total</button>
+   <p id="checkout-quote-help" class="checkout-helper" aria-live="polite">Checking quote availability…</p>
    <div class="checkout-breakdown" aria-label="Purchase quote">
     <div><span>Product</span><strong id="checkout-product">—</strong></div>
     <div><span>Subtotal</span><strong id="checkout-subtotal">—</strong></div>
@@ -61,6 +65,7 @@
    <label class="checkout-consent" for="checkout-consent"><input type="checkbox" id="checkout-consent" disabled>
    <span>I agree to the purchasing Terms shown for this Family, product, and quoted total. I understand this is a one-time purchase.</span></label>
    <button id="checkout-pay" type="button" class="button" disabled>Continue to secure payment</button>
+   <p id="checkout-payment-help" class="checkout-helper">Current preparation supports card payment without a customer processing fee. ACH and Fee Saver remain unavailable while verification is pending. No payment can be started while purchases are paused.</p>
    <p class="checkout-helper">Card details are entered in Helcim's secure checkout. Drive Venture never receives your full card number. A browser confirmation is not proof of entitlement until the server verifies your payment.</p>
    <p class="checkout-helper">Billing or refund questions? <a href="https://feedback.mydriveventure.com">Contact Drive Venture through Feedback</a>.</p>
   </section>
@@ -70,11 +75,13 @@
   <p class="checkout-helper">For Drive Venture platform operators only. This checks the isolated Helcim developer API connection without starting a payment or exposing credentials.</p>
   <button type="button" id="checkout-dev-connect" class="button checkout-secondary">Test Helcim developer API connection</button>
   <button type="button" id="checkout-dev-init" class="button checkout-secondary">Test HelcimPay.js session initialization (no payment)</button>
+  <button type="button" id="checkout-dev-fee-saver" class="button checkout-secondary">Test Fee Saver initialization (no payment)</button>
+  <p class="checkout-helper">Fee Saver requires card and ACH options. This check only creates a disposable session; it does not open checkout or verify fees or settlement. Developer ACH payments do not settle.</p>
   <p id="checkout-dev-result" class="checkout-helper" role="status" aria-live="polite">No connection test has run.</p>
  </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/log/config.js"></script>
 <script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
-<script src="/assets/js/checkout.js?v=20261022-bklg0208-session"></script>
+<script src="/assets/js/checkout.js?v=20261022-bklg0208-michigan"></script>
 </body></html>

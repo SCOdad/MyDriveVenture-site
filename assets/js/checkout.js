@@ -13,7 +13,8 @@
     quoteExpires:$('checkout-quote-expires'),consent:$('checkout-consent'),
     pay:$('checkout-pay'),devPanel:$('checkout-dev-diagnostics'),
     devConnect:$('checkout-dev-connect'),devInit:$('checkout-dev-init'),
-    devResult:$('checkout-dev-result'),
+    devResult:$('checkout-dev-result'),devFeeSaver:$('checkout-dev-fee-saver'),
+    offerHelp:$('checkout-offer-help'),quoteHelp:$('checkout-quote-help'),stateHelp:$('state-help'),
   };
   const cfg=window.DV_APP_CONFIG||{};
   const state={
@@ -42,10 +43,32 @@
     const paid=context.commercial_state==='PAID';
     return code==='FAMILY_LICENSE'?!paid:code==='ADDITIONAL_DRIVER_CAPACITY'?paid:false;
   }
+  function availableBillingState(){
+    return (state.catalog?.billing_states||[]).some(s=>s.code===ui.state.value);
+  }
   function updateQuoteButton(){
-    ui.quoteButton.disabled=state.busy||!selectedFamily()||!selectedOffer()||
-      !/^[A-Z]{2}$/.test(ui.state.value.trim().toUpperCase())||
-      !state.catalog?.checkout_enabled;
+    let reason='';
+    if(!state.catalog?.checkout_enabled)reason=state.catalog?.disabled_reason||
+      'Purchases are paused. Product selection, quotes and payment are unavailable.';
+    else if(state.busy)reason='Please wait while your request is processed.';
+    else if(!selectedFamily())reason='Choose the Family you administer.';
+    else if(!selectedOffer())reason='Choose an available product first.';
+    else if(!availableBillingState())reason='Choose a supported billing state. Other states are not available.';
+    ui.quoteButton.disabled=Boolean(reason);
+    ui.quoteHelp.textContent=reason||'Ready to calculate your current total.';
+    ui.offerHelp.textContent=!state.catalog?.checkout_enabled
+      ? 'Products are shown for reference. Selection is disabled until purchases are enabled.' : '';
+  }
+  function renderBillingStates(){
+    ui.state.replaceChildren(new Option('Choose your billing state',''));
+    for(const item of state.catalog?.billing_states||[]){
+      ui.state.add(new Option(item.code==='MI'?'Michigan (MI)':item.code,item.code));
+    }
+    ui.state.add(new Option('Another state — unavailable','UNAVAILABLE'));
+    const provisional=(state.catalog?.billing_states||[]).some(s=>s.provisional);
+    ui.stateHelp.textContent=provisional
+      ? 'This DEV sandbox is prepared for Michigan only, with provisional $0 sales tax pending CPA review. Choose your actual billing state; other states are unavailable.'
+      : 'Choose your actual billing state. Only states reviewed for checkout are available.';
   }
   async function api(action,payload={}){
     if(!state.session?.access_token||!cfg.supabaseUrl||!cfg.publishableKey)
@@ -110,6 +133,7 @@
     const family=selectedFamily();
     if(!family){ui.familySummary.textContent='Select the Family that will own the purchase.';return;}
     ui.familySummary.textContent=`Only this Family receives purchased capacity. License Holder: ${family.license_holder_name||'your account'}.`;
+    updateQuoteButton();
     const offers=(state.catalog?.offers||[]).filter(o=>allowedByContext(o.offer_code,family));
     if(!offers.length){
       const p=document.createElement('p');
@@ -124,6 +148,7 @@
       const label=document.createElement('label');label.className='checkout-offer';
       const input=document.createElement('input');input.type='radio';input.name='offer';
       input.value=String(offer.offer_code);input.disabled=!state.catalog.checkout_enabled;
+      input.setAttribute('aria-describedby','checkout-offer-help');
       const body=document.createElement('span');body.className='offer-label';
       const title=document.createElement('strong');title.textContent=String(offer.display_name||offer.offer_code);
       const help=document.createElement('small');
@@ -132,7 +157,7 @@
     }
   }
   async function calculateQuote(){
-    if(!selectedFamily()||!selectedOffer())return;
+    if(!selectedFamily()||!selectedOffer()||!availableBillingState()||!state.catalog?.checkout_enabled)return;
     state.busy=true;resetQuote();updateQuoteButton();
     notice('Calculating your server-verified total…');
     try{
@@ -227,15 +252,15 @@
       void refreshFulfillmentStatus();
     }
   });
-  async function testDeveloperInitialize(){
+  async function testDeveloperInitialize(variant='card'){
     if(!state.session?.access_token||window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
-    ui.devInit.disabled=true;
+    ui.devInit.disabled=true;ui.devFeeSaver.disabled=true;
     ui.devResult.textContent='Initializing isolated HelcimPay.js developer session (no card, no charge)…';
     try{
       const res=await fetch(`${cfg.supabaseUrl}/functions/v1/commercial-operator`,{
         method:'POST',headers:{'content-type':'application/json',
           authorization:`Bearer ${state.session.access_token}`,apikey:cfg.publishableKey},
-        body:JSON.stringify({action:'developer_initialize_test'}),
+        body:JSON.stringify({action:'developer_initialize_test',variant}),
       });
       const data=await res.json().catch(()=>({}));
       if(res.status===403){
@@ -243,19 +268,22 @@
       }else if(!res.ok||data.ok!==true){
         ui.devResult.textContent='DEV initialization test unavailable. No payment was started.';
       }else if(data.initialized===true&&data.mode==='DEVELOPER_TEST'&&data.payment_initiated===false){
-        ui.devResult.textContent='PASS: HelcimPay.js developer checkout session initialized. No payment was started.';
+        ui.devResult.textContent=variant==='fee_saver'
+          ? 'PASS: Fee Saver card/ACH session initialized. No payment was started. Fee amounts and ACH settlement remain unverified.'
+          : 'PASS: HelcimPay.js developer checkout session initialized. No payment was started.';
       }else{
         ui.devResult.textContent=`Initialization did not pass. Provider HTTP status: ${Number(data.provider_http_status)||'unavailable'}. No payment was started.`;
       }
     }catch(_){
       ui.devResult.textContent='DEV initialization diagnostic could not be reached. No payment was started.';
-    }finally{ui.devInit.disabled=false;}
+    }finally{ui.devInit.disabled=false;ui.devFeeSaver.disabled=false;}
   }
   ui.devConnect.addEventListener('click',()=>void testDeveloperConnection());
   ui.devInit.addEventListener('click',()=>void testDeveloperInitialize());
+  ui.devFeeSaver.addEventListener('click',()=>void testDeveloperInitialize('fee_saver'));
   ui.family.addEventListener('change',renderOffers);
   ui.offers.addEventListener('change',()=>{resetQuote();});
-  ui.state.addEventListener('input',()=>{ui.state.value=ui.state.value.toUpperCase();resetQuote();});
+  ui.state.addEventListener('change',resetQuote);
   ui.quoteButton.addEventListener('click',()=>void calculateQuote());
   ui.consent.addEventListener('change',syncPay);
   ui.pay.addEventListener('click',()=>void openPayment());
@@ -281,9 +309,9 @@
     }catch(_){
       state.catalog={checkout_enabled:false,offers:[]};
       notice('Online checkout is being prepared. No payment can be initiated yet.');
-      renderFamilies();return;
+      renderBillingStates();renderFamilies();return;
     }
-    renderFamilies();
+    renderBillingStates();renderFamilies();
     notice(state.catalog.checkout_enabled
       ?'Select your Family and product to request a current quote.'
       :'New purchases are currently disabled. Your existing Family access remains available.');

@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
       - name: Verify Cloudflare serves the noncharging DEV checkout diagnostic
         shell: bash
         run: |
@@ -25,8 +26,8 @@ jobs:
           for attempt in $(seq 1 18); do
             curl --fail --silent --show-error --max-time 12 "$url/checkout/" -o /tmp/dv-checkout.html || true
             curl --fail --silent --show-error --max-time 12 "$url/assets/js/checkout.js?v=bklg0208parity" -o /tmp/dv-checkout.js || true
-            if grep -q 'id="checkout-dev-init"' /tmp/dv-checkout.html 2>/dev/null &&
-               grep -q "developer_initialize_test" /tmp/dv-checkout.js 2>/dev/null &&
+            if grep -q 'id="checkout-dev-fee-saver"' /tmp/dv-checkout.html 2>/dev/null &&
+               cmp -s assets/js/checkout.js /tmp/dv-checkout.js &&
                grep -q 'noindex,nofollow' /tmp/dv-checkout.html 2>/dev/null; then
               echo 'PASS: Cloudflare DEV branch-preview checkout diagnostic is deployed'
               exit 0
@@ -36,6 +37,14 @@ jobs:
           done
           echo 'FAIL: live Cloudflare DEV branch preview has not deployed current checkout diagnostic'
           exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Verify checkout controls with synthetic sessions
+        run: npx playwright test tests/e2e/bklg-0208-checkout-preparation.spec.mjs
 
       - name: Reject unsigned Helcim card transaction notifications in DEV
         shell: bash

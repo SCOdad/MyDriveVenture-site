@@ -1,0 +1,49 @@
+import {test,expect} from '@playwright/test'
+import fs from 'node:fs'
+const html=fs.readFileSync('checkout/index.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'').replace(/<link\b[^>]*>/g,'')
+const js=fs.readFileSync('assets/js/checkout.js','utf8')
+async function prepare(page,enabled=false){
+  await page.route('**/*',async route=>{
+    const url=route.request().url()
+    if(!url.startsWith('https://checkout.test/'))return route.abort()
+    const body=route.request().postDataJSON()
+    const result=url.endsWith('/family-api')?{ok:true,family_contexts:[{family_id:'family',is_license_holder:true,commercial_state:'FREE',license_holder_name:'Test',driver_capacity:1}]}:
+      body.action==='catalog'?{ok:true,checkout_enabled:enabled,disabled_reason:'Purchases are paused for verification.',billing_states:[{code:'MI',provisional:true}],offers:[{offer_code:'FAMILY_LICENSE',display_name:'Family License',unit_cents:2499}]}:
+      {ok:true,initialized:true,mode:'DEVELOPER_TEST',payment_initiated:false,variant:body.variant}
+    await route.fulfill({json:result})
+  })
+  await page.setContent(html)
+  await page.addStyleTag({content:fs.readFileSync('assets/css/checkout.css','utf8')})
+  await page.evaluate(()=>{
+    window.DV_APP_CONFIG={supabaseUrl:'https://checkout.test',publishableKey:'synthetic'}
+    window.DV_ENVIRONMENT_CONFIG={name:'dev'}
+    window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})}
+  })
+  await page.addScriptTag({content:js})
+  await expect(page.locator('#checkout-app')).toBeVisible()
+}
+test('paused checkout explains disabled products and quotes; Michigan is explicit and not preselected',async({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  await prepare(page)
+  await expect(page.locator('input[name="offer"]')).toBeDisabled()
+  await expect(page.locator('#checkout-offer-help')).toContainText('Selection is disabled')
+  await expect(page.locator('#checkout-quote-help')).toContainText('Purchases are paused')
+  await expect(page.locator('#checkout-state')).toHaveValue('')
+  await page.selectOption('#checkout-state','MI')
+  await expect(page.locator('#state-help')).toContainText('pending CPA review')
+  await expect(page.locator('#checkout-quote')).toBeDisabled()
+  await expect(page.locator('#checkout-pay')).toBeDisabled()
+  await page.getByRole('button',{name:'Test Fee Saver initialization (no payment)',exact:true}).click()
+  await expect(page.locator('#checkout-dev-result')).toContainText('Fee amounts and ACH settlement remain unverified')
+  await expect(page.locator('#checkout-pay')).toBeDisabled()
+})
+test('unsupported state cannot enable a quote even if purchase flag is enabled in a synthetic fixture',async({page})=>{
+  await prepare(page,true)
+  await page.locator('input[name="offer"]').check()
+  await page.selectOption('#checkout-state','UNAVAILABLE')
+  await expect(page.locator('#checkout-quote')).toBeDisabled()
+  await expect(page.locator('#checkout-quote-help')).toContainText('Other states are not available')
+  await page.selectOption('#checkout-state','MI')
+  await expect(page.locator('#checkout-quote')).toBeEnabled()
+  await expect(page.locator('#checkout-pay')).toBeDisabled()
+})
