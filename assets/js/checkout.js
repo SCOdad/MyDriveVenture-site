@@ -272,7 +272,9 @@
           ? 'PASS: Fee Saver card/ACH session initialized. No payment was started. Fee amounts and ACH settlement remain unverified.'
           : 'PASS: HelcimPay.js developer checkout session initialized. No payment was started.';
       }else{
-        ui.devResult.textContent=`Initialization did not pass. Provider HTTP status: ${Number(data.provider_http_status)||'unavailable'}. No payment was started.`;
+        const detail=data.diagnostic;
+        const fields=Array.isArray(detail?.fields)&&detail.fields.length?` Fields: ${detail.fields.join(', ')}.`:'';
+        ui.devResult.textContent=`Initialization did not pass. Provider HTTP status: ${Number(data.provider_http_status)||'unavailable'}. ${detail?.code||'PROVIDER_REJECTED'}.${fields} ${detail?.guidance||'Cause not yet established.'} No payment was started.`;
       }
     }catch(_){
       ui.devResult.textContent='DEV initialization diagnostic could not be reached. No payment was started.';

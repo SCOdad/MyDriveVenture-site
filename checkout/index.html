@@ -64,6 +64,7 @@
    <p>Review our <a href="/terms/" target="_blank" rel="noopener">Terms &amp; Conditions</a>, <a href="/privacy/" target="_blank" rel="noopener">Privacy Notice</a> and the refund provisions in the Terms before proceeding.</p>
    <label class="checkout-consent" for="checkout-consent"><input type="checkbox" id="checkout-consent" disabled>
    <span>I agree to the purchasing Terms shown for this Family, product, and quoted total. I understand this is a one-time purchase.</span></label>
+   <p class="checkout-helper">Terms acceptance becomes available after a current purchase quote. While purchases are paused, you cannot select a product, calculate a quote or accept the purchasing Terms.</p>
    <button id="checkout-pay" type="button" class="button" disabled>Continue to secure payment</button>
    <p id="checkout-payment-help" class="checkout-helper">Current preparation supports card payment without a customer processing fee. ACH and Fee Saver remain unavailable while verification is pending. No payment can be started while purchases are paused.</p>
    <p class="checkout-helper">Card details are entered in Helcim's secure checkout. Drive Venture never receives your full card number. A browser confirmation is not proof of entitlement until the server verifies your payment.</p>
@@ -72,7 +73,7 @@
  </div>
  <section id="checkout-dev-diagnostics" class="checkout-panel" hidden aria-labelledby="checkout-dev-title">
   <h2 id="checkout-dev-title">DEV integration check</h2>
-  <p class="checkout-helper">For Drive Venture platform operators only. This checks the isolated Helcim developer API connection without starting a payment or exposing credentials.</p>
+  <p class="checkout-helper">For Drive Venture platform operators only. These checks run independently of the purchase form. You do not need to select a product or agree to the purchasing Terms. Fee Saver initialization uses the configured additional-seat amount automatically, without starting a payment or exposing credentials.</p>
   <button type="button" id="checkout-dev-connect" class="button checkout-secondary">Test Helcim developer API connection</button>
   <button type="button" id="checkout-dev-init" class="button checkout-secondary">Test HelcimPay.js session initialization (no payment)</button>
   <button type="button" id="checkout-dev-fee-saver" class="button checkout-secondary">Test Fee Saver initialization (no payment)</button>
@@ -83,5 +84,5 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/log/config.js"></script>
 <script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
-<script src="/assets/js/checkout.js?v=20261022-bklg0208-michigan"></script>
+<script src="/assets/js/checkout.js?v=20261022-bklg0208-diagnostics"></script>
 </body></html>
