@@ -11,7 +11,8 @@
     quoteButton:$('checkout-quote'),product:$('checkout-product'),
     subtotal:$('checkout-subtotal'),tax:$('checkout-tax'),total:$('checkout-total'),
     quoteExpires:$('checkout-quote-expires'),consent:$('checkout-consent'),
-    pay:$('checkout-pay'),
+    pay:$('checkout-pay'),devPanel:$('checkout-dev-diagnostics'),
+    devConnect:$('checkout-dev-connect'),devResult:$('checkout-dev-result'),
   };
   const cfg=window.DV_APP_CONFIG||{};
   const state={
@@ -66,6 +67,31 @@
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.ok!==true)throw new Error('Unable to load your Family access.');
     return data;
+  }
+  async function testDeveloperConnection(){
+    if(!state.session?.access_token||window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
+    ui.devConnect.disabled=true;
+    ui.devResult.textContent='Checking isolated Helcim developer API connectivity (no payment)…';
+    try{
+      const res=await fetch(`${cfg.supabaseUrl}/functions/v1/commercial-operator`,{
+        method:'POST',
+        headers:{'content-type':'application/json',
+          authorization:`Bearer ${state.session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'developer_connection_test'}),
+      });
+      const result=await res.json().catch(()=>({}));
+      if(res.status===403){
+        ui.devResult.textContent='This check requires platform operator access in DEV.';
+      }else if(!res.ok||result.ok!==true){
+        ui.devResult.textContent='Connection diagnostic unavailable. No payment was started.';
+      }else if(result.connected===true&&result.mode==='DEVELOPER_TEST'){
+        ui.devResult.textContent='PASS: Helcim developer API connected. No payment was started.';
+      }else{
+        ui.devResult.textContent=`Not connected. Provider HTTP status: ${Number(result.provider_http_status)||'unavailable'}. No payment was started.`;
+      }
+    }catch(_){
+      ui.devResult.textContent='Unable to reach DEV connection diagnostic. No payment was started.';
+    }finally{ui.devConnect.disabled=false;}
   }
   function renderFamilies(){
     ui.family.replaceChildren(new Option('Choose the Family you administer',''));
@@ -200,6 +226,7 @@
       void refreshFulfillmentStatus();
     }
   });
+  ui.devConnect.addEventListener('click',()=>void testDeveloperConnection());
   ui.family.addEventListener('change',renderOffers);
   ui.offers.addEventListener('change',()=>{resetQuote();});
   ui.state.addEventListener('input',()=>{ui.state.value=ui.state.value.toUpperCase();resetQuote();});
@@ -214,6 +241,7 @@
         {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     const result=await state.client.auth.getSession();state.session=result.data?.session||null;
     if(!state.session){ui.signin.hidden=false;notice('Please sign in to continue.');return;}
+    if(window.DV_ENVIRONMENT_CONFIG?.name==='dev')ui.devPanel.hidden=false;
     const families=await familyOverview();
     state.contexts=(families.overview?.family_contexts||families.family_contexts||[])
       .filter(c=>c.is_license_holder);
