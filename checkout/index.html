@@ -69,11 +69,12 @@
   <h2 id="checkout-dev-title">DEV integration check</h2>
   <p class="checkout-helper">For Drive Venture platform operators only. This checks the isolated Helcim developer API connection without starting a payment or exposing credentials.</p>
   <button type="button" id="checkout-dev-connect" class="button checkout-secondary">Test Helcim developer API connection</button>
+  <button type="button" id="checkout-dev-init" class="button checkout-secondary">Test HelcimPay.js session initialization (no payment)</button>
   <p id="checkout-dev-result" class="checkout-helper" role="status" aria-live="polite">No connection test has run.</p>
  </section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/log/config.js"></script>
 <script src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
-<script src="/assets/js/checkout.js?v=20261022-bklg0208-connection"></script>
+<script src="/assets/js/checkout.js?v=20261022-bklg0208-session"></script>
 </body></html>
