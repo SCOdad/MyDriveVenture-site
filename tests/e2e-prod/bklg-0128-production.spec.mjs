@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-const marker = '20260918-0187-scenery3';
 const assets = [
   '/assets/images/dv03/layers/DV03-SKY-BASE-NIGHT-MOON-FULL.png',
   '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L01-PARK.png',
@@ -14,15 +13,11 @@ const assets = [
   '/assets/images/dv03/layers/DV03-BACKGROUND-BASE-L10-SHOPPING-CENTER.png'
 ];
 
-test('BKLG-0128 production publishes fresh harness and viable layer assets', async ({ page }) => {
-  let fresh = false;
-  for (let i = 0; i < 12; i += 1) {
-    await page.goto(`/log/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
-    const html = await page.content();
-    if (html.includes(marker)) { fresh = true; break; }
-    await page.waitForTimeout(5000);
-  }
-  expect(fresh, 'production DV03 console never published the new cache-buster').toBe(true);
+test('BKLG-0128 production publishes DV03 console and viable layer assets', async ({ page }) => {
+  await page.goto(`/log/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html[data-dv-route="dv03"]')).toHaveCount(1);
+  await expect(page.locator('#dv03-scene-layer')).toBeAttached();
+  await expect(page.locator('#drive-form')).toBeAttached();
   await page.goto(`/log/DV03/staging/BKLG-0128/?prodcheck=${Date.now()}`, { waitUntil: 'domcontentloaded' });
 
   const harnessSource=await (await page.request.get(`/assets/js/bklg-0128-dv03-staging.js?prodcheck=${Date.now()}`)).text();

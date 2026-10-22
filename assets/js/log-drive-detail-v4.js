@@ -44,8 +44,93 @@
     const overlapNotice=overlap?.conflict_count?`<div class="drive-overlap-notice"><strong>⚠ Potential time conflict</strong><p>This drive overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}. The recorded hours still count; review the conflicting times and edit or delete a drive if needed.</p></div>`:'';
     const editLabel=isOperatorView(drive.driver_id)?'Admin edit this drive':'Edit this drive';
     const editAction=canEditDrive(drive.driver_id)?`<div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">${editLabel}</button></div>`:'';
-    content.innerHTML = `<p class="panel-label">TRIP DETAIL</p><h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time || '').slice(0,5))}–${esc(String(drive.end_time || '').slice(0,5))}</h2>${overlapNotice}${editHistoryMarkup(history)}<dl class="drive-detail-facts">${optional('Duration', `${Math.round(Number(drive.duration_minutes || 0))} min (${hours(drive.duration_minutes)})`)}${optional('Vehicle', vehicle?.name ? `${vehicle.name}${vehicle.vehicle_class ? ` · ${vehicle.vehicle_class}` : ''}` : null)}${optional('Logged via', drive.source)}${optional('Logged by', detail.logged_by?.display_name)}${optional('Supervisor', supervisor)}${optional('Skills Practiced', skillText)}${optional('Destination', drive.destination)}${optional('Road notes', drive.notes || 'None')}${optional('Weather', weather)}${optional('Night credit', `${Math.round(Number(drive.night_minutes || 0))} min`)}${optional('Night rule', drive.night_rule_version||'v1 · Jul 2, 2026')}${optional('Location basis', locationBasis)}</dl><section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length ? `<ul>${awards.map(award => `<li><div><strong>${esc(award.quest?.name || award.quest_key)}</strong>${award.quest?.description ? `<small>${esc(award.quest.description)}</small>` : ''}</div><span class="pill">+${Number(award.xp_awarded || 0)} XP</span></li>`).join('')}</ul>` : ''}</section>${editAction}`;
+    const certified=drive.certification_status==='CERTIFIED'&&!!drive.certified_by_person_id;
+    const certifier=certified?(detail.certified_by?.display_name||'Authorized grown-up'):null;
+    const certText=certified?`CERTIFIED · ${esc(certifier)}`:'NOT CERTIFIED · Awaiting grown-up certification';
+    const isPA=String(driver?.home_state||'').toUpperCase()==='PA';
+    const activeWeather=drive.weather?.observation||drive.weather||{};
+    const conditions=Array.isArray(activeWeather.conditions)&&activeWeather.conditions.length?
+      activeWeather.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):null;
+    const actualObservation=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
+    const weatherSummary=actualObservation?conditions:'Unavailable';
+    const nightValue=Math.round(Number(drive.night_minutes||0));
+    const duration=Math.round(Number(drive.duration_minutes||0));
+    const awardsMarkup=`<section class="drive-detail-awards" aria-labelledby="drive-detail-awards-heading"><h3 id="drive-detail-awards-heading">Achievements earned on this drive</h3>${awards.length?`<ul>${awards.map(award=>`<li><div><strong>${esc(award.quest?.name||award.quest_key)}</strong>${award.quest?.description?`<small>${esc(award.quest.description)}</small>`:''}</div><span class="pill">+${Number(award.xp_awarded||0)} XP</span></li>`).join('')}</ul>`:''}</section>`;
+    const rule=(label,value)=>`<div class="drive-detail-rule"><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
+    content.innerHTML=`
+      <header class="drive-detail-header">
+        <div><p class="panel-label">TRIP DETAIL</p>
+          <h2>${esc(drive.drive_date)} · ${esc(String(drive.start_time||'').slice(0,5))}–${esc(String(drive.end_time||'').slice(0,5))}</h2>
+          <p class="drive-detail-certification ${certified?'is-certified':'is-pending'}">${certText}</p>
+        </div>${editAction}
+      </header>
+      ${overlapNotice}${editHistoryMarkup(history)}
+      <div class="drive-detail-primary-grid">
+        <section class="drive-detail-tile drive-detail-duration">
+          <h3>DURATION</h3><p class="drive-detail-main-duration">${duration} min (${hours(duration)})</p>
+          <p>Night <strong>${nightValue} min</strong></p>
+          <p class="drive-detail-inclement-line">Inclement <strong data-drive-inclement-minutes>${isPA?'Loading…':'Not applicable'}</strong>${isPA?'<span class="drive-detail-source-pill" data-drive-inclement-provenance hidden></span>':''}</p>
+        </section>
+        <section class="drive-detail-tile drive-detail-observed"><h3>WEATHER</h3>
+          <p data-drive-observed-weather>${esc(weatherSummary)}</p>
+        </section>
+        <section class="drive-detail-tile drive-detail-destination"><h3>DESTINATION</h3>
+          <p>${esc(drive.destination||'—')}</p></section>
+        <section class="drive-detail-tile"><h3>LOGGED BY</h3><p>${esc(detail.logged_by?.display_name||drive.source||'Unavailable')}</p></section>
+        <section class="drive-detail-tile"><h3>SUPERVISED BY</h3><p>${esc(supervisor||'Unavailable')}</p></section>
+        <section class="drive-detail-tile drive-detail-notes"><h3>ROAD NOTES</h3>
+          <p>${esc(drive.notes||'No notes recorded')}</p></section>
+      </div>
+      ${awardsMarkup}
+      <section class="drive-detail-rules"><h3>Driving rules & calculations</h3><dl>
+        ${rule('Night rule',drive.night_rule_version||'Not available')}
+        ${rule('Inclement rule',isPA?'Pennsylvania · reported inclement designation; observed weather retained separately':'Not applicable')}
+        ${rule('Location basis',locationBasis||'Unresolved')}
+      </dl></section>
+      ${editAction}`;
   }
+
+  async function showPaWeatherSummary(drive,driverId,token){
+    const model=app.getModel?.()||{},driver=(model.drivers||[]).find(d=>d.id===driverId);
+    if(String(driver?.home_state||'').toUpperCase()!=='PA')return;
+    const {data,error}=await app.client.rpc('get_drive_weather_status_v2',{p_drive_id:drive.id});
+    if(token!==detailToken||!dialog.open)return;
+    const record=!error&&Array.isArray(data)?data[0]:null;
+    const minutes=content.querySelector('[data-drive-inclement-minutes]');
+    const weather=content.querySelector('[data-drive-observed-weather]');
+    const pill=content.querySelector('[data-drive-inclement-provenance]');
+    if(pill)pill.hidden=true;
+    if(!record){
+      if(minutes)minutes.textContent='Unavailable';
+      return;
+    }
+    const hasDesignation=record.effective_minutes!==null&&record.effective_minutes!==undefined;
+    const reportedMinutes=Number(record.effective_minutes||0);
+    if(minutes)minutes.textContent=hasDesignation?`${Math.round(reportedMinutes)} min`:'Unreported';
+
+    // Only credit the full reported interval as DV-verified if the observed
+    // qualifying minutes cover that interval; an UNKNOWN or partial observation
+    // must not become DV verification of the entire reported duration.
+    const verifiedByDV=hasDesignation&&reportedMinutes>0
+      &&drive.weather_classification_status==='CLASSIFIED'
+      &&String(record.classification||'').toUpperCase()==='YES'
+      &&record.evidence_minutes!==null&&record.evidence_minutes!==undefined
+      &&Number.isFinite(Number(record.evidence_minutes))
+      &&Number(record.evidence_minutes)>=reportedMinutes;
+    const manuallyReported=['DRIVER','GUARDIAN'].includes(String(record.designation_actor_role||'').toUpperCase());
+    if(pill && hasDesignation && reportedMinutes>0 && (verifiedByDV || manuallyReported)){
+      pill.hidden=false;
+      pill.textContent=verifiedByDV?'DV Verified':'Driver Verified';
+      pill.dataset.source=verifiedByDV?'dv':'driver';
+    }
+
+    const obs=record.weather_observation?.observation||record.weather_observation||{};
+    const conditions=Array.isArray(obs.conditions)&&obs.conditions.length?
+      obs.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):null;
+    const classified=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
+    if(weather)weather.textContent=classified?conditions:'Unavailable';
+  }
+
   document.addEventListener('click', async event => {
     if (event.target.closest('[data-edit-drive]') && dialog.open) dialog.close();
     const trigger = event.target.closest('[data-drive-detail-id]');
@@ -60,6 +145,7 @@
       if(mine!==detailToken||app.getDriverId()!==driverId||(generation!=null&&app.getRenderGeneration?.()!==generation))return;
       if (error || !data?.ok) { content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'; return; }
       render(data);
+      await showPaWeatherSummary(data.drive,driverId,mine);
     }catch(_){if(mine===detailToken&&app.getDriverId()===driverId)content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'}
   });
   window.addEventListener('dv:driver-changing',()=>{detailToken+=1;if(dialog.open)dialog.close();content.innerHTML=''});

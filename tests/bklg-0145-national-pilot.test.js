@@ -21,8 +21,10 @@ test('requirements map distinguishes supported rulesets from nationwide product 
   assert.match(html, /Drive Venture state-specific ruleset supported/i);
   assert.match(html, /Michigan and Kansas/i);
   assert.match(html, /other categories describe licensing requirements/i);
-  assert.match(svg, /Michigan and Kansas are bright yellow where Drive Venture has a supported state-specific ruleset/i);
+  assert.match(svg, /Michigan, Kansas, and Pennsylvania are bright yellow where Drive Venture has a supported state-specific ruleset/i);
   assert.match(svg, /id="KS" class="state supported"/);
+  assert.match(svg, /id="PA" class="state supported"/);
+  assert.match(svg, /Pennsylvania — 65 supervised hours; 10 night; Certification Only\. Supported by Drive Venture\./);
 });
 
 test('current legal operator identity remains', () => {

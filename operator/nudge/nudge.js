@@ -50,7 +50,7 @@
         '<small>Guardian setting: '+(consent.guardian_enabled?'On':'Off')+'</small>'+
         '<small>Driver opt-out: '+(consent.driver_opted_out?'Yes':'No')+'</small>'+
         '<small>Managed in: Family &amp; Profiles</small></div>':'';
-      return `<li><strong>${esc(row.recipient_name||'Recipient')}</strong> <small>${esc(row.recipient_kind==='DRIVER'?'DRIVER':'GROWN-UP')}</small>${row.driver_name?' · '+esc(row.driver_name):''}<small>${esc(row.recipient_email||'')}</small>${reason?`<small class="nudge-diagnostic-reason">Reason: ${esc(reason)}</small>`:''}${d.action?`<small><strong>Action:</strong> ${esc(d.action)}</small>`:''}${d.next_evaluation?`<small><strong>Next evaluation:</strong> ${esc(d.next_evaluation)}</small>`:''}${consentDetail}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${resolvedEmail(row)}</li>`;
+      return `<li><strong>${esc(row.recipient_name||'Recipient')}</strong> <small>${esc(row.recipient_kind==='DRIVER'?'DRIVER':'GROWN-UP')}</small>${row.driver_name?' · '+esc(row.driver_name):''}${row.driver_id?' · '+(row.is_test_driver?'TEST DRIVER':'REAL DRIVER'):''}<small>${esc(row.recipient_email||'')}</small>${reason?`<small class="nudge-diagnostic-reason">Reason: ${esc(reason)}</small>`:''}${d.action?`<small><strong>Action:</strong> ${esc(d.action)}</small>`:''}${d.next_evaluation?`<small><strong>Next evaluation:</strong> ${esc(d.next_evaluation)}</small>`:''}${consentDetail}${row.preview_error?`<small class="dashboard-error">${esc(row.preview_error)}</small>`:''}${resolvedEmail(row)}</li>`;
     }).join('')+'</ul>';
   }
 

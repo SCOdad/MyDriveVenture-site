@@ -6,13 +6,15 @@
   if(!zip||!stage||!date)return;
   const STAGES={
     MI:[['LEVEL_1','Learner / Level 1 permit'],['LEVEL_2','Intermediate / Level 2 license'],['LEVEL_3','Full / Level 3 license']],
-    KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']]
+    KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']],
+    PA:[['LEARNER','Learner permit'],['JUNIOR','Junior driver license'],['FULL','Unrestricted driver license']]
   };
   function stateFromZip(value){
     if(!/^\d{5}$/.test(value))return null;
     const n=Number(value);
     if(n>=48001&&n<=49971)return'MI';
     if(n>=66002&&n<=67954)return'KS';
+    if(n>=15001&&n<=19640)return'PA';
     return'STATE_NEUTRAL';
   }
   function render(){
