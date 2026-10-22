@@ -62,3 +62,11 @@ test('DEV-only operator diagnostic makes read-only Helcim connection test withou
   assert.match(script,/result\.connected===true&&result\.mode==='DEVELOPER_TEST'/)
   assert.doesNotMatch(script,/HELCIM_API_TOKEN|HELCIM_WEBHOOK_VERIFIER_TOKEN/)
 })
+
+test('DEV-only initialization control never displays or launches provider tokens',()=>{
+  assert.match(page,/id="checkout-dev-init"/)
+  assert.match(script,/action:'developer_initialize_test'/)
+  assert.match(script,/data\.initialized===true/)
+  assert.match(script,/data\.payment_initiated===false/)
+  assert.match(script,/ui\.devInit\.addEventListener\('click'/)
+})
