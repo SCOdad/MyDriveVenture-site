@@ -1,0 +1,38 @@
+name: BKLG-0208 DEV Checkout Preview Parity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - checkout/**
+      - assets/js/checkout.js
+      - .github/workflows/bklg-0208-dev-preview-parity.yml
+
+permissions:
+  contents: read
+
+jobs:
+  preview-parity:
+    name: Public DEV branch-preview source parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Cloudflare serves the noncharging DEV checkout diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://bklg-0208-web-checkout-ui.mydriveventure-dev.pages.dev'
+          for attempt in $(seq 1 18); do
+            curl --fail --silent --show-error --max-time 12 "$url/checkout/" -o /tmp/dv-checkout.html || true
+            curl --fail --silent --show-error --max-time 12 "$url/assets/js/checkout.js?v=bklg0208parity" -o /tmp/dv-checkout.js || true
+            if grep -q 'id="checkout-dev-init"' /tmp/dv-checkout.html 2>/dev/null &&
+               grep -q "developer_initialize_test" /tmp/dv-checkout.js 2>/dev/null &&
+               grep -q 'noindex,nofollow' /tmp/dv-checkout.html 2>/dev/null; then
+              echo 'PASS: Cloudflare DEV branch-preview checkout diagnostic is deployed'
+              exit 0
+            fi
+            echo "Preview parity not yet present (attempt $attempt)"
+            sleep 8
+          done
+          echo 'FAIL: live Cloudflare DEV branch preview has not deployed current checkout diagnostic'
+          exit 1
