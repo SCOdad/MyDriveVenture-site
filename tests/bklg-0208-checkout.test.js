@@ -40,6 +40,10 @@ test('Family ownership, one-time policy consent and card-provider iframe remain 
   assert.match(script,/api\('status'/)
   assert.doesNotMatch(page,/meta-pixel|ga4|facebook|google-analytics/i)
 })
+test('backend receives explicit affirmative consent, not only a Terms version',()=>{
+  assert.match(script,/accept_terms:ui\.consent\.checked/)
+  assert.match(script,/ui\.consent\.checked/)
+})
 test('browser success cannot grant entitlements; no raw card entry in Drive Venture form',()=>{
   assert.match(script,/eventStatus==='SUCCESS'/)
   assert.match(script,/refreshFulfillmentStatus/)
