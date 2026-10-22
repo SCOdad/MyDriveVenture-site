@@ -52,3 +52,13 @@ test('browser success cannot grant entitlements; no raw card entry in Drive Vent
   assert.doesNotMatch(page,/(?:name|id)="(?:cvv|cardnumber|card-number|expiry|pan)"/i)
   assert.match(css,/focus-visible/)
 })
+
+test('DEV-only operator diagnostic makes read-only Helcim connection test without revealing credentials',()=>{
+  assert.match(page,/id="checkout-dev-diagnostics"[^>]*hidden/)
+  assert.match(page,/id="checkout-dev-connect"/)
+  assert.match(script,/DV_ENVIRONMENT_CONFIG\?\.name==='dev'/)
+  assert.match(script,/action:'developer_connection_test'/)
+  assert.match(script,/commercial-operator/)
+  assert.match(script,/result\.connected===true&&result\.mode==='DEVELOPER_TEST'/)
+  assert.doesNotMatch(script,/HELCIM_API_TOKEN|HELCIM_WEBHOOK_VERIFIER_TOKEN/)
+})
