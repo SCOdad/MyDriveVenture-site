@@ -12,7 +12,8 @@
     subtotal:$('checkout-subtotal'),tax:$('checkout-tax'),total:$('checkout-total'),
     quoteExpires:$('checkout-quote-expires'),consent:$('checkout-consent'),
     pay:$('checkout-pay'),devPanel:$('checkout-dev-diagnostics'),
-    devConnect:$('checkout-dev-connect'),devResult:$('checkout-dev-result'),
+    devConnect:$('checkout-dev-connect'),devInit:$('checkout-dev-init'),
+    devResult:$('checkout-dev-result'),
   };
   const cfg=window.DV_APP_CONFIG||{};
   const state={
@@ -226,7 +227,32 @@
       void refreshFulfillmentStatus();
     }
   });
+  async function testDeveloperInitialize(){
+    if(!state.session?.access_token||window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
+    ui.devInit.disabled=true;
+    ui.devResult.textContent='Initializing isolated HelcimPay.js developer session (no card, no charge)…';
+    try{
+      const res=await fetch(`${cfg.supabaseUrl}/functions/v1/commercial-operator`,{
+        method:'POST',headers:{'content-type':'application/json',
+          authorization:`Bearer ${state.session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'developer_initialize_test'}),
+      });
+      const data=await res.json().catch(()=>({}));
+      if(res.status===403){
+        ui.devResult.textContent='Only a DEV platform operator may run the initialization test.';
+      }else if(!res.ok||data.ok!==true){
+        ui.devResult.textContent='DEV initialization test unavailable. No payment was started.';
+      }else if(data.initialized===true&&data.mode==='DEVELOPER_TEST'&&data.payment_initiated===false){
+        ui.devResult.textContent='PASS: HelcimPay.js developer checkout session initialized. No payment was started.';
+      }else{
+        ui.devResult.textContent=`Initialization did not pass. Provider HTTP status: ${Number(data.provider_http_status)||'unavailable'}. No payment was started.`;
+      }
+    }catch(_){
+      ui.devResult.textContent='DEV initialization diagnostic could not be reached. No payment was started.';
+    }finally{ui.devInit.disabled=false;}
+  }
   ui.devConnect.addEventListener('click',()=>void testDeveloperConnection());
+  ui.devInit.addEventListener('click',()=>void testDeveloperInitialize());
   ui.family.addEventListener('change',renderOffers);
   ui.offers.addEventListener('change',()=>{resetQuote();});
   ui.state.addEventListener('input',()=>{ui.state.value=ui.state.value.toUpperCase();resetQuote();});
