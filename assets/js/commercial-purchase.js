@@ -109,6 +109,23 @@ async function init(){
  render();
  }catch(_){/* Existing Family management must remain usable if commerce is unavailable. */}
 }
-window.DVCommercialPurchase={init};
+async function open({family_id,offer_code}={}){
+ if(!document.getElementById('dv-commercial-purchase')){
+  const main=document.querySelector('main');
+  if(!main)throw Error('Purchase surface is not available.');
+  const panel=document.createElement('section');
+  panel.id='dv-commercial-purchase';
+  panel.className='form-card';
+  panel.hidden=true;
+  main.appendChild(panel);
+ }
+ if(!host)await init();
+ if(!host)throw Error('Sign in as an authorized Family License Holder to purchase.');
+ if(family_id){select.value=String(family_id);updateOffer();}
+ if(offer_code&&[...offer.options].some(o=>o.value===offer_code)){offer.value=offer_code;reset();}
+ host.scrollIntoView({behavior:'smooth',block:'start'});
+ return {available:!!catalog?.checkout_enabled, family_id:select.value, offer_code:offer.value};
+}
+window.DVCommercialPurchase={init,open};
 document.addEventListener('DOMContentLoaded',()=>void init());
 })();
