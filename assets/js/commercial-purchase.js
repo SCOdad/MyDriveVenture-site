@@ -138,5 +138,5 @@ async function open({family_id,offer_code}={}){
  return {available:!!catalog?.checkout_enabled, family_id:select.value, offer_code:offer.value};
 }
 window.DVCommercialPurchase={init,open};
-document.addEventListener('DOMContentLoaded',()=>void init());
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void init());else void init();
 })();
