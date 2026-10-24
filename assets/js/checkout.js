@@ -3,6 +3,9 @@
 // server's purchase controls are enabled, this page fails closed.
 (()=>{
   'use strict';
+  const testParams=new URLSearchParams(location.search);
+  const testRun=window.DV_ENVIRONMENT_CONFIG?.name==='dev'?testParams.get('dev_test_run'):null;
+  const testFamily=testRun?testParams.get('test_family'):null;
   const $=id=>document.getElementById(id);
   const ui={
     status:$('checkout-status'),signin:$('checkout-signin'),app:$('checkout-app'),
@@ -57,7 +60,8 @@
     ui.quoteButton.disabled=Boolean(reason);
     ui.quoteHelp.textContent=reason||'Ready to calculate your current total.';
     ui.offerHelp.textContent=!state.catalog?.checkout_enabled
-      ? 'Products are shown for reference. Selection is disabled until purchases are enabled.' : '';
+      ? 'Products are shown for reference. Selection is disabled until purchases are enabled.'
+      : state.catalog?.test_context?`AUTHORIZED DEV TEST ONLY. Use Helcim test cards and ${state.catalog.test_context.receipt_email}. No real cards or ACH submissions. Maximum 6 submissions across the entire test; stop if gross exceeds $35. Fee Saver amounts are shown by Helcim before submission.`:'';
   }
   function renderBillingStates(){
     ui.state.replaceChildren(new Option('Choose your billing state',''));
@@ -67,7 +71,7 @@
     ui.state.add(new Option('Another state — unavailable','UNAVAILABLE'));
     const provisional=(state.catalog?.billing_states||[]).some(s=>s.provisional);
     ui.stateHelp.textContent=provisional
-      ? 'This DEV sandbox is prepared for Michigan only, with provisional $0 sales tax pending CPA review. Choose your actual billing state; other states are unavailable.'
+      ? 'This DEV sandbox is prepared for Michigan only, with provisional $0 sales tax pending tax determination. Choose your actual billing state; other states are unavailable.'
       : 'Choose your actual billing state. Only states reviewed for checkout are available.';
   }
   async function api(action,payload={}){
@@ -76,7 +80,7 @@
     const res=await fetch(`${cfg.supabaseUrl}/functions/v1/commercial-checkout`,{
       method:'POST',
       headers:{'content-type':'application/json',authorization:`Bearer ${state.session.access_token}`,apikey:cfg.publishableKey},
-      body:JSON.stringify({action,...payload}),
+      body:JSON.stringify({action,...(testRun?{dev_test_run_id:testRun,family_id:testFamily}:{}),...payload}),
     });
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.ok!==true)throw new Error(data.error||'Checkout service is not available.');
@@ -121,6 +125,7 @@
     ui.family.replaceChildren(new Option('Choose the Family you administer',''));
     for(const c of state.contexts){
       if(!c.is_license_holder)continue;
+      if(state.catalog?.test_context&&String(c.family_id)!==String(state.catalog.test_context.family_id))continue;
       const label=`${c.license_holder_name||'Your'} Family · ${c.commercial_state||'—'} · ${c.driver_count||0} of ${c.driver_capacity||0} drivers`;
       ui.family.add(new Option(label,String(c.family_id)));
     }
@@ -186,7 +191,7 @@
   }
   function consentReady(){
     const q=state.quote;
-    return Boolean(q&&ui.consent.checked&&!ui.consent.disabled&&
+    return Boolean((!state.catalog?.test_context||!state.purchaseId)&&q&&ui.consent.checked&&!ui.consent.disabled&&
       selectedFamily()&&selectedOffer()&&
       q.family_id===ui.family.value&&q.offer_code===selectedOffer()&&
       q.billing_state===ui.state.value.trim().toUpperCase()&&
