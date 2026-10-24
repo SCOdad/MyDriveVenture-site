@@ -72,7 +72,18 @@ async function quotePurchase(){
 async function status(){
  if(!purchaseId)return false;
  try{const result=await invoke('commercial-checkout','status',{purchase_id:purchaseId,family_id:select.value});
- if(result.status==='FULFILLED'){message('Payment independently verified. Family entitlement updated.');payButton.disabled=true;window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:select.value}}));return true;}
+ if(result.status==='FULFILLED'){
+ const fulfilledFamily=select.value;checkoutToken=null;payButton.disabled=true;
+ try{
+  const overview=await invoke('family-api','overview');
+  contexts=(overview.overview?.family_contexts||overview.family_contexts||[]).filter(c=>c.is_license_holder);
+  catalog=await invoke('commercial-checkout','catalog');
+  render();
+ }catch(_){/* The parent Family Hub independently refreshes; status remains authoritative. */}
+ message('Payment independently verified. Family entitlement updated.');
+ window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:fulfilledFamily}}));
+ return true;
+}
  if(['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'].includes(result.status)){message('Payment not confirmed. Contact support before retrying.');payButton.disabled=true;return true;}
  }catch(_){}return false;
 }
