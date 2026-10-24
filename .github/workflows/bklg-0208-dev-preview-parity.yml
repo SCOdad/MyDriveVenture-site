@@ -1,86 +1,25 @@
-name: BKLG-0208 DEV Checkout Preview Parity
-
+name: BKLG-0208 DEV Family Purchase Source Contract
 on:
   pull_request:
     branches: [main]
     paths:
-      - checkout/**
-      - assets/js/checkout.js
+      - family/**
+      - assets/js/commercial-purchase.js
+      - tests/bklg-0208-checkout.test.js
       - .github/workflows/bklg-0208-dev-preview-parity.yml
-
 permissions:
   contents: read
-
 jobs:
-  preview-parity:
-    name: Public DEV branch-preview source parity
+  purchase-contract:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Verify Cloudflare serves the noncharging DEV checkout diagnostic
-        shell: bash
+      - name: Verify shared purchase contract and removed checkout
         run: |
-          set -euo pipefail
-          url='https://bklg-0208-web-checkout-ui.mydriveventure-dev.pages.dev'
-          for attempt in $(seq 1 18); do
-            curl --fail --silent --show-error --max-time 12 "$url/checkout/" -o /tmp/dv-checkout.html || true
-            curl --fail --silent --show-error --max-time 12 "$url/assets/js/checkout.js?v=bklg0208parity" -o /tmp/dv-checkout.js || true
-            if grep -q 'id="checkout-dev-fee-saver"' /tmp/dv-checkout.html 2>/dev/null &&
-               cmp -s assets/js/checkout.js /tmp/dv-checkout.js &&
-               grep -q 'noindex,nofollow' /tmp/dv-checkout.html 2>/dev/null; then
-              echo 'PASS: Cloudflare DEV branch-preview checkout diagnostic is deployed'
-              exit 0
-            fi
-            echo "Preview parity not yet present (attempt $attempt)"
-            sleep 8
-          done
-          echo 'FAIL: live Cloudflare DEV branch preview has not deployed current checkout diagnostic'
-          exit 1
-
-      - name: Verify approved October 16 policy content matches DEV
-        shell: bash
+          node --check assets/js/commercial-purchase.js
+          node --test tests/bklg-0208-checkout.test.js
+      - name: Verify no standalone checkout reference in public Family Hub
         run: |
-          set -euo pipefail
-          base='https://bklg-0208-web-checkout-ui.mydriveventure-dev.pages.dev'
-          for policy in terms privacy; do
-            curl --fail --silent --show-error --max-time 20 "$base/$policy/" -o "/tmp/dv-$policy.html"
-          done
-          python3 - <<'PYCODE'
-          import pathlib, re, hashlib
-          for policy in ['terms', 'privacy']:
-              local = pathlib.Path(policy + '/index.html').read_bytes()
-              live = pathlib.Path('/tmp/dv-' + policy + '.html').read_bytes()
-              pattern = rb'<main\b[^>]*>.*?</main>'
-              expected = re.search(pattern, local, re.S).group()
-              actual = re.search(pattern, live, re.S).group()
-              assert expected == actual, policy + ' deployed policy differs'
-              assert (policy + '-2026-10-16').encode() in actual
-              print('PASS:', policy, 'main-element SHA256', hashlib.sha256(actual).hexdigest())
-          PYCODE
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm ci --ignore-scripts
-      - run: npx playwright install --with-deps chromium
-      - name: Verify checkout controls with synthetic sessions
-        run: npx playwright test tests/e2e/bklg-0208-checkout-preparation.spec.mjs
-
-      - name: Reject unsigned Helcim card transaction notifications in DEV
-        shell: bash
-        run: |
-          set -euo pipefail
-          endpoint='https://safwylxxhywbsfxpmchd.supabase.co/functions/v1/commercial-provider-events'
-          status="$(curl --fail-with-body --silent --show-error --max-time 20 \
-            --output /tmp/dv-unsigned-webhook-response \
-            --write-out '%{http_code}' \
-            --header 'content-type: application/json' \
-            --data '{"id":"123456789","type":"cardTransaction"}' \
-            "$endpoint" || true)"
-          if [ "$status" = "401" ] && grep -q 'Signature rejected' /tmp/dv-unsigned-webhook-response; then
-            echo 'PASS: DEV signed webhook endpoint rejects unauthenticated event'
-            exit 0
-          fi
-          echo "FAIL: unsigned webhook rejection missing, HTTP status $status"
-          exit 1
+          if test -e checkout/index.html; then echo "Standalone checkout must not ship"; exit 1; fi
+          if grep -R -nE 'href="/checkout/|src="/assets/js/checkout.js' family/; then exit 1; fi
