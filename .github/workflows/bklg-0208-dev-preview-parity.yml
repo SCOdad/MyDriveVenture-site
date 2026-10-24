@@ -1,0 +1,25 @@
+name: BKLG-0208 DEV Family Purchase Source Contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - family/**
+      - assets/js/commercial-purchase.js
+      - tests/bklg-0208-checkout.test.js
+      - .github/workflows/bklg-0208-dev-preview-parity.yml
+permissions:
+  contents: read
+jobs:
+  purchase-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify shared purchase contract and removed checkout
+        run: |
+          node --check assets/js/commercial-purchase.js
+          node --test tests/bklg-0208-checkout.test.js
+      - name: Verify no standalone checkout reference in public Family Hub
+        run: |
+          if test -e checkout/index.html; then echo "Standalone checkout must not ship"; exit 1; fi
+          if grep -R -nE 'href="/checkout/|src="/assets/js/checkout.js' family/; then exit 1; fi
