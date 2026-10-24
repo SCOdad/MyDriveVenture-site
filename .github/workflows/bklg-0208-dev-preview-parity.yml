@@ -6,6 +6,7 @@ on:
       - family/**
       - assets/js/commercial-purchase.js
       - tests/bklg-0208-checkout.test.js
+      - tests/e2e/bklg-0208-family-purchase.spec.mjs
       - .github/workflows/bklg-0208-dev-preview-parity.yml
 permissions:
   contents: read
@@ -23,3 +24,17 @@ jobs:
         run: |
           if test -e checkout/index.html; then echo "Standalone checkout must not ship"; exit 1; fi
           if grep -R -nE 'href="/checkout/|src="/assets/js/checkout.js' family/; then exit 1; fi
+
+  mocked-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Isolated Family Hub purchase browser regressions
+        run: npx playwright test tests/e2e/bklg-0208-family-purchase.spec.mjs --retries=0
