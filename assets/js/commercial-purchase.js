@@ -27,11 +27,10 @@ function ensureDialog(){
  if(dialog)return;
  if(!document.querySelector('link[data-commercial-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/commercial-purchase.css?v=hub2';link.dataset.commercialStyle='';document.head.append(link);}
  dialog=document.createElement('dialog');dialog.className='commercial-dialog';dialog.setAttribute('aria-labelledby','dv-purchase-title');
- dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><label data-billing>United States billing state <select data-state><option value="">Choose your billing state</option></select></label><p data-summary aria-live="polite"></p><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
+ dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><p data-summary aria-live="polite"></p><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
  document.body.append(dialog);
  dialog.querySelector('[data-close]').onclick=()=>dialog.close();
  dialog.addEventListener('close',()=>{if(active&&!active.started){active=null;} });
- dialog.querySelector('[data-state]').onchange=()=>void getQuote(active);
  dialog.querySelector('[data-consent]').onchange=()=>sync();
  dialog.querySelector('[data-pay]').onclick=()=>void launch(active);
  dialog.querySelector('[data-recheck]').onclick=()=>void poll(active);
@@ -42,11 +41,9 @@ function openReadOnlyPreview(data){
  if(window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
  ensureDialog();
  active=null;
- dialog.querySelector('h2').textContent=label(data.offers[0].offer_code)+' — DEV preview';
- dialog.querySelector('[data-description]').textContent='One-time purchase. This is a visual preview only; no transaction can be started.';
- const state=dialog.querySelector('[data-state]');
- state.replaceChildren(new Option('Michigan (illustrative)', 'MI'));state.value='MI';state.disabled=true;
- dialog.querySelector('[data-summary]').textContent='Base price '+money(data.offers[0].unit_cents)+' · Sales tax and final total are not quoted in preview.';
+ dialog.querySelector('h2').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Full Family License':'+1 Driver';
+ dialog.querySelector('[data-description]').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Includes three active driver slots. One-time purchase.':'One additional active driver slot. One-time purchase.';
+ dialog.querySelector('[data-summary]').textContent=money(data.offers[0].unit_cents)+' · base price (DEV preview; final charges not quoted)';
  dialog.querySelector('[data-consent]').checked=false;dialog.querySelector('[data-consent]').disabled=true;
  dialog.querySelector('[data-pay]').disabled=true;
  dialog.querySelector('[data-recheck]').hidden=true;
@@ -59,16 +56,14 @@ function sync(){
 }
 async function getQuote(a){
  if(!a||a!==active||a.started)return;
- const state=dialog.querySelector('[data-state]').value,revision=++a.revision;
+ const revision=++a.revision;
  a.quote=null;dialog.querySelector('[data-consent]').checked=false;dialog.querySelector('[data-consent]').disabled=true;dialog.querySelector('[data-summary]').textContent='';sync();
- if(!state){say('Choose your billing state to check availability and tax.');return;}
- if(state==='UNSUPPORTED'){say('Purchasing is not yet available for this billing jurisdiction.');return;}
  say('Checking current price and tax…');
  try{
-  const data=await invoke('commercial-checkout','quote',{family_id:a.family_id,offer_code:a.code,billing_country:'US',billing_state:state});
+  const data=await invoke('commercial-checkout','quote',{family_id:a.family_id,offer_code:a.code,billing_country:'US'});
   if(a!==active||revision!==a.revision)return;
   const q=data.quote,expiry=Date.parse(q?.expires_at);
-  if(!q||q.family_id!==a.family_id||q.offer_code!==a.code||q.billing_state!==state||q.currency!=='USD'||!Number.isSafeInteger(q.subtotal_cents)||q.subtotal_cents<0||!Number.isSafeInteger(q.tax_cents)||q.tax_cents<0||!Number.isSafeInteger(q.total_cents)||q.total_cents!==q.subtotal_cents+q.tax_cents||!q.quote_id||!q.terms_version||!q.terms_digest||!q.privacy_version||!q.privacy_digest||!Number.isFinite(expiry)||expiry<=Date.now())throw Error('The quote could not be verified. Close and reopen purchasing for a fresh quote.');
+  if(!q||q.family_id!==a.family_id||q.offer_code!==a.code||q.currency!=='USD'||!Number.isSafeInteger(q.subtotal_cents)||q.subtotal_cents<0||!Number.isSafeInteger(q.tax_cents)||q.tax_cents<0||!Number.isSafeInteger(q.total_cents)||q.total_cents!==q.subtotal_cents+q.tax_cents||!q.quote_id||!q.terms_version||!q.terms_digest||!q.privacy_version||!q.privacy_digest||!Number.isFinite(expiry)||expiry<=Date.now())throw Error('The quote could not be verified. Close and reopen purchasing for a fresh quote.');
   a.quote=q;dialog.querySelector('[data-summary]').textContent=`Subtotal ${money(q.subtotal_cents)} · Sales tax ${money(q.tax_cents)} · Total ${money(q.total_cents)}. One-time purchase.`;
   dialog.querySelector('[data-consent]').disabled=false;
   say('Review the total and policies before continuing. Any provider fee must be disclosed in secure payment before you submit.');
@@ -86,20 +81,17 @@ async function open({family_id}={}){
   if(!data.checkout_enabled)throw Error(data.disabled_reason||'Purchases are paused.');
   ensureDialog();
   active={family_id,code:data.offers[0].offer_code,revision:0,quote:null,busy:false,started:false,nonce:crypto.randomUUID()};
-  dialog.querySelector('h2').textContent=label(active.code);
+  dialog.querySelector('h2').textContent=active.code==='FAMILY_LICENSE'?'Full Family License':'+1 Driver';
   dialog.querySelector('[data-description]').textContent=active.code==='FAMILY_LICENSE'?'Full Family license with capacity for three drivers.':'Add capacity for one more driver to this Family.';
-  const state=dialog.querySelector('[data-state]');state.replaceChildren(new Option('Choose your billing state',''));state.disabled=false;
-  for(const item of data.billing_states||[])state.add(new Option(item.code==='MI'?'Michigan':item.code,item.code));
-  state.add(new Option('Another state or country','UNSUPPORTED'));
   dialog.querySelector('[data-consent]').disabled=true;dialog.querySelector('[data-consent]').checked=false;
   dialog.querySelector('[data-summary]').textContent='';dialog.querySelector('[data-recheck]').hidden=true;sync();
-  say('Choose your billing state to check availability and tax.');dialog.showModal();
+  say('Confirm the product, final price and policies.');dialog.showModal();void getQuote(active);
   return {available:true,family_id,offer_code:active.code};
  }finally{opening=false;}
 }
 async function launch(a){
  sync();if(a!==active||dialog.querySelector('[data-pay]').disabled)return;
- a.busy=true;a.started=true;sync();dialog.querySelector('[data-state]').disabled=true;dialog.querySelector('[data-consent]').disabled=true;
+ a.busy=true;a.started=true;sync();dialog.querySelector('[data-consent]').disabled=true;
  // After a start request, an uncertain response must not create a second purchase.
  try{
   if(typeof window.appendHelcimPayIframe!=='function')throw Error('Secure payment could not load. No session was requested.');
