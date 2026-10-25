@@ -11,7 +11,7 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   const b=req.postDataJSON();calls.push(b);let out={ok:true},code=state==='PAID'?'ADDITIONAL_DRIVER_CAPACITY':'FAMILY_LICENSE';
   if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state}]};
   else if(b.action==='catalog'){
-   if(denied||!['family','other'].includes(b.family_id))return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
+   if(denied||b.family_id!=='family')return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
    out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:pending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
   }else if(b.action==='quote')out={ok:true,quote:{quote_id:'quote',family_id:b.family_id,offer_code:code,billing_state:b.billing_state,currency:'USD',subtotal_cents:2499,tax_cents:0,total_cents:2499,terms_version:'terms-2026-10-16',terms_digest:'terms-digest',privacy_version:'privacy-2026-10-16',privacy_digest:'privacy-digest',expires_at:new Date(Date.now()+600000).toISOString(),...quotePatch}};
   else if(b.action==='start'){
@@ -74,6 +74,7 @@ test('backend denial defeats a claimed holder context',async({page})=>{
 });
 test('browser success does not fulfill a pending payment; reopening cannot resubmit',async({page})=>{
  const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
+ await expect.poll(()=>page.evaluate(()=>window.providerCalls.length)).toBe(1);
  await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'SUCCESS'}})));
  await expect(page.locator('dialog')).toBeVisible();await expect(page.locator('[data-pay]')).toBeDisabled();expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
 });
