@@ -115,9 +115,11 @@ test('UAT: current grown-up is not duplicated in Other Account Access',()=>{
   assert.match(js,/String\(g\.person_id\)!==String\(overview\.current_person_id\)/);
 });
 
-test('UAT: zero-driver owned Family uses only the large Add Driver CTA',()=>{
+test('UAT: zero-driver owned Family prominently uses one top Add Driver CTA',()=>{
   const js=read('assets/js/family.js');
-  assert.match(js,/addDriver\.hidden=ownedDrivers\.length===0/);
+  assert.match(js,/addDriver\.hidden=false/);
+  assert.match(js,/addDriver\.classList\.toggle\('primary',ownedDrivers\.length===0\)/);
+  assert.match(js,/Use the Add driver button above to create your first driver/);
   assert.match(js,/Add your driver/);
 });
 
