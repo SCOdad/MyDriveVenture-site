@@ -11,7 +11,7 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   const b=req.postDataJSON();calls.push(b);let out={ok:true},code=state==='PAID'?'ADDITIONAL_DRIVER_CAPACITY':'FAMILY_LICENSE';
   if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state}]};
   else if(b.action==='catalog'){
-   if(denied||b.family_id!=='family')return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
+   if(denied||!['family','other'].includes(b.family_id))return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
    out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:pending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
   }else if(b.action==='quote')out={ok:true,quote:{quote_id:'quote',family_id:b.family_id,offer_code:code,billing_state:b.billing_state,currency:'USD',subtotal_cents:2499,tax_cents:0,total_cents:2499,terms_version:'terms-2026-10-16',terms_digest:'terms-digest',privacy_version:'privacy-2026-10-16',privacy_digest:'privacy-digest',expires_at:new Date(Date.now()+600000).toISOString(),...quotePatch}};
   else if(b.action==='start'){
@@ -62,8 +62,13 @@ test('mixed-family access does not confer purchase authority',async({page})=>{
  await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
  const error=await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'other'}).catch(e=>e.message));expect(error).toContain('License Holder');
 });
-test('ambiguous owned Families and missing context fail closed without selector',async({page})=>{
- await prepare(page,{contexts:[{family_id:'family',is_license_holder:true},{family_id:'other',is_license_holder:true}]});await expect(page.locator('#dv-commercial-purchase')).toContainText('specific Family');await expect(page.locator('select')).toHaveCount(0);
+test('DEV account with multiple holder contexts gets explicit Family-bound actions rather than a dead-end message',async({page})=>{
+ const calls=await prepare(page,{contexts:[{family_id:'family',is_license_holder:true,commercial_state:'FREE',driver_count:0,driver_capacity:1},{family_id:'other',is_license_holder:true,commercial_state:'PAID',driver_count:3,driver_capacity:3}]});
+ await expect(page.locator('.commercial-family-option')).toHaveCount(2);
+ await expect(page.locator('.commercial-family-option button')).toHaveCount(2);
+ await expect(page.locator('#dv-commercial-purchase')).not.toContainText('Open purchasing from a specific Family.');
+ await expect(page.locator('select')).toHaveCount(0);
+ expect(calls.filter(c=>c.action==='catalog').map(c=>c.family_id).sort()).toEqual(['family','other']);
  expect(await page.evaluate(()=>window.DVCommercialPurchase.open().catch(e=>e.message))).toContain('specific Family');
 });
 test('backend denial defeats a claimed holder context',async({page})=>{
