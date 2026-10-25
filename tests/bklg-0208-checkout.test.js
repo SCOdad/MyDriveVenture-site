@@ -13,3 +13,12 @@ test('shared launcher has no hardcoded prices or permanent product/Family select
  assert.doesNotMatch(shared,/\$24\.99|\$9\.99|2499|999|dv-buy-family|dv-buy-offer/);
  assert.match(shared,/Object\.freeze\(\{init,mount,open\}\)/);
 });
+
+test('capacity upgrade is placed in Family Hub top actions, not a second purchasing section',()=>{
+ assert.match(family, /id="owned-family-actions"[\s\S]*id="dv-commercial-purchase"/);
+ assert.match(family, /id="dv-commercial-purchase" class="family-commercial-action"/);
+ assert.doesNotMatch(family, /id="dv-commercial-purchase" class="form-card"/);
+ assert.match(shared, /Upgrade to add driver/);
+ assert.match(shared, /driver_count/);
+ assert.match(shared, /driver_capacity/);
+});
