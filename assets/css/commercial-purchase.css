@@ -5,3 +5,8 @@
 .commercial-dialog a{color:var(--dv-yellow,#f4b820)}.commercial-dialog button,.commercial-dialog select{font:inherit}
 
 .commercial-dialog select{background:#fff;color:#172033}.commercial-dialog [data-close]{background:transparent;color:inherit;box-shadow:none}.commercial-dialog button:disabled{opacity:.55;cursor:not-allowed}
+
+/* Family Hub purchasing occupies the existing action row, not a full-page panel. */
+.family-commercial-action:not([hidden]){display:inline-flex;flex-direction:column;gap:.35rem;align-items:flex-start;max-width:24rem}
+.family-commercial-action .family-explainer{font-size:.8rem;line-height:1.3;margin:0;max-width:24rem}
+.family-commercial-action .button{white-space:normal;text-align:center}
