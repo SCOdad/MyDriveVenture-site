@@ -16,4 +16,8 @@ Helcim Merchant Services / HelcimPay.js / Payment API
 
 ## Release Notes / Migration Log
 
-No production release or new database migration occurred in this change. Retain existing history. Recommend a versioned DEV acceptance checkpoint after human Hub UAT; do not allocate or write a release/migration entry without the approved version and exact draft.
+No production release occurred. DEV migration 20261025134903_bklg_0208_capacity_purchase_serialization adds commercial_single_pending_capacity_per_family_v1, preventing concurrent unresolved capacity purchases across browser sessions. Rollback-only ledger/fulfillment/security regression passed. Production migration remains unapplied.
+
+Migration Log draft Details (new row; record ID/version fields require the current allocation convention before writing): "BKLG-0208 DEV only: applied 20261025134903_bklg_0208_capacity_purchase_serialization on October 25, 2026. Adds a unique partial index for unresolved ADDITIONAL_DRIVER_CAPACITY purchases per Family; fulfilled capacity remains repeatable. Rollback-only regression verified duplicate rejection, payment holds, exact-once entitlement and security boundaries. No production migration or payment enablement."
+
+Recommend a versioned DEV acceptance checkpoint after human Hub UAT. Preserve existing release/migration history; do not invent an allocated governance ID.

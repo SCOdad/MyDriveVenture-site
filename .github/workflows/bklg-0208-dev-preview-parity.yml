@@ -57,7 +57,7 @@ jobs:
           for attempt in $(seq 1 30); do
             matched=true
             for path in assets/js/commercial-purchase.js assets/css/commercial-purchase.css assets/js/family.js assets/js/family-bootstrap.js family/index.html operator/payments/index.html operator/payments/diagnostics.js; do
-              if ! curl -fsS "$DEV_URL/$path?parity=${{ github.event.pull_request.head.sha }}-$attempt" -o /tmp/live-source || ! cmp -s "$path" /tmp/live-source; then matched=false; break; fi
+              if ! curl -fsS "$DEV_URL/${path%index.html}?parity=${{ github.event.pull_request.head.sha }}-$attempt" -o /tmp/live-source || ! cmp -s "$path" /tmp/live-source; then matched=false; break; fi
             done
             if $matched; then break; fi
             sleep 10
