@@ -25,3 +25,10 @@ test('capacity upgrade is placed in Family Hub top actions, not a second purchas
  assert.match(shared, /driver_count/);
  assert.match(shared, /driver_capacity/);
 });
+
+test('Family Hub action row has secondary grown-up and separated primary upgrade styling',()=>{
+ const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
+ assert.match(css, /#owned-family-actions\{display:flex;align-items:center;justify-content:space-between/);
+ assert.match(css, /#owned-family-actions \[data-open-panel="grownup"\]/);
+ assert.match(css, /#owned-family-actions \.family-commercial-action:not\(\[hidden\]\)\{margin-left:auto/);
+});
