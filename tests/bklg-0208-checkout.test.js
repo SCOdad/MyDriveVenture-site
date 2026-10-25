@@ -50,3 +50,10 @@ test('exhausted drive form is visibly read-only, while edit mode may remain avai
  assert.match(js,/const unavailable = !!blocked && !editMode\(\)/);
  assert.match(css,/#drive-form\[data-dv-entitlement-blocked="true"\] input/);
 });
+
+test('returning from an existing drive edit hides the Exit edit action under exhausted entitlement',()=>{
+ const driveUi=fs.readFileSync('assets/js/log-drive-rpc.js','utf8');
+ const css=fs.readFileSync('assets/css/log-dashboard-v3.css','utf8');
+ assert.match(driveUi,/if\(cancel\)cancel\.hidden=true/);
+ assert.match(css,/#drive-edit-cancel\[hidden\]\{display:none!important\}/);
+});
