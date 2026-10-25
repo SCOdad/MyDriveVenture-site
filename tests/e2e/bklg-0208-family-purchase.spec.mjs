@@ -60,7 +60,7 @@ for(const patch of [{family_id:'other'},{privacy_digest:null},{expires_at:'inval
  await expect(page.locator('[data-notice]')).toContainText('could not be verified');await expect(page.locator('[data-consent]')).toBeDisabled();await expect(page.locator('[data-pay]')).toBeDisabled();
 });
 test('mixed-family access does not confer purchase authority',async({page})=>{
- await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
+ await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true,driver_count:1,driver_capacity:1}]});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
  const error=await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'other'}).catch(e=>e.message));expect(error).toContain('License Holder');
 });
 test('duplicate holder assignments fail closed instead of offering multiple purchase buttons',async({page})=>{
