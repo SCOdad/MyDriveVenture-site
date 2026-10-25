@@ -131,7 +131,7 @@ async function mount(element,{family_id}={}){
  const generation=(mountGenerations.get(element)||0)+1;mountGenerations.set(element,generation);element.replaceChildren();element.hidden=false;
  try{
   const data=await context(family_id);if(generation!==mountGenerations.get(element))return;
-  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'?'Upgrade to add driver':label(offer.offer_code);button.disabled=(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name!=='dev')||!!data.pending_purchase;
+  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'||(offer.offer_code==='FAMILY_LICENSE'&&Number(data.driver_count)>0)?'Upgrade to add driver':label(offer.offer_code);button.disabled=(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name!=='dev')||!!data.pending_purchase;
   const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':window.DV_ENVIRONMENT_CONFIG?.name==='dev'?'DEV preview only — purchases paused.':'Purchases temporarily paused.';
   button.onclick=()=>{if(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){openReadOnlyPreview(data);return;}void open({family_id}).catch(e=>{explanation.textContent=e.message;});};element.append(button,explanation);
  }catch(e){if(generation===mountGenerations.get(element))element.textContent=e.message;}
@@ -151,6 +151,7 @@ async function init(){
   // capacity replace it with the one Family-scoped purchase action, not
   // an independent checkout section.
   const full=Number.isFinite(Number(c.driver_count))&&Number.isFinite(Number(c.driver_capacity))&&Number(c.driver_count)>=Number(c.driver_capacity);
+  if(Number(c.driver_count)===0){if(addDriver?.parentElement)addDriver.parentElement.style.display='';host.hidden=true;host.replaceChildren();return;}
   if(c.commercial_state==='PAID'&&!full){if(addDriver?.parentElement)addDriver.parentElement.style.display='';host.hidden=true;host.replaceChildren();return;}
   if(addDriver?.parentElement)addDriver.parentElement.style.display='none';
   await mount(host,{family_id:String(c.family_id)});
