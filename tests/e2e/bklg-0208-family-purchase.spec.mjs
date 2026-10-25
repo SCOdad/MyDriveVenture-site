@@ -9,7 +9,7 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   const req=route.request();
   if(req.method()==='GET')return route.fulfill({contentType:req.url().includes('.css')?'text/css':'text/html',body:req.url().includes('.css')?css:'<html><head></head><body><main><section id="dv-commercial-purchase" hidden></section></main></body></html>'});
   const b=req.postDataJSON();calls.push(b);let out={ok:true},code=state==='PAID'?'ADDITIONAL_DRIVER_CAPACITY':'FAMILY_LICENSE';
-  if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state,driver_count:state==='PAID'?3:0,driver_capacity:state==='PAID'?3:1}]};
+  if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state,driver_count:state==='PAID'?3:1,driver_capacity:state==='PAID'?3:1}]};
   else if(b.action==='catalog'){
    if(denied||b.family_id!=='family')return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
    out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:pending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
@@ -33,17 +33,17 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
  await expect(page.locator('#dv-commercial-purchase')).toBeVisible();
  return calls;
 }
-async function quote(page){await page.getByRole('button',{name:'Buy Full License'}).click();await expect(page.locator('[data-summary]')).toContainText('$24.99');}
+async function quote(page){await page.getByRole('button',{name:'Upgrade to add driver'}).click();await expect(page.locator('[data-summary]')).toContainText('$24.99');}
 test('paused purchasing shows one disabled contextual control, no permanent form or diagnostics',async({page})=>{
- await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
+ await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
  await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('DEV preview only — purchases paused.');
 });
 for(const state of ['FREE','FREE_EXHAUSTED','PAID'])test(`${state} gets its single server-eligible action`,async({page})=>{
- const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:state==='PAID'?'Upgrade to add driver':'Buy Full License'})).toBeEnabled();
+ const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
  expect(calls.some(c=>c.dev_test_run_id||c.family_id==='old-family')).toBeFalsy();
 });
 test('server supplies jurisdiction automatically; explicit consent binds a fresh quote',async({page})=>{
- const calls=await prepare(page);await page.getByRole('button',{name:'Buy Full License'}).click();
+ const calls=await prepare(page);await page.getByRole('button',{name:'Upgrade to add driver'}).click();
  await expect(page.locator('[data-state]')).toHaveCount(0);
  await expect(page.locator('[data-summary]')).toContainText('$24.99');await expect(page.locator('[data-pay]')).toBeDisabled();
  await page.locator('[data-consent]').check();await expect(page.locator('[data-pay]')).toBeEnabled();
@@ -56,11 +56,11 @@ test('cancel clears consent and reopening requests a new quote',async({page})=>{
  await quote(page);await expect(page.locator('[data-consent]')).not.toBeChecked();expect(calls.filter(c=>c.action==='quote')).toHaveLength(2);expect(calls.some(c=>c.action==='start')).toBeFalsy();
 });
 for(const patch of [{family_id:'other'},{privacy_digest:null},{expires_at:'invalid'},{expires_at:'2020-01-01'},{total_cents:2500}])test(`rejects malformed or stale quote ${JSON.stringify(patch)}`,async({page})=>{
- await prepare(page,{quotePatch:patch});await page.getByRole('button',{name:'Buy Full License'}).click();
+ await prepare(page,{quotePatch:patch});await page.getByRole('button',{name:'Upgrade to add driver'}).click();
  await expect(page.locator('[data-notice]')).toContainText('could not be verified');await expect(page.locator('[data-consent]')).toBeDisabled();await expect(page.locator('[data-pay]')).toBeDisabled();
 });
 test('mixed-family access does not confer purchase authority',async({page})=>{
- await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
+ await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
  const error=await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'other'}).catch(e=>e.message));expect(error).toContain('License Holder');
 });
 test('duplicate holder assignments fail closed instead of offering multiple purchase buttons',async({page})=>{
@@ -97,12 +97,12 @@ test('shared launcher works without Hub host and fits mobile',async({page})=>{
 });
 
 test('existing unresolved server payment blocks a new session after reload',async({page})=>{
- await prepare(page,{pending:{id:'existing',status:'SESSION_CREATED'}});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeDisabled();
+ await prepare(page,{pending:{id:'existing',status:'SESSION_CREATED'}});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeDisabled();
  expect(await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'family'}).catch(e=>e.message))).toContain('existing Family payment');
 });
 test('popup never requests a browser-entered billing state',async({page})=>{
  const calls=await prepare(page);
- await page.getByRole('button',{name:'Buy Full License'}).click();
+ await page.getByRole('button',{name:'Upgrade to add driver'}).click();
  await expect(page.locator('[data-state]')).toHaveCount(0);
  await expect(page.locator('[data-summary]')).toContainText('$24.99');
  expect(calls.find(c=>c.action==='quote')).not.toHaveProperty('billing_state');
@@ -136,4 +136,22 @@ test('DEV paused Family purchase opens read-only popup with no quote or payment 
  expect(calls.filter(c=>['quote','start','status'].includes(c.action))).toHaveLength(0);
  await page.getByRole('button',{name:'Cancel',exact:true}).click();
  await expect(page.locator('dialog')).not.toBeVisible();
+});
+
+test('new unpaid Family prioritizes first Add Driver before the commercial offer',async({page})=>{
+ const calls=[];
+ await page.route('https://first-driver.test/**',async route=>{
+  const b=route.request().postDataJSON?.()||{};
+  calls.push(b);
+  const body=b.action==='overview'?{ok:true,family_contexts:[{family_id:'family',is_license_holder:true,commercial_state:'FREE',driver_count:0,driver_capacity:1}]}:{ok:true};
+  await route.fulfill({json:body});
+ });
+ await page.goto('https://first-driver.test/family/');
+ await page.evaluate(()=>{
+  window.DV_APP_CONFIG={supabaseUrl:'https://first-driver.test',publishableKey:'synthetic'};
+  window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})};
+ });
+ await page.addScriptTag({content:script});
+ await expect(page.locator('#dv-commercial-purchase')).toBeHidden();
+ expect(calls.some(c=>c.action==='catalog')).toBeFalsy();
 });
