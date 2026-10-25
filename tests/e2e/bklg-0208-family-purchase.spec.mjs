@@ -1,59 +1,102 @@
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 const script=fs.readFileSync('assets/js/commercial-purchase.js','utf8');
-const html='<html><body><main><section id="dv-commercial-purchase" hidden></section></main></body></html>';
-async function prepare(page,{enabled=false,testContext=false}={}){
- const calls=[];
+const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
+async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null}={}){
+ const calls=[];let resolveQuote;
  await page.route('https://purchase.test/**',async route=>{
   const req=route.request();
-  if(req.method()==='GET')return route.fulfill({contentType:'text/html',body:html});
-  const body=req.postDataJSON()||{};calls.push(body);
-  let out={ok:true};
-  if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:[{family_id:'family',is_license_holder:true,license_holder_name:'Synthetic Holder',commercial_state:'FREE',driver_capacity:1}]};
-  else if(body.action==='catalog')out={ok:true,checkout_enabled:enabled,disabled_reason:'Purchases disabled',offers:[{offer_code:'FAMILY_LICENSE',display_name:'Family License',unit_cents:2499}],billing_states:[{code:'MI',provisional:true}],...(testContext?{test_context:{family_id:'family'}}:{})};
-  else if(body.action==='quote')out={ok:true,quote:{quote_id:'quote-test',family_id:'family',offer_code:'FAMILY_LICENSE',billing_state:'MI',currency:'USD',display_name:'Family License',subtotal_cents:2499,tax_cents:0,total_cents:2499,terms_version:'terms-2026-10-16',terms_digest:'digest',privacy_version:'privacy-2026-10-16',expires_at:new Date(Date.now()+3600000).toISOString()}};
-  else if(body.action==='developer_initialize_test')out={ok:true,initialized:true,mode:'DEVELOPER_TEST',payment_initiated:false};
-  else if(body.action==='developer_connection_test')out={ok:true,connected:true,mode:'DEVELOPER_TEST'};
-  else if(body.action==='start')throw new Error('Tests must not create a payment session');
-  await route.fulfill({json:out,headers:{'access-control-allow-origin':'*'}});
+  if(req.method()==='GET')return route.fulfill({contentType:req.url().includes('.css')?'text/css':'text/html',body:req.url().includes('.css')?css:'<html><head></head><body><main><section id="dv-commercial-purchase" hidden></section></main></body></html>'});
+  const b=req.postDataJSON();calls.push(b);let out={ok:true},code=state==='PAID'?'ADDITIONAL_DRIVER_CAPACITY':'FAMILY_LICENSE';
+  if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state}]};
+  else if(b.action==='catalog'){
+   if(denied||b.family_id!=='family')return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
+   out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:pending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
+  }else if(b.action==='quote')out={ok:true,quote:{quote_id:'quote',family_id:b.family_id,offer_code:code,billing_state:b.billing_state,currency:'USD',subtotal_cents:2499,tax_cents:0,total_cents:2499,terms_version:'terms-2026-10-16',terms_digest:'terms-digest',privacy_version:'privacy-2026-10-16',privacy_digest:'privacy-digest',expires_at:new Date(Date.now()+600000).toISOString(),...quotePatch}};
+  else if(b.action==='start'){
+   if(startFailure)return route.fulfill({status:503,json:{ok:false,error:'Uncertain provider response'}});
+   out={ok:true,purchase_id:'purchase',checkout_token:'synthetic-token'};
+  }else if(b.action==='status')out={ok:true,status};
+  await route.fulfill({json:out});
  });
- await page.goto('https://purchase.test/family/'+(testContext?'?dev_test_run=test-run&test_family=family':''));
+ await page.goto('https://purchase.test/family/?dev_test_run=old-run&test_family=old-family');
  await page.evaluate(()=>{
-  window.DV_APP_CONFIG={supabaseUrl:'https://purchase.test',publishableKey:'public-synthetic'};
-  window.DV_ENVIRONMENT_CONFIG={name:'dev'};
-  window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'test-token'}}})}})};
+  window.DV_APP_CONFIG={supabaseUrl:'https://purchase.test',publishableKey:'synthetic'};
+  window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})};
+  window.providerCalls=[];window.appendHelcimPayIframe=token=>window.providerCalls.push(token);
+  window.fulfillments=[];window.addEventListener('dv:commercial-fulfilled',e=>window.fulfillments.push(e.detail));
  });
  await page.addScriptTag({content:script});
  await expect(page.locator('#dv-commercial-purchase')).toBeVisible();
  return calls;
 }
-test('paused purchases retain read-only Family UI, without payable controls',async({page})=>{
- await prepare(page);
- await expect(page.locator('#dv-buy-quote')).toBeDisabled();
- await expect(page.locator('#dv-buy-pay')).toBeDisabled();
- await expect(page.locator('#dv-buy-notice')).toContainText('Purchases disabled');
+async function quote(page){await page.getByRole('button',{name:'Buy Full License'}).click();await page.locator('[data-state]').selectOption('MI');await expect(page.locator('[data-summary]')).toContainText('$24.99');}
+test('paused purchasing shows one disabled contextual control, no permanent form or diagnostics',async({page})=>{
+ await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeDisabled();
+ await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('Purchases are paused');
 });
-test('server quote displays amount and policies; user consent is necessary',async({page})=>{
- const calls=await prepare(page,{enabled:true});
- await page.selectOption('#dv-buy-offer','FAMILY_LICENSE');
- await page.selectOption('#dv-buy-state','MI');
- await page.click('#dv-buy-quote');
- await expect(page.locator('#dv-buy-summary')).toContainText('$24.99');
- await expect(page.locator('#dv-buy-summary')).toContainText('terms-2026-10-16');
- await expect(page.locator('#dv-buy-pay')).toBeDisabled();
- await page.check('#dv-buy-terms');
- await expect(page.locator('#dv-buy-pay')).toBeEnabled();
- expect(calls.some(x=>x.action==='quote'&&x.family_id==='family'&&x.billing_state==='MI')).toBeTruthy();
- expect(calls.some(x=>x.action==='start')).toBeFalsy();
+for(const state of ['FREE','FREE_EXHAUSTED','PAID'])test(`${state} gets its single server-eligible action`,async({page})=>{
+ const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:state==='PAID'?'Add Driver Capacity':'Buy Full License'})).toBeEnabled();
+ expect(calls.some(c=>c.dev_test_run_id||c.family_id==='old-family')).toBeFalsy();
 });
-test('scoped DEV enrollment is forwarded to purchase authority, without a submission',async({page})=>{
- const calls=await prepare(page,{enabled:true,testContext:true});
- expect(calls.some(x=>x.action==='catalog'&&x.dev_test_run_id==='test-run'&&x.family_id==='family')).toBeTruthy();
- await expect(page.locator('#dv-buy-pay')).toBeDisabled();
+test('billing jurisdiction is not inferred; explicit consent binds a fresh quote',async({page})=>{
+ const calls=await prepare(page);await page.getByRole('button',{name:'Buy Full License'}).click();
+ await expect(page.locator('[data-state]')).toHaveValue('');expect(calls.some(c=>c.action==='quote')).toBeFalsy();
+ await page.locator('[data-state]').selectOption('MI');await expect(page.locator('[data-summary]')).toContainText('$24.99');await expect(page.locator('[data-pay]')).toBeDisabled();
+ await page.locator('[data-consent]').check();await expect(page.locator('[data-pay]')).toBeEnabled();
+ await page.locator('[data-pay]').dblclick({force:true}).catch(()=>{});
+ await expect.poll(()=>calls.filter(c=>c.action==='start').length).toBe(1);
+ expect(calls.find(c=>c.action==='start')).toMatchObject({family_id:'family',accept_terms:true,accepted_terms_version:'terms-2026-10-16'});
 });
-test('DEV diagnostics do not require Terms or initiate payment',async({page})=>{
- const calls=await prepare(page);
- await page.locator('[data-commercial-check="developer_initialize_test"]').first().click();
- await expect(page.locator('#dv-buy-diagnostic-result')).toContainText('initialized');
- expect(calls.some(x=>x.action==='start')).toBeFalsy();
+test('cancel clears consent and reopening requests a new quote',async({page})=>{
+ const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await quote(page);await expect(page.locator('[data-consent]')).not.toBeChecked();expect(calls.filter(c=>c.action==='quote')).toHaveLength(2);expect(calls.some(c=>c.action==='start')).toBeFalsy();
+});
+for(const patch of [{family_id:'other'},{privacy_digest:null},{expires_at:'invalid'},{expires_at:'2020-01-01'},{total_cents:2500}])test(`rejects malformed or stale quote ${JSON.stringify(patch)}`,async({page})=>{
+ await prepare(page,{quotePatch:patch});await page.getByRole('button',{name:'Buy Full License'}).click();await page.locator('[data-state]').selectOption('MI');
+ await expect(page.locator('[data-notice]')).toContainText('could not be verified');await expect(page.locator('[data-consent]')).toBeDisabled();await expect(page.locator('[data-pay]')).toBeDisabled();
+});
+test('mixed-family access does not confer purchase authority',async({page})=>{
+ await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
+ const error=await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'other'}).catch(e=>e.message));expect(error).toContain('License Holder');
+});
+test('ambiguous owned Families and missing context fail closed without selector',async({page})=>{
+ await prepare(page,{contexts:[{family_id:'family',is_license_holder:true},{family_id:'other',is_license_holder:true}]});await expect(page.locator('#dv-commercial-purchase')).toContainText('specific Family');await expect(page.locator('select')).toHaveCount(0);
+ expect(await page.evaluate(()=>window.DVCommercialPurchase.open().catch(e=>e.message))).toContain('specific Family');
+});
+test('backend denial defeats a claimed holder context',async({page})=>{
+ await prepare(page,{denied:true});await expect(page.locator('#dv-commercial-purchase')).toContainText('authorized License Holder');await expect(page.locator('button')).toHaveCount(0);
+});
+test('browser success does not fulfill a pending payment; reopening cannot resubmit',async({page})=>{
+ const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
+ await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'SUCCESS'}})));
+ await expect(page.locator('dialog')).toBeVisible();await expect(page.locator('[data-pay]')).toBeDisabled();expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
+});
+test('server fulfillment emits one Family refresh event',async({page})=>{
+ await prepare(page,{status:'FULFILLED'});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
+ await expect.poll(()=>page.evaluate(()=>window.fulfillments)).toEqual([{family_id:'family',purchase_id:'purchase'}]);await expect(page.locator('dialog')).not.toBeVisible();
+});
+for(const status of ['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'])test(`${status} cannot be presented as success`,async({page})=>{
+ await prepare(page,{status});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();await expect(page.locator('[data-notice]')).toContainText('not confirmed');expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);
+});
+test('uncertain start remains locked against a second purchase',async({page})=>{
+ const calls=await prepare(page,{startFailure:true});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();await expect(page.locator('[data-notice]')).toContainText('Uncertain');await expect(page.locator('[data-pay]')).toBeDisabled();expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
+});
+test('shared launcher works without Hub host and fits mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await prepare(page);await page.evaluate(()=>document.getElementById('dv-commercial-purchase').remove());
+ await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'family'}));await expect(page.locator('dialog')).toBeVisible();
+ expect(await page.locator('dialog').evaluate(e=>e.getBoundingClientRect().width)).toBeLessThanOrEqual(390);
+ await page.keyboard.press('Escape');await expect(page.locator('dialog')).not.toBeVisible();
+});
+
+test('existing unresolved server payment blocks a new session after reload',async({page})=>{
+ await prepare(page,{pending:{id:'existing',status:'SESSION_CREATED'}});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeDisabled();
+ expect(await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'family'}).catch(e=>e.message))).toContain('existing Family payment');
+});
+test('unsupported billing country/state never requests a quote',async({page})=>{
+ const calls=await prepare(page);await page.getByRole('button',{name:'Buy Full License'}).click();await page.locator('[data-state]').selectOption('UNSUPPORTED');await expect(page.locator('[data-notice]')).toContainText('not yet available');expect(calls.some(c=>c.action==='quote')).toBeFalsy();
+});
+test('repeated launcher open preserves popup and quote',async({page})=>{
+ await prepare(page);await quote(page);await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'family'}));await expect(page.locator('[data-summary]')).toContainText('$24.99');await page.locator('[data-consent]').check();await expect(page.locator('[data-pay]')).toBeEnabled();
+ await page.screenshot({path:'/tmp/bklg0208-popup.png'});
 });
