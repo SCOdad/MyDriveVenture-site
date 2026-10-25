@@ -32,3 +32,21 @@ test('Family Hub action row has secondary grown-up and separated primary upgrade
  assert.match(css, /#owned-family-actions \[data-open-panel="grownup"\]/);
  assert.match(css, /#owned-family-actions \.family-commercial-action:not\(\[hidden\]\)\{margin-left:auto/);
 });
+
+test('unpaid Family uses first-driver onboarding then a full-license driver upgrade',()=>{
+ const familyJs=fs.readFileSync('assets/js/family.js','utf8');
+ assert.match(familyJs,/addDriver\.hidden=false/);
+ assert.match(familyJs,/classList\.toggle\('primary',ownedDrivers\.length===0\)/);
+ assert.match(shared,/if\(Number\(c\.driver_count\)===0\)/);
+ assert.match(shared,/offer\.offer_code==='FAMILY_LICENSE'&&Number\(driver_count\)>0/);
+ assert.match(shared,/await mount\(host,\{family_id:String\(c\.family_id\),driver_count:Number\(c\.driver_count\)\}\)/);
+});
+test('exhausted drive form is visibly read-only, while edit mode may remain available',()=>{
+ const js=fs.readFileSync('assets/js/log-entitlements.js','utf8');
+ const css=fs.readFileSync('assets/css/log-dashboard-v3.css','utf8');
+ assert.match(js,/form\.dataset\.dvEntitlementBlocked = unavailable \? 'true' : 'false'/);
+ assert.match(js,/setFieldsBlocked\(unavailable\)/);
+ assert.match(js,/if \(blocked\) \{[\s\S]*?el\.disabled = true/);
+ assert.match(js,/const unavailable = !!blocked && !editMode\(\)/);
+ assert.match(css,/#drive-form\[data-dv-entitlement-blocked="true"\] input/);
+});
