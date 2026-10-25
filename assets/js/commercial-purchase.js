@@ -142,7 +142,7 @@ async function init(){
   // capacity replace it with the one Family-scoped purchase action, not
   // an independent checkout section.
   const full=Number.isFinite(Number(c.driver_count))&&Number.isFinite(Number(c.driver_capacity))&&Number(c.driver_count)>=Number(c.driver_capacity);
-  if(!full){host.hidden=true;host.replaceChildren();return;}
+  if(c.commercial_state==='PAID'&&!full){host.hidden=true;host.replaceChildren();return;}
   if(addDriver)addDriver.hidden=true;
   await mount(host,{family_id:String(c.family_id)});
  }catch(_){host.hidden=false;host.textContent='Purchasing is unavailable. Family management remains available.';}
