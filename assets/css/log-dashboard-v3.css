@@ -28,3 +28,6 @@
   border-left:4px solid #f4b820;
   padding:.75rem 1rem;
 }
+
+/* BKLG-0275: the edit-mode exit control must truly disappear after returning to blocked new-drive mode. */
+#drive-edit-cancel[hidden]{display:none!important}
