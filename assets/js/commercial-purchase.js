@@ -122,7 +122,7 @@ async function mount(element,{family_id}={}){
  const generation=(mountGenerations.get(element)||0)+1;mountGenerations.set(element,generation);element.replaceChildren();element.hidden=false;
  try{
   const data=await context(family_id);if(generation!==mountGenerations.get(element))return;
-  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=label(offer.offer_code)+' — '+money(offer.unit_cents);button.disabled=!data.checkout_enabled||!!data.pending_purchase;
+  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=(offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'?'Upgrade to add driver':label(offer.offer_code))+' — '+money(offer.unit_cents);button.disabled=!data.checkout_enabled||!!data.pending_purchase;
   const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':data.disabled_reason||'Purchases are paused.';
   button.onclick=()=>void open({family_id}).catch(e=>{explanation.textContent=e.message;});element.append(button,explanation);
  }catch(e){if(generation===mountGenerations.get(element))element.textContent=e.message;}
@@ -132,8 +132,19 @@ async function init(){
  try{
   const result=await invoke('family-api','overview');const overview=result.overview||result;
   const contexts=(overview.family_contexts||[]).filter(c=>c.is_license_holder===true);
-  if(contexts.length!==1){host.hidden=false;host.textContent=contexts.length?'Purchasing is temporarily unavailable: this account is assigned as License Holder for multiple Families. Contact Drive Venture support to correct the account.':'Only the Family License Holder can purchase.';return;}
-  await mount(host,{family_id:String(contexts[0].family_id)});
+  const addDriver=document.querySelector('#owned-family-actions .family-driver-capacity-hint .family-action');
+  if(contexts.length!==1){
+   host.hidden=false;host.textContent=contexts.length?'Purchasing is temporarily unavailable: this account is assigned as License Holder for multiple Families. Contact Drive Venture support to correct the account.':'Only the Family License Holder can purchase.';
+   return;
+  }
+  const c=contexts[0];
+  // Keep the ordinary Add Driver control when capacity remains. On reaching
+  // capacity replace it with the one Family-scoped purchase action, not
+  // an independent checkout section.
+  const full=Number.isFinite(Number(c.driver_count))&&Number.isFinite(Number(c.driver_capacity))&&Number(c.driver_count)>=Number(c.driver_capacity);
+  if(!full){host.hidden=true;host.replaceChildren();return;}
+  if(addDriver)addDriver.hidden=true;
+  await mount(host,{family_id:String(c.family_id)});
  }catch(_){host.hidden=false;host.textContent='Purchasing is unavailable. Family management remains available.';}
 }
 window.DVCommercialPurchase=Object.freeze({init,mount,open});
