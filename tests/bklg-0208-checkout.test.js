@@ -19,6 +19,9 @@ test('capacity upgrade is placed in Family Hub top actions, not a second purchas
  assert.match(family, /id="dv-commercial-purchase" class="family-commercial-action"/);
  assert.doesNotMatch(family, /id="dv-commercial-purchase" class="form-card"/);
  assert.match(shared, /Upgrade to add driver/);
+ assert.doesNotMatch(shared, /button\.textContent=.*money\(offer\.unit_cents\)/);
+ assert.match(shared, /parentElement\.style\.display='none'/);
+ assert.match(shared, /Purchases temporarily paused/);
  assert.match(shared, /driver_count/);
  assert.match(shared, /driver_capacity/);
 });
