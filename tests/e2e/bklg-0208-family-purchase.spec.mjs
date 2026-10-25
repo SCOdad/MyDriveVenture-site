@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs';
 const script=fs.readFileSync('assets/js/commercial-purchase.js','utf8');
+const siteCss=['assets/css/site.css','assets/css/join.css','assets/css/family.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
 const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
 async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null}={}){
  const calls=[];let resolveQuote;
@@ -26,6 +27,7 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   window.providerCalls=[];window.appendHelcimPayIframe=token=>window.providerCalls.push(token);
   window.fulfillments=[];window.addEventListener('dv:commercial-fulfilled',e=>window.fulfillments.push(e.detail));
  });
+ await page.addStyleTag({content:siteCss});
  await page.addScriptTag({content:script});
  await expect(page.locator('#dv-commercial-purchase')).toBeVisible();
  return calls;
