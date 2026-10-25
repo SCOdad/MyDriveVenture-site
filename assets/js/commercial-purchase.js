@@ -36,6 +36,23 @@ function ensureDialog(){
  dialog.querySelector('[data-pay]').onclick=()=>void launch(active);
  dialog.querySelector('[data-recheck]').onclick=()=>void poll(active);
 }
+// Read-only, DEV-only UX preview. Does not request quotes, create purchase intents,
+// initialize Helcim, or authorize payment; never represents tax as a live quote.
+function openReadOnlyPreview(data){
+ if(window.DV_ENVIRONMENT_CONFIG?.name!=='dev')return;
+ ensureDialog();
+ active=null;
+ dialog.querySelector('h2').textContent=label(data.offers[0].offer_code)+' — DEV preview';
+ dialog.querySelector('[data-description]').textContent='One-time purchase. This is a visual preview only; no transaction can be started.';
+ const state=dialog.querySelector('[data-state]');
+ state.replaceChildren(new Option('Michigan (illustrative)', 'MI'));state.value='MI';state.disabled=true;
+ dialog.querySelector('[data-summary]').textContent='Base price '+money(data.offers[0].unit_cents)+' · Sales tax and final total are not quoted in preview.';
+ dialog.querySelector('[data-consent]').checked=false;dialog.querySelector('[data-consent]').disabled=true;
+ dialog.querySelector('[data-pay]').disabled=true;
+ dialog.querySelector('[data-recheck]').hidden=true;
+ say('DEV visual preview only. Purchasing remains disabled. Consent and payment cannot be submitted.');
+ dialog.showModal();
+}
 function sync(){
  const a=active,q=a?.quote;
  dialog.querySelector('[data-pay]').disabled=!(q&&Date.parse(q.expires_at)>Date.now()&&dialog.querySelector('[data-consent]').checked&&!a.busy&&!a.started);
@@ -122,9 +139,9 @@ async function mount(element,{family_id}={}){
  const generation=(mountGenerations.get(element)||0)+1;mountGenerations.set(element,generation);element.replaceChildren();element.hidden=false;
  try{
   const data=await context(family_id);if(generation!==mountGenerations.get(element))return;
-  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'?'Upgrade to add driver':label(offer.offer_code);button.disabled=!data.checkout_enabled||!!data.pending_purchase;
-  const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':'Purchases temporarily paused.';
-  button.onclick=()=>void open({family_id}).catch(e=>{explanation.textContent=e.message;});element.append(button,explanation);
+  const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'?'Upgrade to add driver':label(offer.offer_code);button.disabled=(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name!=='dev')||!!data.pending_purchase;
+  const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':window.DV_ENVIRONMENT_CONFIG?.name==='dev'?'DEV preview only — purchases paused.':'Purchases temporarily paused.';
+  button.onclick=()=>{if(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){openReadOnlyPreview(data);return;}void open({family_id}).catch(e=>{explanation.textContent=e.message;});};element.append(button,explanation);
  }catch(e){if(generation===mountGenerations.get(element))element.textContent=e.message;}
 }
 async function init(){
