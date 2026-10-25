@@ -10,3 +10,11 @@
 .family-commercial-action:not([hidden]){display:inline-flex;flex-direction:column;gap:.25rem;align-items:center;justify-content:center;max-width:20rem;vertical-align:middle}
 .family-commercial-action .family-explainer{font-size:.72rem;line-height:1.25;margin:0;max-width:16rem;text-align:center;color:var(--steel-gray,#aeb8c2)}
 .family-commercial-action .button{white-space:nowrap;text-align:center;min-height:3.2rem;padding:.7rem 1.25rem}
+
+/* BKLG-0208: final approved Family Hub action hierarchy. */
+#owned-family-actions{display:flex;align-items:center;justify-content:space-between;gap:clamp(1rem,3vw,3rem);flex-wrap:wrap}
+#owned-family-actions [data-open-panel="grownup"]{flex:0 0 auto;min-height:3.2rem;padding:.7rem 1.25rem;background:transparent;color:var(--warm-white,#f5f3eb);border:1px solid var(--steel-gray,#aeb8c2);box-shadow:none}
+#owned-family-actions [data-open-panel="grownup"]:hover{background:rgba(255,255,255,.08)}
+#owned-family-actions .family-commercial-action:not([hidden]){margin-left:auto;flex:0 1 auto;max-width:none;align-items:center}
+#owned-family-actions .family-commercial-action .button{min-height:3.2rem}
+@media(max-width:640px){#owned-family-actions{justify-content:flex-start;gap:1rem}#owned-family-actions .family-commercial-action:not([hidden]){margin-left:0}}
