@@ -23,6 +23,7 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
  await page.goto('https://purchase.test/family/?dev_test_run=old-run&test_family=old-family');
  await page.evaluate(()=>{
   window.DV_APP_CONFIG={supabaseUrl:'https://purchase.test',publishableKey:'synthetic'};
+  window.DV_ENVIRONMENT_CONFIG={name:'dev'};
   window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})};
   window.providerCalls=[];window.appendHelcimPayIframe=token=>window.providerCalls.push(token);
   window.fulfillments=[];window.addEventListener('dv:commercial-fulfilled',e=>window.fulfillments.push(e.detail));
@@ -34,8 +35,8 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
 }
 async function quote(page){await page.getByRole('button',{name:'Buy Full License'}).click();await page.locator('[data-state]').selectOption('MI');await expect(page.locator('[data-summary]')).toContainText('$24.99');}
 test('paused purchasing shows one disabled contextual control, no permanent form or diagnostics',async({page})=>{
- await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeDisabled();
- await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('Purchases temporarily paused.');
+ await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
+ await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('DEV preview only — purchases paused.');
 });
 for(const state of ['FREE','FREE_EXHAUSTED','PAID'])test(`${state} gets its single server-eligible action`,async({page})=>{
  const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:state==='PAID'?'Upgrade to add driver':'Buy Full License'})).toBeEnabled();
@@ -116,6 +117,19 @@ test('paid Family popup independently quotes upgrade; no payment starts without 
  await expect(page.locator('[data-summary]')).toContainText('$9.99');
  await expect(page.locator('[data-pay]')).toBeDisabled();
  expect(calls.some(x=>x.action==='start')).toBeFalsy();
+ await page.getByRole('button',{name:'Cancel',exact:true}).click();
+ await expect(page.locator('dialog')).not.toBeVisible();
+});
+
+test('DEV paused Family purchase opens read-only popup with no quote or payment API calls',async({page})=>{
+ const calls=await prepare(page,{enabled:false,state:'PAID'});
+ await page.getByRole('button',{name:'Upgrade to add driver'}).click();
+ await expect(page.locator('dialog')).toBeVisible();
+ await expect(page.locator('[data-summary]')).toContainText('Base price $9.99');
+ await expect(page.locator('[data-notice]')).toContainText('DEV visual preview only');
+ await expect(page.locator('[data-pay]')).toBeDisabled();
+ await expect(page.locator('[data-consent]')).toBeDisabled();
+ expect(calls.filter(c=>['quote','start','status'].includes(c.action))).toHaveLength(0);
  await page.getByRole('button',{name:'Cancel',exact:true}).click();
  await expect(page.locator('dialog')).not.toBeVisible();
 });
