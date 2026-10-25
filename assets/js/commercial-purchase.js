@@ -131,9 +131,26 @@ async function init(){
  const host=document.getElementById('dv-commercial-purchase');if(!host||new URLSearchParams(location.search).has('invite'))return;
  try{
   const result=await invoke('family-api','overview');const overview=result.overview||result;
-  const contexts=(overview.family_contexts||[]).filter(c=>c.is_license_holder===true);
-  if(contexts.length!==1){host.hidden=false;host.textContent=contexts.length?'Open purchasing from a specific Family.':'Only the Family License Holder can purchase.';return;}
-  await mount(host,{family_id:String(contexts[0].family_id)});
+  // Multiple Family relationships may exist in synthetic or legacy data.
+  // Never select an arbitrary purchase recipient: bind each action to one
+  // explicitly verified Family. Ordinary one-Family users see one button.
+  const contexts=[...new Map((overview.family_contexts||[])
+   .filter(c=>c.is_license_holder===true&&typeof c.family_id==='string'&&c.family_id)
+   .map(c=>[c.family_id,c])).values()];
+  if(!contexts.length){host.hidden=false;host.textContent='Only the Family License Holder can purchase.';return;}
+  if(contexts.length===1){await mount(host,{family_id:contexts[0].family_id});return;}
+  host.replaceChildren();host.hidden=false;
+  const intro=document.createElement('p');intro.className='family-explainer';
+  intro.textContent='Purchases apply to one Family. Review the Family beside each purchase action.';
+  host.append(intro);
+  for(const c of contexts){
+   const section=document.createElement('section');section.className='commercial-family-option';
+   const heading=document.createElement('p');heading.className='family-explainer';
+   const count=Number(c.driver_count)||0,capacity=Number(c.driver_capacity)||0;
+   heading.textContent=(c.license_holder_name||'Your')+' Family · '+(c.commercial_state||'—')+' · '+count+' of '+capacity+' drivers';
+   const slot=document.createElement('div');section.append(heading,slot);host.append(section);
+   await mount(slot,{family_id:c.family_id});
+  }
  }catch(_){host.hidden=false;host.textContent='Purchasing is unavailable. Family management remains available.';}
 }
 window.DVCommercialPurchase=Object.freeze({init,mount,open});
