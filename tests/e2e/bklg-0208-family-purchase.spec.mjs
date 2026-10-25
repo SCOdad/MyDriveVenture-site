@@ -62,13 +62,11 @@ test('mixed-family access does not confer purchase authority',async({page})=>{
  await prepare(page,{contexts:[{family_id:'other',is_license_holder:false},{family_id:'family',is_license_holder:true}]});await expect(page.getByRole('button',{name:'Buy Full License'})).toBeEnabled();
  const error=await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'other'}).catch(e=>e.message));expect(error).toContain('License Holder');
 });
-test('DEV account with multiple holder contexts gets explicit Family-bound actions rather than a dead-end message',async({page})=>{
- const calls=await prepare(page,{contexts:[{family_id:'family',is_license_holder:true,commercial_state:'FREE',driver_count:0,driver_capacity:1},{family_id:'other',is_license_holder:true,commercial_state:'PAID',driver_count:3,driver_capacity:3}]});
- await expect(page.locator('.commercial-family-option')).toHaveCount(2);
- await expect(page.locator('.commercial-family-option button')).toHaveCount(2);
- await expect(page.locator('#dv-commercial-purchase')).not.toContainText('Open purchasing from a specific Family.');
- await expect(page.locator('select')).toHaveCount(0);
- expect(calls.filter(c=>c.action==='catalog').map(c=>c.family_id).sort()).toEqual(['family','other']);
+test('duplicate holder assignments fail closed instead of offering multiple purchase buttons',async({page})=>{
+ await prepare(page,{contexts:[{family_id:'family',is_license_holder:true,commercial_state:'FREE'},{family_id:'other',is_license_holder:true,commercial_state:'PAID'}]});
+ await expect(page.locator('#dv-commercial-purchase')).toContainText('assigned as License Holder for multiple Families');
+ await expect(page.locator('#dv-commercial-purchase button')).toHaveCount(0);
+ await expect(page.locator('#dv-commercial-purchase select')).toHaveCount(0);
  expect(await page.evaluate(()=>window.DVCommercialPurchase.open().catch(e=>e.message))).toContain('specific Family');
 });
 test('backend denial defeats a claimed holder context',async({page})=>{
