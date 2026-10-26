@@ -79,3 +79,9 @@ test('pending checkout status and expired-session recovery provide visible feedb
  assert.match(shared,/check\.disabled=true;check\.textContent='Checking…'/);
  assert.doesNotMatch(shared,/setInterval\([\s\S]*?recover-abandoned/);
 });
+
+test('exhausted DEV test-session allowance disables payment launch with an explanatory message',()=>{
+ assert.match(shared,/button\.disabled=!!data\.test_budget_exhausted\|\|/);
+ assert.match(shared,/data\.test_budget_exhausted\?'DEV payment-test session allowance exhausted/);
+ assert.match(shared,/if\(data\.pending_purchase\)/);
+});
