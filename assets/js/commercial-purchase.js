@@ -116,12 +116,14 @@ async function checkStatus(a){
  if(button.disabled)return;
  button.disabled=true;button.textContent='Checking…';say('Checking payment status with Drive Venture…');
  try{
-  const result=await invoke('commercial-checkout','status',{purchase_id:a.purchase_id,family_id:a.family_id});
-  if(result.status==='FULFILLED'){say('Payment verified. Refreshing your Family…');a.done=true;a.started=false;window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id}}));await init();}
-  else if(result.status==='ABANDONED'){say('Checkout was abandoned. Close this popup and refresh the Family Hub to begin again.');a.started=false;a.done=true;}
+  const result=await invoke('commercial-checkout','recover-abandoned',{purchase_id:a.purchase_id,family_id:a.family_id});
+  if(result.status==='FULFILLED'){say('Payment verified. Refreshing your Family…');a.done=true;a.started=false;a.token=null;dialog.close();active=null;window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id}}));await init();}
+  else if(result.status==='ABANDONED'){say('The expired checkout was safely closed after Helcim verification. Close this popup to start again.');a.started=false;a.done=true;a.token=null;button.hidden=true;dialog.querySelector('[data-pay]').disabled=true;await init();}
   else if(result.status==='DECLINED'){say('Payment was declined. Contact support before retrying.');a.done=true;}
   else if(result.status==='RECONCILIATION_REQUIRED'){say('Payment requires manual verification. Do not pay again; contact support.');}
-  else say('No completed payment is confirmed yet. Your checkout remains pending. Do not start another payment.');
+  else if(result.recovery==='PROVIDER_ACTIVITY_REQUIRES_REVIEW')say('Helcim shows a transaction attempt for this checkout. No new payment is permitted until it is reviewed. Contact support.');
+  else if(result.recovery==='SESSION_STILL_PROTECTED'){const when=new Date(result.safe_after);say('Checkout is still protected. Check again after '+(Number.isFinite(when.getTime())?when.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}):'the payment session expires')+'. Do not pay again.');}
+  else say('Payment is not yet confirmed. The checkout remains protected. Do not start another payment.');
  }catch(e){say('Payment status could not be checked: '+e.message+' Do not pay again until verified.');}
  finally{button.disabled=false;button.textContent='Check payment status';}
 }
@@ -129,8 +131,10 @@ async function poll(a){
  if(!a?.purchase_id||a.polling||a.done)return;a.polling=true;
  try{
   for(let i=0;i<20;i++){
+   if(a.done)return;
    try{
     const result=await invoke('commercial-checkout','status',{purchase_id:a.purchase_id,family_id:a.family_id});
+    if(a.done)return;
     if(result.status==='FULFILLED'){
      a.done=true;a.token=null;a.started=false;
      if(active===a){dialog.close();active=null;}
@@ -163,16 +167,18 @@ async function mount(element,{family_id,driver_count}={}){
   const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':window.DV_ENVIRONMENT_CONFIG?.name==='dev'?'DEV preview only — purchases paused.':'Purchases temporarily paused.';
   button.onclick=()=>{if(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){openReadOnlyPreview(data);return;}void open({family_id}).catch(e=>{explanation.textContent=e.message;});};element.append(button,explanation);
   if(data.pending_purchase?.id && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){
-    const check=document.createElement('button');check.type='button';check.className='button secondary';check.textContent='Verify previous test checkout';check.style.marginTop='0.75rem';
+    const check=document.createElement('button');check.type='button';check.className='button secondary';check.textContent='Check previous checkout';check.style.marginTop='0.75rem';
     check.onclick=async()=>{
-      check.disabled=true;explanation.textContent='Checking the previous checkout with Helcim…';
+      check.disabled=true;check.textContent='Checking…';explanation.textContent='Checking the previous checkout with Drive Venture and Helcim…';
       try{
-        const result=await invoke('commercial-checkout','reconcile-read-only',{family_id,purchase_id:data.pending_purchase.id});
-        explanation.textContent=result.provider_lookup==='VERIFIED_RESPONSE'
-          ?'Helcim lookup completed: '+result.matching_transactions+' matching transaction(s). Checkout remains locked until safely reconciled.'
-          :'Provider verification was inconclusive. Checkout remains locked.';
+        const result=await invoke('commercial-checkout','recover-abandoned',{family_id,purchase_id:data.pending_purchase.id});
+        if(result.status==='ABANDONED'){explanation.textContent='Expired test checkout safely closed. Refreshing Family access…';await init();return;}
+        if(result.status==='FULFILLED'){explanation.textContent='Payment verified. Refreshing Family access…';await init();return;}
+        if(result.recovery==='PROVIDER_ACTIVITY_REQUIRES_REVIEW')explanation.textContent='Helcim found payment activity. Checkout remains locked for review; do not pay again.';
+        else if(result.recovery==='SESSION_STILL_PROTECTED')explanation.textContent='This payment session is still protected. Try checking again after its expiration window.';
+        else explanation.textContent='Payment remains unresolved ('+result.status+'). Contact support before retrying.';
       }catch(e){explanation.textContent='Verification unavailable: '+e.message+' Checkout remains locked.';}
-      finally{check.disabled=false;}
+      finally{check.disabled=false;check.textContent='Check previous checkout';}
     };element.append(check);
   }
  }catch(e){if(generation===mountGenerations.get(element))element.textContent=e.message;}
