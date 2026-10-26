@@ -80,8 +80,11 @@ test('pending checkout status and expired-session recovery provide visible feedb
  assert.doesNotMatch(shared,/setInterval\([\s\S]*?recover-abandoned/);
 });
 
-test('exhausted DEV test-session allowance disables payment launch with an explanatory message',()=>{
- assert.match(shared,/button\.disabled=!!data\.test_budget_exhausted\|\|/);
- assert.match(shared,/data\.test_budget_exhausted\?'DEV payment-test session allowance exhausted/);
+
+test('no retired lifetime DEV session-budget gate; pending purchase still prevents duplicates',()=>{
+ assert.doesNotMatch(shared,/test_budget_exhausted|DEV payment-test session allowance exhausted/);
+ assert.match(shared,/button\.disabled=\(!data\.checkout_enabled/);
+ assert.match(shared,/\|\|!!data\.pending_purchase/);
  assert.match(shared,/if\(data\.pending_purchase\)/);
+ assert.match(shared,/recover-abandoned/);
 });
