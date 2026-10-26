@@ -106,7 +106,8 @@ async function launch(a){
   if(!data.purchase_id||!data.checkout_token)throw Error('Payment session response is incomplete. Contact support before retrying.');
   a.purchase_id=String(data.purchase_id);a.token=String(data.checkout_token);
   say('Complete secure payment. Drive Venture will independently verify payment before updating your Family.');
-  dialog.close();window.appendHelcimPayIframe(a.token);void poll(a);
+  dialog.close();window.appendHelcimPayIframe(a.token);
+  // Keep hosted validation and declines in Helcim; do not obscure its iframe.
  }catch(e){say(e.message+' Do not retry an uncertain payment; contact support.');}
  finally{a.busy=false;dialog.querySelector('[data-recheck]').hidden=!a.purchase_id;}
 }
@@ -153,9 +154,10 @@ async function poll(a){
 }
 window.addEventListener('message',e=>{
  const a=active;if(!a?.token||e.data?.eventName!==`helcim-pay-js-${a.token}`)return;
- if(['SUCCESS','ABORTED','HIDE'].includes(e.data.eventStatus)){
-  say('Checking payment status with the server…');
-  if(!dialog.open)dialog.showModal();
+ // Helcim can emit ABORTED while displaying its own recoverable errors.
+ // HIDE is a user dismissal, not payment evidence. Neither may reopen our dialog.
+ if(e.data.eventStatus==='SUCCESS'){
+  // Browser success is only a hint: fulfillment still requires server verification.
   void poll(a);
  }
 });
