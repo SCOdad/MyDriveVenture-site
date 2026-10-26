@@ -120,12 +120,18 @@ async function poll(a){
    }catch(_){/* A network failure is not a failed payment. Keep the same purchase. */}
    await new Promise(resolve=>setTimeout(resolve,2000));
   }
-  say('Payment verification remains pending. Do not pay again. Check status here or contact support.');if(!dialog.open)dialog.showModal();
+  // The secure Helcim iframe may still be accepting payment; polling timeout is NOT an exit event.
+  // Do not obscure an active hosted payment form merely because status is still pending.
+  if(dialog.open)say('Payment verification remains pending. Do not pay again. Check status here or contact support.');
  }finally{a.polling=false;}
 }
 window.addEventListener('message',e=>{
  const a=active;if(!a?.token||e.data?.eventName!==`helcim-pay-js-${a.token}`)return;
- if(['SUCCESS','ABORTED','HIDE'].includes(e.data.eventStatus)){say('Checking payment status with the server…');if(!dialog.open)dialog.showModal();void poll(a);}
+ if(['SUCCESS','ABORTED','HIDE'].includes(e.data.eventStatus)){
+  say('Checking payment status with the server…');
+  if(!dialog.open)dialog.showModal();
+  void poll(a);
+ }
 });
 async function mount(element,{family_id,driver_count}={}){
  const generation=(mountGenerations.get(element)||0)+1;mountGenerations.set(element,generation);element.replaceChildren();element.hidden=false;
