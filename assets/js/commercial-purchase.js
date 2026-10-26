@@ -7,6 +7,13 @@ let client,dialog,active=null,opening=false,mountGenerations=new WeakMap();
 const expectedOffer=s=>['FREE','FREE_EXHAUSTED'].includes(s)?'FAMILY_LICENSE':s==='PAID'?'ADDITIONAL_DRIVER_CAPACITY':null;
 const label=code=>code==='FAMILY_LICENSE'?'Buy Full License':'Add Driver Capacity';
 const say=s=>{if(dialog)dialog.querySelector('[data-notice]').textContent=s;};
+function renderSummary(code,subtotal,tax,total,preview=false){
+ const el=dialog.querySelector('[data-summary]');el.replaceChildren();
+ const row=(title,amount,cls='',detail='')=>{const line=document.createElement('div');line.className='commercial-price-row '+cls;const left=document.createElement('span');left.textContent=title;if(detail){const small=document.createElement('small');small.textContent=detail;left.append(small);}const right=document.createElement('strong');right.textContent=money(amount);line.append(left,right);el.append(line);};
+ row(code==='FAMILY_LICENSE'?'Full Family License':'Additional Driver Capacity',subtotal,'',''+(code==='FAMILY_LICENSE'?'Up to three drivers':'One additional driver'));
+ if(preview){const note=document.createElement('p');note.className='commercial-preview-note';note.textContent='DEV preview · base price only; tax and total not quoted.';el.append(note);return;}
+ row('Sales Tax',tax,'commercial-tax');row('TOTAL',total,'commercial-total');
+}
 async function invoke(endpoint,action,body={}){
  client ||= window.DV_SUPABASE_CLIENT||window.supabase?.createClient(cfg.supabaseUrl,cfg.publishableKey);
  const auth=(await client?.auth.getSession())?.data?.session;
@@ -25,15 +32,15 @@ async function context(family_id){
 }
 function ensureDialog(){
  if(dialog)return;
- if(!document.querySelector('link[data-commercial-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/commercial-purchase.css?v=hub2';link.dataset.commercialStyle='';document.head.append(link);}
+ if(!document.querySelector('link[data-commercial-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/commercial-purchase.css?v=hub3';link.dataset.commercialStyle='';document.head.append(link);}
  dialog=document.createElement('dialog');dialog.className='commercial-dialog';dialog.setAttribute('aria-labelledby','dv-purchase-title');
- dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><p data-summary aria-live="polite"></p><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
+ dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><div class="commercial-summary" data-summary aria-live="polite"></div><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
  document.body.append(dialog);
  dialog.querySelector('[data-close]').onclick=()=>dialog.close();
  dialog.addEventListener('close',()=>{if(active&&!active.started){active=null;} });
  dialog.querySelector('[data-consent]').onchange=()=>sync();
  dialog.querySelector('[data-pay]').onclick=()=>void launch(active);
- dialog.querySelector('[data-recheck]').onclick=()=>void poll(active);
+ dialog.querySelector('[data-recheck]').onclick=()=>void checkStatus(active);
 }
 // Read-only, DEV-only UX preview. Does not request quotes, create purchase intents,
 // initialize Helcim, or authorize payment; never represents tax as a live quote.
@@ -43,7 +50,7 @@ function openReadOnlyPreview(data){
  active=null;
  dialog.querySelector('h2').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Full Family License':'+1 Driver';
  dialog.querySelector('[data-description]').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Includes three active driver slots. One-time purchase.':'One additional active driver slot. One-time purchase.';
- dialog.querySelector('[data-summary]').textContent=money(data.offers[0].unit_cents)+' · base price (DEV preview; final charges not quoted)';
+ renderSummary(data.offers[0].offer_code,data.offers[0].unit_cents,0,0,true);
  dialog.querySelector('[data-consent]').checked=false;dialog.querySelector('[data-consent]').disabled=true;
  dialog.querySelector('[data-pay]').disabled=true;
  dialog.querySelector('[data-recheck]').hidden=true;
@@ -64,7 +71,7 @@ async function getQuote(a){
   if(a!==active||revision!==a.revision)return;
   const q=data.quote,expiry=Date.parse(q?.expires_at);
   if(!q||q.family_id!==a.family_id||q.offer_code!==a.code||q.currency!=='USD'||!Number.isSafeInteger(q.subtotal_cents)||q.subtotal_cents<0||!Number.isSafeInteger(q.tax_cents)||q.tax_cents<0||!Number.isSafeInteger(q.total_cents)||q.total_cents!==q.subtotal_cents+q.tax_cents||!q.quote_id||!q.terms_version||!q.terms_digest||!q.privacy_version||!q.privacy_digest||!Number.isFinite(expiry)||expiry<=Date.now())throw Error('The quote could not be verified. Close and reopen purchasing for a fresh quote.');
-  a.quote=q;dialog.querySelector('[data-summary]').textContent=`Subtotal ${money(q.subtotal_cents)} · Sales tax ${money(q.tax_cents)} · Total ${money(q.total_cents)}. One-time purchase.`;
+  a.quote=q;renderSummary(a.code,q.subtotal_cents,q.tax_cents,q.total_cents);
   dialog.querySelector('[data-consent]').disabled=false;
   say('Review the total and policies before continuing. Any provider fee must be disclosed in secure payment before you submit.');
   setTimeout(()=>{if(active===a&&a.quote===q&&!a.started){sync();say('This quote expired. Close and reopen purchasing to review a fresh total.');}},Math.max(0,expiry-Date.now()));
@@ -102,6 +109,21 @@ async function launch(a){
   dialog.close();window.appendHelcimPayIframe(a.token);void poll(a);
  }catch(e){say(e.message+' Do not retry an uncertain payment; contact support.');}
  finally{a.busy=false;dialog.querySelector('[data-recheck]').hidden=!a.purchase_id;}
+}
+async function checkStatus(a){
+ if(!a?.purchase_id){say('No payment session is available to check.');return;}
+ const button=dialog.querySelector('[data-recheck]');
+ if(button.disabled)return;
+ button.disabled=true;button.textContent='Checking…';say('Checking payment status with Drive Venture…');
+ try{
+  const result=await invoke('commercial-checkout','status',{purchase_id:a.purchase_id,family_id:a.family_id});
+  if(result.status==='FULFILLED'){say('Payment verified. Refreshing your Family…');a.done=true;a.started=false;window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id}}));await init();}
+  else if(result.status==='ABANDONED'){say('Checkout was abandoned. Close this popup and refresh the Family Hub to begin again.');a.started=false;a.done=true;}
+  else if(result.status==='DECLINED'){say('Payment was declined. Contact support before retrying.');a.done=true;}
+  else if(result.status==='RECONCILIATION_REQUIRED'){say('Payment requires manual verification. Do not pay again; contact support.');}
+  else say('No completed payment is confirmed yet. Your checkout remains pending. Do not start another payment.');
+ }catch(e){say('Payment status could not be checked: '+e.message+' Do not pay again until verified.');}
+ finally{button.disabled=false;button.textContent='Check payment status';}
 }
 async function poll(a){
  if(!a?.purchase_id||a.polling||a.done)return;a.polling=true;
