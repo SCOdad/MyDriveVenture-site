@@ -3,8 +3,8 @@ import fs from 'node:fs';
 const script=fs.readFileSync('assets/js/commercial-purchase.js','utf8');
 const siteCss=['assets/css/site.css','assets/css/join.css','assets/css/family.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
 const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
-async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null}={}){
- const calls=[];let resolveQuote;
+async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null,recoveryStatus='SESSION_CREATED',recoveryReason='SESSION_STILL_PROTECTED'}={}){
+ const calls=[];let resolveQuote;let currentPending=pending;
  await page.route('https://purchase.test/**',async route=>{
   const req=route.request();
   if(req.method()==='GET')return route.fulfill({contentType:req.url().includes('.css')?'text/css':'text/html',body:req.url().includes('.css')?css:'<html><head></head><body><main><section id="dv-commercial-purchase" hidden></section></main></body></html>'});
@@ -12,12 +12,16 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   if(req.url().endsWith('/family-api'))out={ok:true,family_contexts:contexts||[{family_id:'family',is_license_holder:true,commercial_state:state,driver_count:state==='PAID'?3:1,driver_capacity:state==='PAID'?3:1}]};
   else if(b.action==='catalog'){
    if(denied||b.family_id!=='family')return route.fulfill({status:403,json:{ok:false,error:'Only this Family’s authorized License Holder can purchase'}});
-   out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:pending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
+   out={ok:true,family_id:b.family_id,commercial_state:state,checkout_enabled:enabled,pending_purchase:currentPending,disabled_reason:'Purchases are paused.',offers:[{offer_code:code,currency:'USD',unit_cents:code==='FAMILY_LICENSE'?2499:999}],billing_states:[{code:'MI'}]};
   }else if(b.action==='quote')out={ok:true,quote:{quote_id:'quote',family_id:b.family_id,offer_code:code,billing_state:'MI',currency:'USD',subtotal_cents:code==='FAMILY_LICENSE'?2499:999,tax_cents:0,total_cents:code==='FAMILY_LICENSE'?2499:999,terms_version:'terms-2026-10-16',terms_digest:'terms-digest',privacy_version:'privacy-2026-10-16',privacy_digest:'privacy-digest',expires_at:new Date(Date.now()+600000).toISOString(),...quotePatch}};
   else if(b.action==='start'){
    if(startFailure)return route.fulfill({status:503,json:{ok:false,error:'Uncertain provider response'}});
    out={ok:true,purchase_id:'purchase',checkout_token:'synthetic-token'};
   }else if(b.action==='status')out={ok:true,status};
+  else if(b.action==='recover-abandoned'){
+   out={ok:true,status:recoveryStatus,recovery:recoveryReason,safe_after:new Date(Date.now()+300000).toISOString()};
+   if(recoveryStatus==='ABANDONED')currentPending=null;
+  }
   await route.fulfill({json:out});
  });
  await page.goto('https://purchase.test/family/?dev_test_run=old-run&test_family=old-family');
@@ -129,7 +133,8 @@ test('DEV paused Family purchase opens read-only popup with no quote or payment 
  const calls=await prepare(page,{enabled:false,state:'PAID'});
  await page.getByRole('button',{name:'Upgrade to add driver'}).click();
  await expect(page.locator('dialog')).toBeVisible();
- await expect(page.locator('[data-summary]')).toContainText('$9.99 · base price');
+ await expect(page.locator('[data-summary]')).toContainText('$9.99');
+ await expect(page.locator('[data-summary]')).toContainText('base price only');
  await expect(page.locator('[data-notice]')).toContainText('DEV visual preview only');
  await expect(page.locator('[data-pay]')).toBeDisabled();
  await expect(page.locator('[data-consent]')).toBeDisabled();
@@ -138,6 +143,42 @@ test('DEV paused Family purchase opens read-only popup with no quote or payment 
  await expect(page.locator('dialog')).not.toBeVisible();
 });
 
+test('quoted payment breakdown uses individual rows and emphasizes server total',async({page})=>{
+ await prepare(page,{quotePatch:{subtotal_cents:2499,tax_cents:175,total_cents:2674}});
+ await page.getByRole('button',{name:'Upgrade to add driver'}).click();
+ await expect(page.locator('.commercial-price-row')).toHaveCount(3);
+ await expect(page.locator('.commercial-price-row').nth(0)).toContainText('Full Family License');
+ await expect(page.locator('.commercial-price-row').nth(0)).toContainText('$24.99');
+ await expect(page.locator('.commercial-tax')).toContainText('$1.75');
+ await expect(page.locator('.commercial-total')).toContainText('$26.74');
+ const total=await page.locator('.commercial-total strong').evaluate(e=>Number.parseFloat(getComputedStyle(e).fontSize));
+ const subtotal=await page.locator('.commercial-price-row strong').first().evaluate(e=>Number.parseFloat(getComputedStyle(e).fontSize));
+ expect(total).toBeGreaterThan(subtotal);
+});
+test('status button shows immediate feedback while background polling exists',async({page})=>{
+ const calls=await prepare(page);
+ await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
+ await expect.poll(()=>page.evaluate(()=>window.providerCalls.length)).toBe(1);
+ await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'HIDE'}})));
+ await expect(page.locator('dialog')).toBeVisible();
+ await page.getByRole('button',{name:'Check payment status'}).click();
+ await expect(page.locator('[data-notice]')).toContainText('still protected');
+ expect(calls.filter(c=>c.action==='recover-abandoned')).toHaveLength(1);
+ expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
+});
+test('expired checkout confirmation enables a new quote but never starts payment automatically',async({page})=>{
+ const calls=await prepare(page,{pending:{id:'existing',status:'SESSION_CREATED'},recoveryStatus:'ABANDONED',recoveryReason:'EXPIRED_NO_PROVIDER_ACTIVITY'});
+ await page.getByRole('button',{name:'Check previous checkout'}).click();
+ await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
+ expect(calls.filter(c=>c.action==='start')).toHaveLength(0);
+});
+test('Helcim payment activity cannot be mistaken for an abandoned session',async({page})=>{
+ const calls=await prepare(page,{pending:{id:'existing',status:'SESSION_CREATED'},recoveryReason:'PROVIDER_ACTIVITY_REQUIRES_REVIEW'});
+ await page.getByRole('button',{name:'Check previous checkout'}).click();
+ await expect(page.locator('#dv-commercial-purchase')).toContainText('Checkout remains locked for review');
+ await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeDisabled();
+ expect(calls.filter(c=>c.action==='start')).toHaveLength(0);
+});
 test('new unpaid Family prioritizes first Add Driver before the commercial offer',async({page})=>{
  const calls=[];
  await page.route('https://first-driver.test/**',async route=>{
