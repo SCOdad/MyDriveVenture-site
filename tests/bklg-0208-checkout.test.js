@@ -57,3 +57,25 @@ test('returning from an existing drive edit hides the Exit edit action under exh
  assert.match(driveUi,/if\(cancel\)cancel\.hidden=true/);
  assert.match(css,/#drive-edit-cancel\[hidden\]\{display:none!important\}/);
 });
+
+test('itemized quote summary uses authoritative cents and DV total styling',()=>{
+ const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
+ assert.match(shared,/function renderSummary\(code,subtotal,tax,total,preview=false\)/);
+ assert.match(shared,/row\('Sales Tax',tax,'commercial-tax'\)/);
+ assert.match(shared,/row\('TOTAL',total,'commercial-total'\)/);
+ assert.match(shared,/renderSummary\(a\.code,q\.subtotal_cents,q\.tax_cents,q\.total_cents\)/);
+ assert.match(shared,/q\.total_cents!==q\.subtotal_cents\+q\.tax_cents/);
+ assert.match(css,/\.commercial-total strong/);
+ assert.match(css,/commercial-price-row/);
+});
+test('pending checkout status and expired-session recovery provide visible feedback and no payment restart',()=>{
+ assert.match(shared,/async function checkStatus\(a\)/);
+ assert.match(shared,/button\.disabled=true;button\.textContent='Checking…'/);
+ assert.match(shared,/recover-abandoned/);
+ assert.match(shared,/SESSION_STILL_PROTECTED/);
+ assert.match(shared,/PROVIDER_ACTIVITY_REQUIRES_REVIEW/);
+ assert.match(shared,/if\(result\.status==='ABANDONED'\)/);
+ assert.match(shared,/a\.started=false;a\.done=true;a\.token=null/);
+ assert.match(shared,/check\.disabled=true;check\.textContent='Checking…'/);
+ assert.doesNotMatch(shared,/setInterval\([\s\S]*?recover-abandoned/);
+});
