@@ -88,3 +88,13 @@ test('no retired lifetime DEV session-budget gate; pending purchase still preven
  assert.match(shared,/if\(data\.pending_purchase\)/);
  assert.match(shared,/recover-abandoned/);
 });
+
+test('Helcim recoverable error and dismissal events never reopen the Family dialog',()=>{
+ assert.match(shared,/if\(e\.data\.eventStatus==='SUCCESS'\)/);
+ assert.doesNotMatch(shared,/\['SUCCESS','ABORTED','HIDE'\]\.includes/);
+ assert.doesNotMatch(shared,/dialog\.close\(\);window\.appendHelcimPayIframe\(a\.token\);void poll\(a\)/);
+ const eventBlock=shared.slice(shared.indexOf("window.addEventListener('message'"),shared.indexOf('async function mount('));
+ assert.doesNotMatch(eventBlock,/dialog\.showModal\(/);
+ assert.doesNotMatch(eventBlock,/ABORTED'\s*\|\|/);
+ assert.match(eventBlock,/void poll\(a\)/);
+});
