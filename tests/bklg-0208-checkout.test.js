@@ -109,3 +109,17 @@ test('fulfilled payment refreshes Family before updating checkout controls',()=>
  assert.match(familyJs,/if\(e\.detail\?\.refreshed===true\)return/);
  assert.match(shared,/Refresh this page to see your updated Family access/);
 });
+
+test('DEV operator can inspect read-only payment holds without exposing provider payloads',()=>{
+ const page=fs.readFileSync('operator/payments/index.html','utf8');
+ const js=fs.readFileSync('operator/payments/diagnostics.js','utf8');
+ assert.match(page,/data-action="exceptions"/);
+ assert.match(page,/Review payment holds \(read-only\)/);
+ assert.match(js,/window\.DV_ENVIRONMENT_CONFIG\?\.name!=='dev'/);
+ assert.match(js,/if\(button\.dataset\.action==='exceptions'\)/);
+ assert.match(js,/result\.stalled_purchases/);
+ assert.match(js,/result\.items/);
+ assert.match(js,/output\.textContent=lines\.join/);
+ assert.doesNotMatch(js,/innerHTML|cardNumber|checkout_token_encrypted/);
+ assert.doesNotMatch(page,/data-action="developer_reconcile_event"|data-action="recover-abandoned"/);
+});
