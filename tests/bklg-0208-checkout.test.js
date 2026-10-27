@@ -98,3 +98,14 @@ test('Helcim recoverable error and dismissal events never reopen the Family dial
  assert.doesNotMatch(eventBlock,/ABORTED'\s*\|\|/);
  assert.match(eventBlock,/void poll\(a\)/);
 });
+
+test('fulfilled payment refreshes Family before updating checkout controls',()=>{
+ const familyJs=fs.readFileSync('assets/js/family.js','utf8');
+ assert.match(shared,/async function refreshFamilyAfterFulfillment\(a\)/);
+ const handler=shared.slice(shared.indexOf('async function refreshFamilyAfterFulfillment(a)'),shared.indexOf('async function checkStatus(a)'));
+ assert.match(handler,/await window\.DVFamily\.refresh\(\)/);
+ assert.ok(handler.indexOf('await window.DVFamily.refresh()')<handler.indexOf('await init()'));
+ assert.match(handler,/refreshed:true|refreshed\}\}\)/);
+ assert.match(familyJs,/if\(e\.detail\?\.refreshed===true\)return/);
+ assert.match(shared,/Refresh this page to see your updated Family access/);
+});
