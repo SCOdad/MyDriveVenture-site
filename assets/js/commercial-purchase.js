@@ -111,6 +111,22 @@ async function launch(a){
  }catch(e){say(e.message+' Do not retry an uncertain payment; contact support.');}
  finally{a.busy=false;dialog.querySelector('[data-recheck]').hidden=!a.purchase_id;}
 }
+// Refresh the authoritative Family view before remounting checkout controls.
+// A separate concurrent checkout refresh can otherwise briefly leave Add Driver disabled.
+async function refreshFamilyAfterFulfillment(a){
+ const panel=document.getElementById('dv-commercial-purchase');
+ if(panel)panel.textContent='Payment verified. Refreshing your Family…';
+ let refreshed=false;
+ try{
+  if(typeof window.DVFamily?.refresh==='function'){
+   await window.DVFamily.refresh();
+   refreshed=true;
+  }
+ }catch(e){console.warn('Family entitlement refresh pending',e);}
+ window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id,refreshed}}));
+ if(!refreshed&&panel)panel.textContent='Payment verified. Refresh this page to see your updated Family access.';
+ await init();
+}
 async function checkStatus(a){
  if(!a?.purchase_id){say('No payment session is available to check.');return;}
  const button=dialog.querySelector('[data-recheck]');
@@ -118,7 +134,7 @@ async function checkStatus(a){
  button.disabled=true;button.textContent='Checking…';say('Checking payment status with Drive Venture…');
  try{
   const result=await invoke('commercial-checkout','recover-abandoned',{purchase_id:a.purchase_id,family_id:a.family_id});
-  if(result.status==='FULFILLED'){say('Payment verified. Refreshing your Family…');a.done=true;a.started=false;a.token=null;dialog.close();active=null;window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id}}));await init();}
+  if(result.status==='FULFILLED'){say('Payment verified. Refreshing your Family…');a.done=true;a.started=false;a.token=null;dialog.close();active=null;await refreshFamilyAfterFulfillment(a);}
   else if(result.status==='ABANDONED'){say('The expired checkout was safely closed after Helcim verification. Close this popup to start again.');a.started=false;a.done=true;a.token=null;button.hidden=true;dialog.querySelector('[data-pay]').disabled=true;await init();}
   else if(result.status==='DECLINED'){say('Payment was declined. Contact support before retrying.');a.done=true;}
   else if(result.status==='RECONCILIATION_REQUIRED'){say('Payment requires manual verification. Do not pay again; contact support.');}
@@ -139,9 +155,7 @@ async function poll(a){
     if(result.status==='FULFILLED'){
      a.done=true;a.token=null;a.started=false;
      if(active===a){dialog.close();active=null;}
-     window.dispatchEvent(new CustomEvent('dv:commercial-fulfilled',{detail:{family_id:a.family_id,purchase_id:a.purchase_id}}));
-     const panel=document.getElementById('dv-commercial-purchase');if(panel)panel.textContent='Payment verified. Refreshing your Family…';
-     await init();return;
+     await refreshFamilyAfterFulfillment(a);return;
     }
     if(['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'].includes(result.status)){say('Payment not confirmed. Contact support before retrying.');a.done=true;if(!dialog.open)dialog.showModal();return;}
    }catch(_){/* A network failure is not a failed payment. Keep the same purchase. */}
