@@ -81,14 +81,14 @@ test('browser success does not fulfill a pending payment; reopening cannot resub
  const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
  await expect.poll(()=>page.evaluate(()=>window.providerCalls.length)).toBe(1);
  await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'SUCCESS'}})));
- await expect(page.locator('dialog')).toBeVisible();await expect(page.locator('[data-pay]')).toBeDisabled();expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
+ await expect(page.locator('dialog')).not.toBeVisible();expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
 });
 test('server fulfillment emits one Family refresh event',async({page})=>{
  await prepare(page,{status:'FULFILLED'});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
- await expect.poll(()=>page.evaluate(()=>window.fulfillments)).toEqual([{family_id:'family',purchase_id:'purchase'}]);await expect(page.locator('dialog')).not.toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>window.fulfillments.length)).toBe(1);expect((await page.evaluate(()=>window.fulfillments))[0]).toMatchObject({family_id:'family',purchase_id:'purchase',refreshed:false});await expect(page.locator('dialog')).not.toBeVisible();
 });
 for(const status of ['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'])test(`${status} cannot be presented as success`,async({page})=>{
- await prepare(page,{status});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();await expect(page.locator('[data-notice]')).toContainText('not confirmed');expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);
+ await prepare(page,{status});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();await expect(page.locator('#dv-commercial-purchase')).toContainText('Payment not confirmed');await expect(page.locator('dialog')).not.toBeVisible();expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);
 });
 test('uncertain start remains locked against a second purchase',async({page})=>{
  const calls=await prepare(page,{startFailure:true});await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();await expect(page.locator('[data-notice]')).toContainText('Uncertain');await expect(page.locator('[data-pay]')).toBeDisabled();expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
@@ -160,6 +160,9 @@ test('status button shows immediate feedback while background polling exists',as
  await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
  await expect.poll(()=>page.evaluate(()=>window.providerCalls.length)).toBe(1);
  await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'HIDE'}})));
+ await expect(page.locator('dialog')).not.toBeVisible();
+ // Checking an uncertain payment is a deliberate user action, not a popup over Helcim.
+ await page.evaluate(()=>window.DVCommercialPurchase.open({family_id:'family'}));
  await expect(page.locator('dialog')).toBeVisible();
  await page.getByRole('button',{name:'Check payment status'}).click();
  await expect(page.locator('[data-notice]')).toContainText('still protected');
@@ -195,4 +198,14 @@ test('new unpaid Family prioritizes first Add Driver before the commercial offer
  await page.addScriptTag({content:script});
  await expect(page.locator('#dv-commercial-purchase')).toBeHidden();
  expect(calls.some(c=>c.action==='catalog')).toBeFalsy();
+});
+
+test('Helcim ABORTED keeps provider validation visible and never starts a second charge',async({page})=>{
+ const calls=await prepare(page);
+ await quote(page);await page.locator('[data-consent]').check();await page.locator('[data-pay]').click();
+ await expect.poll(()=>page.evaluate(()=>window.providerCalls.length)).toBe(1);
+ await page.evaluate(()=>window.dispatchEvent(new MessageEvent('message',{data:{eventName:'helcim-pay-js-synthetic-token',eventStatus:'ABORTED'}})));
+ await expect(page.locator('dialog')).not.toBeVisible();
+ expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
+ expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);
 });
