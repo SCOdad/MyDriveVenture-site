@@ -107,7 +107,9 @@ async function launch(a){
   a.purchase_id=String(data.purchase_id);a.token=String(data.checkout_token);
   say('Complete secure payment. Drive Venture will independently verify payment before updating your Family.');
   dialog.close();window.appendHelcimPayIframe(a.token);
-  // Keep hosted validation and declines in Helcim; do not obscure its iframe.
+  // Poll the authoritative server while Helcim stays in control of its hosted form.
+  // Polling must never reopen our dialog over a validation error or decline.
+  void poll(a);
  }catch(e){say(e.message+' Do not retry an uncertain payment; contact support.');}
  finally{a.busy=false;dialog.querySelector('[data-recheck]').hidden=!a.purchase_id;}
 }
@@ -157,7 +159,13 @@ async function poll(a){
      if(active===a){dialog.close();active=null;}
      await refreshFamilyAfterFulfillment(a);return;
     }
-    if(['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'].includes(result.status)){say('Payment not confirmed. Contact support before retrying.');a.done=true;if(!dialog.open)dialog.showModal();return;}
+    if(['DECLINED','ABANDONED','RECONCILIATION_REQUIRED'].includes(result.status)){
+     a.done=true;
+     const panel=document.getElementById('dv-commercial-purchase');
+     if(panel)panel.textContent='Payment not confirmed. Contact support before retrying.';
+     // Do not display our dialog on top of Helcim's error/validation screen.
+     return;
+    }
    }catch(_){/* A network failure is not a failed payment. Keep the same purchase. */}
    await new Promise(resolve=>setTimeout(resolve,2000));
   }
