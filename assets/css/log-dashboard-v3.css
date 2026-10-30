@@ -12,3 +12,22 @@
 .drive-prepermit-warning{margin:.35rem 0 1rem;padding:0;border:2px solid #d94343;border-left:6px solid #d94343;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%);color:#f8f4e9}.drive-prepermit-eyebrow{margin:0 0 .8rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 Orbitron,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}.drive-prepermit-warning>strong,.drive-prepermit-warning>p,.drive-prepermit-actions{margin-left:.8rem;margin-right:.8rem}.drive-prepermit-warning>strong{display:block}.drive-prepermit-warning>p{margin-top:.45rem;margin-bottom:.9rem;color:#b7c0c5;line-height:1.45}.drive-prepermit-actions{margin-bottom:.8rem}
 
 .drive-item-prepermit{position:relative;display:block!important;border:2px solid #d94343!important;border-left:6px solid #d94343!important;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%)!important}.drive-item-prepermit .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}.drive-item-prepermit .drive-prepermit-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 Orbitron,Arial,sans-serif;letter-spacing:.04em;text-transform:uppercase}
+
+/* BKLG-0275: exhausted FREE Families may inspect prior history but cannot enter a new drive. */
+#drive-form[data-dv-entitlement-blocked="true"] input,
+#drive-form[data-dv-entitlement-blocked="true"] select,
+#drive-form[data-dv-entitlement-blocked="true"] textarea{
+  opacity:.42;
+  cursor:not-allowed;
+  filter:grayscale(.6);
+}
+#drive-form[data-dv-entitlement-blocked="true"] label{color:var(--muted,#aeb8c2)}
+#drive-form[data-dv-entitlement-blocked="true"] #drive-entitlement-status{
+  opacity:1;
+  filter:none;
+  border-left:4px solid #f4b820;
+  padding:.75rem 1rem;
+}
+
+/* BKLG-0275: the edit-mode exit control must truly disappear after returning to blocked new-drive mode. */
+#drive-edit-cancel[hidden]{display:none!important}

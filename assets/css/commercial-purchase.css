@@ -1,0 +1,31 @@
+.commercial-dialog{box-sizing:border-box;width:min(94vw,32rem);max-height:90dvh;overflow:auto;border:1px solid var(--steel-gray,#aeb8c2);border-radius:1rem;padding:1.5rem;background:var(--panel,#202b35);color:var(--warm-white,#f5f3eb);box-shadow:0 1rem 4rem #0003}
+.commercial-dialog::backdrop{background:#13233399}
+.commercial-dialog h2{margin-top:0;color:inherit}.commercial-dialog select{display:block;box-sizing:border-box;width:100%;min-height:44px;margin:.5rem 0 1rem}.commercial-consent{display:flex;gap:.65rem;align-items:flex-start}.commercial-consent input{width:1.25rem;height:1.25rem;flex-shrink:0}.commercial-actions{display:flex;gap:.75rem;justify-content:flex-end;flex-wrap:wrap}.commercial-dialog button{min-height:44px}.commercial-dialog [data-recheck]{margin-top:1rem}.commercial-dialog [data-notice]{line-height:1.5}@media(max-width:420px){.commercial-dialog{padding:1rem}.commercial-actions{flex-direction:column-reverse}.commercial-actions button{width:100%}}
+
+.commercial-dialog a{color:var(--dv-yellow,#f4b820)}.commercial-dialog button,.commercial-dialog select{font:inherit}
+
+.commercial-dialog select{background:#fff;color:#172033}.commercial-dialog [data-close]{background:transparent;color:inherit;box-shadow:none}.commercial-dialog button:disabled{opacity:.55;cursor:not-allowed}
+
+/* Family Hub purchasing occupies the existing action row, not a full-page panel. */
+.family-commercial-action:not([hidden]){display:inline-flex;flex-direction:column;gap:.25rem;align-items:center;justify-content:center;max-width:20rem;vertical-align:middle}
+.family-commercial-action .family-explainer{font-size:.72rem;line-height:1.25;margin:0;max-width:16rem;text-align:center;color:var(--steel-gray,#aeb8c2)}
+.family-commercial-action .button{white-space:nowrap;text-align:center;min-height:3.2rem;padding:.7rem 1.25rem}
+
+/* BKLG-0208: final approved Family Hub action hierarchy. */
+#owned-family-actions{display:flex;align-items:center;justify-content:space-between;gap:clamp(1rem,3vw,3rem);flex-wrap:wrap}
+#owned-family-actions [data-open-panel="grownup"]{flex:0 0 auto;min-height:3.2rem;padding:.7rem 1.25rem;background:transparent;color:var(--warm-white,#f5f3eb);border:1px solid var(--steel-gray,#aeb8c2);box-shadow:none}
+#owned-family-actions [data-open-panel="grownup"]:hover{background:rgba(255,255,255,.08)}
+#owned-family-actions .family-commercial-action:not([hidden]){margin-left:auto;flex:0 1 auto;max-width:none;align-items:center}
+#owned-family-actions .family-commercial-action .button{min-height:3.2rem}
+@media(max-width:640px){#owned-family-actions{justify-content:flex-start;gap:1rem}#owned-family-actions .family-commercial-action:not([hidden]){margin-left:0}}
+
+/* BKLG-0208: authoritative quoted price breakdown. */
+.commercial-summary{margin:1rem 0 1.25rem;padding:1.15rem;border:1px solid #52606a;border-radius:.8rem;background:linear-gradient(145deg,#283642,#1a252e);box-shadow:inset 0 1px 0 #ffffff12}
+.commercial-price-row{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:.55rem 0;color:#f5f3eb}
+.commercial-price-row>span{min-width:0}.commercial-price-row strong{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:1.08rem}
+.commercial-price-row small{display:block;color:#b7c3cd;font-size:.8rem;margin-top:.2rem}
+.commercial-tax{color:#c2cbd2}.commercial-tax strong{font-weight:500}
+.commercial-total{border-top:1px solid #64717b;margin-top:.5rem;padding-top:1rem;color:var(--dv-yellow,#f4b820);font-weight:800;letter-spacing:.025em}
+.commercial-total strong{color:var(--dv-yellow,#f4b820);font-size:clamp(1.65rem,6vw,2rem);font-weight:900}
+.commercial-preview-note{font-size:.8rem;color:#b7c3cd;line-height:1.4;margin:.75rem 0 0}
+@media(max-width:420px){.commercial-summary{padding:.85rem}.commercial-price-row{gap:.5rem}.commercial-price-row strong{font-size:1rem}.commercial-total strong{font-size:1.7rem}}

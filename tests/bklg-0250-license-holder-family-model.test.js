@@ -115,9 +115,11 @@ test('UAT: current grown-up is not duplicated in Other Account Access',()=>{
   assert.match(js,/String\(g\.person_id\)!==String\(overview\.current_person_id\)/);
 });
 
-test('UAT: zero-driver owned Family uses only the large Add Driver CTA',()=>{
+test('UAT: zero-driver owned Family prominently uses one top Add Driver CTA',()=>{
   const js=read('assets/js/family.js');
-  assert.match(js,/addDriver\.hidden=ownedDrivers\.length===0/);
+  assert.match(js,/addDriver\.hidden=false/);
+  assert.match(js,/addDriver\.classList\.toggle\('primary',ownedDrivers\.length===0\)/);
+  assert.match(js,/Use the Add driver button above to create your first driver/);
   assert.match(js,/Add your driver/);
 });
 
@@ -174,8 +176,8 @@ test('dynamically rendered Add Driver CTA is covered by delegated panel handling
 
 test('Family runtime cache keys advance with Add Driver handler repairs',()=>{
   const html=read('family/index.html'),bootstrap=read('assets/js/family-bootstrap.js'),js=read('assets/js/family.js');
-  assert.match(html,/family-bootstrap\.js\?v=20261010-driver-email1/);
-  assert.match(bootstrap,/family\.js\?v=20261010-driver-email1/);
+  assert.match(html,/family-bootstrap\.js\?v=20261025-purchase-hub/);
+  assert.match(bootstrap,/family\.js\?v=20261025-purchase-hub/);
   assert.match(js,/function openFamilyPanel/);
   assert.match(js,/app\.addEventListener\('click',e=>\{const b=e\.target\.closest\?\.\('\[data-open-panel\]'\)/);
 });
@@ -195,8 +197,8 @@ test('Other Account Access merges Family access into the License Holder card',()
   assert.match(js,/family-grownup-statusline/);
   assert.doesNotMatch(js,/family-other-account-head/);
   assert.match(js,/sharedPeople\.map\(g=>grownupCard\(g,byId,familyId\)\)/);
-  assert.match(bootstrap,/family\.js\?v=20261010-driver-email1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261010-driver-email1/);
+  assert.match(bootstrap,/family\.js\?v=20261025-purchase-hub/);
+  assert.match(html,/family-bootstrap\.js\?v=20261025-purchase-hub/);
 });
 
 
@@ -217,8 +219,8 @@ test('full Alpha Family disables Add Driver and exposes support contact',()=>{
   assert.match(js,/Need more than 3 drivers\? Contact mike@mydriveventure\.com/);
   assert.match(js,/removeAttribute\('data-open-panel'\)/);
   assert.doesNotMatch(js,/Your FREE Family includes 1 driver/);
-  assert.match(bootstrap,/family\.js\?v=20261010-driver-email1/);
-  assert.match(html,/family-bootstrap\.js\?v=20261010-driver-email1/);
+  assert.match(bootstrap,/family\.js\?v=20261025-purchase-hub/);
+  assert.match(html,/family-bootstrap\.js\?v=20261025-purchase-hub/);
 });
 
 
