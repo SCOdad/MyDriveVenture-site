@@ -51,9 +51,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify DEV preview serves this purchase implementation
         env:
-          DEV_URL: https://bklg-0208-web-checkout-ui.mydriveventure-dev.pages.dev
+          PREVIEW_BRANCH: ${{ github.head_ref }}
         run: |
           set -eu
+          DEV_URL=$(node -e 'const branch=process.env.PREVIEW_BRANCH.toLowerCase().replace(/[^a-z0-9-]/g,"-").slice(0,28);process.stdout.write("https://"+branch+".mydriveventure-dev.pages.dev")')
           for attempt in $(seq 1 30); do
             matched=true
             for path in assets/js/commercial-purchase.js assets/css/commercial-purchase.css assets/js/family.js assets/js/family-bootstrap.js family/index.html operator/payments/index.html operator/payments/diagnostics.js; do
