@@ -98,10 +98,10 @@ async function open({family_id}={}){
 }
 async function launch(a){
  sync();if(a!==active||dialog.querySelector('[data-pay]').disabled)return;
+ if(typeof window.appendHelcimPayIframe!=='function'){say('Secure payment could not load. No checkout was requested. Please try again after it loads.');return;}
  a.busy=true;a.started=true;sync();dialog.querySelector('[data-consent]').disabled=true;
  // After a start request, an uncertain response must not create a second purchase.
  try{
-  if(typeof window.appendHelcimPayIframe!=='function')throw Error('Secure payment could not load. No session was requested.');
   const q=a.quote,data=await invoke('commercial-checkout','start',{family_id:a.family_id,quote_id:q.quote_id,offer_code:a.code,client_idempotency_key:a.nonce,accepted_terms_version:q.terms_version,accept_terms:true});
   if(!data.purchase_id||!data.checkout_token)throw Error('Payment session response is incomplete. Contact support before retrying.');
   a.purchase_id=String(data.purchase_id);a.token=String(data.checkout_token);
@@ -190,13 +190,13 @@ async function mount(element,{family_id,driver_count}={}){
   const button=document.createElement('button');button.className='button primary';button.type='button';const offer=data.offers[0];if(offer.currency!=='USD'||!Number.isSafeInteger(offer.unit_cents)||offer.unit_cents<=0)throw Error('Purchase price is unavailable.');button.textContent=offer.offer_code==='ADDITIONAL_DRIVER_CAPACITY'||(offer.offer_code==='FAMILY_LICENSE'&&Number(driver_count)>0)?'Upgrade to add driver':label(offer.offer_code);button.disabled=(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name!=='dev')||!!data.pending_purchase;
   const explanation=document.createElement('p');explanation.className='family-explainer';explanation.textContent=data.pending_purchase?'An existing Family payment needs verification. Contact support before paying again.':data.checkout_enabled?'One-time purchase for this Family. Review the total before payment.':window.DV_ENVIRONMENT_CONFIG?.name==='dev'?'DEV preview only — purchases paused.':'Purchases temporarily paused.';
   button.onclick=()=>{if(!data.checkout_enabled && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){openReadOnlyPreview(data);return;}void open({family_id}).catch(e=>{explanation.textContent=e.message;});};element.append(button,explanation);
-  if(data.pending_purchase?.id && window.DV_ENVIRONMENT_CONFIG?.name==='dev'){
+  if(data.pending_purchase?.id){
     const check=document.createElement('button');check.type='button';check.className='button secondary';check.textContent='Check previous checkout';check.style.marginTop='0.75rem';
     check.onclick=async()=>{
       check.disabled=true;check.textContent='Checking…';explanation.textContent='Checking the previous checkout with Drive Venture and Helcim…';
       try{
         const result=await invoke('commercial-checkout','recover-abandoned',{family_id,purchase_id:data.pending_purchase.id});
-        if(result.status==='ABANDONED'){explanation.textContent='Expired test checkout safely closed. Refreshing Family access…';await init();return;}
+        if(result.status==='ABANDONED'){explanation.textContent='Expired checkout safely closed. Refreshing Family access…';await init();return;}
         if(result.status==='FULFILLED'){explanation.textContent='Payment verified. Refreshing Family access…';await init();return;}
         if(result.recovery==='PROVIDER_ACTIVITY_REQUIRES_REVIEW')explanation.textContent='Helcim found payment activity. Checkout remains locked for review; do not pay again.';
         else if(result.recovery==='SESSION_STILL_PROTECTED')explanation.textContent='This payment session is still protected. Try checking again after its expiration window.';
