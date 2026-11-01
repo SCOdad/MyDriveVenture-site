@@ -138,7 +138,7 @@
     const classified=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
     if(weather)weather.textContent=classified?conditions:'Unavailable';
     const source=content.querySelector('[data-drive-weather-source]');
-    if(source)source.innerHTML=weatherSourceMarkup(obs);
+    if(source)source.innerHTML=weatherSourceMarkup(obs.attribution_source||obs.source?obs:(drive.weather?.observation||drive.weather||{}));
   }
 
   document.addEventListener('click', async event => {
