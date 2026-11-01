@@ -43,7 +43,7 @@ test('paused purchasing shows one disabled contextual control, no permanent form
  await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('DEV preview only — purchases paused.');
 });
 for(const state of ['FREE','FREE_EXHAUSTED','PAID'])test(`${state} gets its single server-eligible action`,async({page})=>{
- const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
+ const calls=await prepare(page,{state});await expect(page.getByRole('button',{name:state==='FREE_EXHAUSTED'?'Upgrade to keep driving':'Upgrade to add driver'})).toBeEnabled();
  expect(calls.some(c=>c.dev_test_run_id||c.family_id==='old-family')).toBeFalsy();
 });
 test('server supplies jurisdiction automatically; explicit consent binds a fresh quote',async({page})=>{

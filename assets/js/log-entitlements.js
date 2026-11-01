@@ -178,6 +178,13 @@
       panel.className = `app-status drive-entitlement-status${isExhausted ? ' error' : ' success'}`;
       if (isExhausted) {
         panel.textContent = message(lastStatus);
+        const guidance = document.createElement('p');
+        guidance.textContent = 'Ask your Family License Holder to upgrade the Family license to keep logging drives.';
+        const familyLink = document.createElement('a');
+        familyLink.href = '/family/';
+        familyLink.textContent = 'Open Family Hub';
+        guidance.append(' ', familyLink);
+        panel.append(guidance);
         blockNewDrive(true);
         return;
       }
@@ -291,6 +298,7 @@
     window.addEventListener('dv:driving-log-context', () => { patchRecovery(); refresh(); observeWhenReady(); });
     window.addEventListener('dv:drive-edit-mode', () => queueResync());
     window.addEventListener('dv:dashboard-rendered', () => { refresh(); observeWhenReady(); });
+    window.addEventListener('dv:commercial-fulfilled', () => { refresh(); });
     window.addEventListener('popstate', () => refresh());
     window.addEventListener('dv:driver-changing', () => {
       lastStatus = null;
