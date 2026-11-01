@@ -7,7 +7,7 @@ const routes = ['log/index.html', 'log/DV00/index.html', 'log/DV02/index.html'];
 
 for (const route of routes) {
   const html = fs.readFileSync(path.join(root, route), 'utf8');
-  const entitlementIndex = html.indexOf('/assets/js/log-entitlements.js?v=20260922-0201-ui1');
+  const entitlementIndex = html.indexOf('/assets/js/log-entitlements.js?v=');
   const recoveryIndex = html.indexOf('/assets/js/drive-save-recovery.js');
   const rpcIndex = html.indexOf('/assets/js/log-drive-rpc.js');
 
