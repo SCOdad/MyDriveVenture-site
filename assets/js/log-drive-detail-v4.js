@@ -26,6 +26,13 @@
   function isOperatorView(driverId){const model=app.getModel?.()||{};return model.is_operator===true&&accessMode(driverId)==='VIEW'}
   function canEditDrive(driverId){const model=app.getModel?.()||{};return accessMode(driverId)!=='VIEW'||model.is_operator===true}
 
+  function weatherSourceMarkup(observation) {
+    const source=String(observation?.attribution_source||observation?.source||'').toUpperCase();
+    if(source==='VISUAL_CROSSING')return '<a href="https://www.visualcrossing.com/" target="_blank" rel="noopener noreferrer">Visual Crossing</a>';
+    const labels={NWS_OBSERVATION:'National Weather Service',NOAA_NCEI:'NOAA/NCEI',USER_REPORTED:'Driver reported',CACHE:'Cached weather'};
+    return esc(labels[source]||'Unavailable');
+  }
+
   function render(detail) {
     const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [], history=detail.edit_history||[],lessons=detail.lessons||drive.lessons||[];
     app.detailDrives = app.detailDrives || {};
@@ -73,6 +80,7 @@
         </section>
         <section class="drive-detail-tile drive-detail-observed"><h3>WEATHER</h3>
           <p data-drive-observed-weather>${esc(weatherSummary)}</p>
+          <p class="drive-detail-weather-source">Weather Source: <span data-drive-weather-source>${weatherSourceMarkup(activeWeather)}</span></p>
         </section>
         <section class="drive-detail-tile drive-detail-destination"><h3>DESTINATION</h3>
           <p>${esc(drive.destination||'—')}</p></section>
@@ -129,6 +137,8 @@
       obs.conditions.map(x=>String(x).replaceAll('_',' ').toLowerCase()).join(', '):null;
     const classified=drive.weather_classification_status==='CLASSIFIED'&&!!conditions;
     if(weather)weather.textContent=classified?conditions:'Unavailable';
+    const source=content.querySelector('[data-drive-weather-source]');
+    if(source)source.innerHTML=weatherSourceMarkup(obs.attribution_source||obs.source?obs:(drive.weather?.observation||drive.weather||{}));
   }
 
   document.addEventListener('click', async event => {
