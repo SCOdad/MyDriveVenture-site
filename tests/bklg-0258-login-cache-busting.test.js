@@ -5,7 +5,8 @@ const fs=require('node:fs');
 const routes=['log/index.html','log/DV00/index.html','log/DV02/index.html'];
 const entry=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
 const headers=fs.readFileSync('_headers','utf8');
-const version='20261011-bklg0258-cache1';
+// BKLG-0235 refresh supersedes the BKLG-0258 login-cache checkpoint.
+const version='20261101-bklg0235-attribution1';
 
 test('BKLG-0258: all driver console entry pages use the refreshed login script URL',()=>{
   for(const route of routes){
