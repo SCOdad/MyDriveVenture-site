@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const script=fs.readFileSync('assets/js/commercial-purchase.js','utf8');
 const siteCss=['assets/css/site.css','assets/css/join.css','assets/css/family.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
 const css=fs.readFileSync('assets/css/commercial-purchase.css','utf8');
-async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null,recoveryStatus='SESSION_CREATED',recoveryReason='SESSION_STILL_PROTECTED'}={}){
+async function prepare(page,{environment='dev',enabled=true,state='FREE',contexts,denied=false,quotePatch={},status='PENDING',startFailure=false,pending=null,recoveryStatus='SESSION_CREATED',recoveryReason='SESSION_STILL_PROTECTED'}={}){
  const calls=[];let resolveQuote;let currentPending=pending;
  await page.route('https://purchase.test/**',async route=>{
   const req=route.request();
@@ -25,13 +25,13 @@ async function prepare(page,{enabled=true,state='FREE',contexts,denied=false,quo
   await route.fulfill({json:out});
  });
  await page.goto('https://purchase.test/family/?dev_test_run=old-run&test_family=old-family');
- await page.evaluate(()=>{
+ await page.evaluate(environment=>{
   window.DV_APP_CONFIG={supabaseUrl:'https://purchase.test',publishableKey:'synthetic'};
-  window.DV_ENVIRONMENT_CONFIG={name:'dev'};
+  window.DV_ENVIRONMENT_CONFIG={name:environment};
   window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})};
   window.providerCalls=[];window.appendHelcimPayIframe=token=>window.providerCalls.push(token);
   window.fulfillments=[];window.addEventListener('dv:commercial-fulfilled',e=>window.fulfillments.push(e.detail));
- });
+ },environment);
  await page.addStyleTag({content:siteCss});
  await page.addScriptTag({content:script});
  await expect(page.locator('#dv-commercial-purchase')).toBeVisible();
@@ -208,4 +208,21 @@ test('Helcim ABORTED keeps provider validation visible and never starts a second
  await expect(page.locator('dialog')).not.toBeVisible();
  expect(calls.filter(c=>c.action==='start')).toHaveLength(1);
  expect(await page.evaluate(()=>window.fulfillments)).toEqual([]);
+});
+
+test('production recovery survives reload and never starts a payment automatically',async({page})=>{
+ const calls=await prepare(page,{environment:'prod',pending:{id:'existing',status:'CREATED'},recoveryStatus:'ABANDONED',recoveryReason:'EXPIRED_NO_PROVIDER_ACTIVITY'});
+ await page.getByRole('button',{name:'Check previous checkout'}).click();
+ await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
+ expect(calls.filter(c=>c.action==='recover-abandoned')).toHaveLength(1);
+ expect(calls.filter(c=>c.action==='start')).toHaveLength(0);
+});
+
+test('unloaded payment library allows safe retry without creating an uncertain purchase',async({page})=>{
+ const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();
+ await page.evaluate(()=>{window.appendHelcimPayIframe=undefined});await page.locator('[data-pay]').click();
+ await expect(page.locator('[data-notice]')).toContainText('No checkout was requested');
+ await expect(page.locator('[data-pay]')).toBeEnabled();expect(calls.filter(c=>c.action==='start')).toHaveLength(0);
+ await page.evaluate(()=>{window.appendHelcimPayIframe=token=>window.providerCalls.push(token)});await page.locator('[data-pay]').click();
+ await expect.poll(()=>calls.filter(c=>c.action==='start').length).toBe(1);
 });
