@@ -1,0 +1,20 @@
+name: BKLG-0206 Receipt Checkout UI
+on:
+  pull_request:
+    paths:
+      - 'assets/js/commercial-purchase.js'
+      - 'assets/css/commercial-purchase.css'
+      - 'tests/bklg-0206-receipt-ui.test.js'
+      - '.github/workflows/bklg-0206-receipt-ui.yml'
+permissions:
+  contents: read
+jobs:
+  receipt-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check assets/js/commercial-purchase.js
+      - run: node --test tests/bklg-0206-receipt-ui.test.js tests/bklg-0208-checkout.test.js
