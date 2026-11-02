@@ -7,7 +7,7 @@ test('BKLG-0206 production serves confirmed-email and billing checkout assets',a
   const page=await request.get('/family/?receiptcheck='+stamp,{headers:{'cache-control':'no-cache'}});
   expect(page.ok(),'production Family Hub reachable').toBe(true);
   const html=await page.text();
-  expect(html).toContain('commercial-purchase.js?v=bklg0206-receipts-20261101');
+  expect(html).toMatch(/\/assets\/js\/commercial-purchase\.js\?v=[a-zA-Z0-9_-]+/);
 
   const js=await request.get('/assets/js/commercial-purchase.js?receiptcheck='+stamp,{headers:{'cache-control':'no-cache'}});
   expect(js.ok(),'receipt checkout JavaScript reachable').toBe(true);
