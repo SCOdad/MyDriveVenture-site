@@ -61,7 +61,7 @@ function openReadOnlyPreview(data){
 }
 function sync(){
  const a=active,q=a?.quote;
- const validBilling=!!(a?.billing_state&&dialog.querySelector('[data-billing-email]').validity.valid&&dialog.querySelector('[data-billing-email]').value.trim()&&dialog.querySelector('[data-billing-street]').value.trim()&&dialog.querySelector('[data-billing-city]').value.trim()&&/^\\d{5}(?:-\\d{4})?$/.test(dialog.querySelector('[data-billing-zip]').value.trim())&&dialog.querySelector('[data-billing-confirm]').checked);
+ const validBilling=!!(a?.billing_state&&dialog.querySelector('[data-billing-email]').validity.valid&&dialog.querySelector('[data-billing-email]').value.trim()&&dialog.querySelector('[data-billing-street]').value.trim()&&dialog.querySelector('[data-billing-city]').value.trim()&&/^\d{5}(?:-\d{4})?$/.test(dialog.querySelector('[data-billing-zip]').value.trim())&&dialog.querySelector('[data-billing-confirm]').checked);
  dialog.querySelector('[data-pay]').disabled=!(q&&Date.parse(q.expires_at)>Date.now()&&validBilling&&dialog.querySelector('[data-consent]').checked&&!a.busy&&!a.started);
 }
 async function getQuote(a){
