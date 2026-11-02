@@ -32,13 +32,14 @@ async function context(family_id){
 }
 function ensureDialog(){
  if(dialog)return;
- if(!document.querySelector('link[data-commercial-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/commercial-purchase.css?v=hub3';link.dataset.commercialStyle='';document.head.append(link);}
+ if(!document.querySelector('link[data-commercial-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/assets/css/commercial-purchase.css?v=receipt1';link.dataset.commercialStyle='';document.head.append(link);}
  dialog=document.createElement('dialog');dialog.className='commercial-dialog';dialog.setAttribute('aria-labelledby','dv-purchase-title');
- dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><div class="commercial-summary" data-summary aria-live="polite"></div><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
+ dialog.innerHTML='<h2 id="dv-purchase-title"></h2><p data-description></p><div class="commercial-summary" data-summary aria-live="polite"></div><fieldset class="commercial-billing" data-billing><legend>Receipt and billing contact</legend><label>Receipt email<input type="email" data-billing-email autocomplete="email" required maxlength="254"></label><p class="commercial-billing-note">Confirm where your receipt should go. This does not change your login email.</p><label>Billing street<input type="text" data-billing-street autocomplete="address-line1" required maxlength="120"></label><label>Billing city<input type="text" data-billing-city autocomplete="address-level2" required maxlength="80"></label><label>Billing ZIP code<input type="text" data-billing-zip autocomplete="postal-code" required maxlength="10" inputmode="numeric"></label><p>Billing state: <strong data-billing-state>Verifying quote...</strong></p><label class="commercial-consent"><input type="checkbox" data-billing-confirm> I confirm this receipt email and billing address are correct.</label></fieldset><label class="commercial-consent"><input data-consent type="checkbox" disabled> <span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms</a> and acknowledge the <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label><p data-notice role="status" aria-live="polite"></p><div class="commercial-actions"><button class="button secondary" data-close type="button">Cancel</button><button class="button primary" data-pay type="button" disabled>Continue to secure payment</button></div><button data-recheck type="button" hidden>Check payment status</button>';
  document.body.append(dialog);
  dialog.querySelector('[data-close]').onclick=()=>dialog.close();
  dialog.addEventListener('close',()=>{if(active&&!active.started){active=null;} });
  dialog.querySelector('[data-consent]').onchange=()=>sync();
+ dialog.querySelectorAll('[data-billing] input').forEach(el=>{el.addEventListener('input',sync);el.addEventListener('change',sync);});
  dialog.querySelector('[data-pay]').onclick=()=>void launch(active);
  dialog.querySelector('[data-recheck]').onclick=()=>void checkStatus(active);
 }
@@ -51,6 +52,7 @@ function openReadOnlyPreview(data){
  dialog.querySelector('h2').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Full Family License':'+1 Driver';
  dialog.querySelector('[data-description]').textContent=data.offers[0].offer_code==='FAMILY_LICENSE'?'Includes three active driver slots. One-time purchase.':'One additional active driver slot. One-time purchase.';
  renderSummary(data.offers[0].offer_code,data.offers[0].unit_cents,0,0,true);
+ dialog.querySelector('[data-billing]').hidden=true;
  dialog.querySelector('[data-consent]').checked=false;dialog.querySelector('[data-consent]').disabled=true;
  dialog.querySelector('[data-pay]').disabled=true;
  dialog.querySelector('[data-recheck]').hidden=true;
@@ -59,7 +61,8 @@ function openReadOnlyPreview(data){
 }
 function sync(){
  const a=active,q=a?.quote;
- dialog.querySelector('[data-pay]').disabled=!(q&&Date.parse(q.expires_at)>Date.now()&&dialog.querySelector('[data-consent]').checked&&!a.busy&&!a.started);
+ const validBilling=!!(a?.billing_state&&dialog.querySelector('[data-billing-email]').validity.valid&&dialog.querySelector('[data-billing-email]').value.trim()&&dialog.querySelector('[data-billing-street]').value.trim()&&dialog.querySelector('[data-billing-city]').value.trim()&&/^\d{5}(?:-\d{4})?$/.test(dialog.querySelector('[data-billing-zip]').value.trim())&&dialog.querySelector('[data-billing-confirm]').checked);
+ dialog.querySelector('[data-pay]').disabled=!(q&&Date.parse(q.expires_at)>Date.now()&&validBilling&&dialog.querySelector('[data-consent]').checked&&!a.busy&&!a.started);
 }
 async function getQuote(a){
  if(!a||a!==active||a.started)return;
@@ -71,7 +74,7 @@ async function getQuote(a){
   if(a!==active||revision!==a.revision)return;
   const q=data.quote,expiry=Date.parse(q?.expires_at);
   if(!q||q.family_id!==a.family_id||q.offer_code!==a.code||q.currency!=='USD'||!Number.isSafeInteger(q.subtotal_cents)||q.subtotal_cents<0||!Number.isSafeInteger(q.tax_cents)||q.tax_cents<0||!Number.isSafeInteger(q.total_cents)||q.total_cents!==q.subtotal_cents+q.tax_cents||!q.quote_id||!q.terms_version||!q.terms_digest||!q.privacy_version||!q.privacy_digest||!Number.isFinite(expiry)||expiry<=Date.now())throw Error('The quote could not be verified. Close and reopen purchasing for a fresh quote.');
-  a.quote=q;renderSummary(a.code,q.subtotal_cents,q.tax_cents,q.total_cents);
+  a.quote=q;a.billing_state=q.billing_state;dialog.querySelector('[data-billing-state]').textContent=q.billing_state;renderSummary(a.code,q.subtotal_cents,q.tax_cents,q.total_cents);
   dialog.querySelector('[data-consent]').disabled=false;
   say('Review the total and policies before continuing. Any provider fee must be disclosed in secure payment before you submit.');
   setTimeout(()=>{if(active===a&&a.quote===q&&!a.started){sync();say('This quote expired. Close and reopen purchasing to review a fresh total.');}},Math.max(0,expiry-Date.now()));
@@ -88,6 +91,12 @@ async function open({family_id}={}){
   if(!data.checkout_enabled)throw Error(data.disabled_reason||'Purchases are paused.');
   ensureDialog();
   active={family_id,code:data.offers[0].offer_code,revision:0,quote:null,busy:false,started:false,nonce:crypto.randomUUID()};
+   dialog.querySelector('[data-billing]').hidden=false;
+   const account=(await client?.auth.getUser())?.data?.user;
+   dialog.querySelector('[data-billing-email]').value=account?.email||'';
+   for(const selector of ['[data-billing-street]','[data-billing-city]','[data-billing-zip]'])dialog.querySelector(selector).value='';
+   dialog.querySelector('[data-billing-confirm]').checked=false;
+   dialog.querySelector('[data-billing-state]').textContent='Verifying quote...';
   dialog.querySelector('h2').textContent=active.code==='FAMILY_LICENSE'?'Full Family License':'+1 Driver';
   dialog.querySelector('[data-description]').textContent=active.code==='FAMILY_LICENSE'?'Full Family license with capacity for three drivers.':'Add capacity for one more driver to this Family.';
   dialog.querySelector('[data-consent]').disabled=true;dialog.querySelector('[data-consent]').checked=false;
@@ -102,7 +111,7 @@ async function launch(a){
  a.busy=true;a.started=true;sync();dialog.querySelector('[data-consent]').disabled=true;
  // After a start request, an uncertain response must not create a second purchase.
  try{
-  const q=a.quote,data=await invoke('commercial-checkout','start',{family_id:a.family_id,quote_id:q.quote_id,offer_code:a.code,client_idempotency_key:a.nonce,accepted_terms_version:q.terms_version,accept_terms:true});
+  const q=a.quote,data=await invoke('commercial-checkout','start',{family_id:a.family_id,quote_id:q.quote_id,offer_code:a.code,client_idempotency_key:a.nonce,accepted_terms_version:q.terms_version,accept_terms:true,receipt_contact:{email:dialog.querySelector('[data-billing-email]').value.trim(),confirm_email:dialog.querySelector('[data-billing-confirm]').checked,street1:dialog.querySelector('[data-billing-street]').value.trim(),city:dialog.querySelector('[data-billing-city]').value.trim(),postalCode:dialog.querySelector('[data-billing-zip]').value.trim(),state:a.billing_state}});
   if(!data.purchase_id||!data.checkout_token)throw Error('Payment session response is incomplete. Contact support before retrying.');
   a.purchase_id=String(data.purchase_id);a.token=String(data.checkout_token);
   say('Complete secure payment. Drive Venture will independently verify payment before updating your Family.');

@@ -29,3 +29,12 @@
 .commercial-total strong{color:var(--dv-yellow,#f4b820);font-size:clamp(1.65rem,6vw,2rem);font-weight:900}
 .commercial-preview-note{font-size:.8rem;color:#b7c3cd;line-height:1.4;margin:.75rem 0 0}
 @media(max-width:420px){.commercial-summary{padding:.85rem}.commercial-price-row{gap:.5rem}.commercial-price-row strong{font-size:1rem}.commercial-total strong{font-size:1.7rem}}
+
+/* BKLG-0206 verified receipt and billing confirmation */
+.commercial-billing{border:1px solid var(--steel-gray,#aeb8c2);border-radius:.7rem;margin:1rem 0;padding:1rem;display:grid;gap:.7rem}
+.commercial-billing[hidden]{display:none}
+.commercial-billing>label{display:flex;flex-direction:column;gap:.3rem}
+.commercial-billing input:not([type=checkbox]){width:100%;box-sizing:border-box;min-height:44px;padding:.55rem;background:var(--panel,#202b35);border:1px solid var(--steel-gray,#aeb8c2);border-radius:.35rem;color:inherit}
+.commercial-billing .commercial-consent{flex-direction:row;align-items:flex-start}
+.commercial-billing p{margin:0}
+.commercial-billing-note{font-size:.85rem;opacity:.85}
