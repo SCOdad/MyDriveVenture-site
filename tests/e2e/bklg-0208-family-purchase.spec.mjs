@@ -28,7 +28,7 @@ async function prepare(page,{environment='dev',enabled=true,state='FREE',context
  await page.evaluate(environment=>{
   window.DV_APP_CONFIG={supabaseUrl:'https://purchase.test',publishableKey:'synthetic'};
   window.DV_ENVIRONMENT_CONFIG={name:environment};
-  window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}})};
+  window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}}),getUser:async()=>({data:{user:{email:'buyer@example.com'}}})}})};
   window.providerCalls=[];window.appendHelcimPayIframe=token=>window.providerCalls.push(token);
   window.fulfillments=[];window.addEventListener('dv:commercial-fulfilled',e=>window.fulfillments.push(e.detail));
  },environment);
@@ -37,7 +37,14 @@ async function prepare(page,{environment='dev',enabled=true,state='FREE',context
  await expect(page.locator('#dv-commercial-purchase')).toBeVisible();
  return calls;
 }
-async function quote(page){await page.getByRole('button',{name:'Upgrade to add driver'}).click();await expect(page.locator('[data-summary]')).toContainText('$24.99');}
+async function fillBilling(page){
+ await page.locator('[data-billing-email]').fill('buyer@example.com');
+ await page.locator('[data-billing-street]').fill('123 Test Street');
+ await page.locator('[data-billing-city]').fill('Example');
+ await page.locator('[data-billing-zip]').fill('48346');
+ await page.locator('[data-billing-confirm]').check();
+}
+async function quote(page){await page.getByRole('button',{name:'Upgrade to add driver'}).click();await expect(page.locator('[data-summary]')).toContainText('$24.99');await fillBilling(page);}
 test('paused purchasing shows one disabled contextual control, no permanent form or diagnostics',async({page})=>{
  await prepare(page,{enabled:false});await expect(page.getByRole('button',{name:'Upgrade to add driver'})).toBeEnabled();
  await expect(page.locator('select,input,dialog')).toHaveCount(0);await expect(page.locator('#dv-commercial-purchase')).toContainText('DEV preview only — purchases paused.');
@@ -50,10 +57,10 @@ test('server supplies jurisdiction automatically; explicit consent binds a fresh
  const calls=await prepare(page);await page.getByRole('button',{name:'Upgrade to add driver'}).click();
  await expect(page.locator('[data-state]')).toHaveCount(0);
  await expect(page.locator('[data-summary]')).toContainText('$24.99');await expect(page.locator('[data-pay]')).toBeDisabled();
- await page.locator('[data-consent]').check();await expect(page.locator('[data-pay]')).toBeEnabled();
+ await page.locator('[data-consent]').check();await expect(page.locator('[data-pay]')).toBeDisabled();await fillBilling(page);await expect(page.locator('[data-pay]')).toBeEnabled();
  await page.locator('[data-pay]').dblclick({force:true}).catch(()=>{});
  await expect.poll(()=>calls.filter(c=>c.action==='start').length).toBe(1);
- expect(calls.find(c=>c.action==='start')).toMatchObject({family_id:'family',accept_terms:true,accepted_terms_version:'terms-2026-10-16'});
+ expect(calls.find(c=>c.action==='start')).toMatchObject({family_id:'family',accept_terms:true,accepted_terms_version:'terms-2026-10-16',receipt_contact:{email:'buyer@example.com',confirm_email:true,state:'MI'}});
 });
 test('cancel clears consent and reopening requests a new quote',async({page})=>{
  const calls=await prepare(page);await quote(page);await page.locator('[data-consent]').check();await page.getByRole('button',{name:'Cancel',exact:true}).click();
