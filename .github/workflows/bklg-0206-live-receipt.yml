@@ -1,0 +1,26 @@
+name: BKLG-0206 Live Receipt Asset Verification
+on:
+  pull_request:
+    paths:
+      - 'tests/e2e-prod/bklg-0206-receipt-readonly.spec.mjs'
+      - '.github/workflows/bklg-0206-live-receipt.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tests/e2e-prod/bklg-0206-receipt-readonly.spec.mjs'
+      - '.github/workflows/bklg-0206-live-receipt.yml'
+permissions:
+  contents: read
+jobs:
+  verify-production-receipt-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify production receipt assets (no payment calls)
+        run: npx playwright test --config=playwright.prod.config.mjs tests/e2e-prod/bklg-0206-receipt-readonly.spec.mjs
