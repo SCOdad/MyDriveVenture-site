@@ -29,7 +29,7 @@ test('credit quantities are numeric and cannot inject HTML',()=>{
 
 test('actual supervising adult must attest to all four explicit facts',()=>{
  const snippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
- const markup=new Function(snippet+';return floridaSupervisorAttestationMarkup')()
+ const markup=new Function('esc',snippet+';return floridaSupervisorAttestationMarkup')(value=>String(value))
  assert.equal(markup({fl_can_attest:false,florida_credit:{pending_minutes:15}}),'')
  const html=markup({id:'drive-1',drive_revision:2,fl_can_attest:true,florida_credit:{pending_minutes:15}})
  assert.match(html,/age_at_least_21/)
