@@ -31,3 +31,15 @@
 
 /* BKLG-0275: the edit-mode exit control must truly disappear after returning to blocked new-drive mode. */
 #drive-edit-cancel[hidden]{display:none!important}
+
+/* BKLG-0278 Florida learner partial-credit evidence (non-adjudicative). */
+.drive-fl-credit-warning,.drive-fl-credit-pending{
+  border-left:3px solid currentColor;
+  margin:8px 0;
+  padding:7px 10px;
+  font-size:12px;
+  line-height:1.45;
+  font-weight:600;
+}
+.drive-fl-credit-warning{color:#ff8c8c;background:rgba(220,48,48,.1)}
+.drive-fl-credit-pending{color:#ffcf83;background:rgba(223,157,35,.1)}
