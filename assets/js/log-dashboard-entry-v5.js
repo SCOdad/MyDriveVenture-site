@@ -90,6 +90,19 @@
       </form>
     </details>`;
   }
+  function floridaWorkCommuteMarkup(d){
+    if(d?.fl_can_confirm_work!==true||Number(d?.florida_credit?.pending_minutes||0)<=0)return '';
+    return `<details class="fl-supervision-details">
+      <summary>Confirm direct travel to or from work</summary>
+      <form class="fl-work-form" data-fl-work-drive="${esc(d.id)}" data-fl-work-revision="${Number(d.drive_revision)}">
+        <p>A linked grown-up can declare that this particular drive was directly to or from the driver's employment. Do not select this for errands or unrelated stops.</p>
+        <label><input type="checkbox" name="direct_to_from_work" required> This drive was directly to or from the driver's work.</label>
+        <label><input type="checkbox" name="adult_confirms_facts" required> I personally confirm this description is accurate to the best of my knowledge.</label>
+        <button type="submit" class="button secondary button-small">Record work declaration</button>
+        <div class="fl-attest-status" role="status" aria-live="polite"></div>
+      </form>
+    </details>`;
+  }
   function vehicleMarkup(v){return `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color?` · ${esc(v.color)}`:''}${v.is_primary?' · Primary':''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`}
   function orderedDrivers(){return [...(model.drivers||[])].sort((a,b)=>{const av=getAccessMode(a.id)==='VIEW'?1:0,bv=getAccessMode(b.id)==='VIEW'?1:0;if(av!==bv)return av-bv;return String(a.display_name||'Driver').localeCompare(String(b.display_name||'Driver'),undefined,{sensitivity:'base'})})}
 
@@ -134,7 +147,7 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}${floridaCreditMarkup(d)}${floridaSupervisorAttestationMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}${floridaCreditMarkup(d)}${floridaSupervisorAttestationMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
@@ -233,7 +246,8 @@
           if(String(d.driver_id)!==String(driverId))return d;
           const row=byDrive.get(String(d.id));
           return {...d,florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
-            fl_can_attest:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_attest===true};
+            fl_can_attest:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_attest===true,
+            fl_can_confirm_work:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_confirm_work===true};
         });
       }
       return rows;
