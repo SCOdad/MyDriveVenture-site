@@ -88,7 +88,9 @@
         <p>Only the adult who actually supervised this drive may submit this declaration. It does not independently verify DMV eligibility.</p>
         <label><input type="checkbox" name="age_at_least_21" required> I was at least 21 years old when this drive took place.</label>
         <label><input type="checkbox" name="valid_driver_license" required> I held a valid driver's license during this drive.</label>
-        <label><input type="checkbox" name="nearest_right_seat" required> I sat in the seat nearest the right of the driver.</label>
+        ${String(currentDriver()?.license_stage||'').toUpperCase()==='LEARNER'
+          ? '<label><input type="checkbox" name="nearest_right_seat" required> I sat in the seat nearest the right of the driver.</label>'
+          : ''}
         <label><input type="checkbox" name="declarant_supervised_drive" required> I personally supervised this drive.</label>
         <button type="submit" class="button secondary button-small">Record declaration</button>
         <div class="fl-attest-status" role="status" aria-live="polite"></div>
@@ -368,7 +370,8 @@
       if(feedback)feedback.textContent='Drive details changed. Reload before attesting.';
       return;
     }
-    const statements=['age_at_least_21','valid_driver_license','nearest_right_seat','declarant_supervised_drive'];
+    const learner=String(currentDriver()?.license_stage||'').toUpperCase()==='LEARNER';
+    const statements=['age_at_least_21','valid_driver_license','declarant_supervised_drive',...(learner?['nearest_right_seat']:[])];
     if(!statements.every(name=>form.elements.namedItem(name)?.checked===true)){
       if(feedback)feedback.textContent='Please personally affirm all four statements.';
       return;
@@ -384,7 +387,7 @@
         body:JSON.stringify({action:'attest_fl_supervision',driver_id:selected.driver_id,
           drive_id:selected.id,expected_revision:selected.drive_revision,
           age_at_least_21:true,valid_driver_license:true,
-          nearest_right_seat:true,declarant_supervised_drive:true})
+          nearest_right_seat:learner,declarant_supervised_drive:true})
       });
       const body=await response.json();
       if(!response.ok||body?.ok!==true)throw new Error(body?.error||'Unable to record declaration.');

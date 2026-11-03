@@ -29,7 +29,7 @@ test('credit quantities are numeric and cannot inject HTML',()=>{
 
 test('actual supervising adult must attest to all four explicit facts',()=>{
  const snippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
- const markup=new Function('esc',snippet+';return floridaSupervisorAttestationMarkup')(value=>String(value))
+ const markup=new Function('esc','currentDriver',snippet+';return floridaSupervisorAttestationMarkup')(value=>String(value),()=>({license_stage:'LEARNER'}))
  assert.equal(markup({fl_can_attest:false,florida_credit:{pending_minutes:15}}),'')
  const html=markup({id:'drive-1',drive_revision:2,fl_can_attest:true,florida_credit:{pending_minutes:15}})
  assert.match(html,/age_at_least_21/)
@@ -63,7 +63,7 @@ test('missing evaluation remains visibly pending with recovery declaration avail
  const creditSnippet=source.slice(source.indexOf('  function floridaCreditMarkup(d){'),source.indexOf('  function floridaSupervisorAttestationMarkup(d){'))
  const credit=new Function(creditSnippet+';return floridaCreditMarkup')()
  const supervisorSnippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function floridaWorkCommuteMarkup(d){'))
- const supervisor=new Function('esc',supervisorSnippet+';return floridaSupervisorAttestationMarkup')(v=>String(v))
+ const supervisor=new Function('esc','currentDriver',supervisorSnippet+';return floridaSupervisorAttestationMarkup')(v=>String(v),()=>({license_stage:'LEARNER'}))
  const workSnippet=source.slice(source.indexOf('  function floridaWorkCommuteMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
  const work=new Function('esc',workSnippet+';return floridaWorkCommuteMarkup')(v=>String(v))
  const noEvidence={id:'d-1',drive_revision:3,fl_credit_missing:true,florida_credit:null,
@@ -72,4 +72,17 @@ test('missing evaluation remains visibly pending with recovery declaration avail
  assert.match(supervisor(noEvidence),/Confirm I supervised this drive/)
  assert.match(work(noEvidence),/Confirm direct travel to or from work/)
  assert.equal(credit({florida_credit:null}), '')
+})
+
+test('Florida supervision form asks learner-only right-seat declaration',()=>{
+ const snippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function floridaWorkCommuteMarkup(d){'))
+ const build=new Function('esc','currentDriver',snippet+';return floridaSupervisorAttestationMarkup')
+ const draft={id:'drive-1',drive_revision:2,fl_can_attest:true,florida_credit:{pending_minutes:15}}
+ const learner=build(v=>String(v),()=>({license_stage:'LEARNER'}))(draft)
+ const intermediate=build(v=>String(v),()=>({license_stage:'INTERMEDIATE'}))(draft)
+ assert.match(learner,/nearest_right_seat/)
+ assert.doesNotMatch(intermediate,/nearest_right_seat/)
+ assert.match(intermediate,/age_at_least_21/)
+ assert.match(intermediate,/valid_driver_license/)
+ assert.match(source,/nearest_right_seat:learner/)
 })
