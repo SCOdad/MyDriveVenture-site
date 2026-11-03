@@ -58,3 +58,18 @@ test('only a linked grown-up receives a direct-work commute declaration',()=>{
  assert.match(source,/action:'attest_fl_work_commute'/)
  assert.match(source,/expected_revision:selected\.drive_revision/)
 })
+
+test('missing evaluation remains visibly pending with recovery declaration available',()=>{
+ const creditSnippet=source.slice(source.indexOf('  function floridaCreditMarkup(d){'),source.indexOf('  function floridaSupervisorAttestationMarkup(d){'))
+ const credit=new Function(creditSnippet+';return floridaCreditMarkup')()
+ const supervisorSnippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function floridaWorkCommuteMarkup(d){'))
+ const supervisor=new Function('esc',supervisorSnippet+';return floridaSupervisorAttestationMarkup')(v=>String(v))
+ const workSnippet=source.slice(source.indexOf('  function floridaWorkCommuteMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
+ const work=new Function('esc',workSnippet+';return floridaWorkCommuteMarkup')(v=>String(v))
+ const noEvidence={id:'d-1',drive_revision:3,fl_credit_missing:true,florida_credit:null,
+   fl_can_attest:true,fl_can_confirm_work:true}
+ assert.match(credit(noEvidence),/credit evaluation is pending/i)
+ assert.match(supervisor(noEvidence),/Confirm I supervised this drive/)
+ assert.match(work(noEvidence),/Confirm direct travel to or from work/)
+ assert.equal(credit({florida_credit:null}), '')
+})

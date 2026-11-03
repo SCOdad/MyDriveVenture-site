@@ -66,7 +66,12 @@
   }
   function floridaCreditMarkup(d){
     const credit=d?.florida_credit;
-    if(!credit || !['LEARNER','INTERMEDIATE'].includes(String(credit.license_stage||'').toUpperCase()))return '';
+    if(!credit){
+      return d?.fl_credit_missing===true
+        ? '<div class="drive-fl-credit-pending" role="status">Florida credit evaluation is pending. The original drive remains recorded.</div>'
+        : '';
+    }
+    if(!['LEARNER','INTERMEDIATE'].includes(String(credit.license_stage||'').toUpperCase()))return '';
     const excluded=Math.max(0,Number(credit.prohibited_minutes)||0);
     const pending=Math.max(0,Number(credit.pending_minutes)||0);
     const notice=[];
@@ -76,7 +81,7 @@
   }
   function floridaSupervisorAttestationMarkup(d){
     const credit=d?.florida_credit;
-    if(d?.fl_can_attest!==true||!credit||Number(credit.pending_minutes||0)<=0)return '';
+    if(d?.fl_can_attest!==true||(credit&&Number(credit.pending_minutes||0)<=0))return '';
     return `<details class="fl-supervision-details">
       <summary>Confirm I supervised this drive</summary>
       <form class="fl-supervision-form" data-fl-attest-drive="${esc(d.id)}" data-fl-attest-revision="${Number(d.drive_revision)}">
@@ -91,7 +96,7 @@
     </details>`;
   }
   function floridaWorkCommuteMarkup(d){
-    if(d?.fl_can_confirm_work!==true||Number(d?.florida_credit?.pending_minutes||0)<=0)return '';
+    if(d?.fl_can_confirm_work!==true||(d?.florida_credit&&Number(d.florida_credit.pending_minutes||0)<=0))return '';
     return `<details class="fl-supervision-details">
       <summary>Confirm direct travel to or from work</summary>
       <form class="fl-work-form" data-fl-work-drive="${esc(d.id)}" data-fl-work-revision="${Number(d.drive_revision)}">
@@ -245,7 +250,8 @@
         model.recent_drives=(model.recent_drives||[]).map(d=>{
           if(String(d.driver_id)!==String(driverId))return d;
           const row=byDrive.get(String(d.id));
-          return {...d,florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
+          return {...d,fl_credit_missing:Number(row?.drive_revision)===Number(d.drive_revision)&&!row.florida_credit,
+            florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
             fl_can_attest:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_attest===true,
             fl_can_confirm_work:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_confirm_work===true};
         });
