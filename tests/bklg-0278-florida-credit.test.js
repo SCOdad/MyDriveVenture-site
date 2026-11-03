@@ -46,3 +46,15 @@ test('Florida dashboard details use authenticated drive-ops rather than the lega
  assert.match(source,/action:'attest_fl_supervision'/)
  assert.match(source,/expected_revision:selected\.drive_revision/)
 })
+
+test('only a linked grown-up receives a direct-work commute declaration',()=>{
+ const snippet=source.slice(source.indexOf('  function floridaWorkCommuteMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
+ const markup=new Function('esc',snippet+';return floridaWorkCommuteMarkup')(value=>String(value))
+ assert.equal(markup({fl_can_confirm_work:false,florida_credit:{pending_minutes:15}}),'')
+ const html=markup({id:'drive-2',drive_revision:4,fl_can_confirm_work:true,florida_credit:{pending_minutes:15}})
+ assert.match(html,/direct_to_from_work/)
+ assert.match(html,/adult_confirms_facts/)
+ assert.match(html,/to or from the driver's work/)
+ assert.match(source,/action:'attest_fl_work_commute'/)
+ assert.match(source,/expected_revision:selected\.drive_revision/)
+})
