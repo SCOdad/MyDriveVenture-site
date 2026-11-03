@@ -26,3 +26,23 @@ test('credit quantities are numeric and cannot inject HTML',()=>{
  const html=markup({florida_credit:{license_stage:'LEARNER',prohibited_minutes:'<svg onload=alert(1)>',pending_minutes:0}})
  assert.equal(html,'')
 })
+
+test('actual supervising adult must attest to all four explicit facts',()=>{
+ const snippet=source.slice(source.indexOf('  function floridaSupervisorAttestationMarkup(d){'),source.indexOf('  function vehicleMarkup(v){'))
+ const markup=new Function(snippet+';return floridaSupervisorAttestationMarkup')()
+ assert.equal(markup({fl_can_attest:false,florida_credit:{pending_minutes:15}}),'')
+ const html=markup({id:'drive-1',drive_revision:2,fl_can_attest:true,florida_credit:{pending_minutes:15}})
+ assert.match(html,/age_at_least_21/)
+ assert.match(html,/valid_driver_license/)
+ assert.match(html,/nearest_right_seat/)
+ assert.match(html,/declarant_supervised_drive/)
+ assert.match(html,/Only the adult who actually supervised this drive/)
+})
+test('Florida dashboard details use authenticated drive-ops rather than the legacy driver API',()=>{
+ assert.match(source,/action:'fl_credit_context'/)
+ assert.match(source,/session\.access_token/)
+ assert.match(source,/floridaCreditCache\.clear\(\)/)
+ assert.match(source,/modelEpoch/)
+ assert.match(source,/action:'attest_fl_supervision'/)
+ assert.match(source,/expected_revision:selected\.drive_revision/)
+})
