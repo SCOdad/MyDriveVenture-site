@@ -1,0 +1,28 @@
+const test=require('node:test')
+const assert=require('node:assert/strict')
+const fs=require('node:fs')
+const path=require('node:path')
+const source=fs.readFileSync(path.join(__dirname,'../assets/js/log-dashboard-entry-v5.js'),'utf8')
+const start=source.indexOf('  function floridaCreditMarkup(d){')
+const end=source.indexOf('  function vehicleMarkup(v){',start)
+assert.ok(start>=0&&end>start,'Florida credit rendering helper is present')
+const markup=new Function(source.slice(start,end)+'; return floridaCreditMarkup')()
+test('excluded Florida learner minutes show a distinct warning without illegal-driving allegation',()=>{
+ const html=markup({florida_credit:{license_stage:'LEARNER',prohibited_minutes:15,pending_minutes:0}})
+ assert.match(html,/15 min excluded from qualifying credit/)
+ assert.match(html,/Original drive retained/)
+ assert.doesNotMatch(html,/illegal|violation/i)
+})
+test('pending evidence is not labeled prohibited',()=>{
+ const html=markup({florida_credit:{license_stage:'LEARNER',prohibited_minutes:0,pending_minutes:30}})
+ assert.match(html,/review pending for 30 min/)
+ assert.doesNotMatch(html,/excluded from qualifying credit/)
+})
+test('other jurisdictions and no evaluation remain unchanged',()=>{
+ assert.equal(markup({florida_credit:null}),'')
+ assert.equal(markup({florida_credit:{license_stage:'STATE_NEUTRAL',prohibited_minutes:30}}),'')
+})
+test('credit quantities are numeric and cannot inject HTML',()=>{
+ const html=markup({florida_credit:{license_stage:'LEARNER',prohibited_minutes:'<svg onload=alert(1)>',pending_minutes:0}})
+ assert.equal(html,'')
+})
