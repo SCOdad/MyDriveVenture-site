@@ -389,6 +389,42 @@
       if(button)button.disabled=false;
     }
   });
+  document.getElementById('drive-list')?.addEventListener('submit',async event=>{
+    const form=event.target?.closest?.('form[data-fl-work-drive]');
+    if(!form)return;
+    event.preventDefault();
+    const feedback=form.querySelector('.fl-attest-status'),button=form.querySelector('button[type=submit]');
+    const selected=currentDrives().find(d=>String(d.id)===String(form.dataset.flWorkDrive));
+    if(!selected||selected.fl_can_confirm_work!==true||Number(selected.drive_revision)!==Number(form.dataset.flWorkRevision)){
+      if(feedback)feedback.textContent='Drive details changed. Reload before declaring the work exception.';
+      return;
+    }
+    if(form.elements.namedItem('direct_to_from_work')?.checked!==true||
+       form.elements.namedItem('adult_confirms_facts')?.checked!==true){
+      if(feedback)feedback.textContent='Please affirm both work-commute statements.';
+      return;
+    }
+    if(button)button.disabled=true;
+    if(feedback)feedback.textContent='Recording work declaration…';
+    try{
+      const {data:{session}={}}=await client.auth.getSession();
+      if(!session?.access_token)throw new Error('Sign-in expired; please sign in again.');
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/drive-ops`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'attest_fl_work_commute',driver_id:selected.driver_id,
+          drive_id:selected.id,expected_revision:selected.drive_revision,
+          direct_to_from_work:true,adult_confirms_facts:true})
+      });
+      const body=await response.json();
+      if(!response.ok||body?.ok!==true)throw new Error(body?.error||'Unable to record work declaration.');
+      if(feedback)feedback.textContent='Work declaration recorded. Refreshing details…';
+      await loadDashboard({quiet:true});
+    }catch(error){
+      if(feedback)feedback.textContent=error instanceof Error?error.message:'Unable to record work declaration.';
+      if(button)button.disabled=false;
+    }
+  });
   loginForm.addEventListener('submit',async e=>{e.preventDefault();status(loginStatus,'Sending sign-in link…');const email=loginEmail.value.trim();if(!email)return;const route=document.documentElement.dataset.dvRoute||'dv03',redirectPath={dv00:'/log/DV00/',dv01:'/log/DV01/',dv02:'/log/DV02/',dv03:'/log/'}[route]||'/log/';const{error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}${redirectPath}`,shouldCreateUser:false}});if(error){if(isUnregisteredOtpError(error))joinPrompt();else status(loginStatus,'We could not send a sign-in link right now. Please try again.','error')}else status(loginStatus,'Check your email for a secure sign-in link.','success')});
   signOut?.addEventListener('click',async()=>{accessReady=false;await client.auth.signOut();syncAuthUi(false);appMain.classList.add('app-hidden');loginCard.classList.remove('app-hidden');status(loginStatus,'Signed out.')});
   driverSelect?.addEventListener('change',()=>{selectDriver(driverSelect.value).catch(()=>status(loginStatus,'We could not switch drivers. Please try again.','error'))});
