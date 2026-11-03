@@ -13,7 +13,7 @@ test('BKLG-0258: all driver console entry pages use the refreshed login script U
     const html=fs.readFileSync(route,'utf8');
     const matches=[...html.matchAll(/src="\/assets\/js\/log-dashboard-entry-v5\.js\?v=([^"]+)"/g)];
     assert.equal(matches.length,1,route);
-    assert.equal(new URLSearchParams(matches[0][1]).get('v'),version,route);
+    assert.equal(matches[0][1].split('&')[0],version,route);
     assert.ok(!html.includes('20260924-0111-canonical2'),route);
   }
 });
