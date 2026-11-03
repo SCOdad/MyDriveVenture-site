@@ -66,7 +66,7 @@
   }
   function floridaCreditMarkup(d){
     const credit=d?.florida_credit;
-    if(!credit || String(credit.license_stage||'').toUpperCase()!=='LEARNER')return '';
+    if(!credit || !['LEARNER','INTERMEDIATE'].includes(String(credit.license_stage||'').toUpperCase()))return '';
     const excluded=Math.max(0,Number(credit.prohibited_minutes)||0);
     const pending=Math.max(0,Number(credit.pending_minutes)||0);
     const notice=[];
@@ -212,7 +212,7 @@
     if(floridaCreditInFlight.has(driverId))return floridaCreditInFlight.get(driverId);
     const driver=(model.drivers||[]).find(d=>String(d.id)===String(driverId));
     if(String(driver?.home_state||'').toUpperCase()!=='FL'
-      ||String(driver?.license_stage||'').toUpperCase()!=='LEARNER')return [];
+      ||!['LEARNER','INTERMEDIATE'].includes(String(driver?.license_stage||'').toUpperCase()))return [];
     const epoch=modelEpoch;
     const request=(async()=>{
       const {data:{session}={}}=await client.auth.getSession();
