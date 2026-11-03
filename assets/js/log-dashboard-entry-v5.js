@@ -30,6 +30,8 @@
   const licenseStatusInFlight=new Map();
   const overlapSummaryCache=new Map();
   const overlapSummaryInFlight=new Map();
+  const floridaCreditCache=new Map();
+  const floridaCreditInFlight=new Map();
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const hours=m=>(Number(m||0)/60).toFixed(1);
@@ -189,6 +191,41 @@
     try{return await request}finally{if(overlapSummaryInFlight.get(driverId)===request)overlapSummaryInFlight.delete(driverId)}
   }
 
+  async function ensureFloridaCredits(driverId){
+    if(floridaCreditCache.has(driverId))return floridaCreditCache.get(driverId);
+    if(floridaCreditInFlight.has(driverId))return floridaCreditInFlight.get(driverId);
+    const driver=(model.drivers||[]).find(d=>String(d.id)===String(driverId));
+    if(String(driver?.home_state||'').toUpperCase()!=='FL'
+      ||String(driver?.license_stage||'').toUpperCase()!=='LEARNER')return [];
+    const epoch=modelEpoch;
+    const request=(async()=>{
+      const {data:{session}={}}=await client.auth.getSession();
+      if(!session?.access_token)throw new Error('A valid session is required');
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/drive-ops`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'fl_credit_context',driver_id:driverId})
+      });
+      if(!response.ok)throw new Error('Florida credit detail could not be loaded');
+      const body=await response.json();
+      if(body?.ok!==true||!Array.isArray(body.florida_credit_rows))throw new Error('Invalid Florida credit response');
+      const rows=body.florida_credit_rows;
+      if(epoch===modelEpoch){
+        floridaCreditCache.set(driverId,rows);
+        const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
+        model.recent_drives=(model.recent_drives||[]).map(d=>{
+          if(String(d.driver_id)!==String(driverId))return d;
+          const row=byDrive.get(String(d.id));
+          return {...d,florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
+            fl_can_attest:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_attest===true};
+        });
+      }
+      return rows;
+    })();
+    floridaCreditInFlight.set(driverId,request);
+    try{return await request}finally{if(floridaCreditInFlight.get(driverId)===request)floridaCreditInFlight.delete(driverId)}
+  }
+
   async function selectDriver(nextDriverId,{persist=true}={}){
     if(!(model.drivers||[]).some(d=>d.id===nextDriverId))return false;
     const previousDriverId=currentDriverId;
@@ -201,6 +238,7 @@
     const neutral=isStateNeutral(currentDriver()),hasLicense=!!currentLicenseStatus();
     render(generation);
     ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
+    ensureFloridaCredits(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(error=>console.warn('Florida credit context pending',error));
     if(neutral||hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
@@ -222,6 +260,8 @@
     licenseStatusInFlight.clear();
     overlapSummaryCache.clear();
     overlapSummaryInFlight.clear();
+    floridaCreditCache.clear();
+    floridaCreditInFlight.clear();
     if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId)){let savedDriverId='';try{savedDriverId=localStorage.getItem('dv.log.driver')||''}catch(_){}currentDriverId=model.drivers.some(d=>d.id===savedDriverId)?savedDriverId:(model.drivers[0]?.id||'')}
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
