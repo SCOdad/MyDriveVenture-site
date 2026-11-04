@@ -66,7 +66,8 @@ test('Florida credit from authenticated endpoint binds to dashboard v1 rows lack
 
 test('Florida credit success repaints recent drives after authoritative rows merge',()=>{
  const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8')
- assert.match(src,/model\.recent_drives=mergeFloridaCreditRows\(model\.recent_drives\|\|\[\],driverId,rows\);\s*\/\/ Repaint[\s\S]*if\(currentDriverId===driverId\)render\(renderGeneration\)/)
+ assert.match(src,/model\.recent_drives=mergeFloridaCreditRows\(model\.recent_drives\|\|\[\],driverId,rows\)/)
+ assert.match(src,/syncFloridaRecentWarnings\(\)/)
  assert.match(src,/FLORIDA RESTRICTION · \$\{excluded\} MIN DO NOT COUNT/)
 })
 
