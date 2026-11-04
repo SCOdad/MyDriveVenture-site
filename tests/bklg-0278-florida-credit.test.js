@@ -69,3 +69,20 @@ test('Florida credit success repaints recent drives after authoritative rows mer
  assert.match(src,/model\.recent_drives=mergeFloridaCreditRows\(model\.recent_drives\|\|\[\],driverId,rows\);\s*\/\/ Repaint[\s\S]*if\(currentDriverId===driverId\)render\(renderGeneration\)/)
  assert.match(src,/FLORIDA RESTRICTION · \$\{excluded\} MIN DO NOT COUNT/)
 })
+
+test('Recent Drives has an independent red-brow synchronizer after Florida credit merge',()=>{
+ const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
+ assert.match(src,/function syncFloridaRecentWarnings\(\)/)
+ assert.match(src,/card\.classList\.toggle\('drive-item-fl-restricted',count>0\)/)
+ assert.match(src,/card\.prepend\(notice\)/)
+ assert.match(src,/syncFloridaRecentWarnings\(\);\s*window\.dispatchEvent/)
+ assert.match(src,/if\(currentDriverId===driverId\)\{render\(renderGeneration\);syncFloridaRecentWarnings\(\);\}/)
+});
+test('driver-only favorite color is resilient to unrelated licensing and SMS fetch failures',()=>{
+ const src=fs.readFileSync('assets/js/family-card-profile.js','utf8');
+ const before=src.slice(src.indexOf('async function enrichDriver('),src.indexOf('async function enrichCards('));
+ assert.ok(before.indexOf('renderColorPicker(card,s)')<before.indexOf("api('profile-api','license_overview'"))
+ assert.match(src,/try\{await loadSubjects\(\)\}catch/)
+ assert.match(src,/loadPendingChanges\(\)\.catch/)
+ assert.match(src,/host\.dataset\.ready='true'/);
+});

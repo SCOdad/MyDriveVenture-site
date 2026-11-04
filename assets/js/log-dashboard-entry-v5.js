@@ -136,11 +136,12 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}${Number(d.florida_credit?.prohibited_minutes||0)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li data-drive-id="${esc(d.id)}" class="drive-item${warning?' drive-item-overlap':''}${Number(d.florida_credit?.prohibited_minutes||0)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
 
+    syncFloridaRecentWarnings();
     window.dispatchEvent(new CustomEvent('dv:dashboard-rendered',{detail:{model,driverId:currentDriverId,driver,progress,license,generation}}));
   }
 
@@ -209,6 +210,25 @@
     try{return await request}finally{if(overlapSummaryInFlight.get(driverId)===request)overlapSummaryInFlight.delete(driverId)}
   }
 
+  function syncFloridaRecentWarnings(){
+    const list=document.getElementById('drive-list');if(!list)return;
+    for(const drive of currentDrives()){
+      const card=[...list.querySelectorAll('[data-drive-id]')].find(x=>x.dataset.driveId===String(drive.id));
+      if(!card)continue;
+      const count=Math.max(0,Number(drive.florida_credit?.prohibited_minutes)||0);
+      card.classList.toggle('drive-item-fl-restricted',count>0);
+      const old=card.querySelector('[data-fl-credit-notice]');
+      if(old)old.remove();
+      if(count>0){
+        const notice=document.createElement('div');
+        notice.dataset.flCreditNotice='true';
+        notice.className='drive-fl-restricted-eyebrow';
+        notice.setAttribute('role','status');
+        notice.textContent='FLORIDA RESTRICTION · '+count+' MIN DO NOT COUNT';
+        card.prepend(notice);
+      }
+    }
+  }
   function mergeFloridaCreditRows(drives,driverId,rows){
     const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
     return drives.map(d=>{
@@ -247,7 +267,7 @@
         model.recent_drives=mergeFloridaCreditRows(model.recent_drives||[],driverId,rows);
         // Repaint as part of the successful credit merge itself. A later
         // driver-selection callback may be superseded by a dashboard refresh.
-        if(currentDriverId===driverId)render(renderGeneration);
+        if(currentDriverId===driverId){render(renderGeneration);syncFloridaRecentWarnings();}
       }
       return rows;
     })();
