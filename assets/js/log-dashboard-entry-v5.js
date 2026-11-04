@@ -75,27 +75,9 @@
     const excluded=Math.max(0,Number(credit.prohibited_minutes)||0);
     const pending=Math.max(0,Number(credit.pending_minutes)||0);
     const notice=[];
-    if(excluded>0)notice.push(`<div class="drive-fl-credit-warning" role="status">Florida restricted time: ${excluded} min excluded from qualifying credit. Original drive retained.</div>`);
+    if(excluded>0)notice.push(`<div class="drive-fl-restricted-eyebrow" role="status">FLORIDA RESTRICTION · ${excluded} MIN DO NOT COUNT</div><p class="drive-fl-credit-warning">${excluded} min excluded from qualifying credit. Original drive retained.</p>`);
     if(pending>0)notice.push(`<div class="drive-fl-credit-pending" role="status">Florida credit review pending for ${pending} min. Logged time is preserved.</div>`);
     return notice.join('');
-  }
-  function floridaSupervisorAttestationMarkup(d){
-    const credit=d?.florida_credit;
-    if(d?.fl_can_attest!==true||(credit&&Number(credit.pending_minutes||0)<=0))return '';
-    return `<details class="fl-supervision-details">
-      <summary>Confirm I supervised this drive</summary>
-      <form class="fl-supervision-form" data-fl-attest-drive="${esc(d.id)}" data-fl-attest-revision="${Number(d.drive_revision)}">
-        <p>Only the adult who actually supervised this drive may submit this declaration. It does not independently verify DMV eligibility.</p>
-        <label><input type="checkbox" name="age_at_least_21" required> I was at least 21 years old when this drive took place.</label>
-        <label><input type="checkbox" name="valid_driver_license" required> I held a valid driver's license during this drive.</label>
-        ${String(currentDriver()?.license_stage||'').toUpperCase()==='LEARNER'
-          ? '<label><input type="checkbox" name="nearest_right_seat" required> I sat in the seat nearest the right of the driver.</label>'
-          : ''}
-        <label><input type="checkbox" name="declarant_supervised_drive" required> I personally supervised this drive.</label>
-        <button type="submit" class="button secondary button-small">Record declaration</button>
-        <div class="fl-attest-status" role="status" aria-live="polite"></div>
-      </form>
-    </details>`;
   }
   function floridaWorkCommuteMarkup(d){
     if(d?.fl_can_confirm_work!==true||(d?.florida_credit&&Number(d.florida_credit.pending_minutes||0)<=0))return '';
@@ -154,7 +136,7 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}${floridaCreditMarkup(d)}${floridaSupervisorAttestationMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}${Number(d.florida_credit?.prohibited_minutes||0)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
@@ -252,9 +234,8 @@
         model.recent_drives=(model.recent_drives||[]).map(d=>{
           if(String(d.driver_id)!==String(driverId))return d;
           const row=byDrive.get(String(d.id));
-          return {...d,fl_credit_missing:Number(row?.drive_revision)===Number(d.drive_revision)&&!row.florida_credit,
+          return {...d,fl_credit_missing:!row?.florida_credit||Number(row?.drive_revision)!==Number(d.drive_revision),
             florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
-            fl_can_attest:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_attest===true,
             fl_can_confirm_work:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_confirm_work===true};
         });
       }
@@ -359,45 +340,6 @@
   if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261018-bklg0267-layout1';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
   if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261101-bklg0235-attribution1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
 
-  document.getElementById('drive-list')?.addEventListener('submit',async event=>{
-    const form=event.target?.closest?.('form[data-fl-attest-drive]');
-    if(!form)return;
-    event.preventDefault();
-    const feedback=form.querySelector('.fl-attest-status');
-    const button=form.querySelector('button[type=submit]');
-    const selected=currentDrives().find(d=>String(d.id)===String(form.dataset.flAttestDrive));
-    if(!selected||selected.fl_can_attest!==true||Number(selected.drive_revision)!==Number(form.dataset.flAttestRevision)){
-      if(feedback)feedback.textContent='Drive details changed. Reload before attesting.';
-      return;
-    }
-    const learner=String(currentDriver()?.license_stage||'').toUpperCase()==='LEARNER';
-    const statements=['age_at_least_21','valid_driver_license','declarant_supervised_drive',...(learner?['nearest_right_seat']:[])];
-    if(!statements.every(name=>form.elements.namedItem(name)?.checked===true)){
-      if(feedback)feedback.textContent='Please personally affirm all four statements.';
-      return;
-    }
-    if(button)button.disabled=true;
-    if(feedback)feedback.textContent='Recording your declaration…';
-    try{
-      const {data:{session}={}}=await client.auth.getSession();
-      if(!session?.access_token)throw new Error('Sign-in expired; please sign in again.');
-      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/drive-ops`,{
-        method:'POST',
-        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
-        body:JSON.stringify({action:'attest_fl_supervision',driver_id:selected.driver_id,
-          drive_id:selected.id,expected_revision:selected.drive_revision,
-          age_at_least_21:true,valid_driver_license:true,
-          nearest_right_seat:learner,declarant_supervised_drive:true})
-      });
-      const body=await response.json();
-      if(!response.ok||body?.ok!==true)throw new Error(body?.error||'Unable to record declaration.');
-      if(feedback)feedback.textContent='Declaration recorded. Refreshing credit details…';
-      await loadDashboard({quiet:true});
-    }catch(error){
-      if(feedback)feedback.textContent=error instanceof Error?error.message:'Unable to record declaration.';
-      if(button)button.disabled=false;
-    }
-  });
   document.getElementById('drive-list')?.addEventListener('submit',async event=>{
     const form=event.target?.closest?.('form[data-fl-work-drive]');
     if(!form)return;

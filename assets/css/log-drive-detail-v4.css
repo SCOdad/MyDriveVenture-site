@@ -42,3 +42,7 @@
 .drive-detail-source-pill{display:inline-block;border:1px solid #86a0ad;border-radius:999px;padding:2px 9px;color:#d4e5e9;background:#26363d;font:700 .66rem/1.35 Inter,Arial,sans-serif;white-space:nowrap;letter-spacing:.01em}
 .drive-detail-source-pill[data-source="dv"]{border-color:#a8de75;color:#d5f0ba;background:#263b28}
 .drive-detail-source-pill[hidden]{display:none}
+
+/* Florida restricted-credit warning is styled from log.css; fall back here for independent detail CSS. */
+.drive-detail-dialog .drive-fl-detail-restriction{border:2px solid #d94343;border-left:6px solid #d94343;background:#251b20;padding:.8rem;margin:1rem 0}
+.drive-detail-dialog .drive-fl-restricted-eyebrow{background:#d94343;color:#fff;padding:.45rem .65rem;font-weight:800;text-transform:uppercase;margin:-.8rem -.8rem .7rem}
