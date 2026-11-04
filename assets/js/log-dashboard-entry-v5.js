@@ -337,8 +337,8 @@
     selectDriver
   };
 
-  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261104-bklg0278-fl-restriction1';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261104-bklg0278-fl-restriction1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
+  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261018-bklg0267-layout1&bklg0278=fl-redbrow2';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261101-bklg0235-attribution1&bklg0278=fl-redbrow2';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
 
   document.getElementById('drive-list')?.addEventListener('submit',async event=>{
     const form=event.target?.closest?.('form[data-fl-work-drive]');
