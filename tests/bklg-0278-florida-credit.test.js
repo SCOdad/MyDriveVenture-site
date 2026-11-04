@@ -46,3 +46,20 @@ test('trip detail displays qualifying night and restricted time separately',()=>
  assert.match(source,/floridaCreditCache\.clear\(\)/)
  assert.match(source,/modelEpoch/)
 })
+
+test('Florida credit from authenticated endpoint binds to dashboard v1 rows lacking revision',()=>{
+ const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
+ const a=src.indexOf('  function mergeFloridaCreditRows('), b=src.indexOf('  async function ensureFloridaCredits(',a);
+ assert.ok(a>0&&b>a);
+ const merge=new Function(src.slice(a,b)+';return mergeFloridaCreditRows')();
+ const sourceRows=[{id:'drive1',driver_id:'FL',duration_minutes:31},{id:'drive2',driver_id:'MI'}];
+ const serverRows=[{drive_id:'drive1',drive_revision:2,florida_credit:{prohibited_minutes:16,credited_night_minutes:15},can_confirm_work:false}];
+ const out=merge(sourceRows,'FL',serverRows);
+ assert.equal(out[0].drive_revision,2);
+ assert.equal(out[0].florida_credit.prohibited_minutes,16);
+ assert.equal(out[0].fl_credit_missing,false);
+ assert.equal(out[1],sourceRows[1]);
+ const stale=merge([{...sourceRows[0],drive_revision:3}],'FL',serverRows);
+ assert.equal(stale[0].florida_credit,null);
+ assert.equal(stale[0].fl_credit_missing,true);
+});
