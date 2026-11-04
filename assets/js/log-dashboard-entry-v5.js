@@ -209,6 +209,20 @@
     try{return await request}finally{if(overlapSummaryInFlight.get(driverId)===request)overlapSummaryInFlight.delete(driverId)}
   }
 
+  function mergeFloridaCreditRows(drives,driverId,rows){
+    const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
+    return drives.map(d=>{
+      if(String(d.driver_id)!==String(driverId))return d;
+      const row=byDrive.get(String(d.id));
+      // Legacy Dashboard v1 omits drive_revision; trusted drive-ops adds it.
+      const revisionMatches=!!row&&Number.isInteger(Number(row.drive_revision))
+        &&(d.drive_revision==null||Number(row.drive_revision)===Number(d.drive_revision));
+      return {...d,drive_revision:revisionMatches?Number(row.drive_revision):d.drive_revision,
+        fl_credit_missing:!revisionMatches||!row.florida_credit,
+        florida_credit:revisionMatches?row.florida_credit:null,
+        fl_can_confirm_work:revisionMatches&&row.can_confirm_work===true};
+    });
+  }
   async function ensureFloridaCredits(driverId){
     if(floridaCreditCache.has(driverId))return floridaCreditCache.get(driverId);
     if(floridaCreditInFlight.has(driverId))return floridaCreditInFlight.get(driverId);
@@ -230,20 +244,7 @@
       const rows=body.florida_credit_rows;
       if(epoch===modelEpoch){
         floridaCreditCache.set(driverId,rows);
-        const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
-        model.recent_drives=(model.recent_drives||[]).map(d=>{
-          if(String(d.driver_id)!==String(driverId))return d;
-          const row=byDrive.get(String(d.id));
-          // Dashboard v1 omits drive_revision. The authorized Florida endpoint
-          // supplies the canonical current revision alongside its snapshot.
-          // An explicit dashboard revision still takes precedence when present.
-          const revisionMatches=!!row&&Number.isInteger(Number(row.drive_revision))
-            &&(d.drive_revision==null||Number(row.drive_revision)===Number(d.drive_revision));
-          return {...d,drive_revision:revisionMatches?Number(row.drive_revision):d.drive_revision,
-            fl_credit_missing:!revisionMatches||!row.florida_credit,
-            florida_credit:revisionMatches?row.florida_credit:null,
-            fl_can_confirm_work:revisionMatches&&row.can_confirm_work===true};
-        });
+        model.recent_drives=mergeFloridaCreditRows(model.recent_drives||[],driverId,rows);
       }
       return rows;
     })();
