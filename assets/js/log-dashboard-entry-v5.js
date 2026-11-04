@@ -219,7 +219,9 @@
       card.classList.toggle('drive-item-fl-restricted',count>0);
       const old=card.querySelector('[data-fl-credit-notice]');
       if(old)old.remove();
-      if(count>0){
+      // The main renderer may already contain the warning. The independent
+      // synchronizer is a fallback, not a second notice.
+      if(count>0&&!card.querySelector('.drive-fl-restricted-eyebrow')){
         const notice=document.createElement('div');
         notice.dataset.flCreditNotice='true';
         notice.className='drive-fl-restricted-eyebrow';

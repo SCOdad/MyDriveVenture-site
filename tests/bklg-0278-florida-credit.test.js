@@ -87,3 +87,8 @@ test('driver-only favorite color is resilient to unrelated licensing and SMS fet
  assert.match(src,/loadPendingChanges\(\)\.catch/)
  assert.match(src,/host\.dataset\.ready='true'/);
 });
+
+test('Recent Drives does not duplicate the red brow from normal markup',()=>{
+ const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
+ assert.match(src,/count>0&&!card\.querySelector\('\.drive-fl-restricted-eyebrow'\)/);
+});
