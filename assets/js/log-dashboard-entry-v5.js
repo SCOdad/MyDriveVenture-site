@@ -234,9 +234,15 @@
         model.recent_drives=(model.recent_drives||[]).map(d=>{
           if(String(d.driver_id)!==String(driverId))return d;
           const row=byDrive.get(String(d.id));
-          return {...d,fl_credit_missing:!row?.florida_credit||Number(row?.drive_revision)!==Number(d.drive_revision),
-            florida_credit:Number(row?.drive_revision)===Number(d.drive_revision)?row.florida_credit:null,
-            fl_can_confirm_work:Number(row?.drive_revision)===Number(d.drive_revision)&&row?.can_confirm_work===true};
+          // Dashboard v1 omits drive_revision. The authorized Florida endpoint
+          // supplies the canonical current revision alongside its snapshot.
+          // An explicit dashboard revision still takes precedence when present.
+          const revisionMatches=!!row&&Number.isInteger(Number(row.drive_revision))
+            &&(d.drive_revision==null||Number(row.drive_revision)===Number(d.drive_revision));
+          return {...d,drive_revision:revisionMatches?Number(row.drive_revision):d.drive_revision,
+            fl_credit_missing:!revisionMatches||!row.florida_credit,
+            florida_credit:revisionMatches?row.florida_credit:null,
+            fl_can_confirm_work:revisionMatches&&row.can_confirm_work===true};
         });
       }
       return rows;
