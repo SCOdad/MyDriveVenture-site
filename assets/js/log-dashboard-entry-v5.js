@@ -245,6 +245,9 @@
       if(epoch===modelEpoch){
         floridaCreditCache.set(driverId,rows);
         model.recent_drives=mergeFloridaCreditRows(model.recent_drives||[],driverId,rows);
+        // Repaint as part of the successful credit merge itself. A later
+        // driver-selection callback may be superseded by a dashboard refresh.
+        if(currentDriverId===driverId)render(renderGeneration);
       }
       return rows;
     })();
