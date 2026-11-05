@@ -4,15 +4,19 @@ const fs=require('node:fs')
 const source=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8')
 const detail=fs.readFileSync('assets/js/log-drive-detail-v4.js','utf8')
 const css=fs.readFileSync('assets/css/log.css','utf8')
-const begin=source.indexOf('  function floridaCreditMarkup(d){')
+const begin=source.indexOf('  function floridaDashboardRestrictedMinutes(d,driver){')
 const end=source.indexOf('  function floridaWorkCommuteMarkup(d){',begin)
 assert.ok(begin>=0&&end>begin)
-const markup=new Function(source.slice(begin,end)+'; return floridaCreditMarkup')()
+const funcs=new Function('currentDriver',source.slice(begin,end)+'; return {floridaCreditMarkup,floridaDashboardRestrictedMinutes}')(
+ ()=>({home_state:'FL',license_stage:'LEARNER'})
+)
+const markup=funcs.floridaCreditMarkup
+const restricted=funcs.floridaDashboardRestrictedMinutes
 test('partially restricted Florida drive shows red eyebrow and preserved history',()=>{
  const html=markup({florida_credit:{license_stage:'LEARNER',prohibited_minutes:15,pending_minutes:0}})
  assert.match(html,/FLORIDA RESTRICTION · 15 MIN DO NOT COUNT/)
- assert.match(html,/15 min excluded from qualifying credit/)
- assert.match(html,/Original drive retained/)
+ assert.match(html,/15 min fall outside permitted Florida learner hours/)
+ assert.match(html,/complete drive remains recorded/)
  assert.match(css,/\.drive-item-fl-restricted/)
  assert.match(css,/#d94343/)
  assert.doesNotMatch(html,/illegal|violation/i)
@@ -105,4 +109,22 @@ test('authenticated dashboard credit survives missing optional Florida enrichmen
  const stale=merge([base],'FL',[{drive_id:'drive1',drive_revision:3,florida_credit:null}])[0];
  assert.equal(stale.florida_credit,null);
  assert.equal(stale.fl_credit_missing,true);
+});
+
+test('dashboard card shows deterministic red-brow restriction even without asynchronous credit response',()=>{
+ const driver={home_state:'FL',license_stage:'LEARNER'};
+ const drive={drive_date:'2026-10-20',start_time:'21:45:00',duration_minutes:31,florida_credit:null};
+ assert.equal(restricted(drive,driver),16);
+ assert.match(markup(drive),/FLORIDA RESTRICTION · 16 MIN DO NOT COUNT/);
+ assert.equal(restricted({...drive,duration_minutes:30},driver),15);
+ assert.equal(restricted({...drive,start_time:'13:00:00',duration_minutes:30},driver),0);
+ assert.equal(restricted({...drive,start_time:'05:50:00',duration_minutes:30},driver),10);
+ assert.equal(restricted(drive,{home_state:'MI',license_stage:'LEARNER'}),0);
+ assert.equal(restricted(drive,{home_state:'FL',license_stage:'INTERMEDIATE'}),0);
+ assert.equal(restricted({...drive,florida_credit:{license_stage:'LEARNER',prohibited_minutes:8}},driver),8);
+ assert.equal(restricted({...drive,florida_credit:{license_stage:'STATE_NEUTRAL',prohibited_minutes:16}},driver),0);
+ assert.equal(restricted({...drive,start_time:'invalid'},driver),0);
+ assert.equal(restricted({...drive,duration_minutes:1500},driver),0);
+ assert.match(source,/floridaDashboardRestrictedMinutes\(d,driver\)>0\?' drive-item-fl-restricted'/);
+ assert.match(source,/const count=floridaDashboardRestrictedMinutes\(drive,currentDriver\(\)\)/);
 });

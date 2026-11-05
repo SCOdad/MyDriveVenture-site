@@ -64,19 +64,43 @@
     const sign=document.getElementById('hours-sign');if(sign)sign.textContent=`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO PRACTICE GOAL`;
     return true
   }
+  // Dashboard-only safety net for the Florida LEARNER 10 PM–6 AM rule.
+  // Canonical revision-matched credit is authoritative when available; the
+  // clock fallback prevents a restricted drive looking unrestricted while the
+  // secondary evaluation request is unavailable.
+  function floridaDashboardRestrictedMinutes(d,driver){
+    if(String(driver?.home_state||'').toUpperCase()!=='FL')return 0;
+    const credited=d?.florida_credit;
+    if(credited){
+      if(!['LEARNER','INTERMEDIATE'].includes(String(credited.license_stage||'').toUpperCase()))return 0;
+      return Math.max(0,Number(credited.prohibited_minutes)||0);
+    }
+    if(String(driver?.license_stage||'').toUpperCase()!=='LEARNER')return 0;
+    const parts=/^(\d{1,2}):(\d{2})/.exec(String(d?.start_time||''));
+    const duration=Number(d?.duration_minutes);
+    if(!parts||!Number.isInteger(duration)||duration<=0||duration>1440)return 0;
+    const startHour=Number(parts[1]),startMinute=Number(parts[2]);
+    if(startHour>23||startMinute>59)return 0;
+    const start=startHour*60+startMinute;
+    let restricted=0;
+    for(let i=0;i<duration;i++){
+      const minute=(start+i)%1440;
+      if(minute<360||minute>=1320)restricted++;
+    }
+    return restricted;
+  }
   function floridaCreditMarkup(d){
     const credit=d?.florida_credit;
-    if(!credit){
-      return d?.fl_credit_missing===true
-        ? '<div class="drive-fl-credit-pending" role="status">Florida credit evaluation is pending. The original drive remains recorded.</div>'
-        : '';
-    }
-    if(!['LEARNER','INTERMEDIATE'].includes(String(credit.license_stage||'').toUpperCase()))return '';
-    const excluded=Math.max(0,Number(credit.prohibited_minutes)||0);
-    const pending=Math.max(0,Number(credit.pending_minutes)||0);
+    const excluded=floridaDashboardRestrictedMinutes(d,currentDriver());
+    const pending=credit?Math.max(0,Number(credit.pending_minutes)||0):0;
     const notice=[];
-    if(excluded>0)notice.push(`<div class="drive-fl-restricted-eyebrow" role="status">FLORIDA RESTRICTION · ${excluded} MIN DO NOT COUNT</div><p class="drive-fl-credit-warning">${excluded} min excluded from qualifying credit. Original drive retained.</p>`);
-    if(pending>0)notice.push(`<div class="drive-fl-credit-pending" role="status">Florida credit review pending for ${pending} min. Logged time is preserved.</div>`);
+    if(excluded>0){
+      notice.push(`<div class="drive-fl-restricted-eyebrow" role="status">FLORIDA RESTRICTION · ${excluded} MIN DO NOT COUNT</div><p class="drive-fl-credit-warning">${excluded} min fall outside permitted Florida learner hours. The complete drive remains recorded.</p>`);
+    }
+    if(!credit&&d?.fl_credit_missing===true)
+      notice.push('<div class="drive-fl-credit-pending" role="status">Florida qualifying-credit evaluation is pending. The recorded drive remains available.</div>');
+    else if(pending>0)
+      notice.push(`<div class="drive-fl-credit-pending" role="status">Florida credit review pending for ${pending} min. Logged time is preserved.</div>`);
     return notice.join('');
   }
   function floridaWorkCommuteMarkup(d){
@@ -136,7 +160,7 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li data-drive-id="${esc(d.id)}" class="drive-item${warning?' drive-item-overlap':''}${Number(d.florida_credit?.prohibited_minutes||0)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li data-drive-id="${esc(d.id)}" class="drive-item${warning?' drive-item-overlap':''}${floridaDashboardRestrictedMinutes(d,driver)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
@@ -215,7 +239,7 @@
     for(const drive of currentDrives()){
       const card=[...list.querySelectorAll('[data-drive-id]')].find(x=>x.dataset.driveId===String(drive.id));
       if(!card)continue;
-      const count=Math.max(0,Number(drive.florida_credit?.prohibited_minutes)||0);
+      const count=floridaDashboardRestrictedMinutes(drive,currentDriver());
       card.classList.toggle('drive-item-fl-restricted',count>0);
       const old=card.querySelector('[data-fl-credit-notice]');
       if(old)old.remove();
