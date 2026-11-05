@@ -7,7 +7,8 @@
   const STAGES={
     MI:[['LEVEL_1','Learner / Level 1 permit'],['LEVEL_2','Intermediate / Level 2 license'],['LEVEL_3','Full / Level 3 license']],
     KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']],
-    PA:[['LEARNER','Learner permit'],['JUNIOR','Junior driver license'],['FULL','Unrestricted driver license']]
+    PA:[['LEARNER','Learner permit'],['JUNIOR','Junior driver license'],['FULL','Unrestricted driver license']],
+    FL:[['LEARNER','Learner license'],['INTERMEDIATE','Intermediate driver license'],['FULL','Full driver license']]
   };
   function stateFromZip(value){
     if(!/^\d{5}$/.test(value))return null;
@@ -15,6 +16,8 @@
     if(n>=48001&&n<=49971)return'MI';
     if(n>=66002&&n<=67954)return'KS';
     if(n>=15001&&n<=19640)return'PA';
+    // Candidate Florida ZIP range; the backend resolves each ZIP exactly via GeoNames.
+    if(n>=32003&&n<=34997)return'FL';
     return'STATE_NEUTRAL';
   }
   function render(){

@@ -10,6 +10,7 @@
   document.body.appendChild(dialog);
   const content = dialog.querySelector('.drive-detail-content');
   let detailToken = 0;
+  let currentDetail = null;
   dialog.querySelector('.drive-detail-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
 
@@ -34,6 +35,7 @@
   }
 
   function render(detail) {
+    currentDetail=detail;
     const drive = detail.drive, vehicle = detail.vehicle, awards = detail.awards || [], history=detail.edit_history||[],lessons=detail.lessons||drive.lessons||[];
     app.detailDrives = app.detailDrives || {};
     drive.lesson_ids=detail.lesson_ids||drive.lesson_ids||[];
@@ -48,6 +50,18 @@
     const home = driver?.home_city ? `Home: ${driver.home_city}${driver.home_state ? `, ${driver.home_state}` : ''}` : null;
     const locationBasis = [zip, home].filter(Boolean).join(' · ');
     const overlap=((model.recent_drives||[]).find(row=>String(row.id)===String(drive.id))||{}).overlap||null;
+    const recent=(model.recent_drives||[]).find(row=>String(row.id)===String(drive.id))||{};
+    const credit=recent.florida_credit;
+    const isFlorida=String(driver?.home_state||'').toUpperCase()==='FL';
+    const prohibited=isFlorida?Math.max(0,Number(credit?.prohibited_minutes)||0):0;
+    const pending=isFlorida?Math.max(0,Number(credit?.pending_minutes)||0):0;
+    const flNotice=prohibited>0
+      ? `<section class="drive-fl-detail-restriction" role="status"><div class="drive-fl-restricted-eyebrow">FLORIDA RESTRICTION · ${prohibited} MIN DO NOT COUNT</div><p>${prohibited} of ${Number(drive.duration_minutes||0)} recorded minutes are excluded from Florida qualifying practice. The drive remains recorded.</p><p>Qualifying credit: ${Math.max(0,Number(credit?.credited_minutes)||0)} min · Pending: ${pending} min.</p></section>`
+      :isFlorida&&(recent.fl_credit_missing===true||!credit)
+        ? '<div class="drive-fl-detail-pending" role="status">Florida qualifying credit is pending verification. Recorded night minutes are not necessarily qualifying hours.</div>'
+        :isFlorida&&pending>0
+          ? `<div class="drive-fl-detail-pending" role="status">Florida qualifying credit pending: ${pending} min. Recorded night minutes are not necessarily qualifying hours.</div>`
+          :'';
     const overlapNotice=overlap?.conflict_count?`<div class="drive-overlap-notice"><strong>⚠ Potential time conflict</strong><p>This drive overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}. The recorded hours still count; review the conflicting times and edit or delete a drive if needed.</p></div>`:'';
     const editLabel=isOperatorView(drive.driver_id)?'Admin edit this drive':'Edit this drive';
     const editAction=canEditDrive(drive.driver_id)?`<div class="drive-detail-actions"><button class="button subtle-button button-small drive-detail-edit" type="button" data-edit-drive="${esc(drive.id)}">${editLabel}</button></div>`:'';
@@ -71,11 +85,11 @@
           <p class="drive-detail-certification ${certified?'is-certified':'is-pending'}">${certText}</p>
         </div>${editAction}
       </header>
-      ${overlapNotice}${editHistoryMarkup(history)}
+      ${flNotice}${overlapNotice}${editHistoryMarkup(history)}
       <div class="drive-detail-primary-grid">
         <section class="drive-detail-tile drive-detail-duration">
           <h3>DURATION</h3><p class="drive-detail-main-duration">${duration} min (${hours(duration)})</p>
-          <p>Night <strong>${nightValue} min</strong></p>
+          <p>Recorded night <strong>${nightValue} min</strong></p>${isFlorida?`<p>Florida qualifying night <strong>${credit?Math.max(0,Number(credit.credited_night_minutes)||0)+' min':'Pending'}</strong></p>`:''}
           <p class="drive-detail-inclement-line">Inclement <strong data-drive-inclement-minutes>${isPA?'Loading…':'Not applicable'}</strong>${isPA?'<span class="drive-detail-source-pill" data-drive-inclement-provenance hidden></span>':''}</p>
         </section>
         <section class="drive-detail-tile drive-detail-observed"><h3>WEATHER</h3>
@@ -158,7 +172,8 @@
       await showPaWeatherSummary(data.drive,driverId,mine);
     }catch(_){if(mine===detailToken&&app.getDriverId()===driverId)content.innerHTML = '<p class="drive-detail-error">Drive details are not available right now. Please try again.</p>'}
   });
-  window.addEventListener('dv:driver-changing',()=>{detailToken+=1;if(dialog.open)dialog.close();content.innerHTML=''});
+  window.addEventListener('dv:dashboard-rendered',()=>{if(dialog.open&&currentDetail&&currentDetail.drive?.driver_id===app.getDriverId())render(currentDetail)});
+  window.addEventListener('dv:driver-changing',()=>{currentDetail=null;detailToken+=1;if(dialog.open)dialog.close();content.innerHTML=''});
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     const trigger = event.target.closest('[data-drive-detail-id]');

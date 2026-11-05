@@ -83,7 +83,8 @@
     if(progress){
       const unitText=unit?` ${unit}`:''
       if(progress.notRequired)return `${formatNumber(progress.actual)}${unitText} (${formatNumber(progress.required)} required — not required for this stage)`
-      return `${formatNumber(progress.actual)} of ${formatNumber(progress.required)}${unitText}`
+      const shown=r.requirement_type==='PriorStageMonths'?Math.min(progress.actual,progress.required):progress.actual
+       return `${formatNumber(shown)} of ${formatNumber(progress.required)}${unitText}`
     }
     if(r.met)return r.actual&&r.actual!=='not confirmed'?`Requirement satisfied · ${r.actual}${r.unit?` ${String(r.unit).toLowerCase()}`:''}`:'Requirement satisfied'
     return r.reason||'Not yet satisfied'
