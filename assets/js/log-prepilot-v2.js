@@ -12,6 +12,32 @@
   let showAllAwards=false,showAllDrives=false,lastWeatherKey='',weatherToken=0,lastModel=null,lastDriverId='',lastDriver=null;
   function todayFor(driver){return ymd(new Date(),driver.timezone||'America/Detroit')}
   function renderAwards(model,driverId,driver){const list=document.getElementById('quest-list');if(!list)return;const rows=(model.quest_awards||[]).filter(q=>q.driver_id===driverId),today=todayFor(driver),todayCount=rows.filter(q=>ymd(q.awarded_at,driver.timezone||'America/Detroit')===today).length,base=Math.max(6,todayCount),shown=showAllAwards?rows:rows.slice(0,base);list.innerHTML=shown.length?shown.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';let link=document.getElementById('quest-see-all');if(rows.length>base){if(!link){link=document.createElement('button');link.id='quest-see-all';link.type='button';link.className='history-toggle';list.after(link)}link.hidden=false;link.textContent=showAllAwards?'Show recent':`See all (${rows.length})`;link.onclick=()=>{showAllAwards=!showAllAwards;renderAwards(model,driverId,driver)}}else if(link)link.hidden=true}
+  // Florida restriction treatment belongs to this archive renderer. The
+  // dashboard-entry module renders the initial list, but this module replaces
+  // #drive-list after every dashboard-rendered event.
+  function floridaRestrictedMinutes(d,driver){
+    if(String(driver?.home_state||'').trim().toUpperCase()!=='FL')return 0;
+    const evaluated=d?.florida_credit;
+    if(evaluated){
+      if(!['LEARNER','INTERMEDIATE'].includes(String(evaluated.license_stage||'').trim().toUpperCase()))return 0;
+      return Math.max(0,Number(evaluated.prohibited_minutes)||0);
+    }
+    // If the revision-scoped evaluation has not arrived, flag only the
+    // deterministic Florida learner curfew. Do not infer intermediate rules.
+    if(String(driver?.license_stage||'').trim().toUpperCase()!=='LEARNER')return 0;
+    const start=/^(\d{1,2}):(\d{2})/.exec(String(d?.start_time||''));
+    const duration=Number(d?.duration_minutes);
+    if(!start||!Number.isInteger(duration)||duration<=0||duration>1440)return 0;
+    const hour=Number(start[1]),minute=Number(start[2]);
+    if(hour>23||minute>59)return 0;
+    const first=hour*60+minute;
+    let restricted=0;
+    for(let i=0;i<duration;i++){
+      const at=(first+i)%1440;
+      if(at>=22*60||at<6*60)restricted++;
+    }
+    return restricted;
+  }
   function renderDrives(model,driverId,driver){
     const list=document.getElementById('drive-list');if(!list)return;
     const license=(model.license_statuses||[]).find(x=>x.driver_id===driverId)?.status||null,stageStart=String(license?.stage_start_date||driver.level1_license_date||'');
@@ -19,8 +45,10 @@
     list.innerHTML=shown.length?shown.map(d=>{
       const vehicleName=d.vehicle_name||'Vehicle',awards=(model.quest_awards||[]).filter(q=>q.drive_id===d.id),icons=awards.length?`<span class="drive-achievement-icons" aria-label="${esc(`${awards.length} achievement${awards.length===1?'':'s'} earned`)}">${awards.map(q=>`<span title="${esc(q.quest?.name||q.quest_key)}">${esc(questIcon(q))}</span>`).join('')}</span>`:'',overlap=d.overlap||null,prePermit=!!stageStart&&String(d.drive_date)<stageStart;
       const prePermitWarning=prePermit?'<div class="drive-prepermit-eyebrow" role="status">Before permit date · Does not count</div>':'';
+      const flRestricted=prePermit?0:floridaRestrictedMinutes(d,driver);
+      const flWarning=flRestricted>0?`<div class="drive-fl-restricted-eyebrow" role="status">FLORIDA RESTRICTION · ${flRestricted} MIN DO NOT COUNT</div><p class="drive-fl-credit-warning">${flRestricted} min fall outside permitted Florida driving hours. Full drive remains recorded.</p>`:'';
       const overlapWarning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'',warning=overlapWarning;
-      return `<li class="drive-item${warning?' drive-item-overlap':''}${prePermit?' drive-item-prepermit':''}" role="button" tabindex="0" style="cursor:pointer" data-drive-detail-id="${esc(d.id)}" aria-label="Open drive details for ${esc(d.drive_date)}">${prePermitWarning}${overlapWarning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(String(d.start_time||'').slice(0,5))}–${esc(String(d.end_time||'').slice(0,5))}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}${icons}</span><span class="pill">${esc(sourceLabel(d.source))}</span></div></li>`;
+      return `<li class="drive-item${warning?' drive-item-overlap':''}${prePermit?' drive-item-prepermit':''}${flRestricted>0?' drive-item-fl-restricted':''}" role="button" tabindex="0" style="cursor:pointer" data-drive-id="${esc(d.id)}" data-drive-detail-id="${esc(d.id)}" aria-label="Open drive details for ${esc(d.drive_date)}">${prePermitWarning}${flWarning}${overlapWarning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(String(d.start_time||'').slice(0,5))}–${esc(String(d.end_time||'').slice(0,5))}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}${icons}</span><span class="pill">${esc(sourceLabel(d.source))}</span></div></li>`;
     }).join(''):'<li class="empty-state">No drives logged yet.</li>';
     let link=document.getElementById('drive-see-all');if(rows.length>base){if(!link){link=document.createElement('button');link.id='drive-see-all';link.type='button';link.className='history-toggle';list.after(link)}link.hidden=false;link.textContent=showAllDrives?'Show recent':`See all (${rows.length})`;link.onclick=()=>{showAllDrives=!showAllDrives;renderDrives(model,driverId,driver)}}else if(link)link.hidden=true;
   }
