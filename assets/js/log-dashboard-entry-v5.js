@@ -239,9 +239,15 @@
       // Legacy Dashboard v1 omits drive_revision; trusted drive-ops adds it.
       const revisionMatches=!!row&&Number.isInteger(Number(row.drive_revision))
         &&(d.drive_revision==null||Number(row.drive_revision)===Number(d.drive_revision));
+      // The authenticated dashboard supplies the same revision-scoped credit
+      // snapshot before async enrichment. Do not erase it if the optional
+      // context endpoint has no snapshot; do reject explicit stale revisions.
+      const revisionConflict=!!row&&d.drive_revision!=null
+        &&Number(row.drive_revision)!==Number(d.drive_revision);
+      const credit=revisionConflict?null:(revisionMatches&&row.florida_credit||d.florida_credit||null);
       return {...d,drive_revision:revisionMatches?Number(row.drive_revision):d.drive_revision,
-        fl_credit_missing:!revisionMatches||!row.florida_credit,
-        florida_credit:revisionMatches?row.florida_credit:null,
+        fl_credit_missing:!credit,
+        florida_credit:credit,
         fl_can_confirm_work:revisionMatches&&row.can_confirm_work===true};
     });
   }

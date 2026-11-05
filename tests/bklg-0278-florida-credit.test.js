@@ -92,3 +92,17 @@ test('Recent Drives does not duplicate the red brow from normal markup',()=>{
  const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
  assert.match(src,/count>0&&!card\.querySelector\('\.drive-fl-restricted-eyebrow'\)/);
 });
+
+test('authenticated dashboard credit survives missing optional Florida enrichment',()=>{
+ const src=fs.readFileSync('assets/js/log-dashboard-entry-v5.js','utf8');
+ const a=src.indexOf('  function mergeFloridaCreditRows('),b=src.indexOf('  async function ensureFloridaCredits(',a);
+ assert.ok(a>=0&&b>a);
+ const merge=new Function(src.slice(a,b)+';return mergeFloridaCreditRows')();
+ const base={id:'drive1',driver_id:'FL',drive_revision:2,florida_credit:{license_stage:'LEARNER',prohibited_minutes:16,credited_night_minutes:15}};
+ const output=merge([base],'FL',[{drive_id:'drive1',drive_revision:2,florida_credit:null}])[0];
+ assert.equal(output.florida_credit.prohibited_minutes,16);
+ assert.equal(output.fl_credit_missing,false);
+ const stale=merge([base],'FL',[{drive_id:'drive1',drive_revision:3,florida_credit:null}])[0];
+ assert.equal(stale.florida_credit,null);
+ assert.equal(stale.fl_credit_missing,true);
+});
