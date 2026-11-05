@@ -25,7 +25,7 @@ function renderArchive({
   new Function('window','document',source)(window,document);
   assert.equal(typeof listeners['dv:dashboard-rendered'],'function');
   const driver={id:driverId,home_state,license_stage,level1_license_date,timezone:'America/New_York'};
-  const drive={id:'drive-1',driver_id:driverId,drive_date,start_time,
+  const drive={id:'drive-1',driver_id:driverId,drive_date,start_time,end_time:'22:16:00',
     duration_minutes,florida_credit,overlap,vehicle_name:'Orange Mobile',
     source:'WEB',destination:'Test #2 drive goes past 10pm'};
   listeners['dv:dashboard-rendered']({detail:{
