@@ -57,7 +57,7 @@
     SkillsTestRequired:'Pass the required road skills test.',
     ViolationFreeDays:'The driver must complete the required violation-free period.'
   }
-  const GROWNUP_ONLY_REQUIREMENTS=new Set(['ParentAuthorizationRequired','ParentCertificationRequired','PracticeAffidavitRequired','PracticeAffidavitRequiredUnderAgeYears'])
+  // BKLG-0285: action authority is server-evaluated, never inferred from requirement names.
   const requirementLabel=s=>REQUIREMENT_LABELS[s]||String(s||'Requirement').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())
   const requirementExplainer=s=>REQUIREMENT_EXPLAINERS[s]||''
   const numericValue=v=>{const n=Number(v);return Number.isFinite(n)?n:null}
@@ -132,7 +132,7 @@
       :'<option value="">Next stage is not yet eligible</option>'
     licenseAdvance.disabled=true
     const renderTarget=(t,{interactive=false,kicker='' }={})=>{
-      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met&&/needs confirmation/i.test(r.reason||'')):[],unmet=t.unmet_requirements||[]
+      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met):[],unmet=t.unmet_requirements||[]
       return `<div class="license-target-block">
         <div class="license-target-head">
           <div>${kicker?`<small class="license-target-kicker">${esc(kicker)}</small>`:''}<strong>${esc(t.target_stage_display||t.target_stage)}</strong></div>
@@ -140,9 +140,8 @@
         </div>
         <div class="license-requirement-list">
           ${reqs.map(r=>{
-            const confirmable=interactive&&!r.met&&/needs confirmation/i.test(r.reason||'')
-            const grownupOnly=GROWNUP_ONLY_REQUIREMENTS.has(r.requirement_type)
-            const actorCanConfirm=!(s.relation==='SELF'&&grownupOnly)
+            const confirmable=interactive&&!r.met&&r.authority?.allowed===true
+            const requiresAnotherActor=r.authority?.reason==='ACTOR_CAPABILITY_DENIED'
             const progress=requirementProgress(r,t.effective_date||licenseState.effective_date)
             const neutral=Boolean(progress?.notRequired)
             const stateClass=neutral?'license-neutral':(r.met?'license-met':'license-unmet')
@@ -153,10 +152,10 @@
                 <div class="license-requirement-title"><span>${esc(requirementLabel(r.requirement_type))}</span><small class="${stateClass}">${neutral?'Not required':(r.met?'Satisfied':'Needed')}</small></div>
                 ${explainer?`<small class="license-requirement-explainer">${esc(explainer)}</small>`:''}
                 <small class="license-requirement-progress-copy">${esc(detail)}</small>
-                ${confirmable&&grownupOnly&&!actorCanConfirm?'<small class="license-requirement-actor-note">A parent or grownup must confirm this requirement.</small>':''}
+                ${requiresAnotherActor?'<small class="license-requirement-actor-note">An authorized person must confirm this requirement.</small>':''}
                 ${requirementProgressHtml(r,t.effective_date||licenseState.effective_date)}
               </div>
-              ${confirmable&&actorCanConfirm?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
+              ${confirmable?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
             </div>`
           }).join('')}
         </div>
@@ -167,7 +166,7 @@
     const laterHtml=''
     licenseRequirements.innerHTML=reqsSummary(nextTarget)+nextHtml+laterHtml
   }
-  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&/needs confirmation/i.test(r.reason||''));return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
+  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&r.authority?.allowed===true);return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
   function renderSms(){
     if(!smsStateEl||!smsAction)return
