@@ -92,7 +92,7 @@
     const other=(target.requirements||[]).filter(r=>!HOUR_TYPES.has(r.requirement_type)),met=other.filter(r=>r.met).length;
     if(summary)summary.textContent=`${met} / ${other.length} met`;
     if(expanded)expanded.innerHTML=other.map(r=>{const confirmable=!r.met&&r.authority?.allowed===true;return `<div class="family-expanded-requirement"><span>${esc(labelFor(r.requirement_type))}</span><div><strong class="${r.met?'is-met':'is-unmet'}">${esc(requirementDetail(r,target.effective_date))}</strong>${confirmable?`<button class="family-requirement-confirm" data-confirm-requirement="${esc(r.requirement_type)}" data-target-stage="${esc(target.target_stage)}" type="button">Confirm</button>`:''}</div></div>`}).join('')||'<p class="meta">No additional requirements.</p>';
-    const action=card.querySelector('[data-expanded-license-action]'),eligible=(license?.eligible_targets||[]).find(x=>x.target_stage===target.target_stage);
+    const action=card.querySelector('[data-expanded-license-action]'),eligible=license?.stage_authority?.allowed===true?(license?.eligible_targets||[]).find(x=>x.target_stage===target.target_stage):null;
     if(action)action.innerHTML=eligible?`<div class="family-license-advance-inline"><span class="meta">Eligible for ${esc(eligible.target_stage_display||eligible.target_stage)}</span><button class="button secondary" data-advance-stage="${esc(eligible.target_stage)}" type="button">Record stage</button></div>`:'';
   }
   function renderSms(card,sms){
