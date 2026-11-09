@@ -1,0 +1,17 @@
+name: BKLG-0285 Licensing Authority UI
+on:
+  pull_request:
+    paths:
+      - 'assets/js/profile.js'
+      - 'assets/js/family-card-profile.js'
+      - 'tests/bklg-0285-capability-ui.test.mjs'
+      - '.github/workflows/bklg-0285-authority-ui.yml'
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/bklg-0285-capability-ui.test.mjs
