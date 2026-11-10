@@ -26,3 +26,13 @@ test('Family Hub does not eagerly fan out optional detail requests for every dri
  assert.ok(family.includes("void enrichDriver(card,true)"));
  assert.ok(family.includes("r.authority?.allowed===true"));
 });
+
+test('Operator Driver Console inspects licensing without exposing confirmations or stage mutations',()=>{
+ const operator=readFileSync(new URL('../assets/js/log-operator-support.js',import.meta.url),'utf8');
+ assert.ok(operator.includes("action:'license_inspect'"));
+ assert.ok(operator.includes("inspection_only!==true"));
+ assert.ok(operator.includes('Inspect licensing (read only)'));
+ assert.ok(operator.includes('Operator cannot confirm third-party requirements or advance stages.'));
+ assert.ok(!operator.includes("action:'record_license_requirement'"));
+ assert.ok(!operator.includes("action:'advance_license_stage'"));
+});
