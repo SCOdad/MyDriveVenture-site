@@ -17,3 +17,12 @@ test('Family Hub follows the same per-requirement server capability',()=>{
 test('both surfaces fail closed when authority projection is missing',()=>{
  for(const src of [profile,family]) assert.ok(src.includes("r.authority?.allowed===true"));
 });
+
+test('Family Hub does not eagerly fan out optional detail requests for every driver',()=>{
+ assert.ok(family.includes("new IntersectionObserver"));
+ assert.ok(family.includes("activeDetailRequests<2"));
+ assert.ok(family.includes("void enrichDriver(card,false)"));
+ assert.ok(family.includes("prioritizeDetail(card)"));
+ assert.ok(family.includes("void enrichDriver(card,true)"));
+ assert.ok(family.includes("r.authority?.allowed===true"));
+});
