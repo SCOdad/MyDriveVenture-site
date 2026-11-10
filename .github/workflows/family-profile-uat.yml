@@ -10,6 +10,11 @@ on:
       - 'tests/e2e/family-avatar-uat.spec.mjs'
       - '.github/workflows/family-profile-uat.yml'
 
+# Cancel only superseded PR revisions of this workflow; keep manual runs independent.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -22,6 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - run: npm ci --ignore-scripts
       - run: node --test tests/family-avatar-recovery.test.js tests/uat-family-profile-stabilization.test.js tests/bklg-0248-family-driver-regression.test.js tests/bklg-0250-license-holder-family-model.test.js tests/bklg-0240-unified-family-profile.test.js
       - run: npx playwright install --with-deps chromium
