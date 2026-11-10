@@ -27,7 +27,7 @@
       wrap=document.createElement('div');
       wrap.id='operator-driver-search-wrap';
       wrap.className='operator-driver-search';
-      wrap.innerHTML='<label for="operator-driver-search"><span>Find driver</span><input id="operator-driver-search" type="search" placeholder="Name, email, phone, or ID" autocomplete="off"></label><div id="operator-driver-results" class="operator-driver-results" hidden></div><div class="operator-repair-row"><button id="operator-recompute-progress" class="button subtle-button button-small" type="button">Recompute progress</button><span id="operator-driver-search-status" class="meta"></span></div>';
+      wrap.innerHTML='<label for="operator-driver-search"><span>Find driver</span><input id="operator-driver-search" type="search" placeholder="Name, email, phone, or ID" autocomplete="off"></label><div id="operator-driver-results" class="operator-driver-results" hidden></div><div class="operator-repair-row"><button id="operator-recompute-progress" class="button subtle-button button-small" type="button">Recompute progress</button><button id="operator-inspect-license" class="button subtle-button button-small" type="button">Inspect licensing (read only)</button><span id="operator-driver-search-status" class="meta"></span></div><div id="operator-licensing-inspection" class="meta" aria-live="polite" hidden></div>';
       wrap.querySelector('#operator-driver-search').addEventListener('input',e=>filterDrivers(e.target.value));
       wrap.querySelector('#operator-driver-results').addEventListener('click',e=>{
         const button=e.target.closest?.('[data-operator-driver-id]');
@@ -35,6 +35,7 @@
         app.selectDriver?.(button.dataset.operatorDriverId).catch?.(()=>{});
       });
       wrap.querySelector('#operator-recompute-progress').addEventListener('click',recomputeProgress);
+      wrap.querySelector('#operator-inspect-license').addEventListener('click',inspectLicensing);
     }
     if(wrap.parentElement!==host)host.appendChild(wrap);
   }
@@ -50,6 +51,35 @@
     if(!q){results.innerHTML='';results.hidden=true;return}
     results.innerHTML=matches.slice(0,8).map(d=>`<button type="button" class="button subtle-button button-small operator-driver-result" data-operator-driver-id="${esc(d.id)}">${esc(d.display_name||'Driver')}${accessMode(d.id)==='VIEW'?' · View only':''}</button>`).join('');
     results.hidden=!matches.length;
+  }
+
+  async function inspectLicensing(){
+    const driverId=app.getDriverId?.(),driver=(model?.drivers||[]).find(d=>d.id===driverId);
+    const host=document.getElementById('operator-licensing-inspection');
+    if(!host)return;
+    host.hidden=false;
+    if(!driverId||!driver){host.textContent='Select a driver before inspecting licensing requirements.';return}
+    host.textContent='Loading read-only licensing requirements…';
+    const button=document.getElementById('operator-inspect-license');
+    if(button)button.disabled=true;
+    try{
+      const {data,error}=await originalInvoke('profile-api',{body:{action:'license_inspect',driver_id:driverId}});
+      if(error||data?.ok!==true||data.license?.inspection_only!==true)
+        throw new Error(data?.error||error?.message||'Licensing inspection unavailable');
+      if(app.getDriverId?.()!==driverId){host.textContent='Driver selection changed. Inspect the currently selected driver.';return}
+      const license=data.license,target=(license.targets||[])[0];
+      const rows=(target?.requirements||[]).map(r=>{
+        const name=esc(String(r.requirement_type||'Requirement').replace(/([a-z])([A-Z])/g,'$1 $2'));
+        const detail=r.met===true?'Met':'Unmet';
+        return '<li><strong>'+name+'</strong>: '+detail+'</li>';
+      }).join('');
+      // Never render attestation or lifecycle mutation controls in the Operator surface.
+      host.innerHTML='<strong>'+esc(driver.display_name||'Driver')+'</strong> — '
+       +esc(license.current_stage_display||license.current_stage||'Unknown stage')
+       +'<p>Inspection only. Operator cannot confirm third-party requirements or advance stages.</p>'
+       +(target?'<p>Next stage: '+esc(target.target_stage_display||target.target_stage||'')+'</p><ul>'+rows+'</ul>':'<p>No next-stage rules configured.</p>');
+    }catch(err){host.textContent=err.message||String(err)}
+    finally{if(button)button.disabled=false}
   }
 
   async function recomputeProgress(){
