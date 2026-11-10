@@ -6,6 +6,25 @@
   // An entire multi-driver Family can have many cards. Fetch sensitive licensing
   // controls only when a card is near the viewport or explicitly opened.
   const driverDetailLoads=new WeakMap();
+  const queuedDetails=new WeakMap(), detailQueue=[];
+  let activeDetailRequests=0;
+  function pumpDetailQueue(){
+    while(activeDetailRequests<2 && detailQueue.length){
+      const job=detailQueue.shift();queuedDetails.delete(job.card);
+      activeDetailRequests++;
+      void job.work().then(job.resolve,job.reject).finally(()=>{activeDetailRequests--;pumpDetailQueue()});
+    }
+  }
+  function scheduleDetail(card,work){
+    return new Promise((resolve,reject)=>{
+      const job={card,work,resolve,reject};
+      queuedDetails.set(card,job);detailQueue.push(job);pumpDetailQueue();
+    });
+  }
+  function prioritizeDetail(card){
+    const job=queuedDetails.get(card),index=job?detailQueue.indexOf(job):-1;
+    if(index>0){detailQueue.splice(index,1);detailQueue.unshift(job)}
+  }
   const detailObserver=('IntersectionObserver' in window)?new IntersectionObserver(entries=>{
     for(const entry of entries){
       if(!entry.isIntersecting)continue;
@@ -142,7 +161,7 @@
     renderColorPicker(card,s);
     if(!loadDetails)return;
     if(driverDetailLoads.has(card))return driverDetailLoads.get(card);
-    const task=(async()=>{
+    const task=scheduleDetail(card,async()=>{
     try{
       const [licenseOut,smsOut,emailPrefOut]=await Promise.all([api('profile-api','license_overview',{driver_id:id}),api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id}),api('profile-api','driver_email_preference',{driver_id:id})]);
       const license=licenseOut.license||{},sms=smsOut.sms||{},emailPref=emailPrefOut.email_preference||{};licenseByDriver.set(id,license);smsByPerson.set(String(s.person_id),sms);emailPrefByDriver.set(id,emailPref);
@@ -152,7 +171,7 @@
       const datePencil=card.querySelector('[data-inline-edit="license_effective_date"]');if(datePencil&&String(card.dataset.licenseStage).toUpperCase()!=='LEVEL_1'){datePencil.hidden=true;datePencil.title='Later-stage dates are retained as audited transition history.'}
       renderLicenseSummary(card,license);renderSms(card,sms);renderDriverEmailPreference(card,emailPref);
     }catch(err){const summary=card.querySelector('[data-other-requirements]');if(summary)summary.textContent='Unavailable';console.warn('Driver card enrichment unavailable',err)}
-    })();
+    });
     driverDetailLoads.set(card,task);
     return task;
   }
@@ -173,7 +192,7 @@
       for(const card of driverCards.slice(0,2))void enrichDriver(card,true);
     }
     void grownupPromise.catch(err=>console.warn('Grown-up contact enrichment unavailable',err));
-    console.info('[Family card initial enrichment timing]',{ms:Math.round(performance.now()-started),cards:driverCards.length});for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
+    console.info('[Family card initial enrichment timing]',{ms:Math.round(performance.now()-started),cards:driverCards.length});for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile';const card=panel.closest('.family-driver-card');if(card){prioritizeDetail(card);void enrichDriver(card,true)}}}
   }
 
   function fieldConfig(field,s,card){
@@ -207,6 +226,7 @@
     const opening=panel.hidden;panel.hidden=!opening;button.setAttribute('aria-expanded',String(opening));button.textContent=opening?'Collapse full profile':'Expand full profile';if(opening){
       expandedDrivers.add(String(driverId));
       detailObserver?.unobserve(card);
+      prioritizeDetail(card);
       // Opening always prioritizes an authoritative, fail-closed detail fetch.
       void enrichDriver(card,true);
     }else expandedDrivers.delete(String(driverId));
