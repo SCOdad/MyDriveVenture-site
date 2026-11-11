@@ -20,6 +20,10 @@ on:
       - '.github/workflows/bklg-0219-paid-recruitment.yml'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -28,6 +32,7 @@ jobs:
     name: Paid recruitment contract
     if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
