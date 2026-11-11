@@ -13,6 +13,9 @@ on:
       - tests/bklg-0208-checkout.test.js
       - tests/e2e/bklg-0208-family-purchase.spec.mjs
       - .github/workflows/bklg-0208-dev-preview-parity.yml
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
