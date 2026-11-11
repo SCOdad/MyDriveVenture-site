@@ -6,11 +6,15 @@ on:
       - 'assets/css/commercial-purchase.css'
       - 'tests/bklg-0206-receipt-ui.test.js'
       - '.github/workflows/bklg-0206-receipt-ui.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
   receipt-ui:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
