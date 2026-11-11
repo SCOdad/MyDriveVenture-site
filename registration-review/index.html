@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Review your driving requirements — Drive Venture</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/assets/css/join.css">
+  <script src="/assets/js/environment-config.js"></script>
+  <style>
+    .review-main{max-width:720px;margin:2rem auto;padding:0 1rem 4rem}
+    .review-card{padding:clamp(1.25rem,4vw,2.5rem);border:1px solid #65727c;border-radius:16px;background:#121b23;color:#f5f7fa}
+    .review-card h1{font-size:clamp(1.6rem,4vw,2.3rem);line-height:1.2}
+    .review-card p{line-height:1.65}
+    .review-card label{display:block;margin:1.15rem 0;font-weight:600}
+    .review-card select,.review-card input[type=date]{display:block;width:100%;padding:.8rem;margin-top:.45rem;border-radius:8px;border:1px solid #778592;background:#fff;color:#111}
+    .review-card .review-consent{display:flex;gap:.7rem;align-items:flex-start;font-weight:400}
+    .review-card .review-consent input{margin-top:.4rem}
+    .review-card .review-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.4rem}
+    .review-card button,.review-card .review-link{display:inline-block;padding:.7rem 1rem;border-radius:8px;border:1px solid #e1bd41;background:#e1bd41;color:#111;font-weight:700;text-decoration:none;cursor:pointer}
+    .review-card button:disabled{opacity:.55;cursor:wait}
+    .review-card .secondary{background:transparent;color:#fff;border-color:#89959e}
+    .review-card [hidden]{display:none!important}
+    .review-status{min-height:1.5rem;margin-top:1rem}
+    .review-info{border-left:3px solid #e1bd41;padding-left:1rem;margin:1rem 0}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><div class="nav">
+    <a class="brand" href="/" aria-label="Drive Venture home"><img src="/assets/images/dv-logo-primary.png" alt="Drive Venture"></a>
+    <nav aria-label="Primary"><ul><li><a href="/family/">Family &amp; Profiles</a></li><li><a href="/log/">Driver Console</a></li></ul></nav>
+  </div></header>
+  <main id="main" class="review-main">
+    <section class="review-card" aria-labelledby="review-title">
+      <p class="step-label">Driver registration update</p>
+      <h1 id="review-title">Florida requirements are now supported</h1>
+      <p>Drive Venture has added Florida-specific licensing information. Before we show the driver's Florida licensing progress, a linked grown-up needs to confirm the driver's current license and its issue date.</p>
+      <p class="review-info">Your existing logged drives remain in your history. Drive Venture's supplemental driving record does not replace Florida's official certification requirements or forms.</p>
+      <p id="review-driver-name" aria-live="polite"></p>
+      <div id="review-loading" role="status">Checking your registration securely…</div>
+      <div id="review-grownup" hidden>
+        <form id="review-form" novalidate>
+          <label for="review-license-stage">Current Florida license stage
+            <select id="review-license-stage" required>
+              <option value="">Select the current stage</option>
+              <option value="LEARNER">Learner license</option>
+              <option value="INTERMEDIATE">Intermediate driver license</option>
+              <option value="FULL">Full driver license</option>
+            </select>
+          </label>
+          <label for="review-issue-date">Original issue / effective date for the selected stage
+            <input id="review-issue-date" type="date" required>
+          </label>
+          <label class="review-consent"><input id="review-confirm" type="checkbox" required>
+            <span>I am the linked grown-up, and I confirm these details reflect the driver's actual current Florida license.</span>
+          </label>
+          <div class="review-actions">
+            <button id="review-submit" type="submit">Confirm registration</button>
+            <a class="review-link secondary" href="/family/">Back to Family Hub</a>
+          </div>
+        </form>
+      </div>
+      <div id="review-driver" hidden>
+        <p>Your linked grown-up must confirm these licensing details. You can still record practice drives using state-neutral tracking while the review is pending.</p>
+        <div class="review-actions"><a class="review-link" href="/log/?continue_practice=1">Continue practice tracking</a></div>
+      </div>
+      <div id="review-complete" hidden>
+        <p>There are no pending registration changes for this account.</p>
+        <div class="review-actions"><a class="review-link" href="/family/">Go to Family Hub</a></div>
+      </div>
+      <p id="review-status" class="review-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/log/config.js"></script>
+  <script src="/assets/js/registration-review.js?v=20261111-0287"></script>
+</body>
+</html>
