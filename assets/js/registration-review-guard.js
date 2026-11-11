@@ -23,6 +23,9 @@
       const pending=body?.pending_reviews;
       if(!Array.isArray(pending)||pending.length===0)return;
       const first=pending[0];
+      // Driver-only temporary practice entry is permitted; no licensing confirmation bypass.
+      if(first.can_complete===false && location.pathname.startsWith('/log/')
+        && new URLSearchParams(location.search).get('continue_practice')==='1')return;
       if(!/^[0-9a-f-]{36}$/i.test(String(first.review_id||'')))return;
       const current=location.pathname+location.search;
       const target='/registration-review/?review='+encodeURIComponent(first.review_id)
