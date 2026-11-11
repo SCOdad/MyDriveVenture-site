@@ -9,6 +9,9 @@ on:
     paths:
       - 'tests/e2e-prod/bklg-0206-receipt-readonly.spec.mjs'
       - '.github/workflows/bklg-0206-live-receipt.yml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 permissions:
   contents: read
 jobs:
