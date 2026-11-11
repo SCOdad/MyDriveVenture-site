@@ -260,5 +260,17 @@
   window.addEventListener('dv:driver-expand-toggle',e=>void toggleExpanded(e.detail?.driver_id));
   window.addEventListener('dv:family-rendered',()=>void enrichCards());
   client.auth.onAuthStateChange((_e,next)=>{session=next});
-  void ensureSession().catch(()=>{});
+  // Publish the authenticated, server-controlled Florida activation state.
+  // The family stage selector defaults to STATE_NEUTRAL until this succeeds.
+  void ensureSession().then(async()=>{
+    try {
+      const result=await api('profile-api','fl_launch_status',{});
+      const enabled=result?.enabled===true;
+      window.DV_FL_LAUNCH_STATUS=enabled;
+      window.dispatchEvent(new CustomEvent('dv:fl-launch-status',{detail:{enabled}}));
+    } catch {
+      window.DV_FL_LAUNCH_STATUS=false;
+      window.dispatchEvent(new CustomEvent('dv:fl-launch-status',{detail:{enabled:false}}));
+    }
+  }).catch(()=>{});
 })();
