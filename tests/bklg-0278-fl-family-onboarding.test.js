@@ -21,11 +21,15 @@ function mount(zipValue){
   getElementById(id){return id==='add-driver-form'?form:labels[id]},
   querySelectorAll(){return []}
  };
- vm.runInNewContext(script,{document,setTimeout(){}});
- return {zip,stage,date,labels,render(){listeners.input()}};
+ const window={DV_FL_LAUNCH_STATUS:false,addEventListener(event,handler){listeners[event]=handler}};
+ vm.runInNewContext(script,{document,window,setTimeout(){}});
+ return {zip,stage,date,labels,render(){listeners.input()},setLaunch(enabled){window.DV_FL_LAUNCH_STATUS=enabled;listeners['dv:fl-launch-status']({detail:{enabled}})}};
 }
-test('Florida 32801 offers all three license stages and requires issue date',()=>{
+test('Florida 32801 only offers stages after authenticated launch confirmation',()=>{
  const ui=mount('32801');
+ assert.equal(ui.stage.value,'STATE_NEUTRAL');
+ assert.doesNotMatch(ui.stage.innerHTML,/value="LEARNER"/);
+ ui.setLaunch(true);
  assert.match(ui.stage.innerHTML,/value="LEARNER"/);
  assert.match(ui.stage.innerHTML,/value="INTERMEDIATE"/);
  assert.match(ui.stage.innerHTML,/value="FULL"/);
@@ -47,6 +51,7 @@ test('non-configured state remains state-neutral with optional date',()=>{
 });
 test('changing Florida to another jurisdiction clears incompatible stage',()=>{
  const ui=mount('32801');
+ ui.setLaunch(true);
  ui.stage.value='INTERMEDIATE';
  ui.zip.value='90210';ui.render();
  assert.equal(ui.stage.value,'STATE_NEUTRAL');
@@ -58,4 +63,13 @@ test('invalid ZIP requires ZIP entry and does not present FL stages',()=>{
  const ui=mount('3280');
  assert.doesNotMatch(ui.stage.innerHTML,/value="LEARNER"/);
  assert.equal(ui.date.required,true);
+});
+
+test('Florida release revocation returns stage selector to state-neutral',()=>{
+ const ui=mount('32801');
+ ui.setLaunch(true);
+ assert.match(ui.stage.innerHTML,/value="LEARNER"/);
+ ui.setLaunch(false);
+ assert.equal(ui.stage.value,'STATE_NEUTRAL');
+ assert.equal(ui.date.required,false);
 });

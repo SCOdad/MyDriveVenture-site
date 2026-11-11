@@ -4,6 +4,12 @@
   const zip=form.elements.home_zip,stage=form.elements.license_stage,date=form.elements.license_stage_start_date;
   const stageLabel=document.getElementById('family-license-stage-label'),dateLabel=document.getElementById('family-stage-date-label');
   if(!zip||!stage||!date)return;
+  // Fail closed on initial load; only an authenticated release-status response enables FL stages.
+  let floridaLaunchEnabled=window.DV_FL_LAUNCH_STATUS===true;
+  window.addEventListener('dv:fl-launch-status',event=>{
+    floridaLaunchEnabled=event?.detail?.enabled===true;
+    render();
+  });
   const STAGES={
     MI:[['LEVEL_1','Learner / Level 1 permit'],['LEVEL_2','Intermediate / Level 2 license'],['LEVEL_3','Full / Level 3 license']],
     KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']],
@@ -21,7 +27,7 @@
     return'STATE_NEUTRAL';
   }
   function render(){
-    const value=String(zip.value||'').trim(),state=stateFromZip(value),prior=stage.value;
+    const value=String(zip.value||'').trim(),detectedState=stateFromZip(value),state=detectedState==='FL'&&!floridaLaunchEnabled?'STATE_NEUTRAL':detectedState,prior=stage.value;
     zip.setCustomValidity('');
     if(!state){
       stage.innerHTML='<option value="">Enter ZIP to choose tracking mode</option>';
