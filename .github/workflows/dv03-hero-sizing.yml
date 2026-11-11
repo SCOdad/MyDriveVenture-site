@@ -1,0 +1,40 @@
+name: DV03 Hero Sizing
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'assets/css/**'
+      - 'assets/images/dv03/hero/**'
+      - 'log/index.html'
+      - 'tests/e2e/dv03-hero-sizing.spec.mjs'
+      - '.github/workflows/dv03-hero-sizing.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  responsive-hero:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: Serve local source and verify hero geometry
+        env:
+          DV_E2E_BASE_URL: http://127.0.0.1:4187
+        run: |
+          python3 -m http.server 4187 --bind 127.0.0.1 >/tmp/dv03-hero-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in {1..20}; do
+            curl --fail --silent "$DV_E2E_BASE_URL/log/" >/dev/null && break
+            sleep 0.5
+          done
+          curl --fail --silent "$DV_E2E_BASE_URL/log/" >/dev/null
+          npx playwright test tests/e2e/dv03-hero-sizing.spec.mjs --retries=0

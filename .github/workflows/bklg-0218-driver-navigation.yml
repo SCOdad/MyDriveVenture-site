@@ -11,6 +11,11 @@ on:
       - '.github/workflows/bklg-0218-driver-navigation.yml'
   workflow_dispatch:
 
+# Cancel only superseded PR revisions of this workflow; keep manual runs independent.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
@@ -29,7 +34,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --ignore-scripts
+          cache: npm
+      - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - name: Require DEV test credential
         shell: bash
