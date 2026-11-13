@@ -30,6 +30,8 @@
   const licenseStatusInFlight=new Map();
   const overlapSummaryCache=new Map();
   const overlapSummaryInFlight=new Map();
+  const floridaCreditCache=new Map();
+  const floridaCreditInFlight=new Map();
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const hours=m=>(Number(m||0)/60).toFixed(1);
@@ -61,6 +63,58 @@
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`;
     const sign=document.getElementById('hours-sign');if(sign)sign.textContent=`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO PRACTICE GOAL`;
     return true
+  }
+  // Dashboard-only safety net for the Florida LEARNER 10 PM–6 AM rule.
+  // Canonical revision-matched credit is authoritative when available; the
+  // clock fallback prevents a restricted drive looking unrestricted while the
+  // secondary evaluation request is unavailable.
+  function floridaDashboardRestrictedMinutes(d,driver){
+    if(String(driver?.home_state||'').toUpperCase()!=='FL')return 0;
+    const credited=d?.florida_credit;
+    if(credited){
+      if(!['LEARNER','INTERMEDIATE'].includes(String(credited.license_stage||'').toUpperCase()))return 0;
+      return Math.max(0,Number(credited.prohibited_minutes)||0);
+    }
+    if(String(driver?.license_stage||'').toUpperCase()!=='LEARNER')return 0;
+    const parts=/^(\d{1,2}):(\d{2})/.exec(String(d?.start_time||''));
+    const duration=Number(d?.duration_minutes);
+    if(!parts||!Number.isInteger(duration)||duration<=0||duration>1440)return 0;
+    const startHour=Number(parts[1]),startMinute=Number(parts[2]);
+    if(startHour>23||startMinute>59)return 0;
+    const start=startHour*60+startMinute;
+    let restricted=0;
+    for(let i=0;i<duration;i++){
+      const minute=(start+i)%1440;
+      if(minute<360||minute>=1320)restricted++;
+    }
+    return restricted;
+  }
+  function floridaCreditMarkup(d){
+    const credit=d?.florida_credit;
+    const excluded=floridaDashboardRestrictedMinutes(d,currentDriver());
+    const pending=credit?Math.max(0,Number(credit.pending_minutes)||0):0;
+    const notice=[];
+    if(excluded>0){
+      notice.push(`<div class="drive-fl-restricted-eyebrow" role="status">FLORIDA RESTRICTION · ${excluded} MIN DO NOT COUNT</div><p class="drive-fl-credit-warning">${excluded} min fall outside permitted Florida learner hours. The complete drive remains recorded.</p>`);
+    }
+    if(!credit&&d?.fl_credit_missing===true)
+      notice.push('<div class="drive-fl-credit-pending" role="status">Florida qualifying-credit evaluation is pending. The recorded drive remains available.</div>');
+    else if(pending>0)
+      notice.push(`<div class="drive-fl-credit-pending" role="status">Florida credit review pending for ${pending} min. Logged time is preserved.</div>`);
+    return notice.join('');
+  }
+  function floridaWorkCommuteMarkup(d){
+    if(d?.fl_can_confirm_work!==true||(d?.florida_credit&&Number(d.florida_credit.pending_minutes||0)<=0))return '';
+    return `<details class="fl-supervision-details">
+      <summary>Confirm direct travel to or from work</summary>
+      <form class="fl-work-form" data-fl-work-drive="${esc(d.id)}" data-fl-work-revision="${Number(d.drive_revision)}">
+        <p>A linked grown-up can declare that this particular drive was directly to or from the driver's employment. Do not select this for errands or unrelated stops.</p>
+        <label><input type="checkbox" name="direct_to_from_work" required> This drive was directly to or from the driver's work.</label>
+        <label><input type="checkbox" name="adult_confirms_facts" required> I personally confirm this description is accurate to the best of my knowledge.</label>
+        <button type="submit" class="button secondary button-small">Record work declaration</button>
+        <div class="fl-attest-status" role="status" aria-live="polite"></div>
+      </form>
+    </details>`;
   }
   function vehicleMarkup(v){return `<li class="vehicle-item"><div><strong>${esc(v.name)}</strong><br><small>${esc(v.vehicle_class)}${v.color?` · ${esc(v.color)}`:''}${v.is_primary?' · Primary':''}</small></div><button class="button subtle-button button-small" type="button" data-archive-vehicle="${esc(v.id)}">Archive</button></li>`}
   function orderedDrivers(){return [...(model.drivers||[])].sort((a,b)=>{const av=getAccessMode(a.id)==='VIEW'?1:0,bv=getAccessMode(b.id)==='VIEW'?1:0;if(av!==bv)return av-bv;return String(a.display_name||'Driver').localeCompare(String(b.display_name||'Driver'),undefined,{sensitivity:'base'})})}
@@ -106,11 +160,12 @@
     if(driveVehicle){const prior=driveVehicle.value;driveVehicle.innerHTML='<option value="">Choose a vehicle</option>'+vehicles.map(v=>`<option value="${esc(v.id)}">${esc(v.name)}</option>`).join('');if(vehicles.some(v=>v.id===prior))driveVehicle.value=prior;else{const primary=vehicles.find(v=>v.is_primary)||vehicles[0];if(primary)driveVehicle.value=primary.id}}
 
     const drives=currentDrives(),driveList=document.getElementById('drive-list');
-    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li class="drive-item${warning?' drive-item-overlap':''}">${warning}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
+    if(driveList)driveList.innerHTML=drives.length?drives.map(d=>{const vehicleName=d.vehicle_name||'Vehicle',overlap=d.overlap||null,warning=overlap?.conflict_count?`<div class="drive-overlap-eyebrow" role="status">⚠ Potential time conflict · Overlaps ${Number(overlap.conflict_count)} other drive${Number(overlap.conflict_count)===1?'':'s'}</div>`:'';return `<li data-drive-id="${esc(d.id)}" class="drive-item${warning?' drive-item-overlap':''}${floridaDashboardRestrictedMinutes(d,driver)>0?' drive-item-fl-restricted':''}">${warning}${floridaCreditMarkup(d)}${floridaWorkCommuteMarkup(d)}<div class="drive-item-summary"><span><strong>${esc(d.drive_date)} · ${esc(d.start_time).slice(0,5)}–${esc(d.end_time).slice(0,5)}</strong><br><small>${esc(vehicleName)} · ${Math.round(Number(d.duration_minutes||0))} min${d.destination?` · ${esc(d.destination)}`:''}</small>${d.notes?`<br><small class="drive-notes-summary">Road notes: ${esc(d.notes)}</small>`:''}</span><span class="pill">${esc(d.source)}</span></div><a class="drive-detail-trigger" href="#drive-detail" data-drive-detail-id="${esc(d.id)}">View details →</a></li>`}).join(''):'<li class="empty-state">No drives logged yet.</li>';
 
     const awards=currentAwards(),questList=document.getElementById('quest-list');
     if(questList)questList.innerHTML=awards.length?awards.map(q=>`<li class="quest-item" data-quest-help="${esc(q.quest?.description||'')}"><div><strong class="quest-help-target" tabindex="0">${esc(q.quest?.name||q.quest_key)}</strong><br><small>${new Date(q.awarded_at).toLocaleDateString()}</small></div><span class="pill">+${Number(q.xp_awarded||0)} XP</span></li>`).join(''):'<li class="empty-state">Quest awards will appear here as drives earn them.</li>';
 
+    syncFloridaRecentWarnings();
     window.dispatchEvent(new CustomEvent('dv:dashboard-rendered',{detail:{model,driverId:currentDriverId,driver,progress,license,generation}}));
   }
 
@@ -179,6 +234,79 @@
     try{return await request}finally{if(overlapSummaryInFlight.get(driverId)===request)overlapSummaryInFlight.delete(driverId)}
   }
 
+  function syncFloridaRecentWarnings(){
+    const list=document.getElementById('drive-list');if(!list)return;
+    for(const drive of currentDrives()){
+      const card=[...list.querySelectorAll('[data-drive-id]')].find(x=>x.dataset.driveId===String(drive.id));
+      if(!card)continue;
+      const count=floridaDashboardRestrictedMinutes(drive,currentDriver());
+      card.classList.toggle('drive-item-fl-restricted',count>0);
+      const old=card.querySelector('[data-fl-credit-notice]');
+      if(old)old.remove();
+      // The main renderer may already contain the warning. The independent
+      // synchronizer is a fallback, not a second notice.
+      if(count>0&&!card.querySelector('.drive-fl-restricted-eyebrow')){
+        const notice=document.createElement('div');
+        notice.dataset.flCreditNotice='true';
+        notice.className='drive-fl-restricted-eyebrow';
+        notice.setAttribute('role','status');
+        notice.textContent='FLORIDA RESTRICTION · '+count+' MIN DO NOT COUNT';
+        card.prepend(notice);
+      }
+    }
+  }
+  function mergeFloridaCreditRows(drives,driverId,rows){
+    const byDrive=new Map(rows.map(row=>[String(row.drive_id),row]));
+    return drives.map(d=>{
+      if(String(d.driver_id)!==String(driverId))return d;
+      const row=byDrive.get(String(d.id));
+      // Legacy Dashboard v1 omits drive_revision; trusted drive-ops adds it.
+      const revisionMatches=!!row&&Number.isInteger(Number(row.drive_revision))
+        &&(d.drive_revision==null||Number(row.drive_revision)===Number(d.drive_revision));
+      // The authenticated dashboard supplies the same revision-scoped credit
+      // snapshot before async enrichment. Do not erase it if the optional
+      // context endpoint has no snapshot; do reject explicit stale revisions.
+      const revisionConflict=!!row&&d.drive_revision!=null
+        &&Number(row.drive_revision)!==Number(d.drive_revision);
+      const credit=revisionConflict?null:(revisionMatches&&row.florida_credit||d.florida_credit||null);
+      return {...d,drive_revision:revisionMatches?Number(row.drive_revision):d.drive_revision,
+        fl_credit_missing:!credit,
+        florida_credit:credit,
+        fl_can_confirm_work:revisionMatches&&row.can_confirm_work===true};
+    });
+  }
+  async function ensureFloridaCredits(driverId){
+    if(floridaCreditCache.has(driverId))return floridaCreditCache.get(driverId);
+    if(floridaCreditInFlight.has(driverId))return floridaCreditInFlight.get(driverId);
+    const driver=(model.drivers||[]).find(d=>String(d.id)===String(driverId));
+    if(String(driver?.home_state||'').toUpperCase()!=='FL'
+      ||!['LEARNER','INTERMEDIATE'].includes(String(driver?.license_stage||'').toUpperCase()))return [];
+    const epoch=modelEpoch;
+    const request=(async()=>{
+      const {data:{session}={}}=await client.auth.getSession();
+      if(!session?.access_token)throw new Error('A valid session is required');
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/drive-ops`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'fl_credit_context',driver_id:driverId})
+      });
+      if(!response.ok)throw new Error('Florida credit detail could not be loaded');
+      const body=await response.json();
+      if(body?.ok!==true||!Array.isArray(body.florida_credit_rows))throw new Error('Invalid Florida credit response');
+      const rows=body.florida_credit_rows;
+      if(epoch===modelEpoch){
+        floridaCreditCache.set(driverId,rows);
+        model.recent_drives=mergeFloridaCreditRows(model.recent_drives||[],driverId,rows);
+        // Repaint as part of the successful credit merge itself. A later
+        // driver-selection callback may be superseded by a dashboard refresh.
+        if(currentDriverId===driverId){render(renderGeneration);syncFloridaRecentWarnings();}
+      }
+      return rows;
+    })();
+    floridaCreditInFlight.set(driverId,request);
+    try{return await request}finally{if(floridaCreditInFlight.get(driverId)===request)floridaCreditInFlight.delete(driverId)}
+  }
+
   async function selectDriver(nextDriverId,{persist=true}={}){
     if(!(model.drivers||[]).some(d=>d.id===nextDriverId))return false;
     const previousDriverId=currentDriverId;
@@ -191,6 +319,7 @@
     const neutral=isStateNeutral(currentDriver()),hasLicense=!!currentLicenseStatus();
     render(generation);
     ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
+    ensureFloridaCredits(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(error=>console.warn('Florida credit context pending',error));
     if(neutral||hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
@@ -212,6 +341,8 @@
     licenseStatusInFlight.clear();
     overlapSummaryCache.clear();
     overlapSummaryInFlight.clear();
+    floridaCreditCache.clear();
+    floridaCreditInFlight.clear();
     if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId)){let savedDriverId='';try{savedDriverId=localStorage.getItem('dv.log.driver')||''}catch(_){}currentDriverId=model.drivers.some(d=>d.id===savedDriverId)?savedDriverId:(model.drivers[0]?.id||'')}
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
@@ -268,9 +399,45 @@
     selectDriver
   };
 
-  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261018-bklg0267-layout1';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
-  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261101-bklg0235-attribution1';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
+  if(!document.querySelector('link[data-dv-drive-detail-css]')){const l=document.createElement('link');l.rel='stylesheet';l.href='/assets/css/log-drive-detail-v4.css?v=20261018-bklg0267-layout1&bklg0278=fl-redbrow2';l.dataset.dvDriveDetailCss='true';document.head.appendChild(l)}
+  if(!document.querySelector('script[data-dv-drive-detail]')){const s=document.createElement('script');s.src='/assets/js/log-drive-detail-v4.js?v=20261101-bklg0235-attribution1&bklg0278=fl-redbrow2';s.dataset.dvDriveDetail='true';document.body.appendChild(s)}
 
+  document.getElementById('drive-list')?.addEventListener('submit',async event=>{
+    const form=event.target?.closest?.('form[data-fl-work-drive]');
+    if(!form)return;
+    event.preventDefault();
+    const feedback=form.querySelector('.fl-attest-status'),button=form.querySelector('button[type=submit]');
+    const selected=currentDrives().find(d=>String(d.id)===String(form.dataset.flWorkDrive));
+    if(!selected||selected.fl_can_confirm_work!==true||Number(selected.drive_revision)!==Number(form.dataset.flWorkRevision)){
+      if(feedback)feedback.textContent='Drive details changed. Reload before declaring the work exception.';
+      return;
+    }
+    if(form.elements.namedItem('direct_to_from_work')?.checked!==true||
+       form.elements.namedItem('adult_confirms_facts')?.checked!==true){
+      if(feedback)feedback.textContent='Please affirm both work-commute statements.';
+      return;
+    }
+    if(button)button.disabled=true;
+    if(feedback)feedback.textContent='Recording work declaration…';
+    try{
+      const {data:{session}={}}=await client.auth.getSession();
+      if(!session?.access_token)throw new Error('Sign-in expired; please sign in again.');
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/drive-ops`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'attest_fl_work_commute',driver_id:selected.driver_id,
+          drive_id:selected.id,expected_revision:selected.drive_revision,
+          direct_to_from_work:true,adult_confirms_facts:true})
+      });
+      const body=await response.json();
+      if(!response.ok||body?.ok!==true)throw new Error(body?.error||'Unable to record work declaration.');
+      if(feedback)feedback.textContent='Work declaration recorded. Refreshing details…';
+      await loadDashboard({quiet:true});
+    }catch(error){
+      if(feedback)feedback.textContent=error instanceof Error?error.message:'Unable to record work declaration.';
+      if(button)button.disabled=false;
+    }
+  });
   loginForm.addEventListener('submit',async e=>{e.preventDefault();status(loginStatus,'Sending sign-in link…');const email=loginEmail.value.trim();if(!email)return;const route=document.documentElement.dataset.dvRoute||'dv03',redirectPath={dv00:'/log/DV00/',dv01:'/log/DV01/',dv02:'/log/DV02/',dv03:'/log/'}[route]||'/log/';const{error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:`${window.location.origin}${redirectPath}`,shouldCreateUser:false}});if(error){if(isUnregisteredOtpError(error))joinPrompt();else status(loginStatus,'We could not send a sign-in link right now. Please try again.','error')}else status(loginStatus,'Check your email for a secure sign-in link.','success')});
   signOut?.addEventListener('click',async()=>{accessReady=false;await client.auth.signOut();syncAuthUi(false);appMain.classList.add('app-hidden');loginCard.classList.remove('app-hidden');status(loginStatus,'Signed out.')});
   driverSelect?.addEventListener('change',()=>{selectDriver(driverSelect.value).catch(()=>status(loginStatus,'We could not switch drivers. Please try again.','error'))});

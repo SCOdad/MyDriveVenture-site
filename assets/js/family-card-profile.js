@@ -80,7 +80,7 @@
   }
   function requirementDetail(r,effective){
     const n=numericRequirement(r,effective);
-    if(n){const unit=r.unit?String(r.unit).toLowerCase():'';return `${Number(n.actual.toFixed(1))} / ${n.required}${unit?' '+unit:''}`}
+    if(n){const unit=r.unit?String(r.unit).toLowerCase():'';const shown=r.requirement_type==='PriorStageMonths'?Math.min(n.actual,n.required):n.actual;return `${Number(shown.toFixed(1))} / ${n.required}${unit?' '+unit:''}`}
     if(r.met)return 'Complete';
     if(r.actual&&r.actual!=='not confirmed')return String(r.actual);
     return 'Needed';
@@ -113,8 +113,8 @@
     card.style.setProperty('--family-accent-shadow',p.shadow);card.style.setProperty('--family-accent-base',p.base);card.style.setProperty('--family-accent-bright',p.bright);card.style.setProperty('--family-accent-highlight',p.highlight);card.classList.add('has-driver-accent');
   }
   function renderColorPicker(card,s){
-    const host=card.querySelector('[data-expanded-color-picker]');if(!host||host.dataset.ready==='true')return;host.dataset.ready='true';
-    const lib=window.DV_DRIVER_PALETTES;if(!lib?.palettes){host.innerHTML='<p class="meta">Color choices unavailable.</p>';return}
+    const host=card.querySelector('[data-expanded-color-picker]');if(!host||host.dataset.ready==='true')return;const lib=window.DV_DRIVER_PALETTES;if(!lib?.palettes){host.innerHTML='<p class="meta">Color choices unavailable.</p>';return}
+    host.dataset.ready='true';
     host.innerHTML=`<div class="family-expanded-color-swatches">${lib.palettes.map(p=>lib.swatchMarkup(p,true)).join('')}</div>`;
     const setSelected=value=>host.querySelectorAll('[data-dv-palette-id]').forEach(b=>{const on=b.dataset.dvPaletteId===lib.normalize(value);b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on))});
     setSelected(s.favorite_color);
@@ -127,6 +127,9 @@
     set('name',s.name||'Driver');set('home',locationText(s));set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));const emailValue=card.querySelector('[data-card-value="email"]');if(emailValue)emailValue.title=s.email||'Not set';
     setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);renderPendingState(card,s);
     const stateEl=card.querySelector('[data-license-state]');if(stateEl)stateEl.textContent=s.home_state||'—';
+    // Palette customization is a driver-owned action. Do not let optional
+    // licensing, email-preference or SMS reads suppress its controls.
+    renderColorPicker(card,s);
     try{
       const [licenseOut,smsOut,emailPrefOut]=await Promise.all([api('profile-api','license_overview',{driver_id:id}),api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id}),api('profile-api','driver_email_preference',{driver_id:id})]);
       const license=licenseOut.license||{},sms=smsOut.sms||{},emailPref=emailPrefOut.email_preference||{};licenseByDriver.set(id,license);smsByPerson.set(String(s.person_id),sms);emailPrefByDriver.set(id,emailPref);
@@ -134,13 +137,14 @@
       const start=license?.targets?.[0]?.drive_totals_contract?.license_stage_start_date||s.license_effective_date||null;
       set('license_effective_date',fmtDate(start));card.dataset.licenseStage=String(license.current_stage||s.license_stage||'');card.dataset.licenseEffectiveDate=String(start||'');
       const datePencil=card.querySelector('[data-inline-edit="license_effective_date"]');if(datePencil&&String(card.dataset.licenseStage).toUpperCase()!=='LEVEL_1'){datePencil.hidden=true;datePencil.title='Later-stage dates are retained as audited transition history.'}
-      renderLicenseSummary(card,license);renderSms(card,sms);renderDriverEmailPreference(card,emailPref);renderColorPicker(card,s);
+      renderLicenseSummary(card,license);renderSms(card,sms);renderDriverEmailPreference(card,emailPref);
     }catch(err){const summary=card.querySelector('[data-other-requirements]');if(summary)summary.textContent='Unavailable';console.warn('Driver card enrichment unavailable',err)}
   }
 
   async function enrichCards(){
     const started=performance.now();
-    try{await Promise.all([loadSubjects(),loadPendingChanges()])}catch(err){console.warn('Card profile data unavailable',err);return}
+    try{await loadSubjects()}catch(err){console.warn('Card profile data unavailable',err);return}
+    void loadPendingChanges().catch(err=>console.warn('Pending contact data unavailable; profile actions remain enabled',err));
     const grownupPromise=Promise.all([...document.querySelectorAll('.family-grownup-card[data-person-id]')].map(async card=>{const s=subjectByPerson.get(String(card.dataset.personId||''));if(!s||!card.dataset.profilePersonId)return;const set=(field,value)=>{const el=card.querySelector(`[data-card-value="${field}"]`);if(el)el.textContent=value};set('name',s.name||'Grown-up');set('email',s.email||'Not set');set('mobile',prettyPhone(s.mobile));setVerification(card,'email',s.email_verified,!!s.email);setVerification(card,'mobile',s.mobile_verified,!!s.mobile);try{const out=await api('contact-endpoint-api','sms_consent_state',{person_id:s.person_id});smsByPerson.set(String(s.person_id),out.sms||{});renderSms(card,out.sms||{})}catch(err){console.warn('Grown-up Text Parker status unavailable',err)}renderPendingState(card,s)}));
     const driversPromise=Promise.all([...document.querySelectorAll('.family-driver-card[data-driver-id]')].map(enrichDriver));await Promise.all([grownupPromise,driversPromise]);console.info('[Family card enrichment timing]',{ms:Math.round(performance.now()-started)});for(const id of expandedDrivers){const panel=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-driver-expanded]`),button=document.querySelector(`.family-driver-card[data-driver-id="${CSS.escape(id)}"] [data-expand-driver]`);if(panel&&button){panel.hidden=false;button.setAttribute('aria-expanded','true');button.textContent='Collapse full profile'}}
   }

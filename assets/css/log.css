@@ -13,3 +13,13 @@
 .drive-prepermit-warning>strong,.drive-prepermit-warning>p,.drive-prepermit-actions{margin-left:.8rem;margin-right:.8rem}.drive-prepermit-warning>strong{display:block}.drive-prepermit-warning>p{margin-top:.45rem;margin-bottom:.9rem;color:var(--silver);line-height:1.45}.drive-prepermit-actions{margin-bottom:.8rem}
 
 .drive-item-prepermit{position:relative;display:block!important;border:2px solid #d94343!important;border-left:6px solid #d94343!important;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%)!important}.drive-item-prepermit .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}.drive-item-prepermit .drive-prepermit-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 var(--heading-font);letter-spacing:.04em;text-transform:uppercase}
+
+/* BKLG-0278 Florida restriction uses the established red pre-permit eyebrow semantics. */
+.drive-item-fl-restricted{display:block!important;border:2px solid #d94343!important;border-left:6px solid #d94343!important;background:linear-gradient(90deg,rgba(217,67,67,.16),rgba(23,34,43,.96) 42%)!important}
+.drive-item-fl-restricted .drive-item-summary{display:flex;justify-content:space-between;gap:.75rem;align-items:center}
+.drive-fl-restricted-eyebrow{margin:-.8rem -.8rem .75rem;padding:.45rem .65rem;background:#d94343;color:#fff;font:800 .66rem/1.25 var(--heading-font);letter-spacing:.04em;text-transform:uppercase}
+.drive-fl-credit-warning{margin:.25rem 0 .7rem;color:var(--warm-white)}
+.drive-fl-detail-restriction{border:2px solid #d94343;border-left:6px solid #d94343;background:#251b20;margin:1rem 0;padding:.8rem}
+.drive-fl-detail-restriction .drive-fl-restricted-eyebrow{margin:-.8rem -.8rem .8rem}
+.drive-fl-detail-restriction p{margin:.4rem .1rem;line-height:1.45}
+.drive-fl-detail-pending{border-left:5px solid var(--dv-yellow);padding:.7rem;background:#27251b;margin:1rem 0}
