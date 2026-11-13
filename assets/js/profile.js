@@ -57,7 +57,7 @@
     SkillsTestRequired:'Pass the required road skills test.',
     ViolationFreeDays:'The driver must complete the required violation-free period.'
   }
-  const GROWNUP_ONLY_REQUIREMENTS=new Set(['ParentAuthorizationRequired','ParentCertificationRequired','PracticeAffidavitRequired','PracticeAffidavitRequiredUnderAgeYears'])
+  // BKLG-0285: action authority is server-evaluated, never inferred from requirement names.
   const requirementLabel=s=>REQUIREMENT_LABELS[s]||String(s||'Requirement').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())
   const requirementExplainer=s=>REQUIREMENT_EXPLAINERS[s]||''
   const numericValue=v=>{const n=Number(v);return Number.isFinite(n)?n:null}
@@ -126,13 +126,13 @@
       return
     }
     const nextTarget=targets[0],laterTargets=targets.slice(1)
-    const nextEligible=(licenseState.eligible_targets||[]).find(t=>t.target_stage===nextTarget.target_stage)
+    const nextEligible=licenseState.stage_authority?.allowed===true?(licenseState.eligible_targets||[]).find(t=>t.target_stage===nextTarget.target_stage):null
     licenseTarget.innerHTML=nextEligible
       ?`<option value="">Choose the next eligible stage</option><option value="${esc(nextEligible.target_stage)}">${esc(nextEligible.target_stage_display||nextEligible.target_stage)}</option>`
       :'<option value="">Next stage is not yet eligible</option>'
     licenseAdvance.disabled=true
     const renderTarget=(t,{interactive=false,kicker='' }={})=>{
-      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met&&/needs confirmation/i.test(r.reason||'')):[],unmet=t.unmet_requirements||[]
+      const allReqs=t.requirements||[],reqs=interactive?allReqs.filter(r=>!r.met):[],unmet=t.unmet_requirements||[]
       return `<div class="license-target-block">
         <div class="license-target-head">
           <div>${kicker?`<small class="license-target-kicker">${esc(kicker)}</small>`:''}<strong>${esc(t.target_stage_display||t.target_stage)}</strong></div>
@@ -140,9 +140,8 @@
         </div>
         <div class="license-requirement-list">
           ${reqs.map(r=>{
-            const confirmable=interactive&&!r.met&&/needs confirmation/i.test(r.reason||'')
-            const grownupOnly=GROWNUP_ONLY_REQUIREMENTS.has(r.requirement_type)
-            const actorCanConfirm=!(s.relation==='SELF'&&grownupOnly)
+            const confirmable=interactive&&!r.met&&r.authority?.allowed===true
+            const requiresAnotherActor=r.authority?.reason==='ACTOR_CAPABILITY_DENIED'
             const progress=requirementProgress(r,t.effective_date||licenseState.effective_date)
             const neutral=Boolean(progress?.notRequired)
             const stateClass=neutral?'license-neutral':(r.met?'license-met':'license-unmet')
@@ -153,10 +152,10 @@
                 <div class="license-requirement-title"><span>${esc(requirementLabel(r.requirement_type))}</span><small class="${stateClass}">${neutral?'Not required':(r.met?'Satisfied':'Needed')}</small></div>
                 ${explainer?`<small class="license-requirement-explainer">${esc(explainer)}</small>`:''}
                 <small class="license-requirement-progress-copy">${esc(detail)}</small>
-                ${confirmable&&grownupOnly&&!actorCanConfirm?'<small class="license-requirement-actor-note">A parent or grownup must confirm this requirement.</small>':''}
+                ${requiresAnotherActor?'<small class="license-requirement-actor-note">An authorized person must confirm this requirement.</small>':''}
                 ${requirementProgressHtml(r,t.effective_date||licenseState.effective_date)}
               </div>
-              ${confirmable&&actorCanConfirm?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
+              ${confirmable?`<button type="button" class="button secondary license-confirm" data-stage="${esc(t.target_stage)}" data-requirement="${esc(r.requirement_type)}">Confirm</button>`:''}
             </div>`
           }).join('')}
         </div>
@@ -167,7 +166,7 @@
     const laterHtml=''
     licenseRequirements.innerHTML=reqsSummary(nextTarget)+nextHtml+laterHtml
   }
-  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&/needs confirmation/i.test(r.reason||''));return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
+  function reqsSummary(target){const remaining=(target?.requirements||[]).filter(r=>!r.met&&r.authority?.allowed===true);return remaining.length?'':'<p class="meta">No manual licensing confirmations are currently required. Progress is shown on the driver card.</p>'}
   async function refreshLicense(){const s=selected();licenseState=null;status('license-status','');if(!s?.driver_id){renderLicense();return}if(!licenseEffective.value)licenseEffective.value=localDate();renderLicense();try{const out=await call('license_overview',{driver_id:s.driver_id,effective_date:licenseEffective.value});licenseState=out.license;renderLicense()}catch(err){licenseState=null;licenseCard.hidden=false;document.getElementById('license-current-stage').textContent='Unavailable';licenseRequirements.innerHTML='';status('license-status',err.message||String(err),'error')}}
   function renderSms(){
     if(!smsStateEl||!smsAction)return
@@ -247,9 +246,9 @@
   subjectSelect?.addEventListener('change',renderSubject)
   document.getElementById('profile-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected();if(!s)return;const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;status('profile-status','Saving…');try{const payload={person_id:s.person_id,name:nameInput.value};if(s.kind==='DRIVER')payload.home_zip=zipInput.value;if(s.kind==='DRIVER'&&colorDirty)payload.favorite_color=colorPicker?.getValue()||null;await call('update_basic',payload);await refresh(s.person_id);status('profile-status','Profile saved.','success')}catch(err){status('profile-status',err.message||String(err),'error')}finally{button.disabled=false}})
   licenseEffective?.addEventListener('change',()=>refreshLicense())
-  licenseTarget?.addEventListener('change',()=>{licenseAdvance.disabled=!licenseTarget.value})
+  licenseTarget?.addEventListener('change',()=>{licenseAdvance.disabled=!licenseTarget.value||licenseState?.stage_authority?.allowed!==true})
   licenseRequirements?.addEventListener('click',async e=>{const button=e.target.closest('.license-confirm');if(!button)return;const s=selected(),stage=button.dataset.stage,requirement=button.dataset.requirement;if(!s?.driver_id||!stage||!requirement)return;const ok=confirm(`Confirm that ${requirementLabel(requirement)} was satisfied by ${licenseEffective.value}? This confirmation is recorded in the driver's licensing history.`);if(!ok)return;button.disabled=true;status('license-status','Recording confirmation…');try{await call('record_license_requirement',{driver_id:s.driver_id,target_stage:stage,requirement_type:requirement,satisfied_on:licenseEffective.value});await refreshLicense();status('license-status','Requirement confirmed.','success')}catch(err){status('license-status',err.message||String(err),'error');button.disabled=false}})
-  document.getElementById('license-advance-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected(),target=licenseTarget.value,date=licenseEffective.value;if(!s?.driver_id||!target||!date)return;const targetData=(licenseState?.eligible_targets||[]).find(t=>t.target_stage===target),label=targetData?.target_stage_display||target;if(!confirm(`Record ${label} effective ${date}? This creates an auditable licensing-stage transition and cannot be edited from the profile.`))return;licenseAdvance.disabled=true;status('license-status','Recording licensing stage…');try{await call('advance_license_stage',{driver_id:s.driver_id,target_stage:target,effective_date:date});await refreshLicense();status('license-status',`Licensing stage advanced to ${label}.`,'success')}catch(err){status('license-status',err.message||String(err),'error');licenseAdvance.disabled=!licenseTarget.value}})
+  document.getElementById('license-advance-form')?.addEventListener('submit',async e=>{e.preventDefault();const s=selected(),target=licenseTarget.value,date=licenseEffective.value;if(!s?.driver_id||!target||!date||licenseState?.stage_authority?.allowed!==true)return;const targetData=(licenseState?.eligible_targets||[]).find(t=>t.target_stage===target),label=targetData?.target_stage_display||target;if(!confirm(`Record ${label} effective ${date}? This creates an auditable licensing-stage transition and cannot be edited from the profile.`))return;licenseAdvance.disabled=true;status('license-status','Recording licensing stage…');try{await call('advance_license_stage',{driver_id:s.driver_id,target_stage:target,effective_date:date});await refreshLicense();status('license-status',`Licensing stage advanced to ${label}.`,'success')}catch(err){status('license-status',err.message||String(err),'error');licenseAdvance.disabled=!licenseTarget.value||licenseState?.stage_authority?.allowed!==true}})
   async function contactChange(kind){const s=selected();if(!s)return;const current=kind==='email'?s.email:s.mobile;const label=kind==='email'?'email address':'mobile number';const value=prompt(`Enter the new ${label} for ${s.name}:`,current||'');if(value===null)return;if(!value.trim()){status('contact-status',`Enter a ${label}.`,'error');return}if(kind==='mobile'&&current){const ok=confirm('Changing this mobile number will opt the old number out of Drive Venture SMS. The new number will not inherit SMS consent and must explicitly opt in again to use Text Parker. Continue?');if(!ok)return}status('contact-status',`Sending ${label} verification…`);try{const out=await contactCall({action:'request_contact_change',person_id:s.person_id,endpoint_type:kind.toUpperCase(),value:value.trim()});const change=out.change||{};if(change.status==='ALREADY_CURRENT'){status('contact-status',`That ${label} is already current.`);return}await refresh(s.person_id);const suffix=kind==='mobile'?' After verification, the old number will be opted out of SMS. To use Text Parker from the new number, text JOIN to Parker.':'';status('contact-status',`Verification sent to the new ${label}. It will remain pending until you verify it.${suffix}`,'success')}catch(err){status('contact-status',err.message||'Unable to start contact change.','error')}}
   changeEmail?.addEventListener('click',()=>contactChange('email'))
   changeMobile?.addEventListener('click',()=>contactChange('mobile'))

@@ -130,7 +130,9 @@ test('lower licensing section retains actions but removes duplicated progress di
   const js=read('assets/js/profile.js'),html=read('family/index.html');
   assert.match(html,/Licensing actions/);
   assert.match(html,/Current stage, effective date, and progress now live on the driver card/);
-  assert.match(js,/allReqs\.filter\(r=>!r\.met&&\/needs confirmation\/i/);
+  assert.match(js,/const confirmable=interactive&&!r\.met&&r\.authority\?\.allowed===true/);
+  assert.match(js,/const remaining=\(target\?\.requirements\|\|\[\]\)\.filter\(r=>!r\.met&&r\.authority\?\.allowed===true\)/);
+  assert.doesNotMatch(js,/\/needs confirmation\/i/);
   assert.match(js,/No manual licensing confirmations are currently required/);
 });
 
