@@ -105,11 +105,11 @@
     const row=card.querySelector(`[data-hours-progress="${type==='MinimumPracticeHours'?'total':'night'}"]`),r=(target?.requirements||[]).find(x=>x.requirement_type===type);if(!row||!r)return;
     const n=numericRequirement(r,target.effective_date);if(!n)return;
     row.querySelector('.family-card-progress-track>span').style.width=`${n.pct.toFixed(1)}%`;
-    row.querySelector('strong').textContent=`${Number(n.actual.toFixed(1))} / ${n.required} hrs`;
+    row.querySelector('strong').textContent=`${Number(n.actual.toFixed(2))} / ${n.required} hrs`;
   }
   function requirementDetail(r,effective){
     const n=numericRequirement(r,effective);
-    if(n){const unit=r.unit?String(r.unit).toLowerCase():'';const shown=r.requirement_type==='PriorStageMonths'?Math.min(n.actual,n.required):n.actual;return `${Number(shown.toFixed(1))} / ${n.required}${unit?' '+unit:''}`}
+    if(n){const unit=r.unit?String(r.unit).toLowerCase():'';const shown=r.requirement_type==='PriorStageMonths'?Math.min(n.actual,n.required):n.actual;return `${Number(shown.toFixed(2))} / ${n.required}${unit?' '+unit:''}`}
     if(r.met)return 'Complete';
     if(r.actual&&r.actual!=='not confirmed')return String(r.actual);
     return 'Needed';
