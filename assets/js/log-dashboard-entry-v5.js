@@ -32,13 +32,23 @@
   const overlapSummaryInFlight=new Map();
   const floridaCreditCache=new Map();
   const floridaCreditInFlight=new Map();
+  const qualifyingProgressCache=new Map();
+  const qualifyingProgressInFlight=new Map();
 
   const esc=v=>String(v??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  const hours=m=>(Number(m||0)/60).toFixed(1);
+  const hours=m=>m==null?'—':(Number(m)/60).toFixed(2);
   const STATE_NEUTRAL_PRACTICE_GOAL_HOURS=50;
   const STATE_NEUTRAL_NIGHT_GOAL_HOURS=10;
   const currentDriver=()=>model.drivers.find(d=>d.id===currentDriverId)||model.drivers[0]||null;
   const currentProgress=()=>model.progress.find(p=>p.driver_id===currentDriverId)||{};
+  // Licensing gauges use the same server-evaluated requirement figures as Family Hub/Profile.
+  // driver_progress remains recorded practice for history, XP and state-neutral goals.
+  const currentDisplayProgress=(driver=currentDriver())=>{
+    const raw=currentProgress();
+    if(isStateNeutral(driver))return raw;
+    const qualified=qualifyingProgressCache.get(currentDriverId);
+    return {...raw,total_minutes:qualified?.total_minutes??null,night_minutes:qualified?.night_minutes??null};
+  };
   const activeVehicles=()=>model.vehicles.filter(v=>v.driver_id===currentDriverId&&v.status!=='ARCHIVED');
   const currentDrives=()=>model.recent_drives.filter(d=>d.driver_id===currentDriverId);
   const currentAwards=()=>model.quest_awards.filter(q=>q.driver_id===currentDriverId);
@@ -137,7 +147,7 @@
 
   function render(generation=renderGeneration){
     const driver=currentDriver();if(!driver||generation!==renderGeneration)return;
-    const progress=currentProgress(),license=currentLicenseStatus(),practiceTarget=requirement('MinimumPracticeHours',STATE_NEUTRAL_PRACTICE_GOAL_HOURS),nightTarget=requirement('MinimumNightHours',STATE_NEUTRAL_NIGHT_GOAL_HOURS);
+    const progress=currentDisplayProgress(driver),license=currentLicenseStatus(),practiceTarget=requirement('MinimumPracticeHours',STATE_NEUTRAL_PRACTICE_GOAL_HOURS),nightTarget=requirement('MinimumNightHours',STATE_NEUTRAL_NIGHT_GOAL_HOURS);
     const neutral=setCockpitMode(driver,license,progress,practiceTarget,nightTarget);
     const heading=document.getElementById('driver-heading');if(heading)heading.textContent=driver.display_name||'Drive Venture';
     const kh=document.getElementById('kpi-hours');if(kh)kh.textContent=`${hours(progress.total_minutes)} h`;
@@ -152,7 +162,7 @@
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
 
     const dash=document.querySelector('.dashboard-console');
-    if(dash){const p=practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes||0)/(practiceTarget*60)*100)):0,n=nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes||0)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign&&!neutral)sign.textContent=license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'}
+    if(dash){const p=progress.total_minutes!=null&&practiceTarget>0?Math.min(100,Math.max(0,Number(progress.total_minutes)/(practiceTarget*60)*100)):0,n=progress.night_minutes!=null&&nightTarget>0?Math.min(100,Math.max(0,Number(progress.night_minutes)/(nightTarget*60)*100)):0;dash.style.setProperty('--practice-p',String(p));dash.style.setProperty('--night-p',String(n));const sign=document.getElementById('hours-sign');if(sign&&!neutral)sign.textContent=progress.total_minutes==null?'QUALIFYING CREDIT PENDING':license?(license.next_stage_display?`${Math.max(0,practiceTarget-Number(progress.total_minutes)/60).toFixed(2)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE'):'Loading…'}
 
     const vehicles=activeVehicles(),vehicleList=document.getElementById('vehicle-list');
     if(vehicleList)vehicleList.innerHTML=vehicles.length?vehicles.map(vehicleMarkup).join(''):'<li class="empty-state">No active vehicles yet.</li>';
@@ -172,7 +182,7 @@
   function renderLicenseOnly(generation=renderGeneration){
     if(generation!==renderGeneration)return;
     const driver=currentDriver();if(!driver)return;
-    const progress=currentProgress(),license=currentLicenseStatus();if(isStateNeutral(driver)){setCockpitMode(driver,null,progress,STATE_NEUTRAL_PRACTICE_GOAL_HOURS,STATE_NEUTRAL_NIGHT_GOAL_HOURS);return}if(!license)return;
+    const progress=currentDisplayProgress(driver),license=currentLicenseStatus();if(isStateNeutral(driver)){setCockpitMode(driver,null,progress,STATE_NEUTRAL_PRACTICE_GOAL_HOURS,STATE_NEUTRAL_NIGHT_GOAL_HOURS);return}if(!license)return;
     const practiceTarget=requirement('MinimumPracticeHours',STATE_NEUTRAL_PRACTICE_GOAL_HOURS),nightTarget=requirement('MinimumNightHours',STATE_NEUTRAL_NIGHT_GOAL_HOURS);
     const stage=document.getElementById('license-stage');if(stage)stage.textContent=license.current_stage_display||driver.license_stage||'—';
     const stageDate=document.getElementById('license-date');if(stageDate)stageDate.textContent=license.stage_start_date||driver.level1_license_date||'—';
@@ -183,7 +193,7 @@
     }
     const lh=document.getElementById('license-hours');if(lh)lh.textContent=`${hours(progress.total_minutes)} / ${practiceTarget.toFixed(1)} h`;
     const lnh=document.getElementById('license-night-hours');if(lnh)lnh.textContent=nightTarget>0?`${hours(progress.night_minutes)} / ${nightTarget.toFixed(1)} h`:'Not required for next stage';
-    const sign=document.getElementById('hours-sign');if(sign)sign.textContent=license.next_stage_display?`${Math.max(0,practiceTarget-Number(hours(progress.total_minutes))).toFixed(1)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE';
+    const sign=document.getElementById('hours-sign');if(sign)sign.textContent=progress.total_minutes==null?'QUALIFYING CREDIT PENDING':license.next_stage_display?`${Math.max(0,practiceTarget-Number(progress.total_minutes)/60).toFixed(2)} HOURS TO ${String(license.next_stage_display).toUpperCase()}`:'LICENSE MILESTONES COMPLETE';
     window.dispatchEvent(new CustomEvent('dv:license-status-updated',{detail:{model,driverId:currentDriverId,driver,progress,license,generation}}));
   }
 
@@ -211,6 +221,42 @@
     })();
     licenseStatusInFlight.set(driverId,request);
     try{return await request}finally{if(licenseStatusInFlight.get(driverId)===request)licenseStatusInFlight.delete(driverId)}
+  }
+
+  async function ensureQualifyingProgress(driverId){
+    if(qualifyingProgressCache.has(driverId))return qualifyingProgressCache.get(driverId);
+    if(qualifyingProgressInFlight.has(driverId))return qualifyingProgressInFlight.get(driverId);
+    const driver=(model.drivers||[]).find(d=>d.id===driverId);
+    if(!driver||isStateNeutral(driver))return null;
+    const epoch=modelEpoch;
+    const request=(async()=>{
+      const {data:{session}={}}=await client.auth.getSession();
+      if(!session?.access_token)throw new Error('A valid session is required');
+      const response=await fetch(`${cfg.supabaseUrl}/functions/v1/profile-api`,{
+        method:'POST',
+        headers:{'content-type':'application/json',authorization:`Bearer ${session.access_token}`,apikey:cfg.publishableKey},
+        body:JSON.stringify({action:'license_overview',driver_id:driverId})
+      });
+      const body=await response.json();
+      if(!response.ok||body?.ok!==true)throw new Error(body?.error||'Qualifying credit unavailable');
+      // These values are evaluated by get_driver_credited_totals_v2 on the server.
+      // Missing evidence stays pending; raw recorded minutes must never be substituted.
+      const requirements=body.license?.targets?.[0]?.requirements||[];
+      const actual=type=>{
+        const row=requirements.find(r=>r.requirement_type===type);
+        if(row?.actual==null||row.actual==='')return null;
+        const value=Number(row.actual);
+        return Number.isFinite(value)&&value>=0?Math.round(value*60):null;
+      };
+      const result={total_minutes:actual('MinimumPracticeHours'),night_minutes:actual('MinimumNightHours')};
+      if(epoch===modelEpoch){
+        qualifyingProgressCache.set(driverId,result);
+        if(currentDriverId===driverId)render(renderGeneration);
+      }
+      return result;
+    })();
+    qualifyingProgressInFlight.set(driverId,request);
+    try{return await request}finally{if(qualifyingProgressInFlight.get(driverId)===request)qualifyingProgressInFlight.delete(driverId)}
   }
 
   async function ensureOverlapSummary(driverId){
@@ -320,6 +366,7 @@
     render(generation);
     ensureOverlapSummary(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(()=>{});
     ensureFloridaCredits(nextDriverId).then(()=>{if(generation===renderGeneration&&currentDriverId===nextDriverId)render(generation)}).catch(error=>console.warn('Florida credit context pending',error));
+    ensureQualifyingProgress(nextDriverId).catch(error=>console.warn('Qualifying credit pending',error));
     if(neutral||hasLicense)return true;
     ensureLicenseStatus(nextDriverId).then(()=>{
       if(generation!==renderGeneration||currentDriverId!==nextDriverId)return;
@@ -343,6 +390,8 @@
     overlapSummaryInFlight.clear();
     floridaCreditCache.clear();
     floridaCreditInFlight.clear();
+    qualifyingProgressCache.clear();
+    qualifyingProgressInFlight.clear();
     if(!currentDriverId||!model.drivers.some(d=>d.id===currentDriverId)){let savedDriverId='';try{savedDriverId=localStorage.getItem('dv.log.driver')||''}catch(_){}currentDriverId=model.drivers.some(d=>d.id===savedDriverId)?savedDriverId:(model.drivers[0]?.id||'')}
     if(!currentDriverId)throw new Error('Dashboard: no active driver is linked to this account yet.');
     if(driverSelect){driverSelect.innerHTML=orderedDrivers().map(d=>`<option value="${esc(d.id)}">${esc(d.display_name||'Driver')}${getAccessMode(d.id)==='VIEW'?' · View only':''}</option>`).join('');driverSelect.value=currentDriverId}
