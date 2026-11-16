@@ -37,13 +37,13 @@
     <section class="review-card" aria-labelledby="review-title">
       <p class="step-label">Driver registration update</p>
       <h1 id="review-title">Florida requirements are now supported</h1>
-      <p>Drive Venture has added Florida-specific licensing information. Before we show the driver's Florida licensing progress, a linked grown-up needs to confirm the driver's current license and its issue date.</p>
-      <p class="review-info">Your existing logged drives remain in your history. Drive Venture's supplemental driving record does not replace Florida's official certification requirements or forms.</p>
+      <p id="review-description">Drive Venture has added Florida-specific licensing information. Before we show the driver's Florida licensing progress, a linked grown-up needs to confirm the driver's current license and its issue date.</p>
+      <p class="review-info" id="review-form-notice">Your existing logged drives remain in your history. Drive Venture's supplemental driving record does not replace Florida's official certification requirements or forms.</p>
       <p id="review-driver-name" aria-live="polite"></p>
       <div id="review-loading" role="status">Checking your registration securely…</div>
       <div id="review-grownup" hidden>
         <form id="review-form" novalidate>
-          <label for="review-license-stage">Current Florida license stage
+          <label for="review-license-stage"><span id="review-license-stage-label">Current Florida license stage</span>
             <select id="review-license-stage" required>
               <option value="">Select the current stage</option>
               <option value="LEARNER">Learner license</option>
@@ -55,7 +55,7 @@
             <input id="review-issue-date" type="date" required>
           </label>
           <label class="review-consent"><input id="review-confirm" type="checkbox" required>
-            <span>I am the linked grown-up, and I confirm these details reflect the driver's actual current Florida license.</span>
+            <span id="review-confirm-text">I am the linked grown-up, and I confirm these details reflect the driver's actual current Florida license.</span>
           </label>
           <div class="review-actions">
             <button id="review-submit" type="submit">Confirm registration</button>
@@ -76,6 +76,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/log/config.js"></script>
-  <script src="/assets/js/registration-review.js?v=20261111-0287"></script>
+  <script src="/assets/js/registration-review.js?v=20261116-0271"></script>
 </body>
 </html>
