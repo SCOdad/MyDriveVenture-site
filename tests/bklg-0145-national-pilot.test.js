@@ -22,6 +22,7 @@ test('requirements map distinguishes supported rulesets from nationwide product 
   assert.match(html, /Michigan and Kansas/i);
   assert.match(html, /other categories describe licensing requirements/i);
   assert.match(svg, /Michigan, Kansas, Pennsylvania, and Florida are bright yellow where Drive Venture has a supported state-specific ruleset/i);
+  assert.match(svg, /id="MI" class="state supported"/);
   assert.match(svg, /id="KS" class="state supported"/);
   assert.match(svg, /id="PA" class="state supported"/);
   assert.match(svg, /id="FL" class="state supported"/);
