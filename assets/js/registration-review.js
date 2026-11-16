@@ -48,6 +48,19 @@
       activeReview=rows.find(r=>r.review_id===requested)||rows[0]||null;
       if(!activeReview){show(complete);return}
       name.textContent='Driver: '+String(activeReview.driver_name||'Driver');
+      const isOhio=activeReview.jurisdiction==='OH';
+      const jurisdiction=isOhio?'Ohio':'Florida';
+      document.getElementById('review-title').textContent=jurisdiction+' requirements are now supported';
+      document.getElementById('review-description').textContent='Drive Venture has added '+jurisdiction+'-specific licensing information. Before we show state licensing progress, a linked grown-up needs to confirm the driver\'s current license and its issue date.';
+      document.getElementById('review-form-notice').textContent=isOhio
+        ?'Existing drives remain in history. Drive Venture supplies a supplemental record, not the official notarized Ohio BMV 5791 revision 9/25 affidavit and Supervised Driving Log.'
+        :'Your existing logged drives remain in your history. Drive Venture\'s supplemental driving record does not replace Florida\'s official certification requirements or forms.';
+      document.getElementById('review-license-stage-label').textContent='Current '+jurisdiction+' license stage';
+      document.getElementById('review-confirm-text').textContent='I am the linked grown-up, and I confirm these details reflect the driver\'s actual current '+jurisdiction+' license.';
+      document.getElementById('review-license-stage').innerHTML=isOhio
+        ?'<option value="">Select the current stage</option><option value="TIPIC">Temporary instruction permit (TIPIC)</option><option value="PROBATIONARY">Probationary driver license</option><option value="FULL">Driver license (adult pathway)</option>'
+        :'<option value="">Select the current stage</option><option value="LEARNER">Learner license</option><option value="INTERMEDIATE">Intermediate driver license</option><option value="FULL">Full driver license</option>';
+
       if(activeReview.can_complete===true){
         document.getElementById('review-license-stage').value='';
         document.getElementById('review-issue-date').value='';
@@ -64,7 +77,8 @@
     if(!activeReview||activeReview.can_complete!==true)return;
     const stage=document.getElementById('review-license-stage').value;
     const issueDate=document.getElementById('review-issue-date').value;
-    if(!['LEARNER','INTERMEDIATE','FULL'].includes(stage)||
+    const allowed=activeReview.jurisdiction==='OH'?['TIPIC','PROBATIONARY','FULL']:['LEARNER','INTERMEDIATE','FULL'];
+    if(!allowed.includes(stage)||
       !/^\d{4}-\d{2}-\d{2}$/.test(issueDate)||
       !document.getElementById('review-confirm').checked){
       status.textContent='Choose the actual license stage and issue date, then confirm the details.';
