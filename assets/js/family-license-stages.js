@@ -36,7 +36,7 @@
     return'STATE_NEUTRAL';
   }
   function render(){
-    const value=String(zip.value||'').trim(),detectedState=stateFromZip(value),state=detectedState==='FL'&&!floridaLaunchEnabled?'STATE_NEUTRAL':detectedState,prior=stage.value;
+    const value=String(zip.value||'').trim(),detectedState=stateFromZip(value),state=(detectedState==='FL'&&!floridaLaunchEnabled)||(detectedState==='OH'&&!ohioLaunchEnabled)?'STATE_NEUTRAL':detectedState,prior=stage.value;
     zip.setCustomValidity('');
     if(!state){
       stage.innerHTML='<option value="">Enter ZIP to choose tracking mode</option>';
