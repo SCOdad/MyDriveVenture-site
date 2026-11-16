@@ -6,15 +6,22 @@
   if(!zip||!stage||!date)return;
   // Fail closed on initial load; only an authenticated release-status response enables FL stages.
   let floridaLaunchEnabled=window.DV_FL_LAUNCH_STATUS===true;
+  // Ohio is fail-closed until the authenticated jurisdiction release-status projection confirms launch.
+  let ohioLaunchEnabled=window.DV_OH_LAUNCH_STATUS===true;
   window.addEventListener('dv:fl-launch-status',event=>{
     floridaLaunchEnabled=event?.detail?.enabled===true;
+    render();
+  });
+  window.addEventListener('dv:oh-launch-status',event=>{
+    ohioLaunchEnabled=event?.detail?.enabled===true;
     render();
   });
   const STAGES={
     MI:[['LEVEL_1','Learner / Level 1 permit'],['LEVEL_2','Intermediate / Level 2 license'],['LEVEL_3','Full / Level 3 license']],
     KS:[['INSTRUCTION','Instruction permit'],['RESTRICTED','Restricted driver license (age 15 path)'],['LESS_RESTRICTED','Less-restricted privileges'],['FULL','Non-restricted driver license']],
     PA:[['LEARNER','Learner permit'],['JUNIOR','Junior driver license'],['FULL','Unrestricted driver license']],
-    FL:[['LEARNER','Learner license'],['INTERMEDIATE','Intermediate driver license'],['FULL','Full driver license']]
+    FL:[['LEARNER','Learner license'],['INTERMEDIATE','Intermediate driver license'],['FULL','Full driver license']],
+    OH:[['TIPIC','Temporary instruction permit (TIPIC)'],['PROBATIONARY','Probationary driver license (under 18)'],['FULL','Driver license (adult pathway)']]
   };
   function stateFromZip(value){
     if(!/^\d{5}$/.test(value))return null;
@@ -22,6 +29,8 @@
     if(n>=48001&&n<=49971)return'MI';
     if(n>=66002&&n<=67954)return'KS';
     if(n>=15001&&n<=19640)return'PA';
+    // Candidate Ohio ZIP range; backend exact ZIP resolution and launch gate remain authoritative.
+    if(n>=43001&&n<=45999)return'OH';
     // Candidate Florida ZIP range; the backend resolves each ZIP exactly via GeoNames.
     if(n>=32003&&n<=34997)return'FL';
     return'STATE_NEUTRAL';
