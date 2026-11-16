@@ -27,3 +27,13 @@ test('BKLG-0289: navigation and footer contain the replacement artwork', () => {
   assert.ok(css.includes('.brand img { display: block;') && css.includes('object-fit: contain;'));
   assert.ok(css.includes('.footer-brand img {') && css.includes('height: 5.6rem; object-fit: contain;'));
 });
+
+test('BKLG-0289: staging and canonical PNG use the same approved artwork', () => {
+  assert.deepEqual(fs.readFileSync('staging/dv-logo-primary.png'), fs.readFileSync(canonicalPath));
+});
+
+test('BKLG-0289: canonical artwork is revalidated by clients', () => {
+  const headers = fs.readFileSync('_headers', 'utf8');
+  assert.ok(headers.includes('/assets/images/dv-logo-primary.png'));
+  assert.ok(headers.includes('Cache-Control: no-cache, must-revalidate'));
+});
