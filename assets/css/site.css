@@ -23,8 +23,8 @@ a:hover { color: var(--warm-white); }
 header { position: relative; z-index: 5; border-bottom: 1px solid rgba(174,184,194,.16); background: rgba(8,11,14,.96); }
 .nav { max-width: var(--max); margin: auto; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .brand, .footer-brand { display: flex; align-items: center; text-decoration: none; }
-.brand img { display: block; width: clamp(10.5rem, 18vw, 14.5rem); height: 3.8rem; object-fit: cover; object-position: center; filter: saturate(1.15) contrast(1.08); }
-.footer-brand img { width: 11rem; height: 3.2rem; object-fit: cover; object-position: center; }
+.brand img { display: block; width: clamp(7.5rem, 11vw, 9.5rem); height: 5.8rem; object-fit: contain; object-position: center; }
+.footer-brand img { width: 8.5rem; height: 5.6rem; object-fit: contain; object-position: center; }
 nav ul, .footer-links { margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.3rem; list-style: none; }
 nav a { color: var(--warm-white); font-size: .88rem; font-weight: 600; text-decoration: none; }
 nav a:hover, nav a[aria-current="page"] { color: var(--dv-yellow); }\nnav .nav-cta { display: inline-block; padding: .45rem .7rem; border: 1px solid var(--dv-yellow); color: var(--true-black); background: var(--dv-yellow); font-family: var(--heading-font); font-size: .68rem; font-weight: 800; letter-spacing: .04em; }\nnav .nav-cta:hover { color: var(--true-black); background: var(--warm-white); }
@@ -206,7 +206,7 @@ footer a { color: var(--dv-yellow); }
 @media (max-width: 500px) {
   .racing-stripe { height: .5rem; }
   .nav { padding-block: .75rem; }
-  .brand img { width: 13rem; height: 3.2rem; }
+  .brand img { width: 7rem; height: 4.4rem; }
   nav ul { gap: .35rem 1rem; }
   nav a { font-size: .78rem; }
   .hero-art img { width: 100%; height: auto; }
