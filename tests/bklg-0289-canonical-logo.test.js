@@ -37,3 +37,19 @@ test('BKLG-0289: canonical artwork is revalidated by clients', () => {
   assert.ok(headers.includes('/assets/images/dv-logo-primary.png'));
   assert.ok(headers.includes('Cache-Control: no-cache, must-revalidate'));
 });
+
+test('BKLG-0289: active HTML routes do not use alternate or historical logo files', () => {
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (['.git', 'node_modules', 'archive', 'staging'].includes(entry.name)) continue;
+        walk(dir + '/' + entry.name);
+      } else if (entry.name.endsWith('.html')) {
+        const page = fs.readFileSync(dir + '/' + entry.name, 'utf8');
+        const paths = [...page.matchAll(/src="([^"]*logo[^"]*)"/gi)].map((match) => match[1]);
+        for (const path of paths) assert.equal(path, '/assets/images/dv-logo-primary.png', dir + '/' + entry.name);
+      }
+    }
+  };
+  walk('.');
+});
