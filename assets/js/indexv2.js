@@ -6,6 +6,7 @@
   if (!button || !nav) return;
   function setOpen(open) {
     button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     nav.hidden = mobile.matches && !open;
   }
   function syncViewport() {
