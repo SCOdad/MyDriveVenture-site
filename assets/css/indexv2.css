@@ -78,7 +78,7 @@ nav a{min-width:48px}
 }
 @media(max-width:760px){
   .site-header>.nav-shell{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:8px;padding-block:10px}
-  .site-header .nav-shell>.brand{grid-row:1;min-height:104px;margin:0}
+  .site-header .nav-shell>.brand{grid-row:1;min-height:104px;margin:0;justify-self:center}
   .site-header .nav-shell>.brand img{width:188px;height:104px;object-fit:contain}
   .site-header .mobile-actions{grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
   .site-header .mobile-actions>a,.site-header .mobile-actions>.menu-toggle{box-sizing:border-box;display:flex;justify-content:center;align-items:center;gap:5px;min-width:0;min-height:48px;padding:9px 4px;border-radius:4px;font-size:clamp(.72rem,3vw,.94rem);line-height:1.1;font-weight:700;text-align:center;text-decoration:none;white-space:nowrap}
@@ -98,4 +98,103 @@ nav a{min-width:48px}
   .site-header .nav-shell>.brand img{width:164px;height:91px}
   .site-header .mobile-actions{gap:5px}
   .site-header .mobile-actions>a,.site-header .mobile-actions>.menu-toggle{padding-inline:2px;font-size:.72rem}
+}
+
+/* BKLG-0289 orientation refinement: compact four-part row on short landscape screens.
+   Keep the three-item dropdown anchored to the header instead of growing page height. */
+@media(orientation:landscape) and (max-height:600px) and (max-width:1050px){
+  .site-header>.nav-shell{
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(115px,175px) minmax(0,1fr);
+    grid-template-rows:auto;
+    align-items:center;
+    gap:clamp(8px,1.5vw,16px);
+    width:calc(100% - 32px);
+    min-height:0;
+    padding-block:6px;
+  }
+  .site-header .nav-shell>.brand{
+    grid-column:1;
+    grid-row:1;
+    justify-self:center;
+    margin:0;
+    width:min(100%,175px);
+    min-height:0;
+  }
+  .site-header .nav-shell>.brand img{
+    display:block;
+    width:100%;
+    height:auto;
+    max-height:80px;
+    object-fit:contain;
+  }
+  .site-header .mobile-actions{
+    grid-column:2;
+    grid-row:1;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    width:100%;
+    gap:clamp(5px,1vw,12px);
+  }
+  .site-header .mobile-actions>a,.site-header .mobile-actions>.menu-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    min-height:44px;
+    padding:8px 4px;
+    border-radius:4px;
+    font-size:clamp(.7rem,1.5vw,.94rem);
+    font-weight:700;
+    line-height:1.1;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .site-header .mobile-actions>.mobile-log{
+    color:var(--dv-text-primary);
+    background:var(--dv-surface-default);
+    border:1px solid var(--dv-text-secondary);
+  }
+  .site-header .mobile-actions>.mobile-join{
+    color:var(--dv-border-strong);
+    background:var(--dv-accent-primary);
+    border:2px solid var(--dv-accent-primary);
+  }
+  .site-header .mobile-actions>.menu-toggle{
+    margin:0;
+    background:transparent;
+    color:var(--dv-text-primary);
+    border:1px solid var(--dv-text-secondary);
+  }
+  .site-header .mobile-actions>.menu-toggle[hidden]{display:none}
+  .site-header .nav-shell>.header-join{display:none}
+  .site-header .nav-shell>nav{
+    position:absolute;
+    top:calc(100% + 1px);
+    right:0;
+    z-index:25;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    width:min(320px,100%);
+    margin:0;
+    padding:4px 12px;
+    border:1px solid var(--dv-surface-default);
+    border-radius:4px;
+    background:var(--dv-bg-canvas);
+    box-shadow:0 8px 20px rgba(0,0,0,.4);
+  }
+  .site-header .nav-shell>nav[hidden]{display:none!important}
+  .site-header .nav-shell>nav .existing-user{display:none}
+  .site-header .nav-shell>nav a{
+    display:flex;
+    align-items:center;
+    min-height:44px;
+    padding:8px 10px;
+    border-bottom:1px solid var(--dv-surface-default);
+    font-size:.9rem;
+    text-decoration:none;
+  }
+  .site-header .nav-shell>nav a:last-of-type{border-bottom:0}
 }

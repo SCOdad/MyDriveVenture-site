@@ -57,3 +57,15 @@ test('BKLG-0289 menu is keyboard accessible and resets at viewport changes',()=>
   assert.equal(button.hidden,false);
   assert.equal(nav.hidden,true);
 });
+
+test('BKLG-0289 portrait logo centers and landscape uses single row with floating menu',()=>{
+  const css=read('assets/css/indexv2.css');
+  const js=read('assets/js/indexv2.js');
+  assert.match(css,/\.nav-shell>\.brand\{grid-row:1;min-height:104px;margin:0;justify-self:center\}/);
+  assert.match(css,/@media\(orientation:landscape\) and \(max-height:600px\) and \(max-width:1050px\)/);
+  assert.match(css,/grid-template-columns:minmax\(115px,175px\) minmax\(0,1fr\)/);
+  assert.match(css,/\.mobile-actions\{\s*grid-column:2;\s*grid-row:1;\s*display:grid;/);
+  assert.match(css,/nav\{\s*position:absolute;/);
+  assert.match(css,/nav\[hidden\]\{display:none!important\}/);
+  assert.ok(js.includes('(orientation: landscape) and (max-height: 600px) and (max-width: 1050px)'));
+});
