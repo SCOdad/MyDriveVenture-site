@@ -23,7 +23,7 @@ a:hover { color: var(--warm-white); }
 header { position: relative; z-index: 5; border-bottom: 1px solid rgba(174,184,194,.16); background: rgba(8,11,14,.96); }
 .nav { max-width: var(--max); margin: auto; padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
 .brand, .footer-brand { display: flex; align-items: center; text-decoration: none; }
-.brand img { display: block; width: clamp(15rem, 22vw, 19rem); height: 11.6rem; object-fit: contain; object-position: center; }
+.brand img { display: block; width: clamp(7.5rem, 11vw, 9.5rem); height: 5.8rem; object-fit: contain; object-position: center; }
 .footer-brand img { width: 8.5rem; height: 5.6rem; object-fit: contain; object-position: center; }
 nav ul, .footer-links { margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem 1.3rem; list-style: none; }
 nav a { color: var(--warm-white); font-size: .88rem; font-weight: 600; text-decoration: none; }

@@ -53,3 +53,14 @@ test('BKLG-0289: active HTML routes do not use alternate or historical logo file
   };
   walk('.');
 });
+
+// Homepage uses indexv2.css, NOT site.css. Guard against editing the wrong stylesheet.
+test('BKLG-0289: homepage uses enlarged logo on desktop and mobile', () => {
+  const home = fs.readFileSync('index.html', 'utf8');
+  const css = fs.readFileSync('assets/css/indexv2.css', 'utf8');
+  assert.ok(home.includes('href="/assets/css/indexv2.css"'));
+  assert.ok(css.includes('.brand{width:260px;min-height:136px;'));
+  assert.ok(css.includes('.brand img{width:260px;height:136px;object-fit:contain}'));
+  assert.ok(css.includes('.brand{width:188px;min-height:104px}.brand img{width:188px;height:104px}'));
+  assert.ok(css.includes('.brand,.brand img{width:164px}.brand img{height:91px}'));
+});
