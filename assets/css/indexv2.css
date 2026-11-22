@@ -198,3 +198,8 @@ nav a{min-width:48px}
   }
   .site-header .nav-shell>nav a:last-of-type{border-bottom:0}
 }
+
+/* BKLG-0289: keep anchor targets visible below the enlarged sticky header. */
+html{scroll-padding-top:160px}
+@media(max-width:760px){html{scroll-padding-top:220px}}
+@media(orientation:landscape) and (max-height:600px) and (max-width:1050px){html{scroll-padding-top:110px}}
