@@ -1,49 +1,41 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
-const APPROVED_SOURCE_SHA256 = 'cd402c5dd08c41429342b932af571db33ff606fe8ce968fab364c1759c80e4fc';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const crypto=require('node:crypto');
+const EXPECTED_SHA='d0d6ca0bfb3d52f3467032b010033d286ebc6c58bca094575b82e2f9cbc02f90';
 
-test('BKLG-0289 favicon embeds the exact approved DV-LOGO-ALTERNATE-2026-10 PNG', () => {
-  const live = fs.readFileSync('favicon.svg', 'utf8');
-  const staging = fs.readFileSync('staging/favicon.svg', 'utf8');
-  assert.equal(live, staging);
-  assert.match(live, /viewBox="0 0 512 512"/);
-  assert.match(live, /<title>Drive Venture<\/title>/);
-  assert.match(live, /preserveAspectRatio="xMidYMid meet"/);
-  const match = live.match(/href="data:image\/png;base64,([A-Za-z0-9+/=]+)"/);
-  assert.ok(match, 'favicon must be self-contained for browser compatibility');
-  const bytes = Buffer.from(match[1], 'base64');
-  assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), APPROVED_SOURCE_SHA256);
-  assert.deepEqual(bytes, fs.readFileSync('assets/images/dv-logo-primary.png'), 'favicon uses current approved logo bytes');
-  assert.doesNotMatch(live, /M3 32 13 20h7|M26 18h10/); // old vector DV glyph is gone
+test('BKLG-0289 favicon uses supplied standalone speedometer art, not full wordmark',()=>{
+  const svg=fs.readFileSync('favicon.svg','utf8');
+  assert.equal(svg,fs.readFileSync('staging/favicon.svg','utf8'));
+  assert.match(svg,/viewBox="0 0 128 128"/);
+  assert.match(svg,/x="0" y="28" width="128" height="72"/);
+  assert.match(svg,/fill="#191e1e"/);
+  const match=svg.match(/href="data:image\/png;base64,([A-Za-z0-9+/=]+)"/);
+  assert.ok(match,'self-contained favicon PNG missing');
+  const png=Buffer.from(match[1],'base64');
+  assert.equal(crypto.createHash('sha256').update(png).digest('hex'),EXPECTED_SHA);
+  assert.equal(png.subarray(1,4).toString('ascii'),'PNG');
+  assert.equal(png.readUInt32BE(16),128);
+  assert.equal(png.readUInt32BE(20),72);
+  assert.ok(png.length<15000,'favicon must remain lightweight');
+  assert.doesNotMatch(svg,/<path|<text|M3 32 13 20h7/,'no invented geometry/wordmark');
 });
 
-test('BKLG-0289 favicon is cache-revalidated', () => {
-  const headers = fs.readFileSync('_headers', 'utf8');
-  for (const route of ['/favicon.svg', '/staging/favicon.svg']) {
-    assert.ok(headers.includes(route + '\n  Cache-Control: no-cache, must-revalidate'));
-  }
+test('BKLG-0289 favicon revalidates after logo cutover',()=>{
+  const headers=fs.readFileSync('_headers','utf8');
+  for(const route of ['/favicon.svg','/staging/favicon.svg'])assert.ok(headers.includes(route+'\n  Cache-Control: no-cache, must-revalidate'));
 });
-
-test('BKLG-0289 active pages reference the shared favicon', () => {
-  let count = 0;
-  function scan(dir) {
-    for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
-      if (entry.isDirectory()) {
-        if (['.git', 'node_modules', 'archive', 'staging', 'test-results', 'playwright-report'].includes(entry.name)) continue;
-        scan(path.join(dir, entry.name));
-      } else if (entry.name.endsWith('.html')) {
-        const html = fs.readFileSync(path.join(dir, entry.name), 'utf8');
-        const links = [...html.matchAll(/<link\b[^>]*\brel=["'](?:shortcut )?icon["'][^>]*>/gi)].map(m => m[0]);
-        for (const link of links) {
-          count++;
-          assert.match(link, /href=["']\/favicon\.svg["']/i, entry.name);
-        }
-      }
+test('BKLG-0289 active HTML pages share favicon',()=>{
+  let count=0;
+  function scan(dir){
+    for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
+      if(ent.isDirectory()){if(!['.git','node_modules','archive','staging','test-results','playwright-report'].includes(ent.name))scan(path.join(dir,ent.name));continue}
+      if(!ent.name.endsWith('.html'))continue;
+      const html=fs.readFileSync(path.join(dir,ent.name),'utf8');
+      const icons=[...html.matchAll(/<link\b[^>]*\brel=["'](?:shortcut )?icon["'][^>]*>/gi)].map(m=>m[0]);
+      for(const link of icons){count++;assert.match(link,/href=["']\/favicon\.svg["']/i,ent.name)}
     }
   }
-  scan('.');
-  assert.ok(count >= 10);
+  scan('.');assert.ok(count>=10)
 });
