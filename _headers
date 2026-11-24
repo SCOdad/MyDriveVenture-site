@@ -7,8 +7,3 @@
   Cache-Control: no-cache, must-revalidate
 /assets/images/dv-logo-primary.png
   Cache-Control: no-cache, must-revalidate
-
-/favicon.svg
-  Cache-Control: no-cache, must-revalidate
-/staging/favicon.svg
-  Cache-Control: no-cache, must-revalidate
