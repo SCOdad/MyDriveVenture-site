@@ -18,7 +18,10 @@ for (const width of [320, 390, 768, 1440]) {
       expect(box.height, await link.textContent()).toBeGreaterThanOrEqual(48);
       expect(box.width, await link.textContent()).toBeGreaterThanOrEqual(48);
     }
-    await expect(page.getByRole('link',{name:'Log Your Drive',exact:true})).toHaveAttribute('href','/log/');
+    const driveLink = width <= 760
+      ? page.getByRole('link',{name:'Log Drive',exact:true})
+      : page.getByRole('link',{name:'Log Your Drive',exact:true});
+    await expect(driveLink).toHaveAttribute('href','/log/');
     await page.getByRole('link',{name:'How it works',exact:true}).click();
     const top = await page.locator('#how-it-works').evaluate(e=>e.getBoundingClientRect().top);
     const headerBottom = await page.locator('header').evaluate(e=>e.getBoundingClientRect().bottom);
@@ -73,7 +76,8 @@ test('navigation and conversion still work without JavaScript',async({browser,ba
   const context=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844},baseURL});
   const page=await context.newPage();
   await page.goto(homepage);
-  await expect(page.getByRole('link',{name:'Log Your Drive',exact:true})).toBeVisible();
+  // The mobile quick action remains a working semantic link without JavaScript.
+  await expect(page.getByRole('link',{name:'Log Drive',exact:true})).toBeVisible();
   await page.locator('.hero .primary').click();
   await expect(page).toHaveURL(/\/join\/$/);
   await context.close();

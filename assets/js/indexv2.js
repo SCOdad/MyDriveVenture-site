@@ -2,10 +2,11 @@
 (() => {
   const button = document.querySelector('.menu-toggle');
   const nav = document.getElementById('primary-nav');
-  const mobile = window.matchMedia('(max-width: 760px)');
+  const mobile = window.matchMedia('(max-width: 760px), (orientation: landscape) and (max-height: 600px) and (max-width: 1050px)');
   if (!button || !nav) return;
   function setOpen(open) {
     button.setAttribute('aria-expanded', String(open));
+    button.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     nav.hidden = mobile.matches && !open;
   }
   function syncViewport() {
